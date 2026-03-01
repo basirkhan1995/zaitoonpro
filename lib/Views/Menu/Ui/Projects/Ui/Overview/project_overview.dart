@@ -502,7 +502,6 @@ class _Tablet extends StatelessWidget {
     return  _TabletContent(model);
   }
 }
-
 class _TabletContent extends StatefulWidget {
   final ProjectsModel? model;
   const _TabletContent(this.model);
@@ -510,7 +509,6 @@ class _TabletContent extends StatefulWidget {
   @override
   State<_TabletContent> createState() => _TabletContentState();
 }
-
 class _TabletContentState extends State<_TabletContent> {
   final projectName = TextEditingController();
   final projectDetails = TextEditingController();
@@ -1017,6 +1015,7 @@ class _DesktopState extends State<_Desktop> {
     loginData = state.loginData;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Form(
@@ -1071,7 +1070,7 @@ class _DesktopState extends State<_Desktop> {
                           SizedBox(width: 5),
                           Expanded(
                             child: ZDatePicker(
-                              disablePastDate: true,
+                              initialDate: DateTime.tryParse(deadline),
                               isActive: !isPending,
                               label: tr.deadline,
                               value: deadline,

@@ -252,9 +252,7 @@ class _MobileState extends State<_Mobile> {
                             setState(() {
                               perId = value.perId!;
                               indAccountCtrl.clear();
-                              context
-                                  .read<AccountsBloc>()
-                                  .add(LoadAccountsEvent(ownerId: perId));
+                              context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: perId));
                             });
                           },
                           noResultsText: locale.noDataFound,

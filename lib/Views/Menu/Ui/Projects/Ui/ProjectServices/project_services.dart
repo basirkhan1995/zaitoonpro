@@ -59,7 +59,6 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
-
 class _DesktopState extends State<_Desktop> {
   final formKey = GlobalKey<FormState>();
   final servicesController = TextEditingController();
@@ -147,6 +146,7 @@ class _DesktopState extends State<_Desktop> {
     loginData = state.loginData;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Column(
         children: [
           // Add button to show form

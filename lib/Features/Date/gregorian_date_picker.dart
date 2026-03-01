@@ -8,7 +8,7 @@ class GregorianDatePicker extends StatefulWidget {
   final DateTime? initialDate;
   final int minYear;
   final int maxYear;
-  final bool disablePastDates; // New parameter
+  final bool disablePastDates;
 
   const GregorianDatePicker({
     super.key,
@@ -16,7 +16,7 @@ class GregorianDatePicker extends StatefulWidget {
     this.initialDate,
     this.minYear = 1900,
     this.maxYear = 2100,
-    this.disablePastDates = false, // Default to false
+    this.disablePastDates = false,  
   });
 
   @override

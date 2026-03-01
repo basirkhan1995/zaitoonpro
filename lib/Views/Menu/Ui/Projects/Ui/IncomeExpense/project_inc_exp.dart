@@ -419,7 +419,6 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   String? myLocale;
 
@@ -828,6 +827,7 @@ class _DesktopState extends State<_Desktop> {
     TextStyle? titleStyle = textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       floatingActionButton: widget.project?.prjStatus == 0
           ? FloatingActionButton(
         onPressed: _showAddTransactionDialog,

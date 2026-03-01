@@ -393,14 +393,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   ),
 
                   // Summary Section
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    spacing: 8,
-                    children: [
-                      Expanded(child: _buildSummarySection(context)),
-                      Expanded(child: _buildProfitSummarySection(context)),
-                    ],
-                  ),
+                  _buildSummarySection(context),
                 ],
               ),
             ),
@@ -722,134 +715,287 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           final current = state is SaleInvoiceSaving ?
           state : (state as SaleInvoiceLoaded);
 
+          final bool hasCreditAccount = current.customerAccount != null && current.creditAmount > 0;
+
           return Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: color.surface,
               border: Border.all(color: color.outline.withValues(alpha: .3)),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(5),
             ),
-            child: Column(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(tr.paymentMethod, style: TextStyle(fontWeight: FontWeight.bold)),
-                    InkWell(
-                      onTap: () => _showPaymentModeDialog(current),
-                      child: Row(
-                        children: [
-                          Text(_getPaymentModeLabel(current.paymentMode),
-                              style: TextStyle(color: color.primary)),
-                          const SizedBox(width: 4),
-                          Icon(Icons.edit, size: 16, color: color.primary),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                Divider(color: color.outline.withValues(alpha: .2)),
-
-                SizedBox(height: 5),
-
-                // Grand Total
-                _buildSummaryRow(
-                  label: tr.grandTotal,
-                  value: current.grandTotal,
-                  isBold: true,
-                ),
-                Divider(color: color.outline.withValues(alpha: .2)),
-
-                // Payment Breakdown
-                if (current.paymentMode == PaymentMode.cash) ...[
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.cashPayment,
-                    value: current.cashPayment,
-                    color: Colors.green,
-                  ),
-                ] else if (current.paymentMode == PaymentMode.credit) ...[
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.accountPayment,
-                    value: current.creditAmount,
-                    color: Colors.orange,
-                  ),
-                ] else if (current.paymentMode == PaymentMode.mixed) ...[
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.accountPayment,
-                    value: current.creditAmount,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(height: 4),
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.cashPayment,
-                    value: current.cashPayment,
-                    color: Colors.green,
-                  ),
-                ],
-
-                // Account Information
-                if (current.customerAccount != null) ...[
-                  Divider(color: color.outline.withValues(alpha: .2)),
-
-                  // Account details
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${current.customerAccount!.accNumber} | ${current.customerAccount!.accName}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // Current Balance
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.currentBalance,
-                    value: current.currentBalance,
-                    color: _getBalanceColor(current.currentBalance),
-                  ),
-
-                  if (current.creditAmount > 0) ...[
-                    const SizedBox(height: 4),
-                    // Transaction amount (credit)
-                    _buildSummaryRow(
-                      label: tr.invoiceAmount,
-                      value: current.creditAmount,
-                      color: Colors.orange,
-                    ),
-                    const SizedBox(height: 4),
-                    // New Balance - FOR SALE: Current Balance - Credit Amount
-                    _buildSummaryRow(
-                      label: AppLocalizations.of(context)!.newBalance,
-                      value: current.currentBalance - current.creditAmount,
-                      isBold: true,
-                      color: _getBalanceColor(current.currentBalance - current.creditAmount),
-                    ),
-                    // Status
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Row(
+                // LEFT SECTION - Always visible
+                Expanded(
+                  flex: hasCreditAccount ? 5 : 12,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min, // Minimize height
+                    children: [
+                      // Payment Method Row - Compact
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            tr.status,
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          Text(
-                            _getBalanceStatus(current.currentBalance - current.creditAmount),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                          Text(tr.paymentMethod,
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                          InkWell(
+                            onTap: () => _showPaymentModeDialog(current),
+                            child: Row(
+                              children: [
+                                Text(_getPaymentModeLabel(current.paymentMode),
+                                    style: TextStyle(color: color.primary, fontSize: 13)),
+                                const SizedBox(width: 8),
+                                Icon(Icons.edit, size: 14, color: color.primary),
+                              ],
                             ),
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 4),
+                      Divider(height: 1, color: color.outline.withValues(alpha: .2)),
+                      const SizedBox(height: 4),
+
+                      // Grand Total - Compact
+                      _buildCompactSummaryRow(
+                        label: tr.grandTotal,
+                        value: current.grandTotal,
+                        isBold: true,
+                      ),
+
+                      // Profit in same row with percentage - Compact
+                      if (current.totalPurchaseCost > 0) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              tr.profit,
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: current.totalProfit >= 0
+                                    ? Colors.green.withValues(alpha: .1)
+                                    : Colors.red.withValues(alpha: .1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    current.totalProfit >= 0 ? '+' : '',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: current.totalProfit >= 0
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  ),
+                                  Text(
+                                    current.totalProfit.toAmount(),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: current.totalProfit >= 0
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  ),
+                                  Text(
+                                    ' (${current.profitPercentage.toStringAsFixed(1)}%)',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: current.totalProfit >= 0
+                                          ? Colors.green.withValues(alpha: .7)
+                                          : Colors.red.withValues(alpha: .7),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+
+                      const SizedBox(height: 4),
+                      Divider(height: 1, color: color.outline.withValues(alpha: .2)),
+                      const SizedBox(height: 2),
+
+                      // Payment Breakdown - Compact
+                      if (current.paymentMode == PaymentMode.cash) ...[
+                        _buildCompactSummaryRow(
+                          label: AppLocalizations.of(context)!.cashPayment,
+                          value: current.cashPayment,
+                          color: Colors.green,
+                        ),
+                      ] else if (current.paymentMode == PaymentMode.credit) ...[
+                        _buildCompactSummaryRow(
+                          label: AppLocalizations.of(context)!.accountPayment,
+                          value: current.creditAmount,
+                          color: Colors.orange,
+                        ),
+                      ] else if (current.paymentMode == PaymentMode.mixed) ...[
+                        _buildCompactSummaryRow(
+                          label: AppLocalizations.of(context)!.accountPayment,
+                          value: current.creditAmount,
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(height: 2),
+                        _buildCompactSummaryRow(
+                          label: AppLocalizations.of(context)!.cashPayment,
+                          value: current.cashPayment,
+                          color: Colors.green,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+
+                // RIGHT SECTION - Only visible when credit account is selected
+                if (hasCreditAccount) ...[
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    height: 120,
+                    child: VerticalDivider(
+                      width: 1,
+                      thickness: 1.5,
+                      color: color.outline.withValues(alpha: .15),
                     ),
-                  ],
+                  ),
+                  const SizedBox(width: 12),
+
+                  Expanded(
+                    flex: 7,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min, // Minimize height
+                      children: [
+                        // Account name and number in a single row
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: color.primary.withValues(alpha: .05),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  current.customerAccount!.accName ?? '',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: color.primary.withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '#${current.customerAccount!.accNumber}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: color.primary,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        // Balance Information in a row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildMiniBalanceRow(
+                                label: tr.currentBalance,
+                                value: current.currentBalance,
+                                color: _getBalanceColor(current.currentBalance),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: _buildMiniBalanceRow(
+                                label: tr.invoiceAmount,
+                                value: current.creditAmount,
+                                color: Colors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 4),
+
+                        // New Balance and Status in a row
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: color.primary.withValues(alpha: .05),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // New Balance
+                              Row(
+                                children: [
+                                  Text(
+                                    '${tr.newBalance} :',
+                                    style: TextStyle(fontSize: 15, color: color.outline),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    (current.currentBalance - current.creditAmount).toAmount(),
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              // Status
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: _getBalanceColor(current.currentBalance - current.creditAmount)
+                                      .withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  _getBalanceStatus(current.currentBalance - current.creditAmount),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -860,106 +1006,67 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-  Widget _buildProfitSummarySection(BuildContext context) {
-    final color = Theme.of(context).colorScheme;
-    final tr = AppLocalizations.of(context)!;
-
-    return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-      builder: (context, state) {
-        if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-          final current = state is SaleInvoiceSaving ?
-          state :
-          (state as SaleInvoiceLoaded);
-
-          return Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.surface,
-              border: Border.all(color: color.outline.withValues(alpha: .3)),
-              borderRadius: BorderRadius.circular(8),
+// Helper method for compact summary rows
+  Widget _buildCompactSummaryRow({
+    required String label,
+    required double value,
+    Color? color,
+    bool isBold = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
             ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(tr.profitSummary, style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(width: 4),
-                    Icon(Icons.ssid_chart, size: 22, color: color.primary),
-                  ],
-                ),
-                Divider(color: color.outline.withValues(alpha: .2)),
-                // Profit Summary
-                _buildSummaryRow(
-                  label: tr.totalCost,
-                  value: current.totalPurchaseCost,
-                  color: color.primary.withValues(alpha: .9),
-                ),
-                SizedBox(height: 5),
-                _buildSummaryRow(
-                  label: tr.profit,
-                  value: current.totalProfit,
-                  color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                  isBold: true,
-                ),
-                if (current.totalPurchaseCost > 0)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('${tr.profit} %', style: TextStyle(fontSize: 16)),
-                      Text(
-                        '${current.profitPercentage.toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                Divider(color: color.outline.withValues(alpha: .2)),
-
-                // Grand Total
-                _buildSummaryRow(
-                  label: tr.grandTotal,
-                  value: current.grandTotal,
-                  isBold: true,
-                ),
-
-              ],
+          ),
+          Text(
+            value.toAmount(),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
+              color: color,
             ),
-          );
-        }
-        return const SizedBox();
-      },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildSummaryRow({
+// Helper method for mini balance rows in the right section
+  Widget _buildMiniBalanceRow({
     required String label,
     required double value,
-    bool isBold = false,
-    Color? color,
+    required Color color,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 16 : 14,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .05),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 13, color: color.withValues(alpha: .7)),
           ),
-        ),
-        Text(
-          "${value.toAmount()} $baseCurrency",
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 16 : 14,
-            color: color ?? Theme.of(context).colorScheme.primary,
+          Text(
+            value.toAmount(),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

@@ -64,10 +64,7 @@ class ZDraggableSheet {
               padding: padding,
               decoration: BoxDecoration(
                 color: backgroundColor ?? color.surface,
-                borderRadius: borderRadius ??
-                    const BorderRadius.vertical(
-                      top: Radius.circular(20),
-                    ),
+                borderRadius: borderRadius ?? const BorderRadius.vertical(top: Radius.circular(20)),
                 boxShadow: const [
                   BoxShadow(
                     blurRadius: 20,
@@ -85,7 +82,7 @@ class ZDraggableSheet {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 12),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade400,
+                          color: Theme.of(context).colorScheme.outline,
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
@@ -116,17 +113,13 @@ class ZDraggableSheet {
 
                         /// Custom trailing or close
                         trailing ??
-                            (showCloseButton
-                                ? IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () =>
-                                  Navigator.pop(context),
+                            (showCloseButton ? IconButton(icon: const Icon(Icons.close),
+                                 onPressed: () => Navigator.pop(context),
                             )
                                 : const SizedBox()),
                       ],
                     ),
 
-                    Divider(color: color.outlineVariant),
                   ],
 
                   /// 🔹 BODY (SCROLL CONNECTED)

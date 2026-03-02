@@ -34,23 +34,7 @@ class ProjectServicesView extends StatelessWidget {
   }
 }
 
-class _Mobile extends StatelessWidget {
-  final ProjectsModel? projectId;
-  const _Mobile(this.projectId);
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
 
-class _Tablet extends StatelessWidget {
-  final ProjectsModel? projectId;
-  const _Tablet(this.projectId);
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
 
 class _Desktop extends StatefulWidget {
   final ProjectsModel? projectId;
@@ -644,3 +628,1302 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 }
+
+
+
+class _Mobile extends StatefulWidget {
+  final ProjectsModel? project;
+  const _Mobile(this.project);
+
+  @override
+  State<_Mobile> createState() => _MobileState();
+}
+class _MobileState extends State<_Mobile> {
+  final formKey = GlobalKey<FormState>();
+  final servicesController = TextEditingController();
+  final qty = TextEditingController(text: "1");
+  final amount = TextEditingController();
+  final remark = TextEditingController();
+  int? serviceId;
+  int? editingPjdId;
+  String? myLocale;
+  LoginData? loginData;
+  bool _isFormVisible = false;
+
+  @override
+  void initState() {
+    myLocale = context.read<LocalizationBloc>().state.languageCode;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.project != null) {
+        context.read<ProjectServicesBloc>().add(LoadProjectServiceEvent(widget.project!.prjId!));
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    remark.dispose();
+    servicesController.dispose();
+    amount.dispose();
+    qty.dispose();
+    super.dispose();
+  }
+
+  void clearForm() {
+    servicesController.clear();
+    qty.text = "1";
+    amount.clear();
+    remark.clear();
+    setState(() {
+      serviceId = null;
+      editingPjdId = null;
+      _isFormVisible = false;
+    });
+  }
+
+  void loadServiceForEditing(ProjectServicesModel service) {
+    setState(() {
+      servicesController.text = service.srvName ?? '';
+      qty.text = service.pjdQuantity?.toString() ?? '1';
+      amount.text = service.pjdPricePerQty?.toString() ?? '';
+      remark.text = service.pjdRemark ?? '';
+      serviceId = service.srvId;
+      editingPjdId = service.pjdId;
+      _isFormVisible = true;
+    });
+  }
+
+  void showAddForm() {
+    clearForm();
+    setState(() {
+      _isFormVisible = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+
+    final state = context.watch<AuthBloc>().state;
+    if (state is! AuthenticatedState) {
+      return const SizedBox();
+    }
+    loginData = state.loginData;
+
+    return Scaffold(
+
+      appBar: AppBar(
+        leading: SizedBox(),
+        actions: [
+          if (widget.project?.prjStatus == 0 && !_isFormVisible)
+            IconButton(
+              icon: const Icon(Icons.add),
+              onPressed: showAddForm,
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // Form Section
+          if (_isFormVisible)
+            _buildFormSection(context),
+
+          // Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.primary,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(tr.projectServices, style: _getHeaderStyle(context)),
+                ),
+                SizedBox(
+                  width: 50,
+                  child: Text(tr.qty, style: _getHeaderStyle(context)),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    tr.amount,
+                    textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
+                    style: _getHeaderStyle(context),
+                  ),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    tr.totalTitle,
+                    textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
+                    style: _getHeaderStyle(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Services List
+          Expanded(
+            child: BlocConsumer<ProjectServicesBloc, ProjectServicesState>(
+              listener: (context, state) {
+                if (state is ProjectServicesSuccessState) {
+                  setState(() {
+                    _isFormVisible = false;
+                  });
+                  clearForm();
+                  ToastManager.show(context: context, message: tr.successMessage, type: ToastType.success);
+                }
+                if (state is ProjectServicesErrorState) {
+                  ToastManager.show(context: context, message: state.message, type: ToastType.error);
+                }
+              },
+              builder: (context, state) {
+                if (state is ProjectServicesErrorState) {
+                  return NoDataWidget(
+                    title: tr.errorTitle,
+                    message: state.message,
+                    onRefresh: () {
+                      if (widget.project != null) {
+                        context.read<ProjectServicesBloc>().add(
+                          LoadProjectServiceEvent(widget.project!.prjId!),
+                        );
+                      }
+                    },
+                  );
+                }
+                if (state is ProjectServicesLoadedState) {
+                  if (state.projectServices.isEmpty) {
+                    return NoDataWidget(
+                      title: "No Services",
+                      message: "Click Add Services",
+                      enableAction: false,
+                    );
+                  }
+
+                  double totalSum = 0;
+                  for (var service in state.projectServices) {
+                    totalSum += service.total ?? 0;
+                  }
+
+                  return Column(
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          itemCount: state.projectServices.length,
+                          itemBuilder: (context, index) {
+                            final prjServices = state.projectServices[index];
+                            return _buildMobileServiceCard(
+                              context,
+                              prjServices,
+                              index,
+                              color,
+                              tr,
+                            );
+                          },
+                        ),
+                      ),
+                      _buildTotalFooter(context, totalSum, state.projectServices.length, color, tr),
+                    ],
+                  );
+                }
+                if (state is ProjectServicesLoadingState && !_isFormVisible) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                return const SizedBox();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  TextStyle? _getHeaderStyle(BuildContext context) {
+    return Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: Theme.of(context).colorScheme.surface,
+      fontWeight: FontWeight.bold,
+    );
+  }
+
+  Widget _buildFormSection(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+
+    return ZCover(
+      padding: const EdgeInsets.all(12),
+      color: color.surface,
+      child: Form(
+        key: formKey,
+        child: Column(
+          children: [
+            // Service Selection
+            GenericTextfield<ServicesModel, ServicesBloc, ServicesState>(
+              controller: servicesController,
+              title: tr.services,
+              hintText: tr.services,
+              trailing: IconButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AddEditServiceView(),
+                  );
+                },
+                icon: const Icon(Icons.add),
+              ),
+              isRequired: true,
+              bloc: context.read<ServicesBloc>(),
+              fetchAllFunction: (bloc) => bloc.add(LoadServicesEvent()),
+              searchFunction: (bloc, query) => bloc.add(LoadServicesEvent(search: query)),
+              validator: (value) {
+                if (value.isEmpty) {
+                  return tr.required(tr.services);
+                }
+                return null;
+              },
+              itemBuilder: (context, ser) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+                child: Text(
+                  ser.srvName ?? "",
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+              itemToString: (ser) => ser.srvName ?? "",
+              stateToLoading: (state) => state is ServicesLoadingState,
+              loadingBuilder: (context) => const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              stateToItems: (state) {
+                if (state is ServicesLoadedState) {
+                  return state.services;
+                }
+                return [];
+              },
+              onSelected: (value) {
+                setState(() {
+                  serviceId = value.srvId;
+                });
+              },
+              noResultsText: tr.noDataFound,
+              showClearButton: true,
+            ),
+            const SizedBox(height: 12),
+
+            // Quantity and Amount Row
+            Row(
+              children: [
+                Expanded(
+                  child: ZTextFieldEntitled(
+                    isRequired: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return tr.required(tr.qty);
+                      }
+                      if (double.tryParse(value) == null) {
+                        return "Enter Valid Number";
+                      }
+                      return null;
+                    },
+                    controller: qty,
+                    title: tr.qty,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ZTextFieldEntitled(
+                    isRequired: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return tr.required(tr.amount);
+                      }
+                      if (double.tryParse(value) == null) {
+                        return "Enter Valid Amount";
+                      }
+                      return null;
+                    },
+                    controller: amount,
+                    title: tr.amount,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // Remark
+            ZTextFieldEntitled(
+              keyboardInputType: TextInputType.multiline,
+              controller: remark,
+              title: tr.remark
+            ),
+            const SizedBox(height: 12),
+
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {
+                      clearForm();
+                    },
+                    child: Text(tr.cancel),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: (context.watch<ProjectServicesBloc>().state is ProjectServicesLoadingState)
+                        ? null
+                        : (editingPjdId != null ? onUpdateSubmit : onAddSubmit),
+                    child: (context.watch<ProjectServicesBloc>().state is ProjectServicesLoadingState)
+                        ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                        : Text(editingPjdId != null ? tr.update : tr.create),
+                  ),
+                ),
+              ],
+            ),
+            if (editingPjdId != null) ...[
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: (context.watch<ProjectServicesBloc>().state is ProjectServicesLoadingState)
+                      ? null
+                      : onDeleteSubmit,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: color.error,
+                    side: BorderSide(color: color.error),
+                  ),
+                  child: Text(tr.delete),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileServiceCard(
+      BuildContext context,
+      ProjectServicesModel service,
+      int index,
+      ColorScheme color,
+      AppLocalizations tr,
+      ) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: InkWell(
+        onTap: () => (widget.project?.prjStatus == 0) ? loadServiceForEditing(service) : null,
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Service Name and Actions
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      service.srvName ?? "",
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (widget.project?.prjStatus == 0)
+                    PopupMenuButton(
+                      icon: const Icon(Icons.more_vert, size: 18),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          onTap: () => loadServiceForEditing(service),
+                          child: Row(
+                            children: [
+                              Icon(Icons.edit, size: 16, color: color.primary),
+                              const SizedBox(width: 8),
+                              Text(tr.edit),
+                            ],
+                          ),
+                        ),
+                        PopupMenuItem(
+                          onTap: () => showDeleteConfirmation(service),
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete, size: 16, color: color.error),
+                              const SizedBox(width: 8),
+                              Text(tr.delete),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+
+              // Remark if exists
+              if (service.pjdRemark?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 4),
+                Text(
+                  service.pjdRemark!,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+
+              const SizedBox(height: 8),
+
+              // Quantity, Amount, Total Row
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tr.qty,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          service.pjdQuantity?.toString() ?? '0',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          tr.amount,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          "${(service.pjdPricePerQty ?? 0).toAmount()} ${widget.project?.actCurrency}",
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          tr.totalTitle,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        Text(
+                          "${(service.total ?? 0).toAmount()} ${widget.project?.actCurrency}",
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: color.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTotalFooter(
+      BuildContext context,
+      double totalSum,
+      int itemCount,
+      ColorScheme color,
+      AppLocalizations tr,
+      ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.surface,
+        boxShadow: [
+          BoxShadow(
+            color: color.outline.withValues(alpha: 0.1),
+            blurRadius: 4,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr.services,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                '$itemCount ${tr.items}',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                tr.totalTitle,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              Text(
+                "${totalSum.toAmount()} ${widget.project?.actCurrency}",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color.primary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void onAddSubmit() async {
+    if (!formKey.currentState!.validate()) return;
+    if (serviceId == null) {
+      ToastManager.show(
+        context: context,
+        message: "Select Service",
+        type: ToastType.warning,
+      );
+      return;
+    }
+
+    final bloc = context.read<ProjectServicesBloc>();
+
+    final data = ProjectServicesModel(
+      prjId: widget.project!.prjId!,
+      srvId: serviceId,
+      pjdQuantity: double.tryParse(qty.text),
+      pjdPricePerQty: double.tryParse(amount.text),
+      usrName: loginData?.usrName,
+    );
+
+    bloc.add(AddProjectServiceEvent(data));
+  }
+
+  void onUpdateSubmit() async {
+    if (!formKey.currentState!.validate()) return;
+    if (serviceId == null) {
+      ToastManager.show(
+        context: context,
+        message: "Select Service",
+        type: ToastType.warning,
+      );
+      return;
+    }
+
+    final bloc = context.read<ProjectServicesBloc>();
+
+    final data = ProjectServicesModel(
+      pjdId: editingPjdId,
+      prjId: widget.project!.prjId!,
+      srvId: serviceId,
+      pjdRemark: remark.text,
+      srvName: servicesController.text,
+      pjdQuantity: double.tryParse(qty.text),
+      pjdPricePerQty: double.tryParse(amount.text),
+      usrName: loginData?.usrName,
+    );
+
+    bloc.add(UpdateProjectServiceEvent(data));
+  }
+
+  void onDeleteSubmit() {
+    if (editingPjdId == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => ZAlertDialog(
+        title: "confirm Delete",
+        content: "Delete Service Confirmation",
+        onYes: () {
+          final bloc = context.read<ProjectServicesBloc>();
+          bloc.add(
+            DeleteProjectServiceEvent(
+              editingPjdId!,
+              widget.project!.prjId!,
+              loginData?.usrName ?? '',
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void showDeleteConfirmation(ProjectServicesModel service) {
+    showDialog(
+      context: context,
+      builder: (context) => ZAlertDialog(
+        title: "Confirm Delete",
+        content: '${AppLocalizations.of(context)!.delete} ${service.srvName}?',
+        onYes: () {
+          final bloc = context.read<ProjectServicesBloc>();
+          bloc.add(
+            DeleteProjectServiceEvent(
+              service.pjdId!,
+              widget.project!.prjId!,
+              loginData?.usrName ?? '',
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _Tablet extends StatefulWidget {
+  final ProjectsModel? project;
+  const _Tablet(this.project);
+
+  @override
+  State<_Tablet> createState() => _TabletState();
+}
+class _TabletState extends State<_Tablet> {
+  final formKey = GlobalKey<FormState>();
+  final servicesController = TextEditingController();
+  final qty = TextEditingController(text: "1");
+  final amount = TextEditingController();
+  final remark = TextEditingController();
+  int? serviceId;
+  int? editingPjdId;
+  String? myLocale;
+  LoginData? loginData;
+  bool _isFormVisible = false;
+
+  @override
+  void initState() {
+    myLocale = context.read<LocalizationBloc>().state.languageCode;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.project != null) {
+        context.read<ProjectServicesBloc>().add(LoadProjectServiceEvent(widget.project!.prjId!));
+      }
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    remark.dispose();
+    servicesController.dispose();
+    amount.dispose();
+    qty.dispose();
+    super.dispose();
+  }
+
+  void clearForm() {
+    servicesController.clear();
+    qty.text = "1";
+    amount.clear();
+    remark.clear();
+    setState(() {
+      serviceId = null;
+      editingPjdId = null;
+      _isFormVisible = false;
+    });
+  }
+
+  void loadServiceForEditing(ProjectServicesModel service) {
+    setState(() {
+      servicesController.text = service.srvName ?? '';
+      qty.text = service.pjdQuantity?.toString() ?? '1';
+      amount.text = service.pjdPricePerQty?.toString() ?? '';
+      remark.text = service.pjdRemark ?? '';
+      serviceId = service.srvId;
+      editingPjdId = service.pjdId;
+      _isFormVisible = true;
+    });
+  }
+
+  void showAddForm() {
+    clearForm();
+    setState(() {
+      _isFormVisible = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+
+    final state = context.watch<AuthBloc>().state;
+    if (state is! AuthenticatedState) {
+      return const SizedBox();
+    }
+    loginData = state.loginData;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: SizedBox(),
+        actions: [
+          if (widget.project?.prjStatus == 0 && !_isFormVisible)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ZOutlineButton(
+                onPressed: showAddForm,
+                icon: Icons.add,
+                label: Text(tr.addNewServices),
+              ),
+            ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Column(
+          children: [
+            // Form Section
+            if (_isFormVisible)
+              _buildFormSection(context),
+
+            // Header
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: color.primary,
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(tr.projectServices, style: _getHeaderStyle(context)),
+                  ),
+                  SizedBox(
+                    width: 80,
+                    child: Text(tr.qty, style: _getHeaderStyle(context)),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: Text(
+                      tr.amount,
+                      textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
+                      style: _getHeaderStyle(context),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: Text(
+                      tr.totalTitle,
+                      textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
+                      style: _getHeaderStyle(context),
+                    ),
+                  ),
+                  const SizedBox(width: 40), // For actions
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // Services List
+            Expanded(
+              child: BlocConsumer<ProjectServicesBloc, ProjectServicesState>(
+                listener: (context, state) {
+                  if (state is ProjectServicesSuccessState) {
+                    setState(() {
+                      _isFormVisible = false;
+                    });
+                    clearForm();
+                    ToastManager.show(context: context, message: tr.successMessage, type: ToastType.success);
+                  }
+                  if (state is ProjectServicesErrorState) {
+                    ToastManager.show(context: context, message: state.message, type: ToastType.error);
+                  }
+                },
+                builder: (context, state) {
+                  if (state is ProjectServicesErrorState) {
+                    return NoDataWidget(
+                      title: tr.errorTitle,
+                      message: state.message,
+                      onRefresh: () {
+                        if (widget.project != null) {
+                          context.read<ProjectServicesBloc>().add(
+                            LoadProjectServiceEvent(widget.project!.prjId!),
+                          );
+                        }
+                      },
+                    );
+                  }
+                  if (state is ProjectServicesLoadedState) {
+                    if (state.projectServices.isEmpty) {
+                      return NoDataWidget(
+                        title: "No Services",
+                        message: "Click Add Services",
+                        enableAction: false,
+                      );
+                    }
+
+                    double totalSum = 0;
+                    for (var service in state.projectServices) {
+                      totalSum += service.total ?? 0;
+                    }
+
+                    return Column(
+                      children: [
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: state.projectServices.length,
+                            itemBuilder: (context, index) {
+                              final prjServices = state.projectServices[index];
+                              return _buildTabletServiceTile(
+                                context,
+                                prjServices,
+                                index,
+                                color,
+                                tr,
+                              );
+                            },
+                          ),
+                        ),
+                        _buildTotalFooter(context, totalSum, state.projectServices.length, color, tr),
+                      ],
+                    );
+                  }
+                  if (state is ProjectServicesLoadingState && !_isFormVisible) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return const SizedBox();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  TextStyle? _getHeaderStyle(BuildContext context) {
+    return Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: Theme.of(context).colorScheme.surface,
+      fontWeight: FontWeight.bold,
+    );
+  }
+
+  Widget _buildFormSection(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    return ZCover(
+      margin: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: formKey,
+          child: Column(
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: GenericTextfield<ServicesModel, ServicesBloc, ServicesState>(
+                      controller: servicesController,
+                      title: tr.services,
+                      hintText: tr.services,
+                      trailing: IconButton(
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AddEditServiceView(),
+                          );
+                        },
+                        icon: const Icon(Icons.add),
+                      ),
+                      isRequired: true,
+                      bloc: context.read<ServicesBloc>(),
+                      fetchAllFunction: (bloc) => bloc.add(LoadServicesEvent()),
+                      searchFunction: (bloc, query) => bloc.add(LoadServicesEvent(search: query)),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return tr.required(tr.services);
+                        }
+                        return null;
+                      },
+                      itemBuilder: (context, ser) => Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
+                        child: Text(
+                          ser.srvName ?? "",
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                      ),
+                      itemToString: (ser) => ser.srvName ?? "",
+                      stateToLoading: (state) => state is ServicesLoadingState,
+                      loadingBuilder: (context) => const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      stateToItems: (state) {
+                        if (state is ServicesLoadedState) {
+                          return state.services;
+                        }
+                        return [];
+                      },
+                      onSelected: (value) {
+                        setState(() {
+                          serviceId = value.srvId;
+                        });
+                      },
+                      noResultsText: tr.noDataFound,
+                      showClearButton: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ZTextFieldEntitled(
+                      isRequired: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return tr.required(tr.qty);
+                        }
+                        if (double.tryParse(value) == null) {
+                          return "enterValidNumber";
+                        }
+                        return null;
+                      },
+                      controller: qty,
+                      title: tr.qty,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ZTextFieldEntitled(
+                      isRequired: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return tr.required(tr.amount);
+                        }
+                        if (double.tryParse(value) == null) {
+                          return "enterValidAmount";
+                        }
+                        return null;
+                      },
+                      controller: amount,
+                      title: tr.amount,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ZTextFieldEntitled(
+                keyboardInputType: TextInputType.multiline,
+                controller: remark,
+                title: tr.remark,
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ZOutlineButton(
+                            onPressed: clearForm,
+                            label: Text(tr.cancel),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: ZOutlineButton(
+                            isActive: true,
+                            onPressed: (context.watch<ProjectServicesBloc>().state is ProjectServicesLoadingState)
+                                ? null
+                                : (editingPjdId != null ? onUpdateSubmit : onAddSubmit),
+                              label: (context.watch<ProjectServicesBloc>().state is ProjectServicesLoadingState)
+                                ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                                : Text(editingPjdId != null ? tr.update : tr.create),
+                          ),
+                        ),
+
+                        if (editingPjdId != null) ...[
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: ZOutlineButton(
+                              isActive: true,
+                              backgroundHover: Theme.of(context).colorScheme.error,
+                              onPressed: (context.watch<ProjectServicesBloc>().state is ProjectServicesLoadingState)
+                                  ? null
+                                  : onDeleteSubmit,
+                              label: Text(tr.delete),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabletServiceTile(
+      BuildContext context,
+      ProjectServicesModel service,
+      int index,
+      ColorScheme color,
+      AppLocalizations tr,
+      ) {
+    return InkWell(
+      onTap: () => (widget.project?.prjStatus == 0) ? loadServiceForEditing(service) : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: index.isOdd ? color.primary.withValues(alpha: .05) : Colors.transparent,
+          border: Border(
+            bottom: BorderSide(color: color.outline.withValues(alpha: .2)),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    service.srvName ?? "",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (service.pjdRemark?.isNotEmpty ?? false)
+                    Text(
+                      service.pjdRemark!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
+              ),
+            ),
+            SizedBox(
+              width: 80,
+              child: Text(service.pjdQuantity?.toString() ?? '0'),
+            ),
+            SizedBox(
+              width: 120,
+              child: Text(
+                "${(service.pjdPricePerQty ?? 0).toAmount()} ${widget.project?.actCurrency}",
+                textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
+              ),
+            ),
+            SizedBox(
+              width: 120,
+              child: Text(
+                "${(service.total ?? 0).toAmount()} ${widget.project?.actCurrency}",
+                textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            SizedBox(
+              width: 40,
+              child: widget.project?.prjStatus == 0
+                  ? PopupMenuButton(
+                icon: const Icon(Icons.more_vert, size: 18),
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    onTap: () => loadServiceForEditing(service),
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 16, color: color.primary),
+                        const SizedBox(width: 8),
+                        Text(tr.edit),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    onTap: () => showDeleteConfirmation(service),
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete, size: 16, color: color.error),
+                        const SizedBox(width: 8),
+                        Text(tr.delete),
+                      ],
+                    ),
+                  ),
+                ],
+              )
+                  : const SizedBox(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTotalFooter(
+      BuildContext context,
+      double totalSum,
+      int itemCount,
+      ColorScheme color,
+      AppLocalizations tr,
+      ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.primary.withValues(alpha: 0.03),
+        border: Border(
+          top: BorderSide(color: color.primary.withValues(alpha: 0.5)),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                "${tr.services}: ",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Text(
+                itemCount.toString(),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color.primary,
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Text(
+                "${tr.totalTitle}: ",
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              Text(
+                "${totalSum.toAmount()} ${widget.project?.actCurrency}",
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: color.primary,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void onAddSubmit() async {
+    if (!formKey.currentState!.validate()) return;
+    if (serviceId == null) {
+      ToastManager.show(
+        context: context,
+        message: "selectService",
+        type: ToastType.warning,
+      );
+      return;
+    }
+
+    final bloc = context.read<ProjectServicesBloc>();
+
+    final data = ProjectServicesModel(
+      prjId: widget.project!.prjId!,
+      srvId: serviceId,
+      pjdQuantity: double.tryParse(qty.text),
+      pjdPricePerQty: double.tryParse(amount.text),
+      usrName: loginData?.usrName,
+    );
+
+    bloc.add(AddProjectServiceEvent(data));
+  }
+
+  void onUpdateSubmit() async {
+    if (!formKey.currentState!.validate()) return;
+    if (serviceId == null) {
+      ToastManager.show(
+        context: context,
+        message: "Select Service",
+        type: ToastType.warning,
+      );
+      return;
+    }
+
+    final bloc = context.read<ProjectServicesBloc>();
+
+    final data = ProjectServicesModel(
+      pjdId: editingPjdId,
+      prjId: widget.project!.prjId!,
+      srvId: serviceId,
+      pjdRemark: remark.text,
+      srvName: servicesController.text,
+      pjdQuantity: double.tryParse(qty.text),
+      pjdPricePerQty: double.tryParse(amount.text),
+      usrName: loginData?.usrName,
+    );
+
+    bloc.add(UpdateProjectServiceEvent(data));
+  }
+
+  void onDeleteSubmit() {
+    if (editingPjdId == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => ZAlertDialog(
+        title: "confirmDelete",
+        content: "deleteServiceConfirmation",
+        onYes: () {
+          final bloc = context.read<ProjectServicesBloc>();
+          bloc.add(
+            DeleteProjectServiceEvent(
+              editingPjdId!,
+              widget.project!.prjId!,
+              loginData?.usrName ?? '',
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void showDeleteConfirmation(ProjectServicesModel service) {
+    showDialog(
+      context: context,
+      builder: (context) => ZAlertDialog(
+        title: "Confirm Delete",
+        content: '${AppLocalizations.of(context)!.delete} ${service.srvName}?',
+        onYes: () {
+          final bloc = context.read<ProjectServicesBloc>();
+          bloc.add(
+            DeleteProjectServiceEvent(
+              service.pjdId!,
+              widget.project!.prjId!,
+              loginData?.usrName ?? '',
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+

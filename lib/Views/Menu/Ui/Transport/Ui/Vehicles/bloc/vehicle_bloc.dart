@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:zaitoon_petroleum/Services/repositories.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Transport/Ui/Vehicles/model/vehicle_model.dart';
 
-import '../../../../Report/Ui/Transport/Vehicle/model/vehicle_report_model.dart';
 
 part 'vehicle_event.dart';
 part 'vehicle_state.dart';

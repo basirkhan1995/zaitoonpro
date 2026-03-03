@@ -16,7 +16,8 @@ class ServicesReportBloc extends Bloc<ServicesReportEvent, ServicesReportState> 
           fromDate: event.fromDate,
           toDate: event.toDate,
           projectId: event.projectId,
-          serviceId: event.serviceId
+          serviceId: event.serviceId,
+          currency: event.currency
         );
         emit(ServicesReportLoadedState(services??[]));
       }catch(e){

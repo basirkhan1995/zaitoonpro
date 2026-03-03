@@ -5,6 +5,7 @@ import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/features/currency_drop.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/ProjectsById/projects_by_id.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Projects/ProjectList/bloc/projects_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Projects/ProjectList/model/projects_report_model.dart';
@@ -35,7 +36,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   String fromDate = DateTime.now()
       .subtract(const Duration(days: 7))
@@ -393,7 +393,7 @@ class _MobileState extends State<_Mobile> {
       showCloseButton: true,
       showDragHandle: true,
       adaptiveInitialSize: true,
-      estimatedContentHeight: 380,
+      estimatedContentHeight: 440,
       bodyBuilder: (context, scrollController) {
         return SingleChildScrollView(
           controller: scrollController,
@@ -453,7 +453,7 @@ class _MobileState extends State<_Mobile> {
                 noResultsText: tr.noDataFound,
                 showClearButton: true,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 15),
 
               // Date Range
               Row(
@@ -479,8 +479,26 @@ class _MobileState extends State<_Mobile> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 15),
 
+              CurrencyDropdown(
+                  title: tr.currencyTitle,
+                  isMulti: false,
+                  onMultiChanged: (e){},
+                  onSingleChanged: (e){
+                    context.read<ProjectsReportBloc>().add(
+                      LoadProjectReportEvent(
+                        fromDate: fromDate,
+                        toDate: toDate,
+                        customerId: customerId,
+                        status: status,
+                        currency: e?.ccyCode??""
+                      ),
+                    );
+                    Navigator.of(context).pop();
+                  },
+              ),
+              const SizedBox(height: 15),
               // Status Dropdown
               StatusDropdown(
                 value: localStatus,
@@ -666,6 +684,25 @@ class _DesktopState extends State<_Desktop> {
                       setState(() {
                         toDate = v;
                       });
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: CurrencyDropdown(
+                    title: tr.currencyTitle,
+                    isMulti: false,
+                    onMultiChanged: (e){},
+                    onSingleChanged: (e){
+                      context.read<ProjectsReportBloc>().add(
+                        LoadProjectReportEvent(
+                            fromDate: fromDate,
+                            toDate: toDate,
+                            customerId: customerId,
+                            status: status,
+                            currency: e?.ccyCode??""
+                        ),
+                      );
                     },
                   ),
                 ),

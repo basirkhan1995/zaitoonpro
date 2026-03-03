@@ -15,6 +15,7 @@ import '../../../../../../../../Features/Date/z_generic_date.dart';
 import '../../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../../Features/Widgets/zcard_mobile.dart';
+import '../../../../../Finance/Ui/Currency/features/currency_drop.dart';
 import '../bloc/services_report_bloc.dart';
 
 class ServicesReportView extends StatelessWidget {
@@ -88,7 +89,7 @@ class _MobileTabletLayoutState extends State<_MobileTabletLayout> {
       showCloseButton: true,
       showDragHandle: true,
       adaptiveInitialSize: true,
-      estimatedContentHeight: 460,
+      estimatedContentHeight: 530,
       bodyBuilder: (context, scrollController) {
         return ListView(
           controller: scrollController,
@@ -195,7 +196,25 @@ class _MobileTabletLayoutState extends State<_MobileTabletLayout> {
                 });
               },
             ),
-
+            const SizedBox(height: 15),
+            Expanded(
+              child: CurrencyDropdown(
+                title: tr.currencyTitle,
+                isMulti: false,
+                onMultiChanged: (e){},
+                onSingleChanged: (e){
+                  context.read<ServicesReportBloc>().add(
+                    LoadServicesReportEvent(
+                        fromDate: fromDate,
+                        toDate: toDate,
+                        serviceId: serviceId,
+                        projectId: projectId,
+                        currency: e?.ccyCode??""
+                    ),
+                  );
+                },
+              ),
+            ),
             const SizedBox(height: 16),
 
             // Date Pickers
@@ -222,7 +241,6 @@ class _MobileTabletLayoutState extends State<_MobileTabletLayout> {
             ),
 
             const SizedBox(height: 24),
-
             // Apply Filter Button
             SizedBox(
               width: double.infinity,
@@ -452,7 +470,7 @@ class _MobileTabletLayoutState extends State<_MobileTabletLayout> {
                       final infoItems = [
                         MobileInfoItem(
                           icon: Icons.money,
-                          text: service.pjdPricePerQty.toAmount(),
+                          text: "${service.pjdPricePerQty.toAmount()} ${service.currency}",
                         ),
                         MobileInfoItem(
                           icon: Icons.format_list_numbered,
@@ -460,7 +478,7 @@ class _MobileTabletLayoutState extends State<_MobileTabletLayout> {
                         ),
                         MobileInfoItem(
                           icon: Icons.calculate,
-                          text: "Total: ${service.totalAmount.toAmount()}",
+                          text: "Total: ${service.totalAmount.toAmount()} ${service.currency}",
                           iconColor: Colors.green,
                         ),
                       ];
@@ -733,6 +751,23 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 const SizedBox(width: 8),
+                Expanded(
+                  child: CurrencyDropdown(
+                    title: tr.currencyTitle,
+                    isMulti: false,
+                    onMultiChanged: (e){},
+                    onSingleChanged: (e){
+                      context.read<ServicesReportBloc>().add(LoadServicesReportEvent(
+                          fromDate: fromDate,
+                          toDate: toDate,
+                          serviceId: serviceId,
+                          projectId: projectId,
+                          currency: e?.ccyCode??""
+                      ));
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
                 ZOutlineButton(
                     isActive: true,
                     height: 47,
@@ -771,7 +806,7 @@ class _DesktopState extends State<_Desktop> {
 
                 SizedBox(
                     width: 100,
-                    child: Text("QTY",style: titleStyle)),
+                    child: Text(tr.qty,style: titleStyle)),
 
                 SizedBox(
                     width: 100,
@@ -816,13 +851,13 @@ class _DesktopState extends State<_Desktop> {
                           ),
                            SizedBox(
                                width: 100,
-                               child: Text(service.pjdPricePerQty.toAmount())),
+                               child: Text("${service.pjdPricePerQty.toAmount()} ${service.currency}")),
                            SizedBox(
                                width: 100,
                                child: Text(service.pjdQuantity.toString())),
                            SizedBox(
                                width: 100,
-                               child: Text(service.totalAmount.toAmount())),
+                               child: Text("${service.totalAmount.toAmount()} ${service.currency}")),
 
                          ],
                        ),

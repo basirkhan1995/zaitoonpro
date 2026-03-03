@@ -9,8 +9,9 @@ class LoadProjectReportEvent extends ProjectsReportEvent{
   final String? toDate;
   final int? customerId;
   final int? status;
+  final String? currency;
 
-  const LoadProjectReportEvent({this.fromDate, this.toDate, this.customerId, this.status});
+  const LoadProjectReportEvent({this.fromDate, this.toDate, this.customerId, this.status, this.currency});
   @override
   List<Object?> get props => [fromDate, toDate, customerId, status];
 }

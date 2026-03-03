@@ -17,7 +17,8 @@ class ProjectsReportBloc extends Bloc<ProjectsReportEvent, ProjectsReportState> 
            fromDate: event.fromDate,
            toDate: event.toDate,
            customerId: event.customerId,
-           status: event.status
+           status: event.status,
+           currency: event.currency
          );
          emit(ProjectsReportLoadedState(prj));
        }catch(e){

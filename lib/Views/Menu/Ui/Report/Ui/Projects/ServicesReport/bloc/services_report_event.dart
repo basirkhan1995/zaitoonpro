@@ -9,9 +9,10 @@ class LoadServicesReportEvent extends ServicesReportEvent{
   final String? toDate;
   final int? serviceId;
   final int? projectId;
-  const LoadServicesReportEvent({this.fromDate,this.toDate, this.serviceId, this.projectId});
+  final String? currency;
+  const LoadServicesReportEvent({this.fromDate,this.toDate, this.serviceId, this.projectId, this.currency});
   @override
-  List<Object?> get props => [fromDate, toDate, serviceId, projectId];
+  List<Object?> get props => [fromDate, toDate, serviceId, projectId, currency];
 }
 
 class ResetServicesReportEvent extends ServicesReportEvent{

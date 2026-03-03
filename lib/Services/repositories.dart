@@ -3557,14 +3557,15 @@ class Repositories {
 
   ///Projects Report
   Future<List<ProjectsReportModel>> getProjectsReport(
-      {String? fromDate, String? toDate, int? customerId, int? status}) async {
+      {String? fromDate, String? toDate, int? customerId, int? status, String? currency}) async {
     final response = await api.post(
         endpoint: "/reports/projectsReport.php",
         data: {
           "fromDate": fromDate,
           "toDate": toDate,
           "customer": customerId,
-          "status": status
+          "status": status,
+          "currency":currency,
         }
     );
 
@@ -3591,14 +3592,15 @@ class Repositories {
     return [];
   }
 
-  Future<List<ServicesReportModel>?> getServicesReport({String? fromDate, String? toDate, int? serviceId, int? projectId}) async {
+  Future<List<ServicesReportModel>?> getServicesReport({String? fromDate, String? currency, String? toDate, int? serviceId, int? projectId}) async {
     final response = await api.post(
         endpoint: "/reports/projectServices.php",
         data: {
           "fromDate": fromDate,
           "toDate": toDate,
           "services": serviceId,
-          "project": projectId
+          "project": projectId,
+          "currency": currency,
         }
     );
 

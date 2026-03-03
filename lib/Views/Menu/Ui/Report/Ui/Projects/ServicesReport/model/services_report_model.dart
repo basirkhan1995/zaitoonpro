@@ -15,6 +15,7 @@ class ServicesReportModel {
   final String? pjdQuantity;
   final String? pjdPricePerQty;
   final String? totalAmount;
+  final String? currency;
 
   ServicesReportModel({
     this.serviceName,
@@ -23,6 +24,7 @@ class ServicesReportModel {
     this.pjdQuantity,
     this.pjdPricePerQty,
     this.totalAmount,
+    this.currency,
   });
 
   ServicesReportModel copyWith({
@@ -32,6 +34,7 @@ class ServicesReportModel {
     String? pjdQuantity,
     String? pjdPricePerQty,
     String? totalAmount,
+    String? currency,
   }) =>
       ServicesReportModel(
         serviceName: serviceName ?? this.serviceName,
@@ -40,6 +43,7 @@ class ServicesReportModel {
         pjdQuantity: pjdQuantity ?? this.pjdQuantity,
         pjdPricePerQty: pjdPricePerQty ?? this.pjdPricePerQty,
         totalAmount: totalAmount ?? this.totalAmount,
+        currency: currency ?? this.currency,
       );
 
   factory ServicesReportModel.fromMap(Map<String, dynamic> json) => ServicesReportModel(
@@ -49,6 +53,7 @@ class ServicesReportModel {
     pjdQuantity: json["pjdQuantity"],
     pjdPricePerQty: json["pjdPricePerQty"],
     totalAmount: json["totalAmount"],
+    currency: json["currency"],
   );
 
   Map<String, dynamic> toMap() => {

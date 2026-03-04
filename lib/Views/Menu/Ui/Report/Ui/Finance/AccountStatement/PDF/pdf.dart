@@ -436,7 +436,7 @@ class AccountStatementPrintSettings extends PrintServices {
     );
   }
 
-  statementHeaderWidget({
+  pw.Container statementHeaderWidget({
     required String language,
     required AccountStatementModel statement,
     required ReportModel reportInfo,

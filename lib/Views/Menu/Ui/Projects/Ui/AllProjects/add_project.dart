@@ -89,8 +89,6 @@ class _MobileContentState extends State<_MobileContent> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Alternative: You can also check ModalRoute here if needed
-    // But better to use widget.model
   }
 
   @override

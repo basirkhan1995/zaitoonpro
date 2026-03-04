@@ -3,7 +3,7 @@ import '../../Localizations/l10n/translations/app_localizations.dart';
 
 class ZDropdown<T> extends StatefulWidget {
   final double? radius;
-  final String title;
+  final String? title;
   final List<T> items;
   final double? height;
   final String? initialValue;
@@ -27,7 +27,7 @@ class ZDropdown<T> extends StatefulWidget {
 
   const ZDropdown({
     super.key,
-    required this.title,
+    this.title,
     required this.items,
     required this.itemLabel,
     required this.onItemSelected,
@@ -145,13 +145,11 @@ class _ZDropdownState<T> extends State<ZDropdown<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.customTitle != null)
-            widget.customTitle!
-          else if (widget.title.isNotEmpty)
-            Text(widget.title,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12)),
-
-          const SizedBox(height: 4),
+          if (widget.customTitle != null) widget.customTitle!
+          else if (widget.title !=null && widget.title!.isNotEmpty)...[
+            Text(widget.title ?? "", style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12)),
+            const SizedBox(height: 4),
+          ],
 
           GestureDetector(
             onTap: widget.disableAction || widget.isLoading

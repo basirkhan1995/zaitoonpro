@@ -317,7 +317,7 @@ class TransactionReferencePrintSettings extends PrintServices{
 
 
   //Signature
-  signatory({required language, required TxnByReferenceModel data}) {
+  pw.Padding signatory({required language, required TxnByReferenceModel data}) {
     return pw.Padding(
       padding: pw.EdgeInsets.symmetric(horizontal: 0, vertical: 10),
       child: pw.Row(

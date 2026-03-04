@@ -94,12 +94,12 @@ class Utils{
 
 
   //Goto
-  static goto(context, Widget route) {
+  static Future<dynamic> goto(context, Widget route) {
     return Navigator.of(context).push(_animatedRouting(route));
   }
 
   //Push and remove previous routes
-  static gotoReplacement(context, Widget route) {
+  static void gotoReplacement(context, Widget route) {
     Navigator.of(context).popUntil((route) => false);
     Navigator.push(context, _animatedRouting(route));
   }
@@ -172,7 +172,7 @@ class Utils{
     return null; // Username is valid
   }
 
-  static zBackButton(context){
+  static GestureDetector zBackButton(context){
     return GestureDetector(
       onTap: () {
         Navigator.of(context).pop();

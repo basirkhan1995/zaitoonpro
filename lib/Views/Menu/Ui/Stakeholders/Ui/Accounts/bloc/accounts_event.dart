@@ -20,9 +20,7 @@ class LoadStkAccountsEvent extends AccountsEvent{
 
 class LoadAccountsFilterEvent extends AccountsEvent{
   final String? include;
-
   final String? input;
-
   final String? exclude;
   final String? ccy;
 

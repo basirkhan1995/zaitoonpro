@@ -10,6 +10,9 @@ import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
@@ -41,16 +44,23 @@ class _Desktop extends StatefulWidget {
 }
 
 class _DesktopState extends State<_Desktop> {
-  String ccy = "USD";
+  String? ccy;
   String todayDate = DateTime.now().toFormattedDate();
   Jalali shamsiTodayDate = DateTime.now().toAfghanShamsi;
   ReportModel company = ReportModel();
-
+  int? branchCode;
+  LoginData? loginData;
   @override
   void initState() {
+    final authState = context.read<AuthBloc>().state;
+    if(authState is AuthenticatedState){
+      loginData = authState.loginData;
+      ccy = loginData?.company?.comLocalCcy;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<TrialBalanceBloc>().add(
-        LoadTrialBalanceEvent(date: todayDate),
+        LoadTrialBalanceEvent(date: todayDate, branchCode: loginData?.usrBranch),
       );
     });
     super.initState();
@@ -63,6 +73,7 @@ class _DesktopState extends State<_Desktop> {
       appBar: AppBar(
         titleSpacing: 0,
         title: Text(tr.trialBalance),
+        toolbarHeight: 75,
         actionsPadding: EdgeInsets.symmetric(horizontal: 10),
         actions: [
           BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
@@ -166,7 +177,7 @@ class _DesktopState extends State<_Desktop> {
             label: Text(tr.refresh),
             onPressed: () {
               context.read<TrialBalanceBloc>().add(
-                LoadTrialBalanceEvent(date: todayDate),
+                LoadTrialBalanceEvent(date: todayDate, branchCode: loginData?.usrBranch),
               );
             },
           ),
@@ -187,6 +198,18 @@ class _DesktopState extends State<_Desktop> {
               },
             ),
           ),
+          SizedBox(width: 8),
+          SizedBox(
+            width: 200,
+            child: BranchDropdown(
+                showAllOption: true,
+                selectedId: loginData?.usrBranch,
+                onBranchSelected: (e){
+                  context.read<TrialBalanceBloc>().add(
+                    LoadTrialBalanceEvent(date: todayDate, branchCode: e?.brcId),
+                  );
+                }),
+          )
         ],
       ),
       body: Container(
@@ -205,6 +228,7 @@ class _DesktopState extends State<_Desktop> {
               }
               if (state is TrialBalanceLoadedState) {
                 final data = state.balance;
+
                 // Get currency from first item (assuming all items have same currency)
                 final currency = data.isNotEmpty ? data.first.currency : ccy;
                 final totalDebit = TrialBalanceHelper.getTotalDebit(data);
@@ -215,7 +239,7 @@ class _DesktopState extends State<_Desktop> {
                 return Column(
                   children: [
                     // Header row
-                    _buildHeaderRow(currency),
+                    _buildHeaderRow(currency??""),
 
                     // Divider
                     const Divider(),
@@ -243,7 +267,7 @@ class _DesktopState extends State<_Desktop> {
                       totalCredit,
                       difference,
                       differencePercentage,
-                      ccy,
+                      ccy??"",
                     ),
                   ],
                 );

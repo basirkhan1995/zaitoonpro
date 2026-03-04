@@ -145,21 +145,21 @@ class ProjectByIdPrintSettings extends PrintServices {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  zText(text: report.comName ?? "", fontSize: 20, tightBounds: true),
-                  pw.SizedBox(height: 3),
-                  zText(text: report.statementDate ?? "", fontSize: 10),
+                  zText(text: report.comName ?? "", fontSize: 16, tightBounds: true),
+                  pw.SizedBox(height: 2),
+                  zText(text: report.statementDate ?? "", fontSize: 8),
                 ],
               ),
             ),
             if (image != null)
               pw.Container(
-                width: 40,
-                height: 40,
+                width: 35,
+                height: 35,
                 child: pw.Image(image, fit: pw.BoxFit.contain),
               ),
           ],
         ),
-        pw.SizedBox(height: 5)
+        pw.SizedBox(height: 3)
       ],
     );
   }
@@ -177,35 +177,35 @@ class ProjectByIdPrintSettings extends PrintServices {
           mainAxisAlignment: pw.MainAxisAlignment.start,
           children: [
             pw.Container(
-              height: 20,
+              height: 16,
               child: pw.Image(logoImage),
             ),
-            verticalDivider(height: 15, width: 0.6),
+            verticalDivider(height: 12, width: 0.5),
             zText(
               text: tr(text: 'producedBy', tr: language),
               fontWeight: pw.FontWeight.normal,
-              fontSize: 8,
+              fontSize: 6,
             ),
           ],
         ),
-        pw.SizedBox(height: 3),
+        pw.SizedBox(height: 2),
         horizontalDivider(),
-        pw.SizedBox(height: 3),
+        pw.SizedBox(height: 2),
         pw.Row(
           children: [
-            zText(text: report.comAddress ?? "", fontSize: 9),
+            zText(text: report.comAddress ?? "", fontSize: 7),
           ],
         ),
-        pw.SizedBox(height: 3),
+        pw.SizedBox(height: 2),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             pw.Row(
               children: [
-                zText(text: report.compPhone ?? "", fontSize: 9),
-                verticalDivider(height: 10, width: 1),
-                zText(text: report.comEmail ?? "", fontSize: 9),
+                zText(text: report.compPhone ?? "", fontSize: 7),
+                verticalDivider(height: 8, width: 0.8),
+                zText(text: report.comEmail ?? "", fontSize: 7),
               ],
             ),
             pw.Row(
@@ -223,6 +223,17 @@ class ProjectByIdPrintSettings extends PrintServices {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
+        // Project Title
+        pw.Row(
+          children: [
+            zText(
+              text: data.prjName ?? tr(text: 'projectReport', tr: language),
+              fontSize: 14,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ]
+        ),
+        pw.SizedBox(height: 8),
         // Project Information Section
         _buildSection(
           title: tr(text: 'projectInformation', tr: language),
@@ -241,7 +252,7 @@ class ProjectByIdPrintSettings extends PrintServices {
           ],
         ),
 
-        pw.SizedBox(height: 20),
+        pw.SizedBox(height: 12),
 
         // Owner Information Section
         _buildSection(
@@ -253,7 +264,7 @@ class ProjectByIdPrintSettings extends PrintServices {
           ],
         ),
 
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 10),
 
         // Services Section
         if ((data.projectServices?.length ?? 0) > 0) ...[
@@ -263,7 +274,7 @@ class ProjectByIdPrintSettings extends PrintServices {
               _buildServicesTable(data.projectServices ?? [], data.actCurrency ?? '', language),
             ],
           ),
-          pw.SizedBox(height: 15),
+          pw.SizedBox(height: 10),
         ],
 
         // Financial Summary Section
@@ -274,7 +285,7 @@ class ProjectByIdPrintSettings extends PrintServices {
           ],
         ),
 
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 10),
 
         // Transactions Section
         if ((data.projectPayments?.length ?? 0) > 0) ...[
@@ -296,13 +307,13 @@ class ProjectByIdPrintSettings extends PrintServices {
       children: [
         zText(
           text: title,
-          fontSize: 12,
+          fontSize: 9,
           fontWeight: pw.FontWeight.bold,
         ),
+        horizontalDivider(),
 
         pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 2),
-
+          padding: const pw.EdgeInsets.symmetric(vertical: 1),
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: children,
@@ -314,22 +325,22 @@ class ProjectByIdPrintSettings extends PrintServices {
 
   pw.Widget _buildInfoRow(String label, String value, {bool isMultiline = false}) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      padding: const pw.EdgeInsets.symmetric(vertical: 1),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Container(
-            width: 120,
+            width: 100,
             child: zText(
               text: "$label:",
-              fontSize: 9,
+              fontSize: 7,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.Expanded(
             child: zText(
               text: value,
-              fontSize: 9,
+              fontSize: 7,
             ),
           ),
         ],
@@ -339,26 +350,26 @@ class ProjectByIdPrintSettings extends PrintServices {
 
   pw.Widget _buildStatusRow(String label, String value, {required bool isActive}) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 3),
+      padding: const pw.EdgeInsets.symmetric(vertical: 1),
       child: pw.Row(
         children: [
           pw.Container(
-            width: 120,
+            width: 100,
             child: zText(
               text: "$label:",
-              fontSize: 9,
+              fontSize: 7,
               fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 1),
             decoration: pw.BoxDecoration(
               color: isActive ? pw.PdfColors.orange100 : pw.PdfColors.green100,
               borderRadius: pw.BorderRadius.circular(1),
             ),
             child: zText(
               text: value,
-              fontSize: 8,
+              fontSize: 6,
               color: isActive ? pw.PdfColors.orange800 : pw.PdfColors.green800,
             ),
           ),
@@ -377,18 +388,18 @@ class ProjectByIdPrintSettings extends PrintServices {
       children: [
         // Table Header
         pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 3),
+          padding: const pw.EdgeInsets.symmetric(vertical: 3, horizontal: 2),
           decoration: pw.BoxDecoration(
             color: pw.PdfColors.grey100,
           ),
           child: pw.Row(
             children: [
-              pw.SizedBox(width: 20, child: zText(text: "#", fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: pw.TextAlign.center)),
-              pw.Expanded(flex: 3, child: zText(text: tr(text: 'serviceName', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'units', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'unitPrice', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'totalTitle', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'referenceNumber', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.SizedBox(width: 18, child: zText(text: "#", fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: pw.TextAlign.center)),
+              pw.Expanded(flex: 3, child: zText(text: tr(text: 'serviceName', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'referenceNumber', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'units', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'unitPrice', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'totalTitle', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
             ],
           ),
         ),
@@ -401,20 +412,16 @@ class ProjectByIdPrintSettings extends PrintServices {
           final total = double.tryParse(service.total ?? '0') ?? 0;
 
           return pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 3),
-            decoration: pw.BoxDecoration(
-              border: pw.Border(
-                bottom: pw.BorderSide(width: 0.5, color: pw.PdfColors.grey200),
-              ),
-            ),
+            padding: const pw.EdgeInsets.symmetric(vertical: 3, horizontal: 2),
             child: pw.Row(
               children: [
-                pw.SizedBox(width: 20, child: zText(text: '${index + 1}', fontSize: 8, textAlign: pw.TextAlign.center)),
-                pw.Expanded(flex: 3, child: zText(text: service.srvName ?? '-', fontSize: 8, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-                pw.Expanded(flex: 2, child: zText(text: quantity.toString(), fontSize: 8, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-                pw.Expanded(flex: 2, child: zText(text: '${price.toAmount()} $currency', fontSize: 8,  textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-                pw.Expanded(flex: 2, child: zText(text: '${total.toAmount()} $currency', fontSize: 8, fontWeight:  pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-                pw.Expanded(flex: 2, child: zText(text: service.prpTrnRef ?? '-', fontSize: 8, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.SizedBox(width: 18, child: zText(text: '${index + 1}', fontSize: 7, textAlign: pw.TextAlign.center)),
+                pw.Expanded(flex: 3, child: zText(text: service.srvName ?? '-', fontSize: 7, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.Expanded(flex: 2, child: zText(text: service.prpTrnRef ?? '-', fontSize: 7, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.Expanded(flex: 2, child: zText(text: quantity.toString(), fontSize: 7, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.Expanded(flex: 2, child: zText(text: '${price.toAmount()} $currency', fontSize: 7,  textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.Expanded(flex: 2, child: zText(text: '${total.toAmount()} $currency', fontSize: 7, fontWeight:  pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+
               ],
             ),
           );
@@ -422,23 +429,15 @@ class ProjectByIdPrintSettings extends PrintServices {
 
         // Total Row
         pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 3),
+          padding: const pw.EdgeInsets.symmetric(vertical: 3, horizontal: 10),
           decoration: pw.BoxDecoration(
             color: pw.PdfColors.grey100,
           ),
           child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              pw.Expanded(flex: 8, child: pw.Container()), // 1+3+2+2 = 8
-              pw.Expanded(
-                flex: 4, // 2+2 = 4 (Total + Reference columns)
-                child: pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                  children: [
-                    zText(text: "${tr(text: 'totalServices', tr: language)}: ", fontSize: 9, fontWeight: pw.FontWeight.bold),
-                    zText(text: '${totalSum.toAmount()} $currency', fontSize: 9, fontWeight: pw.FontWeight.bold),
-                  ],
-                ),
-              ),
+              zText(text: "${tr(text: 'totalServices', tr: language)} ", fontSize: 7, fontWeight: pw.FontWeight.bold),
+              zText(text: '${totalSum.toAmount()} $currency', fontSize: 7, fontWeight: pw.FontWeight.bold),
             ],
           ),
         ),
@@ -452,18 +451,18 @@ class ProjectByIdPrintSettings extends PrintServices {
       children: [
         // Table Header
         pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 3),
+          padding: const pw.EdgeInsets.symmetric(vertical: 3, horizontal: 2),
           decoration: pw.BoxDecoration(
             color: pw.PdfColors.grey100,
           ),
           child: pw.Row(
             children: [
-              pw.SizedBox(width: 20, child: zText(text: "#", fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: pw.TextAlign.center)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'date', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 3, child: zText(text: tr(text: 'referenceNumber', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign:isEnglish? pw.TextAlign.left :  pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'txnType', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'amount', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-              pw.Expanded(flex: 2, child: zText(text: tr(text: 'status', tr: language), fontSize: 8, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.SizedBox(width: 18, child: zText(text: "#", fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: pw.TextAlign.center)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'date', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 3, child: zText(text: tr(text: 'referenceNumber', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign:isEnglish? pw.TextAlign.left :  pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'txnType', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'amount', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+              pw.Expanded(flex: 2, child: zText(text: tr(text: 'status', tr: language), fontSize: 7, fontWeight: pw.FontWeight.bold, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
             ],
           ),
         ),
@@ -480,17 +479,12 @@ class ProjectByIdPrintSettings extends PrintServices {
           ) ?? 0;
 
           return pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 3),
-            decoration: pw.BoxDecoration(
-              border: pw.Border(
-                bottom: pw.BorderSide(width: 0.5, color: pw.PdfColors.grey100),
-              ),
-            ),
+            padding: const pw.EdgeInsets.symmetric(vertical: 3, horizontal: 2),
             child: pw.Row(
               children: [
-                pw.SizedBox(width: 20, child: zText(text: '${index + 1}', fontSize: 8, textAlign: pw.TextAlign.center)),
-                pw.Expanded(flex: 2, child: zText(text: payment.trnEntryDate?.toFormattedDate() ?? '-', fontSize: 8, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
-                pw.Expanded(flex: 3, child: zText(text: payment.prpTrnRef ?? '-', fontSize: 8, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.SizedBox(width: 18, child: zText(text: '${index + 1}', fontSize: 7, textAlign: pw.TextAlign.center)),
+                pw.Expanded(flex: 2, child: zText(text: payment.trnEntryDate?.toFormattedDate() ?? '-', fontSize: 7, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
+                pw.Expanded(flex: 3, child: zText(text: payment.prpTrnRef ?? '-', fontSize: 7, textAlign: isEnglish? pw.TextAlign.left : pw.TextAlign.right)),
                 pw.Expanded(
                   flex: 2,
                   child: zText(
@@ -499,7 +493,7 @@ class ProjectByIdPrintSettings extends PrintServices {
                         : isExpense
                         ? tr(text: 'expense', tr: language)
                         : isEntry ? tr(text: "entry", tr: language) : payment.prpType ?? '-',
-                    fontSize: 8,
+                    fontSize: 7,
                     color: isPayment
                         ? pw.PdfColors.green800
                         : isExpense
@@ -512,7 +506,7 @@ class ProjectByIdPrintSettings extends PrintServices {
                   flex: 2,
                   child: zText(
                     text: '${amount.toAmount()} $currency',
-                    fontSize: 8,
+                    fontSize: 7,
                     color: isPayment
                         ? pw.PdfColors.green800
                         : isExpense
@@ -578,14 +572,14 @@ class ProjectByIdPrintSettings extends PrintServices {
     }
 
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 1),
       decoration: pw.BoxDecoration(
         color: getBgColor(),
-        borderRadius: pw.BorderRadius.circular(2),
+        borderRadius: pw.BorderRadius.circular(1),
       ),
       child: zText(
         text: translatedStatus,
-        fontSize: 7,
+        fontSize: 6,
         color: getColor(),
         fontWeight: pw.FontWeight.bold,
       ),
@@ -607,21 +601,21 @@ class ProjectByIdPrintSettings extends PrintServices {
           currency,
           pw.PdfColors.blue,
         ),
-        pw.Divider(height: 10),
+        pw.Divider(height: 6),
         _buildFinancialRow(
           tr(text: 'totalPayment', tr: language),
           totalIncome,
           currency,
           pw.PdfColors.green,
         ),
-        pw.Divider(height: 10),
+        pw.Divider(height: 6),
         _buildFinancialRow(
           tr(text: 'totalExpense', tr: language),
           totalExpense,
           currency,
           pw.PdfColors.red,
         ),
-        pw.Divider(height: 10),
+        pw.Divider(height: 6),
         _buildFinancialRow(
           tr(text: 'balance', tr: language),
           balance,
@@ -639,12 +633,12 @@ class ProjectByIdPrintSettings extends PrintServices {
       children: [
         zText(
           text: label,
-          fontSize: 10,
+          fontSize: 8,
           fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
         ),
         zText(
           text: '${amount.toAmount()} $currency',
-          fontSize: 10,
+          fontSize: 8,
           color: color,
           fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
         ),

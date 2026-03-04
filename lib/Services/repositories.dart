@@ -201,9 +201,7 @@ class Repositories {
     CancelToken? cancelToken,
   }) async {
     // Build query parameters dynamically
-    final queryParams = indId != null
-        ? {'perID': indId, 'search': query}
-        : null;
+    final queryParams =  {'perID': indId, 'search': query};
 
     // Fetch data from API
     final response = await api.get(
@@ -443,10 +441,14 @@ class Repositories {
   }
 
   /// GL Accounts | System .....................................................
-  Future<List<GlAccountsModel>> getGl({CancelToken? cancelToken}) async {
+  Future<List<GlAccountsModel>> getGl({String? input, CancelToken? cancelToken}) async {
+
     // Fetch data from API
     final response = await api.get(
       endpoint: "/finance/glAccount.php",
+      queryParams: {
+      "input": input
+      },
       cancelToken: cancelToken,
     );
 
@@ -2538,10 +2540,11 @@ class Repositories {
 
   Future<List<TrialBalanceModel>> getTrialBalance({
     required String date,
+    int? branchCode,
   }) async {
     final response = await api.post(
       endpoint: "/reports/trialBalance.php",
-      data: {"date": date},
+      data: {"date": date, "branch": branchCode},
     );
 
     if (response.data is Map<String, dynamic> && response.data['msg'] != null) {

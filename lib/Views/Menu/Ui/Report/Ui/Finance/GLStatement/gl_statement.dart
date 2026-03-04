@@ -262,7 +262,7 @@ class _MobileState extends State<_Mobile> {
                                 const LoadGlAccountEvent(),
                               ),
                               searchFunction: (bloc, query) => bloc.add(
-                                const LoadGlAccountEvent(),
+                                LoadGlAccountEvent(query: query),
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -697,10 +697,10 @@ class _DesktopState extends State<_Desktop> {
                                 isRequired: true,
                                 bloc: context.read<GlAccountsBloc>(),
                                 fetchAllFunction: (bloc) => bloc.add(
-                                  LoadGlAccountEvent(),
+                                  const LoadGlAccountEvent(),
                                 ),
                                 searchFunction: (bloc, query) => bloc.add(
-                                  LoadGlAccountEvent(),
+                                  LoadGlAccountEvent(query: query),
                                 ),
                                 validator: (value) {
                                   if (value.isEmpty) {

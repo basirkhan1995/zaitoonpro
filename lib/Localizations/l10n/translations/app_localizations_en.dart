@@ -2634,7 +2634,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deadline => 'Deadline';
 
   @override
-  String get ownerInformation => 'Owner Information';
+  String get ownerInformation => 'Client Information';
 
   @override
   String get ownerAccount => 'Owner Account';
@@ -2787,4 +2787,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noServicesMessage => 'No services found for this project';
+
+  @override
+  String get noPandLMessage => 'No P&L yet recorded';
 }

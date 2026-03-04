@@ -1163,6 +1163,7 @@ class _TabletState extends State<_Tablet> {
                       message: tr.successMessage,
                       type: ToastType.success,
                     );
+                    Navigator.of(context).pop();
                   }
                   if (state is ProjectsErrorState) {
                     ToastManager.show(

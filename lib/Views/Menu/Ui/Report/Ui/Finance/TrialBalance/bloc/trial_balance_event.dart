@@ -6,7 +6,8 @@ sealed class TrialBalanceEvent extends Equatable {
 
 class LoadTrialBalanceEvent extends TrialBalanceEvent{
   final String date;
-  const LoadTrialBalanceEvent({required this.date});
+  final int? branchCode;
+  const LoadTrialBalanceEvent({required this.date,this.branchCode});
   @override
-  List<Object?> get props => [date];
+  List<Object?> get props => [date, branchCode];
 }

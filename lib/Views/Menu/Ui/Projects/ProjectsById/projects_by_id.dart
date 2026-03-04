@@ -297,7 +297,7 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
               Expanded(
                 child: _buildMobileSummaryCard(
                   context,
-                  title: "Services",
+                  title: tr.services,
                   value: project.projectServices?.length.toString() ?? '0',
                   icon: Icons.build,
                   color: color.primary,
@@ -307,7 +307,7 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
               Expanded(
                 child: _buildMobileSummaryCard(
                   context,
-                  title: "Transactions",
+                  title: tr.transactions,
                   value: project.projectPayments?.length.toString() ?? '0',
                   icon: Icons.payment,
                   color: Colors.green,

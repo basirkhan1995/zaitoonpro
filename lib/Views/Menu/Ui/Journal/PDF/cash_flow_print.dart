@@ -317,7 +317,7 @@ class CashFlowTransactionPrint extends PrintServices{
 
 
   //Signature
-  signatory({required language, required TransactionsModel data}) {
+  pw.Padding signatory({required language, required TransactionsModel data}) {
     return pw.Padding(
       padding: pw.EdgeInsets.symmetric(horizontal: 0, vertical: 10),
       child: pw.Row(

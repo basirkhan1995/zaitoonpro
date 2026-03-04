@@ -2624,7 +2624,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get deadline => 'تاریخ تسلیمی';
 
   @override
-  String get ownerInformation => 'معلومات فرمایش دهنده';
+  String get ownerInformation => 'معلومات مشتری';
 
   @override
   String get ownerAccount => 'حساب فرمایش دهنده';
@@ -2776,4 +2776,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get noServicesMessage => 'خدماتی در این پروژه یافت نشد.';
+
+  @override
+  String get noPandLMessage => 'تا هنوز هیچ حساب سود و زیان ثبت نشده است';
 }

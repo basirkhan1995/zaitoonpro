@@ -130,7 +130,7 @@ import 'package:flutter/services.dart';
    }
 
    //Signature
-   signatory({required language, required GlatModel data}) {
+   pw.Padding signatory({required language, required GlatModel data}) {
      return pw.Padding(
        padding: pw.EdgeInsets.symmetric(horizontal: 15, vertical: 10),
        child: pw.Row(

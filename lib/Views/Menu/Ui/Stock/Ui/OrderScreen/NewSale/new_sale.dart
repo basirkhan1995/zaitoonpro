@@ -205,8 +205,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             return null;
                           },
                           bloc: context.read<IndividualsBloc>(),
-                          fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
+                          fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
                           itemBuilder: (context, ind) => Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
@@ -254,7 +254,14 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   contentPadding: EdgeInsets.symmetric(horizontal: 5),
                                   title: Text(account.accName ?? ''),
                                   subtitle: Text('${account.accNumber}'),
-                                  trailing: Text("${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}"),
+                                  trailing: Column(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.end,
+                                    children: [
+                                      Text(tr.balance,style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.outline)),
+                                      Text("${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",style: Theme.of(context).textTheme.titleSmall,),
+                                    ],
+                                  ),
                                 ),
                                 itemToString: (account) => '${account.accName} (${account.accNumber})',
                                 stateToLoading: (state) => state is AccountLoadingState,
@@ -1608,8 +1615,8 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                           return null;
                         },
                         bloc: context.read<IndividualsBloc>(),
-                        fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                        searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
+                        fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                        searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
                         itemBuilder: (context, ind) => Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
@@ -2559,7 +2566,6 @@ class _TabletNewSaleView extends StatefulWidget {
   @override
   State<_TabletNewSaleView> createState() => _TabletNewSaleViewState();
 }
-
 class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
@@ -2730,8 +2736,8 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                             return null;
                           },
                           bloc: context.read<IndividualsBloc>(),
-                          fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
+                          fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
                           itemBuilder: (context, ind) => Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),

@@ -5,9 +5,10 @@ sealed class GlAccountsEvent extends Equatable {
 }
 
 class LoadGlAccountEvent extends GlAccountsEvent{
-  const LoadGlAccountEvent();
+  final String? query;
+  const LoadGlAccountEvent({this.query});
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [query];
 }
 
 class AddGlEvent extends GlAccountsEvent{

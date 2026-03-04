@@ -18,7 +18,7 @@ class BranchDropdown extends StatefulWidget {
   const BranchDropdown({
     super.key,
     required this.onBranchSelected,
-    this.title = "Branch",
+    this.title = "",
     this.radius,
     this.height,
     this.disableAction = false,
@@ -125,7 +125,6 @@ class _BranchDropdownState extends State<BranchDropdown> {
 
         return ZDropdown<BranchModel>(
           disableAction: widget.disableAction || isLoading,
-          title: '',
           height: widget.height ?? 40,
           items: items,
           multiSelect: false,

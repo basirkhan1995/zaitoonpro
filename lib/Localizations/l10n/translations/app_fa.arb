@@ -871,7 +871,7 @@
   "projectName": "نام پروزه",
   "projectInformation": "معلومات پروزه",
   "deadline": "تاریخ تسلیمی",
-  "ownerInformation": "معلومات فرمایش دهنده",
+  "ownerInformation": "معلومات مشتری",
   "ownerAccount": "حساب فرمایش دهنده",
   "incomeAndExpenses": "پرداخت ها و مصارف",
   "inProgress": "در حال کار",
@@ -921,5 +921,6 @@
   "activeServices": "خدمات فعال",
   "serviceName": "نام خدمات",
   "noServicesTitle": "خدمات یافت نشد",
-  "noServicesMessage": "خدماتی در این پروژه یافت نشد."
+  "noServicesMessage": "خدماتی در این پروژه یافت نشد.",
+  "noPandLMessage": "تا هنوز هیچ حساب سود و زیان ثبت نشده است"
 }

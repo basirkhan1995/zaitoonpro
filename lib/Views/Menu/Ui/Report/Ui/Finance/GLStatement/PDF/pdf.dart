@@ -408,7 +408,7 @@ class GlStatementPrintSettings extends PrintServices {
     );
   }
 
-  statementHeaderWidget({
+  pw.Container statementHeaderWidget({
     required String language,
     required GlStatementModel statement,
     required ReportModel reportInfo,

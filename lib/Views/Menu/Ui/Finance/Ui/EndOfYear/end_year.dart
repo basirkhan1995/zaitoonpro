@@ -165,6 +165,13 @@ class _DesktopState extends State<_Desktop> {
                           );
                         }
                         if (state is EoyLoadedState) {
+                          if(state.eoy.isEmpty){
+                            return NoDataWidget(
+                              title: tr.noData,
+                              message: tr.noPandLMessage,
+                              enableAction: false,
+                            );
+                          }
                           final summary = state.eoy.summary;
                           return Column(
                             children: [
@@ -520,20 +527,33 @@ class _AmountCell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool showDash = amount == 0 || amount.isNaN || amount.isInfinite;
+    final hasCurrency = currency != null && currency!.isNotEmpty;
+
     return SizedBox(
       width: 150,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(amount.toAmount()),
-          const SizedBox(width: 5),
           Text(
-            currency ?? "",
+            showDash ? "-" : amount.toAmount(),
             style: TextStyle(
-              color: Utils.currencyColors(currency ?? ""),
-              fontWeight: FontWeight.w500,
+              color: showDash
+                  ? Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.5)
+                  : null,
             ),
           ),
+
+          if (!showDash && hasCurrency) ...[
+            const SizedBox(width: 5),
+            Text(
+              currency!,
+              style: TextStyle(
+                color: Utils.currencyColors(currency!),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
     );

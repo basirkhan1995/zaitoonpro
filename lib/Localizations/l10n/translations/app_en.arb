@@ -871,7 +871,7 @@
   "projectName": "Project Name",
   "projectInformation": "Project Information",
   "deadline": "Deadline",
-  "ownerInformation": "Owner Information",
+  "ownerInformation": "Client Information",
   "ownerAccount": "Owner Account",
   "incomeAndExpenses": "Payment & Expense",
   "inProgress": "In Progress",
@@ -921,5 +921,6 @@
   "activeServices": "Active Services",
   "serviceName": "Service Name",
   "noServicesTitle": "No Services",
-  "noServicesMessage": "No services found for this project"
+  "noServicesMessage": "No services found for this project",
+  "noPandLMessage": "No P&L yet recorded"
 }

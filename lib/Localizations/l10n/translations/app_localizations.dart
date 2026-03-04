@@ -5209,7 +5209,7 @@ abstract class AppLocalizations {
   /// No description provided for @ownerInformation.
   ///
   /// In en, this message translates to:
-  /// **'Owner Information'**
+  /// **'Client Information'**
   String get ownerInformation;
 
   /// No description provided for @ownerAccount.
@@ -5511,6 +5511,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No services found for this project'**
   String get noServicesMessage;
+
+  /// No description provided for @noPandLMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'No P&L yet recorded'**
+  String get noPandLMessage;
 }
 
 class _AppLocalizationsDelegate

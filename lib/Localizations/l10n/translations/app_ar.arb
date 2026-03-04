@@ -871,7 +871,7 @@
   "projectName": "پروزه نوم",
   "projectInformation": "پروزه معلومات",
   "deadline": "تاریخ تسلیمی",
-  "ownerInformation": "معلومات فرمایش دهنده",
+  "ownerInformation": "پیروندکی معلومات",
   "ownerAccount": "حساب فرمایش دهنده",
   "incomeAndExpenses": "پرداخت ها و مصارف",
   "inProgress": "در حال کار",
@@ -921,5 +921,6 @@
   "activeServices": "خدمات فعال",
   "serviceName": "خدماتو نوم",
   "noServicesTitle": "خدمات یافت نشد",
-  "noServicesMessage": "خدماتی در این پروژه یافت نشد."
+  "noServicesMessage": "خدماتی در این پروژه یافت نشد.",
+  "noPandLMessage": "تر اوسه د ګټې او تاوان حسابونه ثبت شوي نه دي"
 }

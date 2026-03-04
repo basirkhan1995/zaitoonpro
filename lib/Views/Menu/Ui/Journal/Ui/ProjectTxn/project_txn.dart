@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoon_petroleum/Features/Other/alert_dialog.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
@@ -480,25 +481,10 @@ class _MobileProjectTxnViewState extends State<_MobileProjectTxnView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text(locale.deleteMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(locale.delete),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna delete this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -508,22 +494,10 @@ class _MobileProjectTxnViewState extends State<_MobileProjectTxnView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("authorizeConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            child: Text(locale.authorize),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna authorize this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -533,25 +507,10 @@ class _MobileProjectTxnViewState extends State<_MobileProjectTxnView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("reverseConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-            ),
-            child: Text(locale.reverseTitle),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna reverse this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -561,25 +520,10 @@ class _MobileProjectTxnViewState extends State<_MobileProjectTxnView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("updateConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
-            child: Text(locale.update),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna update this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -707,7 +651,7 @@ class _DesktopState extends State<_Desktop> {
           }
         }
         return ZFormDialog(
-          width: 800,
+          width: 650,
           isActionTrue: false,
           icon: Icons.assignment,
           alignment: Alignment.center,
@@ -763,10 +707,9 @@ class _DesktopState extends State<_Desktop> {
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
                                   Text(
                                     "${locale.projectId}: ${state.txn.prjId}",
-                                    style: textTheme.bodyMedium,
+                                    style: textTheme.bodyMedium?.copyWith(color: color.outline),
                                   ),
                                 ],
                               ),
@@ -797,7 +740,7 @@ class _DesktopState extends State<_Desktop> {
                           ),
                         ),
 
-                        const SizedBox(height: 20),
+                        const SizedBox(height: 10),
 
                        Column(
                          crossAxisAlignment: CrossAxisAlignment.start,
@@ -818,7 +761,6 @@ class _DesktopState extends State<_Desktop> {
                                      fontWeight: FontWeight.bold,
                                    ),
                                  ),
-                                 const Divider(height: 16),
                                  const SizedBox(height: 5),
 
                                  // Project Details Content
@@ -826,7 +768,7 @@ class _DesktopState extends State<_Desktop> {
                                    [
                                      _DetailItem(locale.customerName, state.txn.customerName ?? ""),
                                      _DetailItem(locale.deadline, state.txn.prjDateLine?.toFormattedDate() ?? ""),
-                                     _DetailItem(locale.paymentType, state.txn.prpType ?? ""),
+                                     _DetailItem(locale.txnType, state.txn.prpType ?? ""),
                                      _DetailItem(locale.location, state.txn.prjLocation ?? ""),
                                      _DetailItem(locale.projectDetails, state.txn.prjDetails ?? ""),
                                    ],
@@ -1031,7 +973,6 @@ class _DesktopState extends State<_Desktop> {
                             ],
                           ),
 
-                        const SizedBox(height: 16),
                       ],
                     ),
                   ),
@@ -1101,25 +1042,10 @@ class _DesktopState extends State<_Desktop> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("deleteConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(locale.delete),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna delete this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -1129,22 +1055,10 @@ class _DesktopState extends State<_Desktop> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("authorizeConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            child: Text(locale.authorize),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna Authorize this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -1154,25 +1068,10 @@ class _DesktopState extends State<_Desktop> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("reverseConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-            ),
-            child: Text(locale.reverseTitle),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna reverse this transaction?",
+        onYes: onConfirm,
       ),
     );
   }
@@ -1182,25 +1081,10 @@ class _DesktopState extends State<_Desktop> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(locale.areYouSure),
-        content: Text("updateConfirmation"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(locale.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onConfirm();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-            ),
-            child: Text(locale.update),
-          ),
-        ],
+      builder: (context) => ZAlertDialog(
+        title: locale.areYouSure,
+        content: "Do you wanna update this transaction?",
+        onYes: onConfirm,
       ),
     );
   }

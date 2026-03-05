@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import '../../../../../../../../Features/PrintSettings/PaperSize/paper_size.dart';
 import '../../../../../../../../Features/PrintSettings/print_services.dart';
@@ -224,16 +225,10 @@ class ProductReportPrintSettings extends PrintServices {
               fontSize: 16,
               fontWeight: pw.FontWeight.bold,
             ),
-            pw.SizedBox(height: 2),
-            zText(
-              text: '${tr(text: 'ccy', tr: language)}: $baseCurrency',
-              fontSize: 8,
-              color: pw.PdfColors.grey600,
-            ),
           ],
         ),
         zText(
-          text: '${tr(text: 'asOf', tr: language)} ${_getCurrentDate()}',
+          text: _getCurrentDate(),
           fontSize: 8,
           color: pw.PdfColors.grey600,
           textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
@@ -293,46 +288,63 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Table Header
+  // Table Header - FIXED with proper flex ratios
   pw.Widget _buildTableHeader(String language, String? baseCurrency) {
     return pw.Container(
-      padding: const pw.EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       decoration: pw.BoxDecoration(
         color: pw.PdfColors.grey100,
         border: pw.Border(
-          top: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5),
           bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5),
         ),
       ),
       child: pw.Row(
         children: [
-          _buildHeaderCell(tr(text: 'no', tr: language), 40, language),
-          _buildHeaderCell(tr(text: 'productName', tr: language), 200, language, flex: 3),
-          _buildHeaderCell(tr(text: 'storage', tr: language), 120, language),
-          _buildHeaderCell(tr(text: 'unitPrice', tr: language), 100, language, align: pw.TextAlign.right),
-          _buildHeaderCell(tr(text: 'quantity', tr: language), 100, language, align: pw.TextAlign.right),
-          _buildHeaderCell(tr(text: 'total', tr: language), 120, language, align: pw.TextAlign.right),
+          // Serial No - small flex
+          pw.SizedBox(
+            width: 20,
+            child: _buildHeaderCell(tr(text: 'no', tr: language), language),
+          ),
+          // Product Name with ID - larger flex
+          pw.Expanded(
+            flex: 5,
+            child: _buildHeaderCell(tr(text: 'productName', tr: language), language),
+          ),
+          // Storage - medium flex
+          pw.Expanded(
+            flex: 2,
+            child: _buildHeaderCell(tr(text: 'storage', tr: language), language),
+          ),
+          // Unit Price - small flex
+          pw.Expanded(
+            flex: 2,
+            child: _buildHeaderCell(tr(text: 'unitPrice', tr: language), language, align: pw.TextAlign.right),
+          ),
+          // Quantity - small flex
+          pw.Expanded(
+            flex: 2,
+            child: _buildHeaderCell(tr(text: 'quantity', tr: language), language, align: pw.TextAlign.right),
+          ),
+          // Total - medium flex (to accommodate currency symbol)
+          pw.Expanded(
+            flex: 3,
+            child: _buildHeaderCell(tr(text: 'total', tr: language), language, align: pw.TextAlign.right),
+          ),
         ],
       ),
     );
   }
 
-  pw.Widget _buildHeaderCell(String text, double width, String language, {int flex = 1, pw.TextAlign align = pw.TextAlign.left}) {
-    return pw.Expanded(
-      flex: flex,
-      child: pw.Container(
-        width: width,
-        child: zText(
-          text: text,
-          fontSize: 8,
-          fontWeight: pw.FontWeight.bold,
-          textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.right),
-        ),
-      ),
+  pw.Widget _buildHeaderCell(String text, String language, {pw.TextAlign align = pw.TextAlign.left}) {
+    return zText(
+      text: text,
+      fontSize: 8,
+      fontWeight: pw.FontWeight.bold,
+      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.right),
     );
   }
 
-  // Product Rows
+  // Product Rows - FIXED with proper flex ratios and product ID + name combined
   List<pw.Widget> _buildProductRows(List<ProductReportModel> products, String language, String? baseCurrency) {
     final rows = <pw.Widget>[];
 
@@ -342,6 +354,11 @@ class ProductReportPrintSettings extends PrintServices {
       final qty = double.tryParse(product.availableQuantity ?? '0') ?? 0;
       final price = double.tryParse(product.pricePerUnit ?? '0') ?? 0;
       final total = double.tryParse(product.total ?? '0') ?? 0;
+
+      // Combine product ID and name
+      String productDisplay = '';
+
+      productDisplay = product.proName ?? '';
 
       rows.add(
         pw.Container(
@@ -354,12 +371,36 @@ class ProductReportPrintSettings extends PrintServices {
           ),
           child: pw.Row(
             children: [
-              _buildCell(product.no?.toString() ?? '', 40, language),
-              _buildCell(product.proName ?? '', 200, language, flex: 3),
-              _buildCell(product.stgName ?? '', 120, language),
-              _buildNumberCell(price.toAmount(), 100, language, align: pw.TextAlign.right),
-              _buildNumberCell(qty.toAmount(decimal: 4), 100, language, align: pw.TextAlign.right),
-              _buildCurrencyCell(total, baseCurrency, 120, language),
+              // Serial No
+              pw.SizedBox(
+                width: 20,
+                child: _buildCell(product.proId.toString(), language),
+              ),
+              // Product Name with ID (combined)
+              pw.Expanded(
+                flex: 5,
+                child: _buildCell(productDisplay, language),
+              ),
+              // Storage
+              pw.Expanded(
+                flex: 2,
+                child: _buildCell(product.stgName ?? '', language),
+              ),
+              // Unit Price
+              pw.Expanded(
+                flex: 2,
+                child: _buildNumberCell(price.toAmount(), language, align: pw.TextAlign.right),
+              ),
+              // Quantity
+              pw.Expanded(
+                flex: 2,
+                child: _buildNumberCell(qty.toAmount(decimal: 4), language, align: pw.TextAlign.right),
+              ),
+              // Total with currency
+              pw.Expanded(
+                flex: 3,
+                child: _buildCurrencyCell(total, baseCurrency, language),
+              ),
             ],
           ),
         ),
@@ -369,61 +410,45 @@ class ProductReportPrintSettings extends PrintServices {
     return rows;
   }
 
-  pw.Widget _buildCell(String text, double width, String language, {int flex = 1}) {
-    return pw.Expanded(
-      flex: flex,
-      child: pw.Container(
-        width: width,
-        child: zText(
-          text: text,
-          fontSize: 8,
-          textAlign: language == 'en' ? pw.TextAlign.left : pw.TextAlign.right,
-        ),
-      ),
+  pw.Widget _buildCell(String text, String language) {
+    return zText(
+      text: text,
+      fontSize: 8,
+      textAlign: language == 'en' ? pw.TextAlign.left : pw.TextAlign.right,
     );
   }
 
-  pw.Widget _buildNumberCell(String text, double width, String language, {pw.TextAlign align = pw.TextAlign.right}) {
-    return pw.Expanded(
-      child: pw.Container(
-        width: width,
-        child: zText(
-          text: text,
+  pw.Widget _buildNumberCell(String text, String language, {pw.TextAlign align = pw.TextAlign.right}) {
+    return zText(
+      text: text,
+      fontSize: 8,
+      fontWeight: pw.FontWeight.bold,
+      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.right),
+    );
+  }
+
+  pw.Widget _buildCurrencyCell(double amount, String? currency, String language) {
+    return pw.Row(
+      mainAxisAlignment: pw.MainAxisAlignment.end,
+      children: [
+        zText(
+          text: amount.toAmount(decimal: 2),
           fontSize: 8,
           fontWeight: pw.FontWeight.bold,
-          textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.right),
+          textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
         ),
-      ),
+        pw.SizedBox(width: 2),
+        zText(
+          text: currency ?? '',
+          fontSize: 7,
+          color: pw.PdfColors.grey600,
+          textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
+        ),
+      ],
     );
   }
 
-  pw.Widget _buildCurrencyCell(double amount, String? currency, double width, String language) {
-    return pw.Expanded(
-      child: pw.Container(
-        width: width,
-        child: pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.end,
-          children: [
-            zText(
-              text: amount.toAmount(decimal: 2),
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
-            ),
-            pw.SizedBox(width: 4),
-            zText(
-              text: currency ?? '',
-              fontSize: 7,
-              color: pw.PdfColors.grey600,
-              textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Grand Total
+  // Grand Total - FIXED with consistent flex ratios
   pw.Widget _buildGrandTotal(double totalQuantity, double totalValue, String? baseCurrency, String language) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(10),
@@ -433,34 +458,43 @@ class ProductReportPrintSettings extends PrintServices {
         borderRadius: pw.BorderRadius.circular(2),
       ),
       child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.end,
         children: [
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-            decoration: pw.BoxDecoration(
-              color: pw.PdfColors.blue800,
-              borderRadius: pw.BorderRadius.circular(2),
-            ),
-            child: zText(
-              text: tr(text: 'grandTotal', tr: language),
-              fontSize: 9,
-              fontWeight: pw.FontWeight.bold,
-              color: pw.PdfColors.white,
+
+
+          // Grand Total label (aligned with product name column)
+          pw.Expanded(
+            flex: 5,
+            child: pw.Container(
+              padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              child: zText(
+                text: tr(text: 'grandTotal', tr: language),
+                fontSize: 9,
+                fontWeight: pw.FontWeight.bold,
+
+              ),
             ),
           ),
-          pw.SizedBox(width: 30),
-          pw.Container(
-            width: 120,
+
+          // Empty for storage column
+          pw.Expanded(flex: 2, child: pw.Container()),
+
+          // Empty for unit price column
+          pw.Expanded(flex: 2, child: pw.Container()),
+
+          // Total Quantity
+          pw.Expanded(
+            flex: 2,
             child: zText(
-              text: totalQuantity.toAmount(decimal: 4),
+              text: "${totalQuantity.toAmount(decimal: 2)} Ton",
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
               textAlign: pw.TextAlign.right,
             ),
           ),
-          pw.SizedBox(width: 30),
-          pw.Container(
-            width: 120,
+
+          // Total Value with currency
+          pw.Expanded(
+            flex: 3,
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.end,
               children: [
@@ -470,7 +504,7 @@ class ProductReportPrintSettings extends PrintServices {
                   fontWeight: pw.FontWeight.bold,
                   color: pw.PdfColors.blue800,
                 ),
-                pw.SizedBox(width: 4),
+                pw.SizedBox(width: 2),
                 zText(
                   text: baseCurrency ?? '',
                   fontSize: 8,
@@ -486,7 +520,7 @@ class ProductReportPrintSettings extends PrintServices {
 
   String _getCurrentDate() {
     final now = DateTime.now();
-    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    return now.toFullDateTime;
   }
 
   @override
@@ -513,11 +547,27 @@ class ProductReportPrintSettings extends PrintServices {
                     tightBounds: true,
                   ),
                   pw.SizedBox(height: 3),
-                  zText(
-                    text: report.comAddress ?? "",
-                    fontSize: 8,
-                    color: pw.PdfColors.grey600,
-                  ),
+                  pw.Row(
+                    children: [
+                      zText(
+                        text: report.comAddress ?? "",
+                        fontSize: 8,
+                        color: pw.PdfColors.grey600,
+                      ),
+                      verticalDivider(height: 10, width: 1),
+                      zText(
+                        text: report.compPhone ?? "",
+                        fontSize: 8,
+                        color: pw.PdfColors.grey600,
+                      ),
+                      verticalDivider(height: 10, width: 1),
+                      zText(
+                        text: report.comEmail ?? "",
+                        fontSize: 8,
+                        color: pw.PdfColors.grey600,
+                      ),
+                    ]
+                  )
                 ],
               ),
             ),

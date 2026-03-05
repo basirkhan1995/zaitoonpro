@@ -5,6 +5,7 @@ import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
@@ -1190,7 +1191,7 @@ class _DesktopState extends State<_Desktop> {
                   child: StorageDropDown(
                     height: 40,
                     title: tr.storage,
-                    selectedId: storageId, // Pass current storageId
+                    selectedId: storageId,
                     onChanged: (e){
                       setState(() {
                         storageId = e?.stgId;
@@ -1305,7 +1306,7 @@ class _DesktopState extends State<_Desktop> {
                                   Expanded(child: Text(stk.proName ?? "")),
                                   SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
-                                  SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 4))),
+                                  SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 2))),
                                   SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy")),
                                 ],
                               ),
@@ -1345,7 +1346,7 @@ class _DesktopState extends State<_Desktop> {
                             SizedBox(
                               width: 120,
                               child: Text(
-                                totalQuantity.toAmount(decimal: 4),
+                                "${totalQuantity.toStringAsFixed(2)} ${tr.tonTitle}",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -1503,12 +1504,7 @@ class _DesktopState extends State<_Desktop> {
       );
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please load data first'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      ToastManager.show(context: context, title: "Attention", message: "Please load the date first.", type: ToastType.warning);
     }
   }
 

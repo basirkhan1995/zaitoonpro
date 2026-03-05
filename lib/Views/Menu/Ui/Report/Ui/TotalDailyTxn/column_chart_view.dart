@@ -30,15 +30,12 @@ class TotalDailyColumnView extends StatelessWidget {
 
         /// 🟢 LOADED
         if (state is TotalDailyLoaded) {
-          if (state.data.isEmpty) {
-            return const SizedBox();
-          }
-
           // Filter and prepare today's data only
           final todayData = _prepareTodayData(state.data);
 
+          // Show no-data message if empty
           if (todayData.isEmpty) {
-            return const SizedBox();
+            return _buildNoDataWidget(context);
           }
 
           return ZCover(
@@ -107,6 +104,119 @@ class TotalDailyColumnView extends StatelessWidget {
         /// 🔄 LOADING - Silent for dashboard
         return const SizedBox();
       },
+    );
+  }
+
+  /// 🆕 Build widget for no-data state
+  Widget _buildNoDataWidget(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return ZCover(
+      radius: 8,
+      margin: const EdgeInsets.all(4),
+      borderColor: theme.colorScheme.outline.withValues(alpha: .1),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header (same as data state)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Daily Transactions',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: .1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: theme.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Today',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // No-data message
+          Container(
+            height: 220,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: .08),
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Icon
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withValues(alpha: .05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.show_chart,
+                    size: 48,
+                    color: theme.colorScheme.primary.withValues(alpha: .3),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Main message
+                Text(
+                  'No Data Available',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Sub message
+                Text(
+                  'There are no transactions recorded for today',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline.withValues(alpha: .6),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+
+          // Optional: Show minimal stats even when no data? Or just remove the stats section
+          // For now, we'll not show stats when no data
+        ],
+      ),
     );
   }
 

@@ -4,6 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
+
 List<UsersReportModel> usersReportModelFromMap(String str) => List<UsersReportModel>.from(json.decode(str).map((x) => UsersReportModel.fromMap(x)));
 
 String usersReportModelToMap(List<UsersReportModel> data) => json.encode(List<dynamic>.from(data.map((x) => x.toMap())));
@@ -101,4 +103,26 @@ class UsersReportModel {
     "status": status,
     "createDate": "${createDate!.year.toString().padLeft(4, '0')}-${createDate!.month.toString().padLeft(2, '0')}-${createDate!.day.toString().padLeft(2, '0')}",
   };
+}
+
+extension UsersReportToUsers on UsersReportModel {
+  UsersModel toUsersModel() {
+    return UsersModel(
+      usrId: personalId,
+      usrFullName: fullName,
+      usrName: username,
+      usrRole: role,
+      usrStatus: status?.toLowerCase() == 'active' ? 1 : 0,
+      usrBranch: branch,
+      usrEmail: email,
+      usrEntryDate: createDate,
+      usrFcp: int.tryParse(fcp ?? '0'),
+      usrFev: false,
+      usrPass: '',
+      usrOwner: 0,
+      usrToken: '',
+      usrPhoto: null,
+      loggedInUser: null,
+    );
+  }
 }

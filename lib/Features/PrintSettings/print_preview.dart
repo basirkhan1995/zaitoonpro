@@ -389,6 +389,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
                   icon: Icons.print,
                   label: Text(locale.print),
                   onPressed: () {
+
                     final printer = context.read<PrinterCubit>().state!;
                     final language = context.read<PrintLanguageCubit>().state ?? sysLanguage;
                     final size = context.read<PaperSizeCubit>().state;
@@ -404,6 +405,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
                       copies: copies,
                       pages: pages,
                     );
+
                   },
                 ),
               ),
@@ -417,7 +419,9 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
           const SizedBox(height: 1),
 
           PageFormatDropdown(
-            onFormatSelected: (format) => context.read<PaperSizeCubit>().setPaperSize(format),
+            onFormatSelected: (format) {
+              context.read<PaperSizeCubit>().setPaperSize(format);
+            },
           ),
           const SizedBox(height: 1),
 

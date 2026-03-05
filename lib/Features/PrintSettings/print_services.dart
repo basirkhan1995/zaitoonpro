@@ -1663,7 +1663,44 @@ abstract class PrintServices {
         "en": "Active Services",
         "fa": "خدمات فعال",
         "ar": "فعال خدمتونه"
-      }
+      },
+      'allBalances': {
+        'en': 'All Balances',
+        'fa': 'همه حساب‌ها',
+        'ar': 'جميع الأرصدة',
+      },
+      'summaryByCurrency': {
+        'en': 'Summary by Currency',
+        'fa': 'خلاصه بر اساس ارز',
+        'ar': 'ملخص حسب العملة',
+      },
+
+      'summary': {
+        'en': 'Summary',
+        'fa': 'خلاصه',
+        'ar': 'ملخص',
+      },
+      'asOf': {
+        'en': 'as of',
+        'fa': 'تا تاریخ',
+        'ar': 'اعتباراً من',
+      },
+
+      'account': {
+        'en': 'Account',
+        'fa': 'حساب',
+        'ar': 'الحساب',
+      },
+      'name': {
+        'en': 'Name',
+        'fa': 'نام',
+        'ar': 'الاسم',
+      },
+      'ccy': {
+        'en': 'Ccy',
+        'fa': 'ارز',
+        'ar': 'العملة',
+      },
     };
 
     // Default to English if language not found

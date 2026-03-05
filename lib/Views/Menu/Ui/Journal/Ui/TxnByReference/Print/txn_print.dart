@@ -10,7 +10,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/TxnByReference/model/
 import '../../../../../../../Features/Other/amount_to_word.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
 
-class TransactionReferencePrintSettings extends PrintServices{
+class TransactionReferencePrintSettings extends PrintServices {
 
   Future<void> createDocument({
     required TxnByReferenceModel data,
@@ -18,7 +18,7 @@ class TransactionReferencePrintSettings extends PrintServices{
     required pw.PageOrientation orientation,
     required ReportModel company,
     required pw.PdfPageFormat pageFormat,
-    }) async {
+  }) async {
     try {
       final document = await generateStatement(
           report: company,
@@ -28,7 +28,6 @@ class TransactionReferencePrintSettings extends PrintServices{
           pageFormat: pageFormat
       );
 
-      // Save the document
       await saveDocument(
         suggestedName: "transaction.pdf",
         pdf: document,
@@ -57,18 +56,14 @@ class TransactionReferencePrintSettings extends PrintServices{
         pageFormat: pageFormat,
       );
 
-      for (int i = 0; i < copies; i++) {
-        await Printing.directPrintPdf(
-          printer: selectedPrinter,
-          onLayout: (pw.PdfPageFormat format) async {
-            return document.save();
-          },
-        );
+      final bytes = await document.save();
 
-        if (i < copies - 1) {
-          await Future.delayed(Duration(milliseconds: 100));
-        }
-      }
+      // This opens the Windows print dialog
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: '${data.trnReference}.pdf',
+      );
+
     } catch (e) {
       throw e.toString();
     }
@@ -99,7 +94,7 @@ class TransactionReferencePrintSettings extends PrintServices{
         build: (context) => [
           horizontalDivider(),
           pw.SizedBox(height: 5),
-          voucher(data: data,language: language),
+          voucher(data: data, language: language),
         ],
         header: (context) => prebuiltHeader,
         footer: (context) => footer(
@@ -113,8 +108,7 @@ class TransactionReferencePrintSettings extends PrintServices{
     return document;
   }
 
-
-  //Real Time document show
+  // Real Time document show
   Future<pw.Document> printPreview({
     required String language,
     required ReportModel company,
@@ -150,7 +144,7 @@ class TransactionReferencePrintSettings extends PrintServices{
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
-                  zText(text: report.comName ?? "", fontSize: 20,tightBounds: true),
+                  zText(text: report.comName ?? "", fontSize: 20, tightBounds: true),
                   pw.SizedBox(height: 3),
                   zText(text: report.statementDate ?? "", fontSize: 10),
                 ],
@@ -169,8 +163,14 @@ class TransactionReferencePrintSettings extends PrintServices{
       ],
     );
   }
+
   @override
-  pw.Widget footer({required ReportModel report, required pw.Context context, required String language, required pw.MemoryImage logoImage}) {
+  pw.Widget footer({
+    required ReportModel report,
+    required pw.Context context,
+    required String language,
+    required pw.MemoryImage logoImage
+  }) {
     return pw.Column(
       children: [
         pw.Row(
@@ -249,8 +249,14 @@ class TransactionReferencePrintSettings extends PrintServices{
         pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
-              zText(text: tr(text: 'moneyReceipt', tr: language),fontWeight: pw.FontWeight.bold),
-              zText(text: tr(text: data.trnType??"", tr: language),fontWeight: pw.FontWeight.bold),
+              zText(
+                  text: tr(text: 'moneyReceipt', tr: language),
+                  fontWeight: pw.FontWeight.bold
+              ),
+              zText(
+                  text: tr(text: data.trnType ?? "", tr: language),
+                  fontWeight: pw.FontWeight.bold
+              ),
             ]
         ),
         pw.SizedBox(height: 5),
@@ -259,10 +265,11 @@ class TransactionReferencePrintSettings extends PrintServices{
             border: pw.Border.all(width: 0.1),
           ),
           child: pw.Column(
-            children: rows.map((r) => pw.Container(padding: const pw.EdgeInsets.symmetric(
-              horizontal: 5,
-              vertical: 3,
-            ),
+            children: rows.map((r) => pw.Container(
+              padding: const pw.EdgeInsets.symmetric(
+                horizontal: 5,
+                vertical: 3,
+              ),
               decoration: pw.BoxDecoration(
                 border: pw.Border(
                   bottom: pw.BorderSide(width: 0.1),
@@ -272,7 +279,6 @@ class TransactionReferencePrintSettings extends PrintServices{
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 mainAxisAlignment: pw.MainAxisAlignment.start,
                 children: [
-
                   pw.Container(
                     width: 90,
                     child: zText(
@@ -280,9 +286,7 @@ class TransactionReferencePrintSettings extends PrintServices{
                         fontSize: 8
                     ),
                   ),
-
                   pw.SizedBox(width: 5),
-
                   zText(
                     text: r["value"]!,
                     fontSize: 8,
@@ -290,36 +294,32 @@ class TransactionReferencePrintSettings extends PrintServices{
                 ],
               ),
             ),
-            )
-                .toList(),
+            ).toList(),
           ),
         ),
-
         pw.SizedBox(height: 5),
-
         zText(
           text: tr(text: 'amountInWords', tr: language),
-          fontSize:8,
+          fontSize: 8,
         ),
         horizontalDivider(),
-
         zText(
           text: "${NumberToWords.convert(parsedAmount, lang)} ${data.currency}",
           fontSize: 7,
         ),
         pw.SizedBox(height: 5),
         signatory(language: language, data: data)
-
-
       ],
     );
   }
 
-
-  //Signature
-  pw.Padding signatory({required language, required TxnByReferenceModel data}) {
+  // Signature
+  pw.Padding signatory({
+    required String language,
+    required TxnByReferenceModel data
+  }) {
     return pw.Padding(
-      padding: pw.EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+      padding: const pw.EdgeInsets.symmetric(horizontal: 0, vertical: 10),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -347,10 +347,9 @@ class TransactionReferencePrintSettings extends PrintServices{
                 mainAxisAlignment: pw.MainAxisAlignment.start,
                 children: [
                   zText(text: tr(text: 'authorizedBy', tr: language), fontSize: 7),
-                  zText(text: data.checker??"", fontSize: 7),
+                  zText(text: data.checker ?? "", fontSize: 7),
                 ],
               ),
-
             ],
           ),
         ],

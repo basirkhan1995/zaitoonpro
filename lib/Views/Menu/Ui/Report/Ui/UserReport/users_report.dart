@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/user_details.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/role_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/usr_report_model.dart';
@@ -32,7 +32,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   String? role;
   int? branchId;
@@ -583,7 +582,6 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   String? role;
   int? branchId;
@@ -1025,10 +1023,7 @@ class _DesktopState extends State<_Desktop> {
   int? status;
 
   /// 🔹 Derived state (NO stored bool)
-  bool get isFilterActive =>
-      role != null || branchId != null || status != null;
-
-
+  bool get isFilterActive => role != null || branchId != null || status != null;
 
 
 
@@ -1069,29 +1064,21 @@ class _DesktopState extends State<_Desktop> {
         actionsPadding: EdgeInsets.symmetric(horizontal: 8),
         actions: [
           /// 🔹 CLEAR FILTERS (only when active)
-          if (isFilterActive)
+          if (isFilterActive)...[
             ZOutlineButton(
               backgroundHover: Theme.of(context).colorScheme.error,
               isActive: true,
-              width: 140,
               icon: Icons.filter_alt_off,
               onPressed: onClearFilters,
               label: Text(tr.clearFilters),
             ),
+            SizedBox(width: 8),
+          ],
 
-          SizedBox(width: 8),
-          /// 🔹 APPLY BUTTON
-          ZOutlineButton(
-            width: 100,
-            icon: FontAwesomeIcons.solidFilePdf,
-            onPressed: onApply,
-            label: Text("PDF"),
-          ),
-          SizedBox(width: 8),
 
           /// 🔹 APPLY BUTTON
           ZOutlineButton(
-            width: 100,
+
             isActive: true,
             icon: Icons.filter_alt,
             onPressed: onApply,
@@ -1124,6 +1111,7 @@ class _DesktopState extends State<_Desktop> {
 
                   Expanded(
                     child: BranchDropdown(
+                      title: tr.branches,
                       showAllOption: true,
                       onBranchSelected: (e) {
                         setState(() => branchId = e?.brcId);
@@ -1211,50 +1199,57 @@ class _DesktopState extends State<_Desktop> {
                         itemCount: state.users.length,
                         itemBuilder: (context,index){
                           final usr = state.users[index];
-                        return Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
-                          margin: EdgeInsets.symmetric(horizontal: 5),
-                          decoration: BoxDecoration(
-                            color: index.isEven? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent,
-                          ),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                  width: 100,
-                                  child: Text(usr.createDate.toFormattedDate())),
-                              Expanded(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(usr.username??"",style: Theme.of(context).textTheme.titleSmall),
-                                      Text(usr.email??"",style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),),
-                                    ],
-                                  )),
-                              SizedBox(
-                                  width: 180,
-                                  child: Text(usr.fullName??"")),
+                        return InkWell(
+                          onTap: (){
+                            showDialog(context: context, builder: (context){
+                              return UserDetailsView(usr: usr.toUsersModel());
+                            });
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+                            margin: EdgeInsets.symmetric(horizontal: 5),
+                            decoration: BoxDecoration(
+                              color: index.isEven? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent,
+                            ),
+                            child: Row(
+                              children: [
+                                SizedBox(
+                                    width: 100,
+                                    child: Text(usr.createDate.toFormattedDate())),
+                                Expanded(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(usr.username??"",style: Theme.of(context).textTheme.titleSmall),
+                                        Text(usr.email??"",style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),),
+                                      ],
+                                    )),
+                                SizedBox(
+                                    width: 180,
+                                    child: Text(usr.fullName??"")),
 
-                              SizedBox(
-                                  width: 120,
-                                  child: Text(usr.role??"")),
-                              SizedBox(
-                                  width: 80,
-                                  child: Text(usr.branch.toString())),
-                              SizedBox(
-                                  width: 80,
-                                  child: Text(usr.alf.toString())),
+                                SizedBox(
+                                    width: 120,
+                                    child: Text(usr.role??"")),
+                                SizedBox(
+                                    width: 80,
+                                    child: Text(usr.branch.toString())),
+                                SizedBox(
+                                    width: 80,
+                                    child: Text(usr.alf.toString())),
 
-                              SizedBox(
-                                  width: 80,
-                                  child: Text(usr.fcp??"")),
-                              SizedBox(
-                                  width: 80,
-                                  child: Text(usr.verification??"")),
-                              SizedBox(
-                                  width: 80,
-                                  child: Text(usr.status??"")),
-                            ],
+                                SizedBox(
+                                    width: 80,
+                                    child: Text(usr.fcp??"")),
+                                SizedBox(
+                                    width: 80,
+                                    child: Text(usr.verification??"")),
+                                SizedBox(
+                                    width: 80,
+                                    child: Text(usr.status??"")),
+                              ],
+                            ),
                           ),
                         );
                     });

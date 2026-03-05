@@ -4,6 +4,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
+import '../../../../../../../../Features/PrintSettings/PaperSize/paper_size.dart';
 import '../../../../../../../../Features/PrintSettings/print_services.dart';
 import '../../../../../../../../Features/PrintSettings/report_model.dart';
 import '../model/stmt_model.dart';
@@ -48,37 +49,33 @@ class AccountStatementPrintSettings extends PrintServices {
     required Printer selectedPrinter,
     required pw.PdfPageFormat pageFormat,
     required int copies,
-    required String pages, // Add this parameter
+    required String pages,
   }) async {
     try {
+
+      final cleanFormat = PdfFormatHelper.getPrinterFriendlyFormat(pageFormat);
+
       final document = await generateStatement(
         report: company,
         stmtInfo: info,
         language: language,
         orientation: orientation,
-        pageFormat: pageFormat,
+        pageFormat: cleanFormat,
       );
 
-      // Use copies parameter for multiple print jobs
-      for (int i = 0; i < copies; i++) {
-        await Printing.directPrintPdf(
-          printer: selectedPrinter,
-          onLayout: (pw.PdfPageFormat format) async {
-            return document.save();
-          },
-        );
+      final bytes = await document.save();
 
-        // Optional: Add a small delay between copies if needed
-        if (i < copies - 1) {
-          await Future.delayed(Duration(milliseconds: 100));
-        }
-      }
+      await Printing.sharePdf(
+        bytes: bytes,
+        filename: 'account_statement_${info.signatory}.pdf',
+      );
+
     } catch (e) {
-      throw e.toString();
+
+      throw Exception('Failed to print: $e');
     }
   }
 
-  //Real Time document show
   Future<pw.Document> printPreview({
     required String language,
     required ReportModel company,

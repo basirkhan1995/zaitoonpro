@@ -638,8 +638,8 @@ class _DesktopState extends State<_Desktop> {
                             children: [
                               ZOutlineButton(
                                 width: 100,
-                                icon: FontAwesomeIcons.filePdf,
-                                label: Text("PDF"),
+                                icon: Icons.print_rounded,
+                                label: Text(tr.print),
                                 onPressed: (){
                                  if(formKey.currentState!.validate()){
                                    showDialog(

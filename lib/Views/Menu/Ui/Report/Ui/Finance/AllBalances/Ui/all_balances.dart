@@ -1,13 +1,21 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../../../Features/Other/extensions.dart';
 import '../../../../../../../../Features/Other/utils.dart';
+import '../../../../../../../../Features/PrintSettings/print_preview.dart';
+import '../../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../Finance/Ui/GlAccounts/GlCategories/category_view.dart';
+import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../Print/print.dart';
 import '../bloc/all_balances_bloc.dart';
+import '../model/all_balances_model.dart';
 
 class AllBalancesView extends StatelessWidget {
   const AllBalancesView({super.key});
@@ -26,7 +34,6 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   int? catId;
   String? selectedCategory;
@@ -380,7 +387,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   int? catId;
   String? selectedCategory;
@@ -709,7 +715,6 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
-
 class _DesktopState extends State<_Desktop> {
 
   int? catId;
@@ -739,9 +744,7 @@ class _DesktopState extends State<_Desktop> {
           SizedBox(width: 8),
           ZOutlineButton(
               width: 100,
-              onPressed: (){
-
-              },
+              onPressed: _printAllBalances,
               icon: Icons.print,
               label: Text(tr.print)),
           SizedBox(width: 8),
@@ -871,5 +874,92 @@ class _DesktopState extends State<_Desktop> {
         ],
       ),
     );
+  }
+
+// Add this method to _DesktopState
+  Future<void> _printAllBalances() async {
+    final state = context.read<AllBalancesBloc>().state;
+
+    if (state is AllBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<List<AllBalancesModel>>(
+            data: state.balances,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return AllBalancesPrintSettings().printPreview(
+                balances: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return AllBalancesPrintSettings().printDocument(
+                balances: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return AllBalancesPrintSettings().createDocument(
+                balances: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+     ToastManager.show(context: context, title: "Attention", message: "Please load the data first.", type: ToastType.warning);
+    }
   }
 }

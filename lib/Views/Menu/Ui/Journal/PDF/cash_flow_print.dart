@@ -38,7 +38,15 @@ class CashFlowTransactionPrint extends PrintServices{
       throw e.toString();
     }
   }
-
+// Add this method to your PrintServices class (around line 300)
+  pw.PdfPageFormat _getPrinterFriendlyFormat(pw.PdfPageFormat format) {
+    // Round to nearest integer to match printer expectations
+    return pw.PdfPageFormat(
+      format.width.roundToDouble(),
+      format.height.roundToDouble(),
+    );
+  }
+  // In CashFlowTransactionPrint.printDocument method
   Future<void> printDocument({
     required TransactionsModel data,
     required String language,
@@ -50,6 +58,7 @@ class CashFlowTransactionPrint extends PrintServices{
     required String pages,
   }) async {
     try {
+
       final document = await generateStatement(
         report: company,
         data: data,
@@ -58,23 +67,30 @@ class CashFlowTransactionPrint extends PrintServices{
         pageFormat: pageFormat,
       );
 
+
+      // Create printer-friendly format
+      final printerFormat = _getPrinterFriendlyFormat(pageFormat);
+
       for (int i = 0; i < copies; i++) {
+
         await Printing.directPrintPdf(
           printer: selectedPrinter,
           onLayout: (pw.PdfPageFormat format) async {
             return document.save();
           },
+          format: printerFormat,
+          usePrinterSettings: false,
         );
 
         if (i < copies - 1) {
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 500));
         }
       }
+
     } catch (e) {
-      throw e.toString();
+      rethrow;
     }
   }
-
   Future<pw.Document> generateStatement({
     required String language,
     required ReportModel report,
@@ -317,7 +333,7 @@ class CashFlowTransactionPrint extends PrintServices{
 
 
   //Signature
-  pw.Padding signatory({required language, required TransactionsModel data}) {
+  pw.Padding signatory({required String language, required TransactionsModel data}) {
     return pw.Padding(
       padding: pw.EdgeInsets.symmetric(horizontal: 0, vertical: 10),
       child: pw.Row(

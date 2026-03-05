@@ -511,7 +511,7 @@ class _MobileState extends State<_Mobile> {
                                       crossAxisAlignment: CrossAxisAlignment.center,
                                       children: [
                                         Text(
-                                          tr.qty,
+                                          tr.unit,
                                           style: TextStyle(
                                             fontSize: 11,
                                             color: color.outline,
@@ -535,7 +535,7 @@ class _MobileState extends State<_Mobile> {
                                       crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
                                         Text(
-                                          tr.totalTitle,
+                                          tr.totalProductValue,
                                           style: TextStyle(
                                             fontSize: 11,
                                             color: color.outline,

@@ -96,19 +96,19 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
                 baseCurrency = comState.loginData.company?.comLocalCcy;
                 company.comName = comState.loginData.company?.comName ?? "";
                 company.comAddress = comState.loginData.usrFullName ?? "";
-                company.compPhone = comState.loginData.company?.comPHone ?? "";
+                company.compPhone = comState.loginData.company?.comPhone ?? "";
                 company.comEmail = comState.loginData.company?.comEmail ?? "";
                 company.statementDate = DateTime.now().toFullDateTime;
                 company.baseCurrency = comState.loginData.company?.comLocalCcy;
-                //
-                // final base64Logo = comState.company.comLogo;
-                // if (base64Logo != null && base64Logo.isNotEmpty) {
-                //   try {
-                //     company.comLogo = base64Decode(base64Logo);
-                //   } catch (e) {
-                //     company.comLogo = Uint8List(0);
-                //   }
-                // }
+
+                final base64Logo = comState.loginData.company?.comLogo;
+                if (base64Logo != null && base64Logo.isNotEmpty) {
+                  try {
+                    company.comLogo = base64Decode(base64Logo);
+                  } catch (e) {
+                    company.comLogo = Uint8List(0);
+                  }
+                }
               }
 
               return BlocBuilder<BalanceSheetBloc, BalanceSheetState>(

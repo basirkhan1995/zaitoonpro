@@ -103,9 +103,10 @@ class Company {
   final dynamic comLicenseNo;
   final dynamic comSlogan;
   final dynamic comDetails;
-  final String? comPHone;
+  final String? comPhone;
   final String? comEmail;
   final String? comWebsite;
+  final String? comLogo;
   final int? comOwner;
   final dynamic comFb;
   final dynamic comInsta;
@@ -121,9 +122,10 @@ class Company {
     this.comLicenseNo,
     this.comSlogan,
     this.comDetails,
-    this.comPHone,
+    this.comPhone,
     this.comEmail,
     this.comWebsite,
+    this.comLogo,
     this.comOwner,
     this.comFb,
     this.comInsta,
@@ -140,9 +142,10 @@ class Company {
     dynamic comLicenseNo,
     dynamic comSlogan,
     dynamic comDetails,
-    String? comPHone,
+    String? comPhone,
     String? comEmail,
     String? comWebsite,
+    String? comLogo,
     int? comOwner,
     dynamic comFb,
     dynamic comInsta,
@@ -151,16 +154,16 @@ class Company {
     String? comLocalCcy,
     String? comTimeZone,
     String? comAddress,
-  }) =>
-      Company(
+  }) => Company(
         comId: comId ?? this.comId,
         comName: comName ?? this.comName,
         comLicenseNo: comLicenseNo ?? this.comLicenseNo,
         comSlogan: comSlogan ?? this.comSlogan,
         comDetails: comDetails ?? this.comDetails,
-        comPHone: comPHone ?? this.comPHone,
+        comPhone: comPhone ?? this.comPhone,
         comEmail: comEmail ?? this.comEmail,
         comWebsite: comWebsite ?? this.comWebsite,
+        comLogo: comLogo ?? this.comLogo,
         comOwner: comOwner ?? this.comOwner,
         comFb: comFb ?? this.comFb,
         comInsta: comInsta ?? this.comInsta,
@@ -177,9 +180,10 @@ class Company {
     comLicenseNo: json["comLicenseNo"],
     comSlogan: json["comSlogan"],
     comDetails: json["comDetails"],
-    comPHone: json["comPHone"],
+    comPhone: json["comPhone"],
     comEmail: json["comEmail"],
     comWebsite: json["comWebsite"],
+    comLogo: json["comLogo"],
     comOwner: json["comOwner"],
     comFb: json["comFB"],
     comInsta: json["comInsta"],
@@ -196,9 +200,10 @@ class Company {
     "comLicenseNo": comLicenseNo,
     "comSlogan": comSlogan,
     "comDetails": comDetails,
-    "comPHone": comPHone,
+    "comPhone": comPhone,
     "comEmail": comEmail,
     "comWebsite": comWebsite,
+    "comLogo": comLogo,
     "comOwner": comOwner,
     "comFB": comFb,
     "comInsta": comInsta,

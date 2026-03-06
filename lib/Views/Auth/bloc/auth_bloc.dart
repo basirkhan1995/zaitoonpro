@@ -60,9 +60,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         emit(AuthErrorState(e.toString()));
       }
     });
+
     on<OnLogoutEvent>((event, emit){
       emit(UnAuthenticatedState());
     });
+
     on<OnResetAuthState>((event, emit){
       emit(AuthInitial());
     });

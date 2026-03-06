@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Storage/storage.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -78,7 +77,7 @@ class _CompanyTabsViewState extends State<CompanyTabsView> {
           // Desktop/Tablet layout with side menu
           return GenericMenuWithScreen(
             isExpanded: false,
-            menuWidth: context.scaledFont(0.13),
+            menuWidth: 160,
             padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 8),
             margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
             selectedColor:

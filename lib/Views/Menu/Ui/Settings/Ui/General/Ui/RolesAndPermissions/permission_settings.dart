@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/bloc/permission_settings_bloc.dart';
@@ -226,7 +225,7 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
             ),
             child: Row(
               children: [
-                Container(
+                SizedBox(
                   width: 200,
                   child: Text(
                     AppLocalizations.of(context)!.permissions.toUpperCase(),
@@ -271,7 +270,7 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
                   ),
                   child: Row(
                     children: [
-                      Container(
+                      SizedBox(
                         width: 200,
                         child: Text(
                           permissionName,
@@ -325,7 +324,7 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
             ),
             child: Row(
               children: [
-                Container(
+                SizedBox(
                   width: 200,
                   child: Text(
                     'Total: ${allPermissions.length}',

@@ -2798,4 +2798,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get profileSettings => 'تنظیمات پروفایل';
+
+  @override
+  String get enableAll => 'فعال سازی همه';
+
+  @override
+  String get grantAll => 'ټول صلاحیتونه ورکول';
+
+  @override
+  String get revokeAll => 'ټول صلاحیتونه لغوه کول';
+
+  @override
+  String get restoreDefault => 'اصلي حالت ته ستنول';
+
+  @override
+  String get roleActions => 'د رول کړنې';
 }

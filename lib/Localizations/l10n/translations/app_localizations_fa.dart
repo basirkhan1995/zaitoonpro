@@ -2794,4 +2794,19 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get profileSettings => 'تنظیمات پروفایل';
+
+  @override
+  String get enableAll => 'فعال سازی همه';
+
+  @override
+  String get grantAll => 'اعطای همه صلاحیت‌ ها';
+
+  @override
+  String get revokeAll => 'لغو همه صلاحیت‌ ها';
+
+  @override
+  String get restoreDefault => 'بازگرداندن به حالت اصلی';
+
+  @override
+  String get roleActions => 'اقدامات نقش';
 }

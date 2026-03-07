@@ -927,5 +927,10 @@
   "filterTitle": "Filter",
   "averageTitle": "Average Rate",
   "rolesAndPermissions": "Roles & Permissions",
-  "profileSettings": "Profile Settings"
+  "profileSettings": "Profile Settings",
+  "enableAll": "Enable all",
+  "grantAll": "Grant All",
+  "revokeAll": "Revoke All",
+  "restoreDefault": "Restore Defaults",
+  "roleActions": "Role Actions"
 }

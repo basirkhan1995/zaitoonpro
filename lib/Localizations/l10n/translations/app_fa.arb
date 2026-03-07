@@ -927,5 +927,10 @@
   "filterTitle": "فلتر",
   "averageTitle": "نرخ اوسط",
   "rolesAndPermissions": "نقش‌ها و دسترسی‌ها",
-  "profileSettings": "تنظیمات پروفایل"
+  "profileSettings": "تنظیمات پروفایل",
+  "enableAll": "فعال سازی همه",
+  "grantAll": "اعطای همه صلاحیت‌ ها",
+  "revokeAll": "لغو همه صلاحیت‌ ها",
+  "restoreDefault": "بازگرداندن به حالت اصلی",
+  "roleActions": "اقدامات نقش"
 }

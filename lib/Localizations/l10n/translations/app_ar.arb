@@ -927,5 +927,10 @@
   "filterTitle": "فلتر",
   "averageTitle": "نرخ اوسط",
   "rolesAndPermissions": "دندې او اجازې",
-  "profileSettings": "تنظیمات پروفایل"
+  "profileSettings": "تنظیمات پروفایل",
+  "enableAll": "فعال سازی همه",
+  "grantAll": "ټول صلاحیتونه ورکول",
+  "revokeAll": "ټول صلاحیتونه لغوه کول",
+  "restoreDefault": "اصلي حالت ته ستنول",
+  "roleActions": "د رول کړنې"
 }

@@ -2805,4 +2805,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileSettings => 'Profile Settings';
+
+  @override
+  String get enableAll => 'Enable all';
+
+  @override
+  String get grantAll => 'Grant All';
+
+  @override
+  String get revokeAll => 'Revoke All';
+
+  @override
+  String get restoreDefault => 'Restore Defaults';
+
+  @override
+  String get roleActions => 'Role Actions';
 }

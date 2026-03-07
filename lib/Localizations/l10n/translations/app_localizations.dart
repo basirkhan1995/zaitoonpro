@@ -5547,6 +5547,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Profile Settings'**
   String get profileSettings;
+
+  /// No description provided for @enableAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable all'**
+  String get enableAll;
+
+  /// No description provided for @grantAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Grant All'**
+  String get grantAll;
+
+  /// No description provided for @revokeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke All'**
+  String get revokeAll;
+
+  /// No description provided for @restoreDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Defaults'**
+  String get restoreDefault;
+
+  /// No description provided for @roleActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Role Actions'**
+  String get roleActions;
 }
 
 class _AppLocalizationsDelegate

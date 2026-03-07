@@ -71,6 +71,7 @@ import '../Views/Menu/Ui/Report/Ui/Transport/Vehicle/model/vehicle_report_model.
 import '../Views/Menu/Ui/Report/Ui/TxnReport/model/txn_report_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/BranchLimits/model/limit_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Company/Branches/model/branch_model.dart';
+import '../Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/model/permission_settings_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../Views/Menu/Ui/Stock/Ui/GoodsShift/model/shift_model.dart';
@@ -643,6 +644,38 @@ class Repositories {
     );
     return response.data;
   }
+
+  ///User Role Settings
+  Future<List<UserRolePermissionSettingModel>> getPermissionSettings({CancelToken? cancelToken,}) async {
+
+    // Fetch data from API
+    final response = await api.get(
+      endpoint: "/setting/userRoles.php",
+      cancelToken: cancelToken,
+    );
+
+    // Handle error messages from server
+    if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
+      throw Exception(response.data['msg']);
+    }
+
+    // If data is null or empty, return empty list
+    if (response.data == null ||
+        (response.data is List && response.data.isEmpty)) {
+      return [];
+    }
+
+    // Parse list of stakeholders safely
+    if (response.data is List) {
+      return (response.data as List)
+          .whereType<Map<String, dynamic>>() // ensure map type
+          .map((json) => UserRolePermissionSettingModel.fromMap(json))
+          .toList();
+    }
+
+    return [];
+  }
+
   ///Employees .................................................................
   Future<List<EmployeeModel>> getEmployees({
     String? cat,

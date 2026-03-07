@@ -98,6 +98,7 @@ import 'Views/Menu/Ui/Report/Ui/TransactionRef/bloc/txn_ref_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/Transport/Shipments/bloc/shipping_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/TxnReport/bloc/txn_report_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Company/Branches/bloc/branch_bloc.dart';
+import 'Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/bloc/permission_settings_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/General/bloc/general_tab_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import 'Views/Menu/Ui/Settings/bloc/settings_tab_bloc.dart';
@@ -197,6 +198,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ProjectServicesBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => ProjectIncExpBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => UserRoleBloc(Repositories(ApiServices()))),
+        BlocProvider(create: (context) => PermissionSettingsBloc(Repositories(ApiServices()))..add(LoadPermissionsSettingsEvent())),
 
         ///Report Bloc
         BlocProvider(create: (context) => AccStatementBloc(Repositories(ApiServices()))),

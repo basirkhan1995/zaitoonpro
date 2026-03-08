@@ -29,6 +29,11 @@ final class UnAuthenticatedState extends AuthState {
   List<Object> get props => [];
 }
 
+final class NoSubscriptionState extends AuthState {
+  @override
+  List<Object> get props => [];
+}
+
 final class AuthErrorState extends AuthState {
   final String message;
   const AuthErrorState(this.message);

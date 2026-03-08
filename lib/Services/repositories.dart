@@ -45,6 +45,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Stock/Ui/Orders/model/orders_mod
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Transport/Ui/Drivers/model/driver_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Transport/Ui/Shipping/Ui/ShippingView/model/shp_details_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Transport/Ui/Vehicles/model/vehicle_model.dart';
+import '../Views/Auth/Subscription/model/sub_model.dart';
 import '../Views/Menu/Ui/Dashboard/Views/DailyGross/model/gross_model.dart';
 import '../Views/Menu/Ui/Dashboard/Views/Stats/model/stats_model.dart';
 import '../Views/Menu/Ui/Finance/Ui/EndOfYear/model/eoy_model.dart';
@@ -3828,6 +3829,48 @@ class Repositories {
     }
 
     throw Exception("Invalid API response format");
+  }
+
+  ///Subscription ..............................................................
+  Future<List<SubscriptionModel>> getSubscriptions() async {
+
+    // Fetch data from API
+    final response = await api.get(
+      endpoint: "/setting/subscription.php",
+
+    );
+
+    // Handle error messages from server
+    if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
+      throw Exception(response.data['msg']);
+    }
+
+    // If data is null or empty, return empty list
+    if (response.data == null ||
+        (response.data is List && response.data.isEmpty)) {
+      return [];
+    }
+
+    // Parse list of stakeholders safely
+    if (response.data is List) {
+      return (response.data as List)
+          .whereType<Map<String, dynamic>>() // ensure map type
+          .map((json) => SubscriptionModel.fromMap(json))
+          .toList();
+    }
+
+    return [];
+  }
+  Future<Map<String, dynamic>> addSubscription({required String oldKey, required String newKey, required String expireDate}) async {
+    final response = await api.post(
+        endpoint: "/setting/subscription.php",
+        data: {
+          "oldKey": oldKey,
+          "newKey": newKey,
+          "subExpireDate": expireDate,
+        }
+    );
+    return response.data;
   }
 
 

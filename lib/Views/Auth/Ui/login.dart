@@ -5,6 +5,7 @@ import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/button.dart';
 import 'package:zaitoon_petroleum/Views/Auth/ForgotPassword/forgot_password.dart';
+import 'package:zaitoon_petroleum/Views/Auth/Subscription/Ui/no_subscription.dart';
 import 'package:zaitoon_petroleum/Views/Auth/Ui/force_change_password.dart';
 import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/home.dart';
@@ -69,7 +70,12 @@ class _MobileState extends State<_Mobile> {
               ForceChangePasswordView(credential: _emailController.text),
             );
           }
-          if (state is EmailVerificationState) {}
+          if (state is NoSubscriptionState) {
+            Utils.goto(
+              context,
+              NoSubscriptionView(),
+            );
+          }
         },
         child: SafeArea(
           child: LayoutBuilder(
@@ -301,7 +307,12 @@ class _TabletState extends State<_Tablet> {
               ForceChangePasswordView(credential: _emailController.text),
             );
           }
-          if (state is EmailVerificationState) {}
+          if (state is NoSubscriptionState) {
+            Utils.goto(
+              context,
+              NoSubscriptionView(),
+            );
+          }
         },
         child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -523,7 +534,12 @@ class _DesktopState extends State<_Desktop> {
               context,
               ForceChangePasswordView(credential: _emailController.text),
             );
-          } if (state is EmailVerificationState) {}
+          }  if (state is NoSubscriptionState) {
+            Utils.goto(
+              context,
+              NoSubscriptionView(),
+            );
+          }
         },
         child: Padding(
           padding: const EdgeInsets.all(8.0),

@@ -14,6 +14,11 @@ final class PermissionSettingsLoadingState extends PermissionSettingsState {
   List<Object> get props => [];
 }
 
+final class PermissionSettingSuccessState extends PermissionSettingsState {
+  @override
+  List<Object> get props => [];
+}
+
 final class PermissionSettingsErrorState extends PermissionSettingsState {
   final String message;
   const PermissionSettingsErrorState(this.message);

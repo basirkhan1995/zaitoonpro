@@ -42,6 +42,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
               emit(ForceChangePasswordState());
               return;
 
+            case "nosub":
+              emit(NoSubscriptionState());
+              return;
+
             case "fev":
               emit(EmailVerificationState());
               return;

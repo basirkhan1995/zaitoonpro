@@ -43,48 +43,49 @@ class _Desktop extends StatelessWidget {
         builder: (context, state) {
           final tabs = <ZTabItem<SettingsTabName>>[
 
-            if (login.hasPermission(58) ?? false)
+            if (login.hasPermission(63) ?? false)
               ZTabItem(
                 value: SettingsTabName.general,
                 label: AppLocalizations.of(context)!.general,
                 screen: const GeneralView(),
               ),
 
-            if (login.hasPermission(61) ?? false)
+            if (login.hasPermission(68) ?? false)
               ZTabItem(
                 value: SettingsTabName.company,
                 label: AppLocalizations.of(context)!.company,
                 screen: const CompanyTabsView(),
               ),
-            if (login.hasPermission(61) ?? false)
+
+            if (login.hasPermission(49) ?? false)
               ZTabItem(
                 value: SettingsTabName.services,
                 label: AppLocalizations.of(context)!.services,
                 screen: const ServicesView(),
               ),
 
-            if (login.usrRole == "Super")
+            if ((login.usrRole == "Super") || (login.hasPermission(72) ?? false))
               ZTabItem(
                 value: SettingsTabName.txnTypes,
                 label: AppLocalizations.of(context)!.transactionType,
                 screen: const TxnTypesView(),
               ),
 
-            if (login.hasPermission(66) ?? false)
+            if (login.hasPermission(73) ?? false)
             ZTabItem(
               value: SettingsTabName.stock,
               label: AppLocalizations.of(context)!.stock,
               screen: const StockSettingsView(),
             ),
 
-            if (login.hasPermission(32) ?? false)
+            if (login.hasPermission(76) ?? false)
               ZTabItem(
                 value: SettingsTabName.backup,
                 label: AppLocalizations.of(context)!.backupTitle,
                 screen: const BackupView(),
               ),
 
-            if (login.hasPermission(70) ?? false)
+            if (login.hasPermission(77) ?? false)
             ZTabItem(
               value: SettingsTabName.about,
               label: AppLocalizations.of(context)!.about,
@@ -169,47 +170,47 @@ class _Mobile extends StatelessWidget {
       body: BlocBuilder<SettingsTabBloc, SettingsTabState>(
         builder: (context, state) {
           final tabs = <ZTabItem<SettingsTabName>>[
-            if (login.hasPermission(58) ?? false)
+            if (login.hasPermission(63) ?? false)
               ZTabItem(
                 value: SettingsTabName.general,
                 label: AppLocalizations.of(context)!.general,
                 screen: const GeneralView(),
               ),
 
-            if (login.hasPermission(61) ?? false)
+            if (login.hasPermission(68) ?? false)
               ZTabItem(
                 value: SettingsTabName.company,
                 label: AppLocalizations.of(context)!.company,
                 screen: const CompanyTabsView(),
               ),
-            if (login.hasPermission(61) ?? false)
+            if (login.hasPermission(49) ?? false)
               ZTabItem(
                 value: SettingsTabName.services,
                 label: AppLocalizations.of(context)!.services,
                 screen: const ServicesView(),
               ),
-            if (login.hasPermission(66) ?? false)
+            if (login.hasPermission(73) ?? false)
               ZTabItem(
                 value: SettingsTabName.stock,
                 label: AppLocalizations.of(context)!.stock,
                 screen: const StockSettingsView(),
               ),
 
-            if (login.usrRole == "Super")
+            if ((login.usrRole == "Super") || (login.hasPermission(72) ?? false))
               ZTabItem(
                 value: SettingsTabName.txnTypes,
                 label: AppLocalizations.of(context)!.transactionType,
                 screen: const TxnTypesView(),
               ),
 
-            if (login.hasPermission(32) ?? false)
+            if (login.hasPermission(76) ?? false)
               ZTabItem(
                 value: SettingsTabName.backup,
                 label: AppLocalizations.of(context)!.backupTitle,
                 screen: const BackupView(),
               ),
 
-            if (login.hasPermission(70) ?? false)
+            if (login.hasPermission(77) ?? false)
               ZTabItem(
                 value: SettingsTabName.about,
                 label: AppLocalizations.of(context)!.about,

@@ -56,7 +56,7 @@ class _Mobile extends StatelessWidget {
             ],
 
             //Exchange Rate Widget
-            if (login.hasPermission(3) ?? false) ...[
+            if (login.hasPermission(7) ?? false) ...[
               if (visibility.exchangeRate) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -123,7 +123,7 @@ class _Tablet extends StatelessWidget {
             ],
 
             //Exchange Rate Widget
-            if (login.hasPermission(3) ?? false) ...[
+            if (login.hasPermission(7) ?? false) ...[
               if (visibility.exchangeRate) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -198,7 +198,7 @@ class _Desktop extends StatelessWidget {
                   ],
 
                     //Exchange Rate Graph
-                    if (login.hasPermission(7) ?? false) ...[
+                    if (login.hasPermission(3) ?? false) ...[
                       SizedBox(height: 400, child: FxRateDashboardChart()),
                     ],
 

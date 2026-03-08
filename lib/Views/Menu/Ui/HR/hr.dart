@@ -35,20 +35,20 @@ class _Mobile extends StatelessWidget {
         child: BlocBuilder<HrTabBloc, HrTabState>(
           builder: (context, state) {
             final tabs = <ZTabItem<HrTabName>>[
-              if (login.hasPermission(14) ?? false)
+              if (login.hasPermission(36) ?? false)
                 ZTabItem(
                   value: HrTabName.employees,
                   label: AppLocalizations.of(context)!.employees,
                   screen: const EmployeesView(),
                 ),
-
+              if (login.hasPermission(37) ?? false)
               ZTabItem(
                 value: HrTabName.attendance,
                 label: AppLocalizations.of(context)!.attendence,
                 screen: const AttendanceView(),
               ),
 
-              if (login.hasPermission(15) ?? false)
+              if (login.hasPermission(38) ?? false)
                 ZTabItem(
                   value: HrTabName.users,
                   label: AppLocalizations.of(context)!.users,
@@ -100,20 +100,20 @@ class _Desktop extends StatelessWidget {
         child: BlocBuilder<HrTabBloc, HrTabState>(
           builder: (context, state) {
             final tabs = <ZTabItem<HrTabName>>[
-              if (login.hasPermission(14) ?? false)
+              if (login.hasPermission(36) ?? false)
                 ZTabItem(
                   value: HrTabName.employees,
                   label: AppLocalizations.of(context)!.employees,
                   screen: const EmployeesView(),
                 ),
-
+              if (login.hasPermission(37) ?? false)
               ZTabItem(
                 value: HrTabName.attendance,
                 label: AppLocalizations.of(context)!.attendence,
                 screen: const AttendanceView(),
               ),
 
-              if (login.hasPermission(15) ?? false)
+              if (login.hasPermission(38) ?? false)
                 ZTabItem(
                   value: HrTabName.users,
                   label: AppLocalizations.of(context)!.users,

@@ -43,7 +43,7 @@ class _Mobile extends StatelessWidget {
         child: BlocBuilder<IndividualDetailTabBloc, IndividualDetailTabState>(
           builder: (context, state) {
             final tabs = <ZTabItem<IndividualDetailTabName>>[
-              if (login.hasPermission(55) ?? false)
+              if (login.hasPermission(33) ?? false)
                 ZTabItem(
                   value: IndividualDetailTabName.accounts,
                   label: AppLocalizations.of(context)!.accounts,
@@ -140,7 +140,7 @@ class _Desktop extends StatelessWidget {
         child: BlocBuilder<IndividualDetailTabBloc, IndividualDetailTabState>(
           builder: (context, state) {
             final tabs = <ZTabItem<IndividualDetailTabName>>[
-              if (login.hasPermission(55) ?? false)
+              if (login.hasPermission(33) ?? false)
                 ZTabItem(
                   value: IndividualDetailTabName.accounts,
                   label: AppLocalizations.of(context)!.accounts,

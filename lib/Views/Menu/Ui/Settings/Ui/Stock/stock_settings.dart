@@ -44,14 +44,14 @@ class _BaseStockSettings extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     final menuItems = [
-      if (login.hasPermission(67) ?? false)
+      if (login.hasPermission(74) ?? false)
         MenuDefinition(
           value: StockSettingsTabName.products,
           label: locale.products,
           screen: const ProductsView(),
           icon: Icons.production_quantity_limits_rounded,
         ),
-      if (login.hasPermission(68) ?? false)
+      if (login.hasPermission(75) ?? false)
         MenuDefinition(
           value: StockSettingsTabName.proCategory,
           label: locale.categoryTitle,

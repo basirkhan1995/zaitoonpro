@@ -48,7 +48,7 @@ class _Desktop extends StatelessWidget {
                 label: AppLocalizations.of(context)!.drivers,
                 screen: const DriversView(),
               ),
-            if (login.hasPermission(96) ?? false)
+            if (login.hasPermission(45) ?? false)
               ZTabItem(
                 value: TransportTabName.vehicles,
                 label: AppLocalizations.of(context)!.vehicles,
@@ -118,7 +118,7 @@ class _Mobile extends StatelessWidget {
                   label: AppLocalizations.of(context)!.drivers,
                   screen: const DriversView(),
                 ),
-              if (login.hasPermission(96) ?? false)
+              if (login.hasPermission(45) ?? false)
                 ZTabItem(
                   value: TransportTabName.vehicles,
                   label: AppLocalizations.of(context)!.vehicles,

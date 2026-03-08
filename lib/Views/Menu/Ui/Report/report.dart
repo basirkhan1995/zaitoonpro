@@ -100,75 +100,74 @@ class _DesktopState extends State<_Desktop> {
     final login = state.loginData;
 
     final List<Map<String, dynamic>> financeButtons = [
-      if(login.hasPermission(72) ?? false)
+      if(login.hasPermission(79) ?? false)
       {"title": tr.accountStatement, "icon": FontAwesomeIcons.buildingColumns, "action": ActionKey.accStatement},
-      if(login.hasPermission(73) ?? false)
+      if(login.hasPermission(81) ?? false)
       {"title": tr.glStatement, "icon": FontAwesomeIcons.buildingColumns, "action": ActionKey.glStatement},
-      if(login.hasPermission(74) ?? false)
+      if(login.hasPermission(80) ?? false)
       {"title": tr.glStatementSingleDate, "icon": FontAwesomeIcons.buildingColumns, "action": ActionKey.glStatementSingleDate},
-      if(login.hasPermission(75) ?? false)
+      if(login.hasPermission(82) ?? false)
       {"title": tr.creditors, "icon": FontAwesomeIcons.arrowTrendUp, "action": ActionKey.payable},
-      if(login.hasPermission(76) ?? false)
+      if(login.hasPermission(83) ?? false)
       {"title": tr.debtors, "icon": FontAwesomeIcons.arrowTrendDown, "action": ActionKey.receivable},
-      if(login.hasPermission(76) ?? false)
       {"title": tr.accounts, "icon": Icons.account_circle, "action": ActionKey.accountsReport},
     ];
 
     final List<Map<String, dynamic>> stockButtons = [
-      if(login.hasPermission(77) ?? false)
+      if(login.hasPermission(84) ?? false)
       {"title": tr.stockAvailability, "icon": Icons.storage, "action": ActionKey.products},
-      if(login.hasPermission(78) ?? false)
+      if(login.hasPermission(85) ?? false)
       {"title": tr.productMovement, "icon": Icons.shopping_bag_outlined, "action": ActionKey.stockRecord},
-      if(login.hasPermission(79) ?? false)
+      if(login.hasPermission(86) ?? false)
       {"title": tr.purchaseInvoice, "icon": Icons.add_shopping_cart_sharp, "action": ActionKey.purchase},
-      if(login.hasPermission(80) ?? false)
+      if(login.hasPermission(87) ?? false)
       {"title": tr.salesInvoice, "icon": Icons.add_shopping_cart_sharp, "action": ActionKey.sale},
-      if(login.hasPermission(81) ?? false)
+      if(login.hasPermission(88) ?? false)
       {"title": tr.estimateTitle, "icon": Icons.file_copy_outlined, "action": ActionKey.estimate},
     ];
 
     final List<Map<String, dynamic>> transactionsButtons = [
-      if(login.hasPermission(85) ?? false)
+      if(login.hasPermission(92) ?? false)
       {"title": "${tr.treasury} (${tr.all} ${tr.branches})", "icon":  FontAwesomeIcons.sackDollar, "action": ActionKey.allCashBalances},
-      if(login.hasPermission(86) ?? false)
+      if(login.hasPermission(93) ?? false)
       {"title": "${tr.treasury} (${tr.branch} Wise)", "icon": FontAwesomeIcons.sackDollar, "action": ActionKey.cashBalanceBranchWise},
-      if(login.hasPermission(87) ?? false)
+      if(login.hasPermission(94) ?? false)
       {"title": tr.exchangeRate, "icon": Icons.price_change_outlined, "action": ActionKey.exchangeRate},
-      if(login.hasPermission(110) ?? false)
+      if(login.hasPermission(113) ?? false)
       {"title": tr.balanceSheet, "icon": Icons.balance_rounded, "action": ActionKey.balanceSheet},
-      if(login.hasPermission(88) ?? false)
+      if(login.hasPermission(95) ?? false)
       {"title": tr.trialBalance, "icon": Icons.balance_rounded, "action": ActionKey.trialBalance},
-      if(login.hasPermission(89) ?? false)
+      if(login.hasPermission(96) ?? false)
       {"title": tr.transactionDetails, "icon": Icons.qr_code_2_rounded, "action": ActionKey.transactionByRef},
-      if(login.hasPermission(90) ?? false)
+      if(login.hasPermission(97) ?? false)
       {"title": "${tr.transactions} ${tr.report}", "icon": Icons.line_axis_sharp, "action": ActionKey.transactionReport},
-      if(login.hasPermission(91) ?? false)
-      {"title": "All Balances", "icon": Icons.money, "action": ActionKey.allBalances},
+      if(login.hasPermission(98) ?? false)
+      {"title": tr.allBalancesTitle, "icon": Icons.money, "action": ActionKey.allBalances},
     ];
 
     final List<Map<String, dynamic>> activitiesButtons = [
-      if(login.hasPermission(92) ?? false)
+      if(login.hasPermission(99) ?? false)
       {"title": tr.users, "icon": FontAwesomeIcons.users, "action": ActionKey.users},
-      if(login.hasPermission(94) ?? false)
+      if(login.hasPermission(101) ?? false)
       {"title": tr.userLog, "icon": Icons.scale_rounded, "action": ActionKey.userLog},
-      if(login.hasPermission(94) ?? false)
+      if(login.hasPermission(110) ?? false)
         {"title": tr.attendance, "icon": Icons.timer, "action": ActionKey.attendance},
     ];
 
     final List<Map<String, dynamic>> transportButtons = [
-      if(login.hasPermission(95) ?? false)
+      if(login.hasPermission(102) ?? false)
       {"title": tr.shipping, "icon": Icons.emoji_transportation_rounded, "action": ActionKey.shipping},
-      if(login.hasPermission(96) ?? false)
+      if(login.hasPermission(103) ?? false)
       {"title": tr.vehicle, "icon": Icons.car_crash_sharp, "action": ActionKey.vehicles},
-      if(login.hasPermission(97) ?? false)
+      if(login.hasPermission(104) ?? false)
         {"title": tr.drivers, "icon": Icons.person, "action": ActionKey.shipping},
     ];
 
     final List<Map<String, dynamic>> projectsButtons = [
-      if(login.hasPermission(95) ?? false)
-        {"title": "All Projects", "icon": Icons.folder_open_rounded, "action": ActionKey.projects},
-      if(login.hasPermission(96) ?? false)
-        {"title": "Services Report", "icon": Icons.access_time_rounded, "action": ActionKey.services},
+      if(login.hasPermission(114) ?? false)
+        {"title": tr.projects, "icon": Icons.folder_open_rounded, "action": ActionKey.projects},
+      if(login.hasPermission(115) ?? false)
+        {"title": tr.services, "icon": Icons.access_time_rounded, "action": ActionKey.services},
 
     ];
 
@@ -192,7 +191,7 @@ class _DesktopState extends State<_Desktop> {
               _buildButtonGroup(stockButtons, color),
 
               const SizedBox(height: 15),
-              SectionTitle(title: "Cash & Balances"),
+              SectionTitle(title: tr.cashFlow),
               SizedBox(height: 8),
               _buildButtonGroup(transactionsButtons, color),
 

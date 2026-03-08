@@ -151,7 +151,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
         ),
       ],
     ],
-      if(login.hasPermission(42) ?? false)...[
+      if(login.hasPermission(46) ?? false)...[
           MenuDefinition(
             value: MenuName.projects,
             label: AppLocalizations.of(context)!.projects,
@@ -160,7 +160,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
           ),
       ],
 
-    if(login.hasPermission(66) ?? false)...[
+    if(login.hasPermission(51) ?? false)...[
     if(visibility.orders)...[
       MenuDefinition(
         value: MenuName.stock,
@@ -171,7 +171,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
     ],
     ],
 
-    if(login.hasPermission(57) ?? false)...[
+    if(login.hasPermission(62) ?? false)...[
       MenuDefinition(
         value: MenuName.settings,
         label: AppLocalizations.of(context)!.settings,
@@ -179,7 +179,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
         icon: Icons.settings_outlined,
       ),
     ],
-    if(login.hasPermission(71) ?? false)...[
+    if(login.hasPermission(78) ?? false)...[
       MenuDefinition(
         value: MenuName.report,
         label: AppLocalizations.of(context)!.reports,
@@ -942,7 +942,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
     }
 
     // Projects - Permission
-    if ((login.hasPermission(42) ?? false)) {
+    if ((login.hasPermission(46) ?? false)) {
       menuItems.add(
         _DrawerMenuItem(
           icon: Icons.folder_open_rounded,
@@ -954,7 +954,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
     }
 
     // Stock/Inventory - Permission 66 (with visibility check)
-    if ((login.hasPermission(66) ?? false) && visibility.orders) {
+    if ((login.hasPermission(51) ?? false) && visibility.orders) {
       menuItems.add(
         _DrawerMenuItem(
           icon: Icons.shopping_basket_outlined,
@@ -966,7 +966,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
     }
 
     // Settings - Permission 57
-    if (login.hasPermission(57) ?? false) {
+    if (login.hasPermission(62) ?? false) {
       menuItems.add(
         _DrawerMenuItem(
           icon: Icons.settings_outlined,
@@ -978,7 +978,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
     }
 
     // Report - Permission 71
-    if (login.hasPermission(71) ?? false) {
+    if (login.hasPermission(78) ?? false) {
       menuItems.add(
         _DrawerMenuItem(
           icon: Icons.info_outlined,

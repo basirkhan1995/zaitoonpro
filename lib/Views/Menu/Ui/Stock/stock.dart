@@ -106,7 +106,7 @@ class _StockViewState extends State<StockView> {
             child: Row(
               children: [
                 // New Purchase Button
-                if (login.hasPermission(51) ?? false)
+                if (login.hasPermission(56) ?? false)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ZOutlineButton(
@@ -119,7 +119,7 @@ class _StockViewState extends State<StockView> {
                   ),
 
                 // New Sale Button
-                if (login.hasPermission(52) ?? false)
+                if (login.hasPermission(57) ?? false)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ZOutlineButton(
@@ -132,7 +132,7 @@ class _StockViewState extends State<StockView> {
                   ),
 
                 // New Estimate Button
-                if (login.hasPermission(53) ?? false)
+                if (login.hasPermission(58) ?? false)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ZOutlineButton(
@@ -145,7 +145,7 @@ class _StockViewState extends State<StockView> {
                   ),
 
                 // Find Invoice Button
-                if (login.hasPermission(56) ?? false)
+                if (login.hasPermission(61) ?? false)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ZOutlineButton(
@@ -158,7 +158,7 @@ class _StockViewState extends State<StockView> {
                   ),
 
                 // Shift Button
-                if (login.hasPermission(54) ?? false)
+                if (login.hasPermission(59) ?? false)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ZOutlineButton(
@@ -171,7 +171,7 @@ class _StockViewState extends State<StockView> {
                   ),
 
                 // Adjustment Button
-                if (login.hasPermission(55) ?? false)
+                if (login.hasPermission(60) ?? false)
                   Padding(
                     padding: const EdgeInsets.only(right: 8),
                     child: ZOutlineButton(
@@ -192,28 +192,28 @@ class _StockViewState extends State<StockView> {
           child: BlocBuilder<StockTabBloc, StockTabState>(
             builder: (context, state) {
               final tabs = <ZTabItem<StockTabsName>>[
-                if (login.hasPermission(47) ?? false)
+                if (login.hasPermission(52) ?? false)
                   ZTabItem(
                     value: StockTabsName.orders,
                     label: locale.orderTitle,
                     screen: const OrdersView(),
                     icon: Icons.shopping_cart,
                   ),
-                if (login.hasPermission(48) ?? false)
+                if (login.hasPermission(53) ?? false)
                   ZTabItem(
                     value: StockTabsName.estimates,
                     label: locale.estimateTitle,
                     screen: const EstimateView(),
                     icon: Icons.request_quote,
                   ),
-                if (login.hasPermission(49) ?? false)
+                if (login.hasPermission(54) ?? false)
                   ZTabItem(
                     value: StockTabsName.shift,
                     label: locale.shift,
                     screen: const GoodsShiftView(),
                     icon: Icons.compare_arrows,
                   ),
-                if (login.hasPermission(50) ?? false)
+                if (login.hasPermission(55) ?? false)
                   ZTabItem(
                     value: StockTabsName.adjustment,
                     label: locale.adjustment,
@@ -270,28 +270,28 @@ class _StockViewState extends State<StockView> {
           child: BlocBuilder<StockTabBloc, StockTabState>(
             builder: (context, state) {
               final tabs = <ZTabItem<StockTabsName>>[
-                if (login.hasPermission(47) ?? false)
+                if (login.hasPermission(52) ?? false)
                   ZTabItem(
                     value: StockTabsName.orders,
                     label: locale.orderTitle,
                     screen: const OrdersView(),
                     icon: Icons.shopping_cart,
                   ),
-                if (login.hasPermission(48) ?? false)
+                if (login.hasPermission(53) ?? false)
                   ZTabItem(
                     value: StockTabsName.estimates,
                     label: locale.estimateTitle,
                     screen: const EstimateView(),
                     icon: Icons.request_quote,
                   ),
-                if (login.hasPermission(49) ?? false)
+                if (login.hasPermission(54) ?? false)
                   ZTabItem(
                     value: StockTabsName.shift,
                     label: locale.shift,
                     screen: const GoodsShiftView(),
                     icon: Icons.compare_arrows,
                   ),
-                if (login.hasPermission(50) ?? false)
+                if (login.hasPermission(55) ?? false)
                   ZTabItem(
                     value: StockTabsName.adjustment,
                     label: locale.adjustment,
@@ -425,7 +425,7 @@ class _StockViewState extends State<StockView> {
               ),
             ],
 
-            if (login.hasPermission(51) ?? false)
+            if (login.hasPermission(56) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
                 toolTip: "F1 - ${locale.newPurchase}",
@@ -435,7 +435,7 @@ class _StockViewState extends State<StockView> {
                 onPressed: () => Utils.goto(context, NewPurchaseOrderView()),
               ),
 
-            if (login.hasPermission(52) ?? false)
+            if (login.hasPermission(57) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
                 toolTip: "F2 - ${locale.newSale}",
@@ -445,7 +445,7 @@ class _StockViewState extends State<StockView> {
                 onPressed: () => Utils.goto(context, NewSaleView()),
               ),
 
-            if (login.hasPermission(53) ?? false)
+            if (login.hasPermission(58) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
                 toolTip: "F3 - ${locale.newEstimate}",
@@ -454,8 +454,7 @@ class _StockViewState extends State<StockView> {
                 width: double.infinity,
                 onPressed: () => Utils.goto(context, AddEstimateView()),
               ),
-
-            if (login.hasPermission(56) ?? false)
+            if (login.hasPermission(61) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
                 toolTip: "F4 - ${locale.findInvoice}",
@@ -479,7 +478,7 @@ class _StockViewState extends State<StockView> {
               ),
             ],
 
-            if (login.hasPermission(54) ?? false)
+            if (login.hasPermission(59) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
                 toolTip: "F7 - ${locale.shift}",
@@ -489,7 +488,7 @@ class _StockViewState extends State<StockView> {
                 onPressed: () => Utils.goto(context, AddGoodsShiftView()),
               ),
 
-            if (login.hasPermission(55) ?? false)
+            if (login.hasPermission(60) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
                 toolTip: "F8 - ${locale.adjustment}",

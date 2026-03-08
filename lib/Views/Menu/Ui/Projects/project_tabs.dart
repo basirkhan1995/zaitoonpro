@@ -62,7 +62,7 @@ class _ProjectTabsMobileState extends State<_ProjectTabsMobile> {
     _screens = [];
     _bottomNavItems = [];
 
-    if (login.hasPermission(55) ?? false) {
+    if (login.hasPermission(48) ?? false) {
       _screens.add(ProjectOverview(model: widget.project));
       _bottomNavItems.add(
         BottomNavigationBarItem(
@@ -72,7 +72,7 @@ class _ProjectTabsMobileState extends State<_ProjectTabsMobile> {
       );
     }
 
-    if (login.hasPermission(34) ?? false) {
+    if (login.hasPermission(49) ?? false) {
       _screens.add(ProjectServicesView(project: widget.project));
       _bottomNavItems.add(
         BottomNavigationBarItem(
@@ -80,7 +80,8 @@ class _ProjectTabsMobileState extends State<_ProjectTabsMobile> {
           label: tr.services,
         ),
       );
-
+     }
+    if (login.hasPermission(50) ?? false) {
       _screens.add(ProjectIncomeExpenseView(project: widget.project));
       _bottomNavItems.add(
         BottomNavigationBarItem(
@@ -213,21 +214,21 @@ class _ProjectTabsTablet extends StatelessWidget {
       body: BlocBuilder<ProjectTabsBloc, ProjectTabsState>(
         builder: (context, state) {
           final tabs = <ZTabItem<ProjectTabsName>>[
-            if (login.hasPermission(55) ?? false)
+            if (login.hasPermission(48) ?? false)
               ZTabItem(
                 value: ProjectTabsName.overview,
                 label: tr.overview,
                 icon: Icons.info_outline,
                 screen: ProjectOverview(model: project),
               ),
-            if (login.hasPermission(34) ?? false)
+            if (login.hasPermission(49) ?? false)
               ZTabItem(
                 value: ProjectTabsName.services,
                 label: tr.services,
                 icon: Icons.build,
                 screen: ProjectServicesView(project: project),
               ),
-            if (login.hasPermission(34) ?? false)
+            if (login.hasPermission(50) ?? false)
               ZTabItem(
                 value: ProjectTabsName.incomeExpense,
                 label: tr.incomeAndExpenses,
@@ -334,19 +335,19 @@ class _ProjectTabsDesktop extends StatelessWidget {
       body: BlocBuilder<ProjectTabsBloc, ProjectTabsState>(
         builder: (context, state) {
           final tabs = <ZTabItem<ProjectTabsName>>[
-            if (login.hasPermission(55) ?? false)
+            if (login.hasPermission(48) ?? false)
               ZTabItem(
                 value: ProjectTabsName.overview,
                 label: tr.overview,
                 screen: ProjectOverview(model: project),
               ),
-            if (login.hasPermission(34) ?? false)
+            if (login.hasPermission(49) ?? false)
               ZTabItem(
                 value: ProjectTabsName.services,
                 label: tr.services,
                 screen: ProjectServicesView(project: project),
               ),
-            if (login.hasPermission(34) ?? false)
+            if (login.hasPermission(50) ?? false)
               ZTabItem(
                 value: ProjectTabsName.incomeExpense,
                 label: tr.incomeAndExpenses,

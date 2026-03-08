@@ -2147,7 +2147,7 @@ class _DesktopState extends State<_Desktop> {
                               width: double.infinity,
                               onPressed: () => onCashDepositWithdraw(trnType: "CHDP"),
                             )
-                                : Container( // CHANGED: Wrapped in Container with fixed width
+                                : Container(
                               width: double.infinity,
                               margin: const EdgeInsets.symmetric(horizontal: 2),
                               child: ZOutlineButton(
@@ -2335,7 +2335,7 @@ class _DesktopState extends State<_Desktop> {
                             ),
 
                           // GL Credit
-                          if (login.hasPermission(21) ?? false)
+                          if (login.hasPermission(26) ?? false)
                             _isExpanded
                                 ? ZOutlineButton(
                               backgroundColor: color.primary.withValues(alpha: opacity),
@@ -2359,7 +2359,7 @@ class _DesktopState extends State<_Desktop> {
                             ),
 
                           // GL Debit
-                          if (login.hasPermission(20) ?? false)
+                          if (login.hasPermission(27) ?? false)
                             _isExpanded
                                 ? ZOutlineButton(
                               backgroundColor: color.primary.withValues(alpha: opacity),
@@ -2520,6 +2520,4 @@ class _DesktopState extends State<_Desktop> {
       });
     }
   }
-
-
 }

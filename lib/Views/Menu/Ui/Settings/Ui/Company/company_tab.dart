@@ -31,21 +31,21 @@ class _CompanyTabsViewState extends State<CompanyTabsView> {
     final bool isMobile = MediaQuery.of(context).size.width < 600;
 
     final menuItems = [
-      if (login.hasPermission(62) ?? false)
+      if (login.hasPermission(69) ?? false)
         MenuDefinition(
           value: CompanySettingsMenuName.profile,
           label: AppLocalizations.of(context)!.profile,
           screen: const CompanySettingsView(),
           icon: Icons.settings,
         ),
-      if (login.hasPermission(63) ?? false)
+      if (login.hasPermission(70) ?? false)
         MenuDefinition(
           value: CompanySettingsMenuName.branch,
           label: AppLocalizations.of(context)!.branch,
           screen: const BranchesView(),
           icon: Icons.location_city_rounded,
         ),
-      if (login.hasPermission(64) ?? false)
+      if (login.hasPermission(71) ?? false)
         MenuDefinition(
           value: CompanySettingsMenuName.storage,
           label: AppLocalizations.of(context)!.storages,

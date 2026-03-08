@@ -45,7 +45,7 @@ class _BaseGeneralView extends StatelessWidget {
 
     final menuItems = [
 
-      if (login.hasPermission(59) ?? false)
+      if (login.hasPermission(64) ?? false)
         MenuDefinition(
           value: GeneralTabName.system,
           label: AppLocalizations.of(context)!.systemSettings,
@@ -53,28 +53,28 @@ class _BaseGeneralView extends StatelessWidget {
           icon: Icons.settings,
         ),
 
-      if (login.hasPermission(60) ?? false)
+      if (login.hasPermission(65) ?? false)
         MenuDefinition(
           value: GeneralTabName.password,
           label: AppLocalizations.of(context)!.password,
           screen: const PasswordView(),
           icon: Icons.lock,
         ),
-      if (login.hasPermission(60) ?? false)
+      if (login.hasPermission(67) ?? false)
         MenuDefinition(
           value: GeneralTabName.roles,
           label: AppLocalizations.of(context)!.userRole,
           screen: const UserRoleSettingsView(),
           icon: Icons.verified_user_outlined,
         ),
-      if (login.hasPermission(60) ?? false)
+      if (login.hasPermission(67) ?? false)
         MenuDefinition(
           value: GeneralTabName.permissions,
           label: AppLocalizations.of(context)!.rolesAndPermissions,
           screen: const PermissionSettingsView(),
           icon: Icons.verified_user,
         ),
-      if (login.hasPermission(60) ?? false)
+      if (login.hasPermission(66) ?? false)
         MenuDefinition(
           value: GeneralTabName.profileSettings,
           label: AppLocalizations.of(context)!.profileSettings,

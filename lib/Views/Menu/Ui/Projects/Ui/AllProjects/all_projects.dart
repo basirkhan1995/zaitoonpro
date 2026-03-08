@@ -16,6 +16,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/AllProjects/model/pj
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/project_view.dart';
 import '../../../../../../Features/Generic/zaitoon_drop.dart';
 import '../../../../../../Features/Widgets/zcard_mobile.dart';
+import '../../../../../Auth/models/login_model.dart';
 import 'add_project.dart';
 import 'bloc/projects_bloc.dart';
 
@@ -72,7 +73,12 @@ class _DesktopState extends State<_Desktop> {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final authState = context.watch<AuthBloc>().state;
 
+    if (authState is! AuthenticatedState) {
+      return const SizedBox();
+    }
+    final login = authState.loginData;
     return Scaffold(
       backgroundColor: color.surface,
       body: Column(
@@ -106,6 +112,7 @@ class _DesktopState extends State<_Desktop> {
                         ),
                       ],
                     ),
+                    if (login.hasPermission(47) ?? false)
                     ZOutlineButton(
                       isActive: true,
                       icon: Icons.add,
@@ -643,7 +650,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
@@ -673,7 +679,12 @@ class _MobileState extends State<_Mobile> {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final authState = context.watch<AuthBloc>().state;
 
+    if (authState is! AuthenticatedState) {
+      return const SizedBox();
+    }
+    final login = authState.loginData;
     return Scaffold(
       backgroundColor: color.surface,
       appBar: AppBar(
@@ -712,6 +723,7 @@ class _MobileState extends State<_Mobile> {
                 ),
             ],
           ),
+          if (login.hasPermission(47) ?? false)
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
@@ -998,7 +1010,6 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
@@ -1027,7 +1038,12 @@ class _TabletState extends State<_Tablet> {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final authState = context.watch<AuthBloc>().state;
 
+    if (authState is! AuthenticatedState) {
+      return const SizedBox();
+    }
+    final login = authState.loginData;
     return Scaffold(
       backgroundColor: color.surface,
       body: Padding(
@@ -1056,6 +1072,7 @@ class _TabletState extends State<_Tablet> {
                     ),
                   ],
                 ),
+                if (login.hasPermission(47) ?? false)
                 ZOutlineButton(
                   isActive: true,
                   icon: Icons.add,

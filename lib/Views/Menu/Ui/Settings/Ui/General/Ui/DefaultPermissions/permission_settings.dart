@@ -206,17 +206,17 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
           "Vehicles",
         ],
       ),
-      PermissionCategory(
-        name: locale.projects,
-        icon: Icons.assignment,
-        permissionNames: [
-          "Projects",
-          "New Project",
-          "Modify Project",
-          "Project Services",
-          "Project Payments",
-        ],
-      ),
+      // PermissionCategory(
+      //   name: locale.projects,
+      //   icon: Icons.assignment,
+      //   permissionNames: [
+      //     "Projects",
+      //     "New Project",
+      //     "Modify Project",
+      //     "Project Services",
+      //     "Project Payments",
+      //   ],
+      // ),
       PermissionCategory(
         name: locale.inventory,
         icon: Icons.inventory,
@@ -296,8 +296,8 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
           "Reminders",
           "Payroll",
           "Balance Sheet",
-          "All Projects",
-          "Project Services Reports",
+         // "All Projects",
+         // "Project Services Reports",
         ],
       ),
       PermissionCategory(

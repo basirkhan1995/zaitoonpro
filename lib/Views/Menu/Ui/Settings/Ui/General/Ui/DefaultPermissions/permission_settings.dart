@@ -5,8 +5,9 @@ import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/bloc/permission_settings_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/model/permission_settings_model.dart';
+import '../../../../../../../Auth/bloc/auth_bloc.dart';
+import 'bloc/permission_settings_bloc.dart';
+import 'model/permission_settings_model.dart';
 
 class PermissionSettingsView extends StatelessWidget {
   const PermissionSettingsView({super.key});
@@ -64,10 +65,14 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
   final Map<int, Map<String, bool>> _localChanges = {};
   bool _hasChanges = false;
   List<UserRolePermissionSettingModel>? _originalRoles;
-
+  String usrName = '';
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        usrName = authState.loginData.usrName ?? "";
+      }
       context.read<PermissionSettingsBloc>().add(LoadPermissionsSettingsEvent());
     });
     super.initState();
@@ -896,9 +901,10 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
   }
 
   void _saveAllChanges() {
+
     if (!_hasChanges || _originalRoles == null) return;
 
-    final List<Map<String, dynamic>> updates = [];
+    final List<PermissionActions> permissionUpdates = [];
 
     _localChanges.forEach((roleId, permissionChanges) {
       permissionChanges.forEach((permissionName, newStatus) {
@@ -913,22 +919,35 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
         );
 
         if (permission?.rpId != null) {
-          updates.add({
-            "rpID": permission!.rpId,
-            "rpStatus": newStatus ? 1 : 0,
-          });
+          permissionUpdates.add(
+            PermissionActions(
+              rpId: permission!.rpId,
+              rpStatus: newStatus ? 1 : 0,
+            ),
+          );
         }
       });
     });
 
-    if (updates.isNotEmpty) {
+    if (permissionUpdates.isNotEmpty) {
+
+      final updateModel = PermissionActionModel(
+        usrName: usrName,
+        permissions: permissionUpdates,
+      );
+
+      // Dispatch the update event
+      context.read<PermissionSettingsBloc>().add(
+          UpdatePermissionsSettingsEvent(updateModel)
+      );
+
       setState(() {
         _localChanges.clear();
         _hasChanges = false;
       });
 
-      ///TODO Update event
-    ///  ToastManager.show(context: context, message: "Permissions updated successfully", type: ToastType.success);
+      /// Show success message
+      /// ToastManager.show(context: context, message: "Permissions updated successfully", type: ToastType.success);
     }
   }
 
@@ -1053,7 +1072,7 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
       }
     }
 
-    return uniquePermissions.toList()..sort();
+    return uniquePermissions.toList();
   }
 
   Color _getRoleColor(int index) {

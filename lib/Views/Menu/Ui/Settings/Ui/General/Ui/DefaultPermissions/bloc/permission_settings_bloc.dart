@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/model/permission_settings_model.dart';
 
+import '../model/permission_settings_model.dart';
 part 'permission_settings_event.dart';
 part 'permission_settings_state.dart';
 
@@ -20,17 +20,22 @@ class PermissionSettingsBloc extends Bloc<PermissionSettingsEvent, PermissionSet
       }
     });
 
-    on<UpdatePermissionsSettingsEvent>((event, emit)async {
+    on<UpdatePermissionsSettingsEvent>((event, emit) async {
       emit(PermissionSettingsLoadingState());
-      try{
+      try {
+        print('Sending permissions: ${event.permissions.toMap()}'); // Debug
+
         final per = await _repo.updatePermissionSettings(permissions: event.permissions);
+        print('Response: $per'); // Debug
+
         final msg = per["msg"];
-        if(msg == "success"){
+        if (msg == "success") {
           add(LoadPermissionsSettingsEvent());
-        }else{
+        } else {
           emit(PermissionSettingsErrorState(msg));
         }
-      }catch(e){
+      } catch (e) {
+        print('Error: $e'); // Debug
         emit(PermissionSettingsErrorState(e.toString()));
       }
     });

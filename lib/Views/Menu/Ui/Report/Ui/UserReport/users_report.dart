@@ -4,13 +4,13 @@ import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/user_details.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/role_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/usr_report_model.dart';
 import '../../../../../../../Features/Widgets/no_data_widget.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../HR/Ui/Users/bloc/users_bloc.dart';
+import '../../../Settings/Ui/General/Ui/UserRole/features/role_drop.dart';
 import '../Transport/Shipments/features/status_drop.dart';
 
 class UsersReportView extends StatelessWidget {
@@ -33,7 +33,7 @@ class _Mobile extends StatefulWidget {
   State<_Mobile> createState() => _MobileState();
 }
 class _MobileState extends State<_Mobile> {
-  String? role;
+  int? role;
   int? branchId;
   int? status;
 
@@ -95,7 +95,7 @@ class _MobileState extends State<_Mobile> {
                 UserRoleDropdown(
                   showAllOption: true,
                   onRoleSelected: (e) {
-                    setSheetState(() => role = e?.name);
+                    setSheetState(() => role = e?.rolId);
                   },
                 ),
                 const SizedBox(height: 12),
@@ -583,12 +583,12 @@ class _Tablet extends StatefulWidget {
   State<_Tablet> createState() => _TabletState();
 }
 class _TabletState extends State<_Tablet> {
-  String? role;
+  int? roleId;
   int? branchId;
   int? status;
   bool _showFilters = true;
 
-  bool get isFilterActive => role != null || branchId != null || status != null;
+  bool get isFilterActive => roleId != null || branchId != null || status != null;
 
   @override
   void initState() {
@@ -600,7 +600,7 @@ class _TabletState extends State<_Tablet> {
     context.read<UsersBloc>().add(
       LoadUsersReportEvent(
         status: status,
-        role: role,
+        role: roleId,
         branchId: branchId,
       ),
     );
@@ -608,7 +608,7 @@ class _TabletState extends State<_Tablet> {
 
   void onClearFilters() {
     setState(() {
-      role = null;
+      roleId = null;
       branchId = null;
       status = null;
     });
@@ -675,7 +675,7 @@ class _TabletState extends State<_Tablet> {
                     child: UserRoleDropdown(
                       showAllOption: true,
                       onRoleSelected: (e) {
-                        setState(() => role = e?.name);
+                        setState(() => roleId = e?.rolId);
                       },
                     ),
                   ),
@@ -1018,7 +1018,7 @@ class _Desktop extends StatefulWidget {
 class _DesktopState extends State<_Desktop> {
   final TextEditingController searchController = TextEditingController();
 
-  String? role;
+  int? role;
   int? branchId;
   int? status;
 
@@ -1104,7 +1104,7 @@ class _DesktopState extends State<_Desktop> {
                     child: UserRoleDropdown(
                       showAllOption: true,
                       onRoleSelected: (e) {
-                        setState(() => role = e?.name);
+                        setState(() => role = e?.rolId);
                       },
                     ),
                   ),

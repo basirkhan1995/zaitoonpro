@@ -2820,4 +2820,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get roleActions => 'Role Actions';
+
+  @override
+  String get userRole => 'User Roles';
+
+  @override
+  String get roleName => 'Role Name';
+
+  @override
+  String get newRole => 'New Role';
+
+  @override
+  String get editRole => 'Edit Role';
 }

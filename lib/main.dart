@@ -25,7 +25,6 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Employees/bloc/employee_bl
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Log/bloc/user_log_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/bloc/user_details_tab_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/bloc/users_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/UserRoleDrop/bloc/user_role_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/bloc/hrtab_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchATAT/bloc/fetch_atat_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchGLAT/bloc/glat_bloc.dart';
@@ -99,7 +98,8 @@ import 'Views/Menu/Ui/Report/Ui/TransactionRef/bloc/txn_ref_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/Transport/Shipments/bloc/shipping_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/TxnReport/bloc/txn_report_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Company/Branches/bloc/branch_bloc.dart';
-import 'Views/Menu/Ui/Settings/Ui/General/Ui/RolesAndPermissions/bloc/permission_settings_bloc.dart';
+import 'Views/Menu/Ui/Settings/Ui/General/Ui/DefaultPermissions/bloc/permission_settings_bloc.dart';
+import 'Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/bloc/user_role_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/General/bloc/general_tab_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import 'Views/Menu/Ui/Settings/bloc/settings_tab_bloc.dart';

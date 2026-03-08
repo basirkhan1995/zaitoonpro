@@ -28,10 +28,8 @@ class UpdateNewRoleEvent extends PermissionSettingsEvent{
 }
 
 class UpdatePermissionsSettingsEvent extends PermissionSettingsEvent {
-  final List<Map<String, dynamic>> permissions;
-
-  const UpdatePermissionsSettingsEvent({required this.permissions});
-
+  final PermissionActionModel permissions;
+  const UpdatePermissionsSettingsEvent(this.permissions);
   @override
   List<Object?> get props => [permissions];
 }

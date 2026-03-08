@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../../../../../Features/Generic/generic_drop.dart';
 import '../../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../../Features/Other/labled_checkbox.dart';
 import '../../../../../../../../Features/Other/responsive.dart';
@@ -8,7 +7,6 @@ import '../../../../../../../../Localizations/l10n/translations/app_localization
 import '../../../../../../../../Localizations/locale_selector.dart';
 import '../../../../../../../../Themes/Ui/theme_selector.dart';
 import '../../../../features/Visibility/bloc/settings_visible_bloc.dart';
-import '../features/date_type.dart';
 
 class SystemView extends StatelessWidget {
   const SystemView({super.key});
@@ -58,22 +56,22 @@ class _Desktop extends StatelessWidget {
                     width: 330,
                     title: AppLocalizations.of(context)!.language,
                   ),
-                  DateTypeDrop(),
-                  SizedBox(
-                    width: 330,
-                    child: CustomDropdown<String>(
-                      title: "Date Format",
-                      items: dateFormats.keys.toList(),
-                      selectedItem: state.dateFormat,
-                      itemLabel: (format) =>
-                          '${dateFormats[format]} ($format)',
-                      onItemSelected: (format) {
-                        context.read<SettingsVisibleBloc>().add(
-                          UpdateSettingsEvent(dateFormat: format),
-                        );
-                      },
-                    ),
-                  ),
+                  // DateTypeDrop(),
+                  // SizedBox(
+                  //   width: 330,
+                  //   child: CustomDropdown<String>(
+                  //     title: "Date Format",
+                  //     items: dateFormats.keys.toList(),
+                  //     selectedItem: state.dateFormat,
+                  //     itemLabel: (format) =>
+                  //         '${dateFormats[format]} ($format)',
+                  //     onItemSelected: (format) {
+                  //       context.read<SettingsVisibleBloc>().add(
+                  //         UpdateSettingsEvent(dateFormat: format),
+                  //       );
+                  //     },
+                  //   ),
+                  // ),
                   SizedBox(height: 1),
                   Row(
                     spacing: 5,

@@ -932,5 +932,9 @@
   "grantAll": "ټول صلاحیتونه ورکول",
   "revokeAll": "ټول صلاحیتونه لغوه کول",
   "restoreDefault": "اصلي حالت ته ستنول",
-  "roleActions": "د رول کړنې"
+  "roleActions": "د رول کړنې",
+  "userRole": "نقش کاربران",
+  "roleName": "نقش نوم",
+  "newRole": "نوی نقش",
+  "editRole": "بروزرسانی نقش"
 }

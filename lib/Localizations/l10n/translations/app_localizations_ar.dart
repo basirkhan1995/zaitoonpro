@@ -2813,4 +2813,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get roleActions => 'د رول کړنې';
+
+  @override
+  String get userRole => 'نقش کاربران';
+
+  @override
+  String get roleName => 'نقش نوم';
+
+  @override
+  String get newRole => 'نوی نقش';
+
+  @override
+  String get editRole => 'بروزرسانی نقش';
 }

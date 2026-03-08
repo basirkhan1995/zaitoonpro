@@ -932,5 +932,9 @@
   "grantAll": "Grant All",
   "revokeAll": "Revoke All",
   "restoreDefault": "Restore Defaults",
-  "roleActions": "Role Actions"
+  "roleActions": "Role Actions",
+  "userRole": "User Roles",
+  "roleName": "Role Name",
+  "newRole": "New Role",
+  "editRole": "Edit Role"
 }

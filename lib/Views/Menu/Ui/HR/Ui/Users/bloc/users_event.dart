@@ -15,7 +15,7 @@ class LoadUsersEvent extends UsersEvent{
 class LoadUsersReportEvent extends UsersEvent{
   final int? branchId;
   final String? usrName;
-  final String? role;
+  final int? role;
   final int? status;
   const LoadUsersReportEvent({this.branchId,this.usrName, this.role,this.status});
 

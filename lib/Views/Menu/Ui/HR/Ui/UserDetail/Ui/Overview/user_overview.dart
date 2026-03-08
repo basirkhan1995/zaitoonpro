@@ -9,11 +9,10 @@ import 'package:zaitoon_petroleum/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/bloc/users_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/role_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
-
 import '../../../../../../../../Features/Other/image_helper.dart';
 import '../../../../../../../Auth/bloc/auth_bloc.dart';
+import '../../../../../Settings/Ui/General/Ui/UserRole/features/role_drop.dart';
 
 class UserOverviewView extends StatelessWidget {
   final UsersModel user;
@@ -42,7 +41,7 @@ class _MobileState extends State<_Mobile> {
   bool usrFcp = true;
   int? usrStatus;
   int? branchCode;
-  UserRole? usrRole;
+  int? roleId;
 
   final formKey = GlobalKey<FormState>();
 
@@ -55,7 +54,7 @@ class _MobileState extends State<_Mobile> {
   void initState() {
     email.text = widget.user.usrEmail ?? "";
     usrName.text = widget.user.usrName ?? "";
-    usrRole = UserRole.fromDatabaseValue(widget.user.usrRole ?? "");
+    roleId =  widget.user.rolID;
     branchCode = widget.user.usrBranch;
     usrFcp = widget.user.usrFcp == 1;
     usrStatus = widget.user.usrStatus;
@@ -85,7 +84,7 @@ class _MobileState extends State<_Mobile> {
       usrName: usrName.text,
       usrEmail: email.text,
       usrPass: usrPass.text,
-      usrRole: usrRole?.toDatabaseValue(),
+      rolID: roleId,
       usrBranch: branchCode,
       usrFcp: usrFcp ? 1 : 0,
       loggedInUser: currentUser(),
@@ -352,10 +351,10 @@ class _MobileState extends State<_Mobile> {
                   ),
                   const SizedBox(height: 12),
                   UserRoleDropdown(
-                    selectedRole: usrRole,
+                    selectedId: roleId,
                     onRoleSelected: (e) {
                       setState(() {
-                        usrRole = e;
+                        roleId = e?.rolId;
                       });
                     },
                   ),
@@ -531,7 +530,7 @@ class _TabletState extends State<_Tablet> {
   bool usrFcp = true;
   int? usrStatus;
   int? branchCode;
-  UserRole? usrRole;
+  int? roleId;
 
   final formKey = GlobalKey<FormState>();
 
@@ -544,7 +543,7 @@ class _TabletState extends State<_Tablet> {
   void initState() {
     email.text = widget.user.usrEmail ?? "";
     usrName.text = widget.user.usrName ?? "";
-    usrRole = UserRole.fromDatabaseValue(widget.user.usrRole ?? "");
+    roleId = widget.user.rolID;
     branchCode = widget.user.usrBranch;
     usrFcp = widget.user.usrFcp == 1;
     usrStatus = widget.user.usrStatus;
@@ -574,7 +573,7 @@ class _TabletState extends State<_Tablet> {
       usrName: usrName.text,
       usrEmail: email.text,
       usrPass: usrPass.text,
-      usrRole: usrRole?.toDatabaseValue(),
+      rolID: roleId,
       usrBranch: branchCode,
       usrFcp: usrFcp ? 1 : 0,
       loggedInUser: currentUser(),
@@ -824,10 +823,10 @@ class _TabletState extends State<_Tablet> {
                         ),
                         const SizedBox(height: 12),
                         UserRoleDropdown(
-                          selectedRole: usrRole,
+                          selectedId: roleId,
                           onRoleSelected: (e) {
                             setState(() {
-                              usrRole = e;
+                              roleId = e?.rolId;
                             });
                           },
                         ),
@@ -941,7 +940,7 @@ class _DesktopState extends State<_Desktop> {
   bool usrFcp = true;
   int? usrStatus;
   int? branchCode;
-  UserRole? usrRole;
+  int? roleId;
 
   final formKey = GlobalKey<FormState>();
 
@@ -954,7 +953,7 @@ class _DesktopState extends State<_Desktop> {
   void initState() {
     email.text = widget.user.usrEmail ?? "";
     usrName.text = widget.user.usrName ?? "";
-    usrRole = UserRole.fromDatabaseValue(widget.user.usrRole ?? "");
+    roleId = widget.user.rolID;
     branchCode = widget.user.usrBranch;
     usrFcp = widget.user.usrFcp == 1;
     usrStatus = widget.user.usrStatus;
@@ -984,7 +983,7 @@ class _DesktopState extends State<_Desktop> {
       usrName: usrName.text,
       usrEmail: email.text,
       usrPass: usrPass.text,
-      usrRole: usrRole?.toDatabaseValue(),
+      rolID: roleId,
       usrBranch: branchCode,
       usrFcp: usrFcp ? 1 : 0,
       loggedInUser: currentUser(),
@@ -1277,10 +1276,10 @@ class _DesktopState extends State<_Desktop> {
                 ),
                 Expanded(
                   child: UserRoleDropdown(
-                    selectedRole: usrRole,
+                    selectedId: roleId,
                     onRoleSelected: (e) {
                       setState(() {
-                        usrRole = e;
+                        roleId = e?.rolId;
                       });
                     },
                   ),

@@ -2809,4 +2809,16 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get roleActions => 'اقدامات نقش';
+
+  @override
+  String get userRole => 'نقش کاربران';
+
+  @override
+  String get roleName => 'نام نقش';
+
+  @override
+  String get newRole => 'نقش جدید';
+
+  @override
+  String get editRole => 'بروزرسانی نقش';
 }

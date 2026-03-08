@@ -5577,6 +5577,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Role Actions'**
   String get roleActions;
+
+  /// No description provided for @userRole.
+  ///
+  /// In en, this message translates to:
+  /// **'User Roles'**
+  String get userRole;
+
+  /// No description provided for @roleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Role Name'**
+  String get roleName;
+
+  /// No description provided for @newRole.
+  ///
+  /// In en, this message translates to:
+  /// **'New Role'**
+  String get newRole;
+
+  /// No description provided for @editRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Role'**
+  String get editRole;
 }
 
 class _AppLocalizationsDelegate

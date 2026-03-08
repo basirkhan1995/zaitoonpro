@@ -5,7 +5,6 @@ import 'package:zaitoon_petroleum/Services/repositories.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/usr_report_model.dart';
 import '../model/user_model.dart';
 
-
 part 'users_event.dart';
 part 'users_state.dart';
 

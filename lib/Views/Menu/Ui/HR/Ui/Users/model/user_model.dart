@@ -10,6 +10,7 @@ String usersModelToMap(List<UsersModel> data) => json.encode(List<dynamic>.from(
 
 class UsersModel {
   final int? usrId;
+  final int? rolID;
   final String? usrFullName;
   final String? usrName;
   final String? usrRole;
@@ -27,6 +28,7 @@ class UsersModel {
 
   UsersModel({
     this.usrId,
+    this.rolID,
     this.usrFullName,
     this.usrName,
     this.usrRole,
@@ -45,6 +47,7 @@ class UsersModel {
 
   UsersModel copyWith({
     int? usrId,
+    int? rolID,
     String? usrFullName,
     String? usrName,
     String? usrRole,
@@ -57,6 +60,7 @@ class UsersModel {
   }) =>
       UsersModel(
         usrId: usrId ?? this.usrId,
+        rolID: rolID ?? this.rolID,
         usrFullName: usrFullName ?? this.usrFullName,
         usrName: usrName ?? this.usrName,
         usrRole: usrRole ?? this.usrRole,
@@ -70,6 +74,7 @@ class UsersModel {
 
   factory UsersModel.fromMap(Map<String, dynamic> json) => UsersModel(
     usrId: json["usrID"],
+    rolID: json["rolID"],
     usrFullName: json["usrFullName"],
     usrName: json["usrName"],
     usrRole: json["usrRole"],
@@ -84,6 +89,7 @@ class UsersModel {
 
   Map<String, dynamic> toMap() => {
     "usrID": usrId,
+    "rolID": rolID,
     "usrFullName": usrFullName,
     "usrName": usrName,
     "usrPass": usrPass,

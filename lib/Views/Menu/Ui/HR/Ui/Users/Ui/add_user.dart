@@ -8,12 +8,12 @@ import 'package:zaitoon_petroleum/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/bloc/users_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/role_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Branches/model/branch_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
+import '../../../../Settings/Ui/General/Ui/UserRole/features/role_drop.dart';
 import '../features/branch_dropdown.dart';
 
 class AddUserView extends StatelessWidget {
@@ -48,7 +48,7 @@ class _MobileState extends State<_Mobile> {
   final TextEditingController passConfirm = TextEditingController();
   final TextEditingController usrOwner = TextEditingController();
 
-  String? _selectedRole;
+  int? _selectedRole;
   bool isPasswordSecure = true;
   bool fcpValue = true;
   bool fevValue = true;
@@ -201,7 +201,7 @@ class _MobileState extends State<_Mobile> {
                             UserRoleDropdown(
                               onRoleSelected: (e) {
                                 setState(() {
-                                  _selectedRole = e?.name;
+                                  _selectedRole = e?.rolId;
                                 });
                               },
                             ),
@@ -493,7 +493,7 @@ class _MobileState extends State<_Mobile> {
             usrName: usrName.text.trim(),
             usrPass: usrPas.text,
             usrBranch: selectedBranch?.brcId ?? 1000,
-            usrRole: _selectedRole,
+            rolID: _selectedRole,
             usrEmail: usrEmail.text,
             usrFcp: fcpValue ? 1 : 0,
             usrFev: fevValue,
@@ -524,7 +524,7 @@ class _DesktopState extends State<_Desktop> {
   final TextEditingController passConfirm = TextEditingController();
   final TextEditingController usrOwner = TextEditingController();
 
-  String? _selectedRole;
+  int? _selectedRole;
   bool isPasswordSecure = true;
   bool fcpValue = true;
   bool fevValue = true;
@@ -626,7 +626,7 @@ class _DesktopState extends State<_Desktop> {
                           child: UserRoleDropdown(
                             onRoleSelected: (e) {
                               setState(() {
-                                _selectedRole = e?.name;
+                                _selectedRole = e?.rolId;
                               });
                             },
                           ),
@@ -889,7 +889,7 @@ class _DesktopState extends State<_Desktop> {
             usrName: usrName.text.trim(),
             usrPass: usrPas.text,
             usrBranch: selectedBranch?.brcId ?? 1000,
-            usrRole: _selectedRole,
+            rolID: _selectedRole,
             usrEmail: usrEmail.text,
             usrFcp: fcpValue ? 1 : 0,
             usrFev: fevValue,

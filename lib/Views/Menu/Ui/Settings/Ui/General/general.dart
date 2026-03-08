@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/user_profile_settings.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/user_role_settings.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Features/Other/responsive.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../../Auth/models/login_model.dart';
-import 'Ui/RolesAndPermissions/permission_settings.dart';
+import 'Ui/DefaultPermissions/permission_settings.dart';
 import 'Ui/Security/password.dart';
 import 'Ui/System/system.dart';
 import 'bloc/general_tab_bloc.dart';
@@ -61,10 +62,17 @@ class _BaseGeneralView extends StatelessWidget {
         ),
       if (login.hasPermission(60) ?? false)
         MenuDefinition(
-          value: GeneralTabName.rolesAndPermissions,
+          value: GeneralTabName.roles,
+          label: AppLocalizations.of(context)!.userRole,
+          screen: const UserRoleSettingsView(),
+          icon: Icons.verified_user_outlined,
+        ),
+      if (login.hasPermission(60) ?? false)
+        MenuDefinition(
+          value: GeneralTabName.permissions,
           label: AppLocalizations.of(context)!.rolesAndPermissions,
           screen: const PermissionSettingsView(),
-          icon: Icons.security_rounded,
+          icon: Icons.verified_user,
         ),
       if (login.hasPermission(60) ?? false)
         MenuDefinition(

@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/UserRoleDrop/user_role_drop.dart';
+import '../model/role_model.dart';
 
 part 'user_role_event.dart';
 part 'user_role_state.dart';
@@ -11,6 +11,7 @@ class UserRoleBloc extends Bloc<UserRoleEvent, UserRoleState> {
   UserRoleBloc(this._repo) : super(UserRoleInitial()) {
 
     on<LoadUserRolesEvent>((event, emit) async{
+      emit(UserRoleLoadingState());
       try{
         final role = await _repo.getUserRole();
         emit(UserRoleLoadedState(role));
@@ -19,6 +20,7 @@ class UserRoleBloc extends Bloc<UserRoleEvent, UserRoleState> {
       }
     });
     on<AddUserRoleEvent>((event, emit) async{
+      emit(UserRoleLoadingState());
       try{
        final role = await _repo.addNewRole(usrName: event.usrName, roleName: event.roleName);
        final msg = role["msg"];
@@ -33,8 +35,31 @@ class UserRoleBloc extends Bloc<UserRoleEvent, UserRoleState> {
       }
     });
     on<UpdateUserRoleEvent>((event, emit) async{
+      emit(UserRoleLoadingState());
       try{
-
+        final res = await _repo.editUserRole(newRole: event.newRole);
+        final msg = res["msg"];
+        if(msg == "success"){
+          add(LoadUserRolesEvent());
+          emit(UserRoleSuccessState());
+        }else{
+          emit(UserRoleErrorState(msg));
+        }
+      }catch(e){
+        emit(UserRoleErrorState(e.toString()));
+      }
+    });
+    on<DeleteUserRolesEvent>((event, emit) async{
+      emit(UserRoleLoadingState());
+      try{
+        final res = await _repo.deleteUserRole(roleId: event.roleId);
+        final msg = res["msg"];
+        if(msg == "success"){
+          add(LoadUserRolesEvent());
+          emit(UserRoleSuccessState());
+        }else{
+          emit(UserRoleErrorState(msg));
+        }
       }catch(e){
         emit(UserRoleErrorState(e.toString()));
       }

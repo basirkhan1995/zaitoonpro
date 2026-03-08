@@ -81,3 +81,66 @@ class UsrPermission {
     "rpStatus": rpStatus,
   };
 }
+
+
+PermissionActionModel permissionActionModelFromMap(String str) => PermissionActionModel.fromMap(json.decode(str));
+
+String permissionActionModelToMap(PermissionActionModel data) => json.encode(data.toMap());
+
+class PermissionActionModel {
+  final String? usrName;
+  final List<PermissionActions>? permissions;
+
+  PermissionActionModel({
+    this.usrName,
+    this.permissions,
+  });
+
+  PermissionActionModel copyWith({
+    String? usrName,
+    List<PermissionActions>? permissions,
+  }) =>
+      PermissionActionModel(
+        usrName: usrName ?? this.usrName,
+        permissions: permissions ?? this.permissions,
+      );
+
+  factory PermissionActionModel.fromMap(Map<String, dynamic> json) => PermissionActionModel(
+    usrName: json["usrName"],
+    permissions: json["permissions"] == null ? [] : List<PermissionActions>.from(json["permissions"]!.map((x) => PermissionActions.fromMap(x))),
+  );
+
+  Map<String, dynamic> toMap() => {
+    "usrName": usrName,
+    "permissions": permissions == null ? [] : List<dynamic>.from(permissions!.map((x) => x.toMap())),
+  };
+}
+
+class PermissionActions {
+  final int? rpId;
+  final int? rpStatus;
+
+  PermissionActions({
+    this.rpId,
+    this.rpStatus,
+  });
+
+  PermissionActions copyWith({
+    int? rpId,
+    int? rpStatus,
+  }) =>
+      PermissionActions(
+        rpId: rpId ?? this.rpId,
+        rpStatus: rpStatus ?? this.rpStatus,
+      );
+
+  factory PermissionActions.fromMap(Map<String, dynamic> json) => PermissionActions(
+    rpId: json["rpID"],
+    rpStatus: json["rpStatus"],
+  );
+
+  Map<String, dynamic> toMap() => {
+    "rpID": rpId,
+    "rpStatus": rpStatus,
+  };
+}

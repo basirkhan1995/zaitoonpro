@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Views/Auth/Subscription/bloc/subscription_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../Features/Date/gregorian_date_picker.dart';
@@ -151,23 +152,17 @@ class _ActivationFormState extends State<_ActivationForm> {
     return BlocConsumer<SubscriptionBloc, SubscriptionState>(
       listener: (context, state) {
         if (state is SubscriptionSuccessState) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Subscription activated successfully!'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          ToastManager.show(context: context,
+              title: "Success",
+              message: "You have successfully subscribed to zaitoon", type: ToastType.success);
           // Clear form
           _oldKeyController.clear();
           _newKeyController.clear();
           _expireDateController.clear();
         } else if (state is SubscriptionErrorState) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
-          );
+          ToastManager.show(context: context,
+              title: "Error",
+              message: state.message, type: ToastType.error);
         }
       },
       builder: (context, state) {
@@ -248,20 +243,18 @@ class _ActivationFormState extends State<_ActivationForm> {
               ),
               const SizedBox(height: 30),
               ZOutlineButton(
-                label: Text(isLoading ? 'Activating...' : 'Activate Subscription'),
+                label: isLoading? SizedBox(
+                    width: 13,
+                    height: 13,
+                    child: CircularProgressIndicator()) :  Text(isLoading ? 'Activating...' : 'Activate Subscription'),
                 onPressed: isLoading ? null : _activateSubscription,
-                backgroundColor: color.primary,
                 isActive: true,
                 icon: isLoading ? null : Icons.check_circle,
                 width: double.infinity,
                 height: 48,
                 disable: isLoading,
               ),
-              if (isLoading)
-                const Padding(
-                  padding: EdgeInsets.only(top: 16),
-                  child: CircularProgressIndicator(),
-                ),
+
             ],
           ),
         );

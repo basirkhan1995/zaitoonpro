@@ -676,12 +676,17 @@ class Repositories {
 
     return [];
   }
-
-  ///Employees .................................................................
-  Future<List<EmployeeModel>> getEmployees({
-    String? cat,
-    CancelToken? cancelToken,
+  Future<Map<String, dynamic>> updatePermissionSettings({
+    required List<Map<String, dynamic>> permissions,
   }) async {
+    final response = await api.put(
+      endpoint: "/setting/userRoles.php",
+      data: permissions,
+    );
+    return response.data;
+  }
+  ///Employees .................................................................
+  Future<List<EmployeeModel>> getEmployees({String? cat, CancelToken? cancelToken,}) async {
     // Build query parameters dynamically
     final queryParams = cat != null ? {'cat': cat} : null;
 

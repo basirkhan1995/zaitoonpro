@@ -27,12 +27,13 @@ class UpdateNewRoleEvent extends PermissionSettingsEvent{
   List<Object?> get props => [roleId, usrName, roleName, rpStatus];
 }
 
-class UpdatePermissionsSettingsEvent extends PermissionSettingsEvent{
-  final int rpId;
-  final int rpStatus;
-  const UpdatePermissionsSettingsEvent(this.rpId, this.rpStatus);
+class UpdatePermissionsSettingsEvent extends PermissionSettingsEvent {
+  final List<Map<String, dynamic>> permissions;
+
+  const UpdatePermissionsSettingsEvent({required this.permissions});
+
   @override
-  List<Object?> get props => [rpId, rpStatus];
+  List<Object?> get props => [permissions];
 }
 
 class DeletePermissionsSettingsEvent extends PermissionSettingsEvent{

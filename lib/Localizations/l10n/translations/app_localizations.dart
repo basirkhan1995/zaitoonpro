@@ -5613,6 +5613,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage your subscription details'**
   String get manageSubMessage;
+
+  /// No description provided for @subscriptionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Expired'**
+  String get subscriptionExpired;
+
+  /// No description provided for @subscriptionExpiredContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription has expired. Please contact Zaitoon Technology to renew your subscription.'**
+  String get subscriptionExpiredContact;
+
+  /// No description provided for @noSubscriptionContact.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have an active subscription. Please contact Zaitoon Technology to activate one.'**
+  String get noSubscriptionContact;
+
+  /// No description provided for @noSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'No Subscription'**
+  String get noSubscription;
 }
 
 class _AppLocalizationsDelegate

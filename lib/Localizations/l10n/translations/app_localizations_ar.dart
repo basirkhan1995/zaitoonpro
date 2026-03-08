@@ -2831,4 +2831,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get manageSubMessage => 'جزئیات اشتراک خود را مدیریت نمایید';
+
+  @override
+  String get subscriptionExpired => 'ګډون پای ته رسیدلی';
+
+  @override
+  String get subscriptionExpiredContact =>
+      'ستاسو ګډون پای ته رسیدلی. مهرباني وکړئ د خپل ګډون د نوي کولو لپاره د زیتون ټیکنالوژۍ شرکت سره اړیکه ونیسئ.';
+
+  @override
+  String get noSubscriptionContact =>
+      'تاسو فعال ګډون نه لرئ. مهرباني وکړئ د خپل ګډون د فعالولو لپاره د زیتون ټیکنالوژۍ شرکت سره اړیکه ونیسئ.';
+
+  @override
+  String get noSubscription => 'ګډون نشته';
 }

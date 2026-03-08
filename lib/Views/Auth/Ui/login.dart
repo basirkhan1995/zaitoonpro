@@ -5,6 +5,7 @@ import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/button.dart';
 import 'package:zaitoon_petroleum/Views/Auth/ForgotPassword/forgot_password.dart';
+import 'package:zaitoon_petroleum/Views/Auth/Subscription/Ui/no_subscription.dart';
 import 'package:zaitoon_petroleum/Views/Auth/Ui/force_change_password.dart';
 import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/home.dart';
@@ -70,9 +71,10 @@ class _MobileState extends State<_Mobile> {
             );
           }
           if (state is NoSubscriptionState) {
-            ToastManager.show(context: context,
-                title: "Subscription Expired",
-                message: "Your subscription is expired, please contact Zaitoon Technology.", type: ToastType.error);
+            Utils.goto(
+              context,
+              NoSubscriptionView(),
+            );
           }
         },
         child: SafeArea(
@@ -90,7 +92,6 @@ class _MobileState extends State<_Mobile> {
                         // Title section at the top
                         _zaitoonTitle(context: context),
 
-                        // Expanded section that will take remaining space
                         // and center its content
                         Expanded(
                           child: Center(
@@ -306,9 +307,10 @@ class _TabletState extends State<_Tablet> {
             );
           }
           if (state is NoSubscriptionState) {
-            ToastManager.show(context: context,
-                title: "Subscription Expired",
-                message: "Your subscription is expired, please contact Zaitoon Technology.", type: ToastType.error);
+            Utils.goto(
+              context,
+              NoSubscriptionView(),
+            );
           }
         },
         child: Padding(
@@ -532,9 +534,10 @@ class _DesktopState extends State<_Desktop> {
               ForceChangePasswordView(credential: _emailController.text),
             );
           }  if (state is NoSubscriptionState) {
-            ToastManager.show(context: context,
-                title: "Subscription Expired",
-                message: "Your subscription is expired, please contact Zaitoon Technology.", type: ToastType.error);
+            Utils.goto(
+              context,
+              NoSubscriptionView(),
+            );
           }
         },
         child: Padding(

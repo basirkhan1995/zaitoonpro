@@ -938,5 +938,9 @@
   "newRole": "New Role",
   "editRole": "Edit Role",
   "subscriptionTitle": "Subscription",
-  "manageSubMessage": "Manage your subscription details"
+  "manageSubMessage": "Manage your subscription details",
+  "subscriptionExpired": "Subscription Expired",
+  "subscriptionExpiredContact": "Your subscription has expired. Please contact Zaitoon Technology to renew your subscription.",
+  "noSubscriptionContact": "You don't have an active subscription. Please contact Zaitoon Technology to activate one.",
+  "noSubscription": "No Subscription"
 }

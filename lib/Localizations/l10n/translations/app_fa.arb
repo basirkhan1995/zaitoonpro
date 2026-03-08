@@ -938,5 +938,9 @@
   "newRole": "نقش جدید",
   "editRole": "بروزرسانی نقش",
   "subscriptionTitle": "اشتراک",
-  "manageSubMessage": "جزئیات اشتراک خود را مدیریت نمایید"
+  "manageSubMessage": "جزئیات اشتراک خود را مدیریت نمایید",
+  "subscriptionExpired": "اشتراک منقضی شده",
+  "subscriptionExpiredContact": "اشتراک شما منقضی شده است. لطفاً برای تمدید اشتراک خود با شرکت فناوری زیتون تماس بگیرید.",
+  "noSubscriptionContact": "شما اشتراک فعال ندارید. لطفاً برای فعال‌سازی اشتراک خود با شرکت فناوری زیتون تماس بگیرید.",
+  "noSubscription": "بدون اشتراک"
 }

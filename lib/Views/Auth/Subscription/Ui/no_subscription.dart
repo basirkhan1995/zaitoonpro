@@ -1,39 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Other/toast.dart';
-import 'package:zaitoon_petroleum/Views/Auth/Subscription/bloc/subscription_bloc.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../Features/Date/gregorian_date_picker.dart';
-import '../../../../Features/Widgets/outline_button.dart';
-import '../../../../Features/Widgets/textfield_entitled.dart';
+import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 
 class NoSubscriptionView extends StatelessWidget {
-  const NoSubscriptionView({super.key});
+  final bool isExpired;
+
+  const NoSubscriptionView({
+    super.key,
+    this.isExpired = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: const _MobileContent(),
-      tablet: const _TabletContent(),
-      desktop: const _DesktopContent(),
+      mobile: _MobileContent(isExpired: isExpired),
+      tablet: _TabletContent(isExpired: isExpired),
+      desktop: _DesktopContent(isExpired: isExpired),
     );
   }
 }
 
 // Mobile Version
 class _MobileContent extends StatelessWidget {
-  const _MobileContent();
+  final bool isExpired;
+
+  const _MobileContent({required this.isExpired});
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription'),
+        title: Text(tr.subscriptionTitle),
         centerTitle: true,
       ),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: _ActivationForm(),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _MessageCard(isExpired: isExpired),
       ),
     );
   }
@@ -41,21 +45,25 @@ class _MobileContent extends StatelessWidget {
 
 // Tablet Version
 class _TabletContent extends StatelessWidget {
-  const _TabletContent();
+  final bool isExpired;
+
+  const _TabletContent({required this.isExpired});
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription'),
+        title: Text(tr.subscriptionTitle),
         centerTitle: true,
       ),
-      body: const Center(
+      body: Center(
         child: Padding(
-          padding: EdgeInsets.all(24.0),
+          padding: const EdgeInsets.all(24.0),
           child: SizedBox(
-            width: 500,
-            child: _ActivationForm(),
+            width: 600,
+            child: _MessageCard(isExpired: isExpired),
           ),
         ),
       ),
@@ -65,20 +73,24 @@ class _TabletContent extends StatelessWidget {
 
 // Desktop Version
 class _DesktopContent extends StatelessWidget {
-  const _DesktopContent();
+  final bool isExpired;
+
+  const _DesktopContent({required this.isExpired});
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Subscription'),
+        title: Text(tr.subscriptionTitle),
       ),
-      body: const Center(
+      body: Center(
         child: Padding(
-          padding: EdgeInsets.all(32.0),
+          padding: const EdgeInsets.all(32.0),
           child: SizedBox(
-            width: 500,
-            child: _ActivationForm(),
+            width: 600,
+            child: _MessageCard(isExpired: isExpired),
           ),
         ),
       ),
@@ -86,199 +98,176 @@ class _DesktopContent extends StatelessWidget {
   }
 }
 
-class _ActivationForm extends StatefulWidget {
-  const _ActivationForm();
+class _MessageCard extends StatelessWidget {
+  final bool isExpired;
 
-  @override
-  State<_ActivationForm> createState() => _ActivationFormState();
-}
-
-class _ActivationFormState extends State<_ActivationForm> {
-  final _oldKeyController = TextEditingController();
-  final _newKeyController = TextEditingController();
-  final _expireDateController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-
-  // Format date to YYYY-MM-DD
-  String _formatDate(DateTime date) {
-    return '${date.year.toString().padLeft(4, '0')}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
-  }
-
-  // Show date picker
-  Future<void> _showDatePicker() async {
-    DateTime? initialDate;
-
-    // Parse existing date if any
-    if (_expireDateController.text.isNotEmpty) {
-      try {
-        final parts = _expireDateController.text.split('-');
-        if (parts.length == 3) {
-          initialDate = DateTime(
-            int.parse(parts[0]),
-            int.parse(parts[1]),
-            int.parse(parts[2]),
-          );
-        } else {
-          initialDate = DateTime.now();
-        }
-      } catch (e) {
-        initialDate = DateTime.now();
-      }
-    } else {
-      initialDate = DateTime.now();
-    }
-
-    // Show the date picker dialog
-    await showDialog(
-      context: context,
-      builder: (context) => GregorianDatePicker(
-        initialDate: initialDate,
-        onDateSelected: (selectedDate) {
-          setState(() {
-            _expireDateController.text = _formatDate(selectedDate);
-          });
-        },
-        minYear: 2020,
-        maxYear: 2030,
-        disablePastDates: true,
-      ),
-    );
-  }
+  const _MessageCard({required this.isExpired});
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SubscriptionBloc, SubscriptionState>(
-      listener: (context, state) {
-        if (state is SubscriptionSuccessState) {
-          ToastManager.show(context: context,
-              title: "Success",
-              message: "You have successfully subscribed to zaitoon", type: ToastType.success);
-          // Clear form
-          _oldKeyController.clear();
-          _newKeyController.clear();
-          _expireDateController.clear();
-        } else if (state is SubscriptionErrorState) {
-          ToastManager.show(context: context,
-              title: "Error",
-              message: state.message, type: ToastType.error);
-        }
-      },
-      builder: (context, state) {
-        final isLoading = state is SubscriptionLoadingState;
-        final color = Theme.of(context).colorScheme;
+    final colorScheme = Theme.of(context).colorScheme;
+    final tr = AppLocalizations.of(context)!;
 
-        return Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.key,
-                size: 80,
-                color: color.primary,
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Activate Subscription',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Enter your subscription key to get started',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 30),
-              ZTextFieldEntitled(
-                title: 'Old Key',
-                hint: 'Enter old key',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter old key';
-                  }
-                  return null;
-                },
-                controller: _oldKeyController,
-                icon: Icons.vpn_key,
-                isRequired: true,
-              ),
-              const SizedBox(height: 16),
-              ZTextFieldEntitled(
-                title: 'New Subscription Key',
-                hint: 'Enter your new key',
-                controller: _newKeyController,
-                icon: Icons.vpn_key,
-                isRequired: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter subscription key';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              // Modified date field with tap to open picker
-              GestureDetector(
-                onTap: _showDatePicker,
-                child: AbsorbPointer(
-                  child: ZTextFieldEntitled(
-                    title: 'Expiry Date',
-                    hint: 'Tap to select date',
-                    controller: _expireDateController,
-                    icon: Icons.calendar_today,
-                    isRequired: true,
-                    readOnly: true, // Make it read-only since we use picker
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select expiry date';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ),
-              const SizedBox(height: 30),
-              ZOutlineButton(
-                label: isLoading? SizedBox(
-                    width: 13,
-                    height: 13,
-                    child: CircularProgressIndicator()) :  Text(isLoading ? 'Activating...' : 'Activate Subscription'),
-                onPressed: isLoading ? null : _activateSubscription,
-                isActive: true,
-                icon: isLoading ? null : Icons.check_circle,
-                width: double.infinity,
-                height: 48,
-                disable: isLoading,
-              ),
-
-            ],
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.shadow.withValues(alpha: .1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-        );
-      },
-    );
-  }
-
-  void _activateSubscription() {
-    if (_formKey.currentState?.validate() ?? false) {
-      context.read<SubscriptionBloc>().add(
-        AddOrUpdateSubscriptionEvent(
-          _newKeyController.text,
-          _oldKeyController.text,
-          _expireDateController.text,
+        ],
+        border: Border.all(
+          color: isExpired
+              ? colorScheme.error.withValues(alpha: .3)
+              : colorScheme.primary.withValues(alpha: .3),
         ),
-      );
-    }
-  }
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Icon
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isExpired
+                  ? colorScheme.error.withValues(alpha: .1)
+                  : colorScheme.primary.withValues(alpha: .1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isExpired
+                  ? Icons.timer_off_rounded
+                  : Icons.info_outline_rounded,
+              size: 80,
+              color: isExpired ? colorScheme.error : colorScheme.primary,
+            ),
+          ),
 
-  @override
-  void dispose() {
-    _oldKeyController.dispose();
-    _newKeyController.dispose();
-    _expireDateController.dispose();
-    super.dispose();
+          const SizedBox(height: 24),
+
+          // Title
+          Text(
+            isExpired ? tr.subscriptionExpired : tr.noSubscription,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: isExpired ? colorScheme.error : colorScheme.primary,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 16),
+
+          // Message
+          Text(
+            isExpired
+                ? tr.subscriptionExpiredContact
+                : tr.noSubscriptionContact,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: colorScheme.outline,
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+
+          const SizedBox(height: 32),
+
+          // Contact Information
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: colorScheme.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: colorScheme.outline.withValues(alpha: .2),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.business,
+                      color: colorScheme.primary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Zaitoon Technology',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.email_outlined,
+                      color: colorScheme.primary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'info@zaitoonsoft.com',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.phone_outlined,
+                      color: colorScheme.primary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '+93792496200',
+                      style: TextStyle(
+                        color: colorScheme.onSurface,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.language_outlined,
+                      color: colorScheme.primary,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'www.zaitoonsoft.com',
+                      style: TextStyle(
+                        color: colorScheme.primary,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

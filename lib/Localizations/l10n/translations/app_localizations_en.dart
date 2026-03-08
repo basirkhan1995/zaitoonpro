@@ -2838,4 +2838,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageSubMessage => 'Manage your subscription details';
+
+  @override
+  String get subscriptionExpired => 'Subscription Expired';
+
+  @override
+  String get subscriptionExpiredContact =>
+      'Your subscription has expired. Please contact Zaitoon Technology to renew your subscription.';
+
+  @override
+  String get noSubscriptionContact =>
+      'You don\'t have an active subscription. Please contact Zaitoon Technology to activate one.';
+
+  @override
+  String get noSubscription => 'No Subscription';
 }

@@ -2827,4 +2827,18 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get manageSubMessage => 'جزئیات اشتراک خود را مدیریت نمایید';
+
+  @override
+  String get subscriptionExpired => 'اشتراک منقضی شده';
+
+  @override
+  String get subscriptionExpiredContact =>
+      'اشتراک شما منقضی شده است. لطفاً برای تمدید اشتراک خود با شرکت فناوری زیتون تماس بگیرید.';
+
+  @override
+  String get noSubscriptionContact =>
+      'شما اشتراک فعال ندارید. لطفاً برای فعال‌سازی اشتراک خود با شرکت فناوری زیتون تماس بگیرید.';
+
+  @override
+  String get noSubscription => 'بدون اشتراک';
 }

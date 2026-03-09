@@ -441,6 +441,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
 
           // Copies field and print button
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Expanded(child: _buildCopiesField(context)),
               const SizedBox(width: 8),

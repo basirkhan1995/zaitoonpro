@@ -6,10 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:zaitoon_petroleum/Features/PrintSettings/report_model.dart';
 import 'package:pdf/pdf.dart' as pw;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 
 abstract class PrintServices {
 
-  // Font management - separate fonts for regular and bold
   static late pw.Font _englishRegular;
   static late pw.Font _englishBold;
   static late pw.Font _persianRegular;
@@ -28,55 +28,118 @@ abstract class PrintServices {
       final ByteData englishRegularData = await rootBundle.load(
         'assets/fonts/OpenSans/OpenSans-Regular.ttf',
       );
-      final Uint8List englishRegularBytes = englishRegularData.buffer.asUint8List();
-      _englishRegular = pw.Font.ttf(ByteData.sublistView(englishRegularBytes));
+      _englishRegular = pw.Font.ttf(englishRegularData);
 
       // Load bold font
       final ByteData englishBoldData = await rootBundle.load(
         'assets/fonts/OpenSans/OpenSans-Bold.ttf',
       );
-      final Uint8List englishBoldBytes = englishBoldData.buffer.asUint8List();
-      _englishBold = pw.Font.ttf(ByteData.sublistView(englishBoldBytes));
+      _englishBold = pw.Font.ttf(englishBoldData);
     } catch (e) {
+      debugPrint('❌ English font loading failed: $e');
       _englishRegular = _englishBold = pw.Font.courier();
     }
   }
 
-  // Load Persian fonts (regular and bold)
+  // Load Persian fonts with platform-specific handling
   static Future<void> _loadPersianFonts() async {
+    try {
+      if (kIsWeb) {
+        // For web, try Amiri first (better Arabic/Persian support)
+        await _loadWebPersianFonts();
+      } else {
+        // For mobile/desktop, use NotoNaskh
+        await _loadNativePersianFonts();
+      }
+    } catch (e) {
+      debugPrint('❌ Persian font loading failed: $e');
+      _persianRegular = _persianBold = pw.Font.courier();
+    }
+  }
+
+  static Future<void> _loadWebPersianFonts() async {
+    try {
+      // Try Amiri Regular for web
+      final ByteData persianRegularData = await rootBundle.load(
+        'assets/fonts/Amiri/Amiri-Regular.ttf',
+      );
+      _persianRegular = pw.Font.ttf(persianRegularData);
+
+      // Try Amiri Bold for web
+      final ByteData persianBoldData = await rootBundle.load(
+        'assets/fonts/Amiri/Amiri-Bold.ttf',
+      );
+      _persianBold = pw.Font.ttf(persianBoldData);
+
+      debugPrint('✅ Amiri font loaded successfully for web');
+    } catch (e) {
+      debugPrint('❌ Amiri font failed, trying NotoNaskh: $e');
+      // Fallback to NotoNaskh
+      await _loadNativePersianFonts();
+    }
+  }
+
+  static Future<void> _loadNativePersianFonts() async {
     try {
       // Load regular font
       final ByteData persianRegularData = await rootBundle.load(
         'assets/fonts/NotoNaskh/NotoNaskhArabic-Regular.ttf',
       );
-      final Uint8List persianRegularBytes = persianRegularData.buffer.asUint8List();
-      _persianRegular = pw.Font.ttf(ByteData.sublistView(persianRegularBytes));
+      _persianRegular = pw.Font.ttf(persianRegularData);
 
       // Load bold font
       final ByteData persianBoldData = await rootBundle.load(
         'assets/fonts/NotoNaskh/NotoNaskhArabic-Bold.ttf',
       );
-      final Uint8List persianBoldBytes = persianBoldData.buffer.asUint8List();
-      _persianBold = pw.Font.ttf(ByteData.sublistView(persianBoldBytes));
+      _persianBold = pw.Font.ttf(persianBoldData);
+
+      debugPrint('✅ NotoNaskh font loaded successfully');
     } catch (e) {
-      // Fallback to system font if custom fonts fail to load
-      _persianRegular = _persianBold = pw.Font.courier();
+      debugPrint('❌ NotoNaskh font failed: $e');
+      rethrow;
     }
   }
 
   // Get appropriate font based on text and weight
-  static pw.Font _getFont({
-    required String text,
-    required pw.FontWeight? fontWeight,
-  }) {
+  static pw.Font _getFont({required String text, required pw.FontWeight? fontWeight}) {
     final isPersian = _isPersian(text);
 
-    // Use bold font if fontWeight is bold or heavier
-    if (fontWeight != null && fontWeight.index >= pw.FontWeight.bold.index) {
-      return isPersian ? _persianBold : _englishBold;
-    } else {
-      return isPersian ? _persianRegular : _englishRegular;
+    try {
+      // Use bold font if fontWeight is bold or heavier
+      if (fontWeight != null && fontWeight.index >= pw.FontWeight.bold.index) {
+        return isPersian ? _persianBold : _englishBold;
+      } else {
+        return isPersian ? _persianRegular : _englishRegular;
+      }
+    } catch (e) {
+      // Ultimate fallback
+      return pw.Font.courier();
     }
+  }
+
+  static bool _isPersian(String text) {
+    final persianRegex = RegExp(r'[\u0600-\u06FF]');
+    return persianRegex.hasMatch(text);
+  }
+
+  static pw.TextDirection _textDirection({required String text}) {
+    return _isPersian(text) ? pw.TextDirection.rtl : pw.TextDirection.ltr;
+  }
+
+  static pw.TextStyle _textStyle({
+    required String text,
+    double? fontSize,
+    PdfColor? color,
+    pw.FontWeight? fontWeight,
+    pw.FontStyle? fontStyle,
+  }) {
+    return pw.TextStyle(
+      color: color,
+      font: _getFont(text: text, fontWeight: fontWeight),
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      fontStyle: fontStyle,
+    );
   }
 
   Future<pw.Widget> header({required ReportModel report}) async {
@@ -113,35 +176,31 @@ abstract class PrintServices {
                   ),
                   pw.SizedBox(height: 5),
                   pw.Row(
-                    children: [
-                      if (report.comAddress != null && report.comAddress!.isNotEmpty)...[
-                        zText(
-                          text: report.comAddress ?? "",
-                          fontSize: 10,
-                          color: pw.PdfColors.grey600,
-                        ),
-                      ],
-
-
-                      if (report.compPhone != null && report.compPhone!.isNotEmpty)...[
-                        verticalDivider(height: 10, width: 1),
-                        zText(
-                          text: report.compPhone ?? "",
-                          fontSize: 9,
-                          color: pw.PdfColors.grey600,
-                        ),
-                      ],
-
-                      if (report.compPhone != null && report.compPhone!.isNotEmpty)...[
-                        verticalDivider(height: 10, width: 1),
-                        zText(
-                          text: report.comEmail ?? "",
-                          fontSize: 9,
-                          color: pw.PdfColors.grey600,
-                        ),
+                      children: [
+                        if (report.comAddress != null && report.comAddress!.isNotEmpty) ...[
+                          zText(
+                            text: report.comAddress ?? "",
+                            fontSize: 10,
+                            color: pw.PdfColors.grey600,
+                          ),
+                        ],
+                        if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
+                          verticalDivider(height: 10, width: 1),
+                          zText(
+                            text: report.compPhone ?? "",
+                            fontSize: 9,
+                            color: pw.PdfColors.grey600,
+                          ),
+                        ],
+                        if (report.comEmail != null && report.comEmail!.isNotEmpty) ...[
+                          verticalDivider(height: 10, width: 1),
+                          zText(
+                            text: report.comEmail ?? "",
+                            fontSize: 9,
+                            color: pw.PdfColors.grey600,
+                          ),
+                        ]
                       ]
-
-                    ]
                   )
                 ],
               ),
@@ -160,6 +219,7 @@ abstract class PrintServices {
       ],
     );
   }
+
   pw.Widget footer({
     required ReportModel report,
     required pw.Context context,
@@ -188,9 +248,9 @@ abstract class PrintServices {
         horizontalDivider(),
         pw.SizedBox(height: 3),
         pw.Row(
-          children: [
-            zText(text: "${report.compPhone ?? ""} | ${report.comEmail ?? ""}", fontSize: 9),
-          ]
+            children: [
+              zText(text: "${report.compPhone ?? ""} | ${report.comEmail ?? ""}", fontSize: 9),
+            ]
         ),
         pw.SizedBox(height: 3),
         pw.Row(
@@ -208,11 +268,11 @@ abstract class PrintServices {
   Future<File?> saveDocument({required String suggestedName, required pw.Document pdf}) async {
     try {
       final FileSaveLocation? fileSaveLocation = await getSaveLocation(
-        suggestedName: suggestedName, // Default file name
+        suggestedName: suggestedName,
         acceptedTypeGroups: [
           const XTypeGroup(
-            label: 'PDF Files', // Label for file types
-            extensions: ['pdf'], // Limit to .pdf files
+            label: 'PDF Files',
+            extensions: ['pdf'],
           ),
         ],
       );
@@ -224,7 +284,7 @@ abstract class PrintServices {
       // Ensure the file path has a .pdf extension
       String filePath = fileSaveLocation.path;
       if (!filePath.toLowerCase().endsWith('.pdf')) {
-        filePath += '.pdf'; // Append .pdf extension if missing
+        filePath += '.pdf';
       }
 
       // Save the PDF document to the selected path
@@ -233,7 +293,7 @@ abstract class PrintServices {
       // Write the bytes to the file
       final file = File(filePath);
       await file.writeAsBytes(bytes);
-      return file; // Return the saved file
+      return file;
     } catch (e) {
       return null;
     }
@@ -249,8 +309,9 @@ abstract class PrintServices {
     pw.TextAlign? textAlign,
     pw.FontStyle? fontStyle,
   }) {
+    if (text.isEmpty) return pw.SizedBox();
+
     return pw.Text(
-      tightBounds: tightBounds ?? false,
       text,
       textAlign: textAlign,
       style: _textStyle(
@@ -263,8 +324,6 @@ abstract class PrintServices {
       textDirection: _textDirection(text: text),
     );
   }
-
-
 
   pw.Widget buildPage(int currentPage, int totalPages, String language) {
     return pw.Container(
@@ -289,31 +348,6 @@ abstract class PrintServices {
     } catch (e) {
       return null;
     }
-  }
-
-  static pw.TextStyle _textStyle({
-    required String text,
-    double? fontSize,
-    PdfColor? color,
-    pw.FontWeight? fontWeight,
-    pw.FontStyle? fontStyle,
-  }) {
-    return pw.TextStyle(
-      color: color,
-      font: _getFont(text: text, fontWeight: fontWeight),
-      fontWeight: fontWeight,
-      fontSize: fontSize,
-      fontStyle: fontStyle,
-    );
-  }
-
-  static bool _isPersian(String text) {
-    final persianRegex = RegExp(r'[\u0600-\u06FF]');
-    return persianRegex.hasMatch(text);
-  }
-
-  static pw.TextDirection _textDirection({required String text}) {
-    return _isPersian(text) ? pw.TextDirection.rtl : pw.TextDirection.ltr;
   }
 
   pw.Widget verticalDivider({
@@ -373,11 +407,9 @@ abstract class PrintServices {
 
   PdfColor hexToPdfColor(String hexColor) {
     hexColor = hexColor.replaceAll('#', '');
-    // Fixed: Removed hardcoded color override
     if (hexColor.length == 6) {
-      hexColor = 'FF$hexColor'; // Add full opacity if missing
+      hexColor = 'FF$hexColor';
     } else if (hexColor.length == 8) {
-      // Reorder from RGBA to ARGB
       hexColor = '${hexColor.substring(6,8)}${hexColor.substring(0,6)}';
     }
 
@@ -421,17 +453,19 @@ abstract class PrintServices {
                 style: pw.TextStyle(
                   fontSize: 9,
                   fontWeight: isEmphasized ? pw.FontWeight.bold : pw.FontWeight.normal,
-                  font: _englishBold, // Use bold font directly for consistent rendering
+                  font: _englishBold,
                 ),
                 textAlign: align ?? pw.TextAlign.center,
               ),
-              if (ccySymbol != null) pw.SizedBox(width: 3),
-              zText(
-                text: ccySymbol ?? "",
-                tightBounds: true,
-                fontSize: 8,
-                fontWeight: isEmphasized ? pw.FontWeight.bold : pw.FontWeight.normal,
-              )
+              if (ccySymbol != null && ccySymbol.isNotEmpty) ...[
+                pw.SizedBox(width: 3),
+                zText(
+                  text: ccySymbol,
+                  tightBounds: true,
+                  fontSize: 8,
+                  fontWeight: isEmphasized ? pw.FontWeight.bold : pw.FontWeight.normal,
+                )
+              ]
             ],
           ),
         ],
@@ -448,7 +482,7 @@ abstract class PrintServices {
       'moneyReceipt' : {
         'en':"Money Receipt",
         'fa':"رسید پول",
-        "ar":"پول رسید"
+        "ar":"پول رسید"  // Pashto (kept as "ar" key)
       },
       'currencyBreakdown' : {
         'en':"Currency Breakdown",
@@ -740,13 +774,11 @@ abstract class PrintServices {
         'fa': 'تاریخ صورت حساب',
         'ar': 'صورت حساب نیټه',
       },
-
       'total': {
         'en': 'Total',
         'fa': 'جمع کل',
         'ar': 'ټول قیمت',
       },
-
       'debitAccount':{
         'en':'Debit Account',
         'fa':'حساب دبت',
@@ -757,7 +789,6 @@ abstract class PrintServices {
         'fa':'حساب کریدت',
         'ar':'کریدت حساب'
       },
-
       'debitAmount':{
         'en':'Debit Amount',
         'fa':'مبلغ دبت',
@@ -773,7 +804,6 @@ abstract class PrintServices {
         'fa':'مبلغ کریدت',
         'ar':'کریدت مبلغ'
       },
-
       'OBAL':{
         'en':'OBAL',
         'fa':'بیلانس افتتاحیه',
@@ -784,37 +814,31 @@ abstract class PrintServices {
         'fa': 'مانده اولیه',
         'ar': 'د پرانیستې بیلانس',
       },
-
       'closingBalance': {
         'en': 'Closing Balance',
         'fa': 'بیلانس نهایی',
         'ar': 'تړلو بیلانس',
       },
-
       'totalCredit': {
         'en': 'Credits',
         'fa': 'بستانکار',
         'ar': 'بستانکار',
       },
-
       'totalDebit': {
         'en': 'Debits',
         'fa': 'بدهکار',
         'ar': 'بدهکار',
       },
-
       'page': {
         'en': 'Page',
         'fa': 'صفحه',
         'ar': 'پاڼه',
       },
-
       'of': {
         'en': 'of',
         'fa': 'از ',
         'ar': 'له',
       },
-
       'accountStatement': {
         'en': 'Account Statement',
         'fa': 'صورت حساب اشخاص',
@@ -850,61 +874,51 @@ abstract class PrintServices {
         'fa': 'پرداخت دفتر کل',
         'ar': 'پرداخت دفتر کل',
       },
-
       'GLCR': {
         'en': 'General Ledger Credit',
         'fa': 'دریافت دفتر کل',
         'ar': 'دریافت دفتر کل',
       },
-
       'XPNS': {
         'en': 'Expense',
         'fa': 'مصارف',
         'ar': 'لګښت',
       },
-
       'INCM': {
         'en': 'Income (Profit)',
         'fa': 'عواید',
         'ar': 'عواید',
       },
-
       'EXCH': {
         'en': 'Cross Currency',
         'fa': 'ارز متقابل',
         'ar': 'متقابل ارز',
       },
-
       'debit': {
         'en': 'Debit',
         'fa': 'بدهکار',
         'ar': 'بدهکار',
       },
-
       'credit': {
         'en': 'Credit',
         'fa': 'بستانکار',
         'ar': 'بسټانکار',
       },
-
       'branch':{
         'en':'Branch',
         'fa':'شعبه',
         'ar':'څانګه',
       },
-
       'authorizedBy':{
         'en':'Authorized by: ',
         'fa':'تایید کننده',
         'ar':'تایید کونکی',
       },
-
       'producedBy':{
         'en':"Powered by Zaitoon Inc",
         'fa':"ساخته شده زیتون سافت",
         'ar':'زیتون سافت لخوا وړاندې شوی',
       },
-
       'createdBy':{
         'en':'Issued by: ',
         'fa':'تهیه شده توسط: ',
@@ -925,7 +939,6 @@ abstract class PrintServices {
         'fa':'نام حساب',
         'ar':'حساب نوم',
       },
-
       'debtor':{
         'en':'Debtor ',
         'fa':'بدهکار',
@@ -936,7 +949,6 @@ abstract class PrintServices {
         'fa':'طلبکار',
         'ar':'طلبکار',
       },
-
       'accountNumber':{
         'en':'Account No',
         'fa':'شماره حساب',
@@ -972,7 +984,6 @@ abstract class PrintServices {
         'fa':'تاریخ',
         'ar':'نیته',
       },
-
       'accOwner':{
         'en':'Account holder',
         'fa':'دارنده حساب',
@@ -1053,7 +1064,6 @@ abstract class PrintServices {
         'fa':'مبلغ رسید',
         'ar':'رسید مبلغ',
       },
-
       'vehicleDetails': {
         'en': 'Vehicle Details',
         'fa': 'جزئیات وسیله نقلیه',
@@ -1065,7 +1075,7 @@ abstract class PrintServices {
         'ar': 'د موټر آی ډی',
       },
       'model': {
-        'en': 'model',
+        'en': 'Model',
         'fa': 'مدل',
         'ar': 'مودل',
       },
@@ -1129,7 +1139,6 @@ abstract class PrintServices {
         'fa': 'راننده',
         'ar': 'چلوونکی',
       },
-
       'txnType': {
         'en': 'TXN Type',
         'fa': 'نوع معامله',
@@ -1155,7 +1164,6 @@ abstract class PrintServices {
         'fa': 'جزئیات تراکنش',
         'ar': 'د معاملې معلومات',
       },
-
       'transactionStatus': {
         'en': 'Transaction Status',
         'fa': 'وضعیت تراکنش',
@@ -1191,8 +1199,6 @@ abstract class PrintServices {
         'fa': 'ناشناخته',
         'ar': 'نامعلوم',
       },
-
-      // Add these to your translation map
       'allShipping': {
         'en': 'All Shipping Records',
         'fa': 'همه سوابق حمل و نقل',
@@ -1338,7 +1344,6 @@ abstract class PrintServices {
         'fa': 'توضیحات',
         'ar': 'الوصف',
       },
-
       'assets': {
         'en': 'ASSETS',
         'fa': 'دارایی ها',
@@ -1379,7 +1384,6 @@ abstract class PrintServices {
         'fa': 'ذینفعان',
         'ar': 'أصحاب المصلحة',
       },
-
       'totalAssets': {
         'en': 'TOTAL ASSETS',
         'fa': 'کل دارایی ها',
@@ -1405,7 +1409,6 @@ abstract class PrintServices {
         'fa': 'مجموع',
         'ar': 'المجموع',
       },
-      // Add these new entries to your translation map
       'shippingReport': {
         'en': 'Shipping Report',
         'fa': 'راپور ترانسپورت',
@@ -1451,7 +1454,6 @@ abstract class PrintServices {
         'fa': 'متوسط کرایه فی واحد',
         'ar': 'متوسط کرایه فی واحد'
       },
-
       'product': {
         'en': 'Product',
         'fa': 'محصول',
@@ -1512,43 +1514,36 @@ abstract class PrintServices {
         "ar": "د پروژې پېژند",
         "fa": "شناسه پروژه"
       },
-
       "projectName": {
         "en": "Project Name",
         "ar": "د پروژې نوم",
         "fa": "نام پروژه"
       },
-
       "customerName": {
         "en": "Customer Name",
         "ar": "د پیرودونکي نوم",
         "fa": "نام مشتری"
       },
-
       "location": {
         "en": "Location",
         "ar": "ځای",
         "fa": "موقعیت"
       },
-
       "projectDetails": {
         "en": "Project Details",
         "ar": "د پروژې تفصیلات",
         "fa": "جزئیات پروژه"
       },
-
       "deadline": {
         "en": "Deadline",
         "ar": "ټاکل شوې نېټه",
         "fa": "مهلت"
       },
-
       "paymentType": {
         "en": "Payment Type",
         "ar": "د تادیې ډول",
         "fa": "نوع پرداخت"
       },
-
       "projectStatus": {
         "en": "Project Status",
         "ar": "د پروژې حالت",
@@ -1559,43 +1554,36 @@ abstract class PrintServices {
         "fa": "گزارش پروژه",
         "ar": "د پروژې راپور"
       },
-
       "financialSummary": {
         "en": "Financial Summary",
         "fa": "خلاصه مالی",
         "ar": "مالي لنډیز"
       },
-
       "totalServices": {
         "en": "Total Services",
         "fa": "کل خدمات",
         "ar": "ټول خدمات"
       },
-
       "totalServicesValue": {
         "en": "Total Services Value",
         "fa": "ارزش کل خدمات",
         "ar": "د خدماتو ټول ارزښت"
       },
-
       "totalTransactions": {
         "en": "Total Transactions",
         "fa": "کل تراکنش ‌ها",
         "ar": "ټولې راکړې ورکړې"
       },
-
       "currentPhase": {
         "en": "Current Phase",
         "fa": "مرحله فعلی",
         "ar": "اوسنی پړاو"
       },
-
       "projectInformation": {
         "en": "Project Information",
         "fa": "اطلاعات پروژه",
         "ar": "د پروژې معلومات"
       },
-
       "ownerInformation": {
         "en": "Client Information",
         "fa": "اطلاعات مالک",
@@ -1611,73 +1599,61 @@ abstract class PrintServices {
         "fa": "مشتری",
         "ar": "پیرودونکی"
       },
-
       "currencyTitle": {
         "en": "Currency",
         "fa": "واحد پول",
         "ar": "اسعار"
       },
-
       "serviceName": {
         "en": "Service Name",
         "fa": "نام خدمت",
         "ar": "د خدمت نوم"
       },
-
       "transactions": {
         "en": "Transactions",
         "fa": "معاملات",
         "ar": "راکړې ورکړې"
       },
-
       "incomeAndExpenses": {
         "en": "Income & Expenses",
         "fa": "درآمد و هزینه",
         "ar": "عواید او لګښتونه"
       },
-
       "inProgress": {
         "en": "In Progress",
         "fa": "در حال اجرا",
         "ar": "په پرمختګ کې"
       },
-
       "overview": {
         "en": "Overview",
         "fa": "بررسی کلی",
         "ar": "کتنه"
       },
-
       "services": {
         "en": "Services",
         "fa": "خدمات",
         "ar": "خدمتونه"
       },
-
       "noServicesTitle": {
         "en": "No Services",
         "fa": "بدون خدمات",
         "ar": "خدمتونه نشته"
       },
-
       "noServicesMessage": {
         "en": "No services found for this project",
         "fa": "خدماتی برای این پروژه یافت نشد",
         "ar": "د دې پروژې لپاره کوم خدمت ونه موندل شو"
       },
-
       "preparedBy": {
         "en": "Prepared By",
         "fa": "تهیه شده توسط",
         "ar": "چمتو شوی د"
       },
-
       "approvedBy": {
         "en": "Approved By",
         "fa": "تایید شده توسط",
         "ar": "تایید شوی د"
       },
-
       "activeServices": {
         "en": "Active Services",
         "fa": "خدمات فعال",
@@ -1693,7 +1669,6 @@ abstract class PrintServices {
         'fa': 'خلاصه بر اساس ارز',
         'ar': 'ملخص حسب العملة',
       },
-
       'summary': {
         'en': 'Summary',
         'fa': 'خلاصه',
@@ -1704,7 +1679,6 @@ abstract class PrintServices {
         'fa': 'تا تاریخ',
         'ar': 'اعتباراً من',
       },
-
       'account': {
         'en': 'Account',
         'fa': 'حساب',

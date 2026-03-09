@@ -1,38 +1,267 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+    <!--
+      If you are serving your web app in a path other than the root, change the
+      href value below to reflect the base path you are serving from.
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+      The path provided below has to start and end with a slash "/" in order for
+      it to work correctly.
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+      For more details:
+      * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
 
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
+      This is a placeholder for base href that will be replaced by the value of
+      the `--base-href` argument provided to `flutter build`.
+    -->
+    <base href="$FLUTTER_BASE_HREF">
 
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+    <meta charset="UTF-8">
+    <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+    <meta name="description" content="Zaitoon Petroleum - Your trusted fuel partner">
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Zaitoon Petroleum">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+    <!-- iOS meta tags & icons -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="apple-mobile-web-app-title" content="Zaitoon Petroleum">
+    <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>zaitoon_petroleum</title>
-  <link rel="manifest" href="manifest.json">
+    <title>Zaitoon Petroleum</title>
+    <link rel="manifest" href="manifest.json">
+
+    <!-- Preload critical assets for faster loading -->
+    <link rel="preload" href="flutter_bootstrap.js" as="script">
+    <link rel="preload" href="main.dart.js" as="script">
+
+    <style>
+        /* Splash Screen Styles */
+        body {
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        #splash-screen {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 9999;
+          transition: opacity 0.5s ease-out;
+        }
+
+        .splash-content {
+          text-align: center;
+          color: white;
+          padding: 20px;
+          max-width: 400px;
+        }
+
+        .logo-container {
+          margin-bottom: 30px;
+          animation: float 3s ease-in-out infinite;
+        }
+
+        .logo {
+          width: 120px;
+          height: 120px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto;
+          font-size: 48px;
+          font-weight: bold;
+          color: white;
+          border: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        h1 {
+          font-size: 28px;
+          margin: 20px 0 10px;
+          font-weight: 600;
+          letter-spacing: 1px;
+        }
+
+        .subtitle {
+          font-size: 16px;
+          opacity: 0.9;
+          margin-bottom: 40px;
+        }
+
+        .loader {
+          width: 50px;
+          height: 50px;
+          border: 3px solid rgba(255, 255, 255, 0.3);
+          border-radius: 50%;
+          border-top-color: white;
+          animation: spin 1s ease-in-out infinite;
+          margin: 20px auto;
+        }
+
+        .progress-bar {
+          width: 100%;
+          height: 4px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 4px;
+          overflow: hidden;
+          margin: 20px 0;
+        }
+
+        .progress-fill {
+          width: 0%;
+          height: 100%;
+          background: white;
+          border-radius: 4px;
+          transition: width 0.3s ease;
+          animation: progress 2s ease-in-out infinite;
+        }
+
+        .loading-text {
+          font-size: 14px;
+          opacity: 0.8;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
+        }
+
+        @keyframes progress {
+          0% { width: 0%; }
+          50% { width: 70%; }
+          100% { width: 100%; }
+        }
+
+        /* Optional: You can customize colors for Zaitoon Petroleum */
+        .custom-bg {
+          background: linear-gradient(135deg, #2b32b2 0%, #1488cc 100%);
+        }
+
+        /* Hide splash screen when Flutter is ready */
+        .splash-hidden {
+          opacity: 0;
+          pointer-events: none;
+        }
+    </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+<!-- Splash Screen -->
+<div id="splash-screen" class="custom-bg">
+    <div class="splash-content">
+        <div class="logo-container">
+            <div class="logo">
+                <!-- You can replace this with your actual logo -->
+                ZP
+            </div>
+        </div>
+        <h1>Zaitoon Petroleum</h1>
+        <div class="subtitle">Your Trusted Fuel Partner</div>
+        <div class="loader"></div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="loading-text" id="loading-text">Loading application...</div>
+    </div>
+</div>
+
+<!-- Your Flutter app loads here -->
+<script src="flutter_bootstrap.js" defer></script>
+
+<script>
+    // Optional: Enhanced splash screen with progress simulation
+    (function() {
+      const splashScreen = document.getElementById('splash-screen');
+      const loadingText = document.getElementById('loading-text');
+      const progressFill = document.getElementById('progress-fill');
+
+      // Update loading messages for better UX
+      const messages = [
+        'Preparing application...',
+        'Loading resources...',
+        'Almost there...',
+        'Starting up...'
+      ];
+
+      let messageIndex = 0;
+
+      // Update message every 1.5 seconds
+      const messageInterval = setInterval(() => {
+        if (messageIndex < messages.length - 1) {
+          messageIndex++;
+          loadingText.textContent = messages[messageIndex];
+
+          // Update progress bar roughly
+          const progress = (messageIndex + 1) * 25;
+          progressFill.style.width = progress + '%';
+        }
+      }, 1500);
+
+      // Hide splash screen when Flutter is ready
+      // Listen for when Flutter is initialized
+      if (document.readyState === 'complete') {
+        // Page is already loaded
+        setTimeout(hideSplash, 500);
+      } else {
+        window.addEventListener('load', function() {
+          // Give Flutter a moment to start rendering
+          setTimeout(hideSplash, 800);
+        });
+      }
+
+      // Also try to detect when Flutter engine is ready
+      // This is more reliable with Flutter 3.16+
+      const checkFlutterReady = setInterval(function() {
+        if (window._flutter_web_main_completed ||
+            (window.flutterBootstrap && window.flutterBootstrap.ready)) {
+          clearInterval(checkFlutterReady);
+          clearInterval(messageInterval);
+          hideSplash();
+        }
+      }, 100);
+
+      function hideSplash() {
+        clearInterval(messageInterval);
+        clearInterval(checkFlutterReady);
+
+        // Update final state
+        loadingText.textContent = 'Ready!';
+        progressFill.style.width = '100%';
+
+        // Fade out splash screen
+        setTimeout(() => {
+          splashScreen.classList.add('splash-hidden');
+
+          // Remove splash screen from DOM after animation
+          setTimeout(() => {
+            if (splashScreen.parentNode) {
+              splashScreen.style.display = 'none';
+            }
+          }, 500);
+        }, 300);
+      }
+
+      // Fallback: Hide splash after 8 seconds max
+      setTimeout(function() {
+        clearInterval(messageInterval);
+        clearInterval(checkFlutterReady);
+        hideSplash();
+      }, 8000);
+    })();
+</script>
 </body>
 </html>

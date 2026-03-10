@@ -23,7 +23,7 @@ class ZDraggableSheet {
     double minChildSize = 0.35,
     double maxChildSize = 0.95,
 
-    /// 🔹 ADAPTIVE HEIGHT (⭐ recommended ON)
+    /// 🔹 ADAPTIVE HEIGHT
     bool adaptiveInitialSize = true,
     double estimatedContentHeight = 420,
 
@@ -43,18 +43,24 @@ class ZDraggableSheet {
         final theme = Theme.of(context);
         final color = theme.colorScheme;
 
-        // ⭐ Adaptive height calculation
         final screenHeight = MediaQuery.of(context).size.height;
 
+        final DraggableScrollableController sheetController =
+        DraggableScrollableController();
+
+        /// ⭐ Adaptive height
         double calculatedInitialSize = initialChildSize;
 
         if (adaptiveInitialSize) {
           calculatedInitialSize =
-              (estimatedContentHeight / screenHeight)
-                  .clamp(minChildSize, maxChildSize);
+              (estimatedContentHeight / screenHeight).clamp(
+                minChildSize,
+                maxChildSize,
+              );
         }
 
         Widget sheet = DraggableScrollableSheet(
+          controller: sheetController,
           initialChildSize: calculatedInitialSize,
           minChildSize: minChildSize,
           maxChildSize: maxChildSize,
@@ -64,7 +70,8 @@ class ZDraggableSheet {
               padding: padding,
               decoration: BoxDecoration(
                 color: backgroundColor ?? color.surface,
-                borderRadius: borderRadius ?? const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: borderRadius ??
+                    const BorderRadius.vertical(top: Radius.circular(20)),
                 boxShadow: const [
                   BoxShadow(
                     blurRadius: 20,
@@ -75,28 +82,42 @@ class ZDraggableSheet {
               child: Column(
                 children: [
                   /// 🔹 Drag Handle
-                  if (showDragHandle) ...[
-                    Center(
+                  if (showDragHandle)
+                    GestureDetector(
+                      behavior: HitTestBehavior.translucent,
+                      onVerticalDragUpdate: (details) {
+                        final delta = details.primaryDelta! / screenHeight;
+
+                        double newSize = sheetController.size - delta;
+
+                        newSize = newSize.clamp(minChildSize, maxChildSize);
+
+                        sheetController.jumpTo(newSize);
+                      },
                       child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.outline,
-                          borderRadius: BorderRadius.circular(10),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Center(
+                          child: Container(
+                            width: 40,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color:
+                              Theme.of(context).colorScheme.outlineVariant,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ],
 
-                  /// 🔹 Header (STICKY)
+                  /// 🔹 Header
                   if (title != null ||
                       showCloseButton ||
                       leading != null ||
-                      trailing != null) ...[
+                      trailing != null)
                     Row(
                       children: [
-                        leading ?? const SizedBox(width: 0),
+                        leading ?? const SizedBox(),
 
                         /// Title
                         Expanded(
@@ -111,19 +132,18 @@ class ZDraggableSheet {
                               : const SizedBox(),
                         ),
 
-                        /// Custom trailing or close
+                        /// trailing or close
                         trailing ??
-                            (showCloseButton ? IconButton(
-                              icon: const Icon(Icons.close,size: 20),
-                                 onPressed: () => Navigator.pop(context),
+                            (showCloseButton
+                                ? IconButton(
+                              icon: const Icon(Icons.close, size: 20),
+                              onPressed: () => Navigator.pop(context),
                             )
                                 : const SizedBox()),
                       ],
                     ),
 
-                  ],
-
-                  /// 🔹 BODY (SCROLL CONNECTED)
+                  /// 🔹 BODY
                   Expanded(
                     child: bodyBuilder(context, scrollController),
                   ),
@@ -133,7 +153,7 @@ class ZDraggableSheet {
           },
         );
 
-        // ⭐ Keyboard safe
+        /// 🔹 Keyboard safe
         if (useSafeArea) {
           sheet = SafeArea(
             top: false,

@@ -13,6 +13,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/Cardx/Ui/cardx.d
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/OrdersReport/Ui/order_report.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Transport/Shipments/shipment_report.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Transport/Vehicle/View/vehicle_report.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/UserReport/StakeholdersReport/ind_report.dart';
 import '../../../../Features/Other/utils.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
@@ -66,6 +67,7 @@ enum ActionKey {
 
   userLog,
   users,
+  individualsReport,
   attendance,
 
   projects,
@@ -146,6 +148,7 @@ class _DesktopState extends State<_Desktop> {
     ];
 
     final List<Map<String, dynamic>> activitiesButtons = [
+      {"title": tr.individuals, "icon": Icons.people, "action": ActionKey.individualsReport},
       if(login.hasPermission(99) ?? false)
       {"title": tr.users, "icon": FontAwesomeIcons.users, "action": ActionKey.users},
       if(login.hasPermission(101) ?? false)
@@ -313,6 +316,7 @@ class _DesktopState extends State<_Desktop> {
       case ActionKey.estimate: Utils.goto(context, OrderReportView(orderName: "Estimate"));
 
       // Activity
+      case ActionKey.individualsReport: Utils.goto(context, StakeholdersReportView());
       case ActionKey.users: Utils.goto(context, UsersReportView());
       case ActionKey.userLog: Utils.goto(context, UserLogReportView());
       case ActionKey.attendance: Utils.goto(context, AttendanceReportView());

@@ -93,6 +93,7 @@ class _MobileState extends State<_Mobile> {
 
                 // Role Dropdown
                 UserRoleDropdown(
+                  title: tr.userRole,
                   showAllOption: true,
                   onRoleSelected: (e) {
                     setSheetState(() => role = e?.rolId);
@@ -673,6 +674,7 @@ class _TabletState extends State<_Tablet> {
                   SizedBox(
                     width: 200,
                     child: UserRoleDropdown(
+                      title: tr.userRole,
                       showAllOption: true,
                       onRoleSelected: (e) {
                         setState(() => roleId = e?.rolId);
@@ -1102,6 +1104,7 @@ class _DesktopState extends State<_Desktop> {
 
                   Expanded(
                     child: UserRoleDropdown(
+                      title: tr.userRole,
                       showAllOption: true,
                       onRoleSelected: (e) {
                         setState(() => role = e?.rolId);

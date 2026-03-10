@@ -69,6 +69,7 @@ import '../Views/Menu/Ui/Report/Ui/TransactionRef/model/txn_report_model.dart';
 import '../Views/Menu/Ui/Report/Ui/Transport/Shipments/model/shp_report_model.dart';
 import '../Views/Menu/Ui/Report/Ui/Transport/Vehicle/model/vehicle_report_model.dart';
 import '../Views/Menu/Ui/Report/Ui/TxnReport/model/txn_report_model.dart';
+import '../Views/Menu/Ui/Report/Ui/UserReport/StakeholdersReport/model/ind_report_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/BranchLimits/model/limit_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Company/Branches/model/branch_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/General/Ui/DefaultPermissions/model/permission_settings_model.dart';
@@ -3766,6 +3767,41 @@ class Repositories {
         }
     );
     return response.data;
+  }
+
+  ///Stakeholders Report........................................................
+  Future<List<IndReportModel>> getStakeholdersReport({String? search, String? dob, String? phone, String? gender}) async {
+    final response = await api.post(
+      endpoint: "/reports/allPersonal.php",
+      data: {
+        "flNameSearch": search,
+        "dob": dob,
+        "phone": phone,
+        "gender": gender
+      },
+    );
+
+    if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
+      // If no records found, return empty list
+      if (response.data['msg'] == 'failed') {
+        return [];
+      }
+      throw Exception(response.data['msg']);
+    }
+
+    // Parse as list
+    if (response.data is List) {
+      return List<IndReportModel>.from(
+        response.data.map((x) => IndReportModel.fromMap(x)),
+      );
+    }
+
+    // If single object, wrap in list
+    if (response.data is Map<String, dynamic> && response.data.isNotEmpty) {
+      return [IndReportModel.fromMap(response.data)];
+    }
+
+    return [];
   }
 
 }

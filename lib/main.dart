@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:zaitoon_petroleum/Features/Other/shortcut.dart';
+import 'package:zaitoon_petroleum/Features/Other/znavigator.dart';
 import 'package:zaitoon_petroleum/Features/PrintSettings/bloc/Language/print_language_cubit.dart';
 import 'package:zaitoon_petroleum/Features/PrintSettings/bloc/PageSize/paper_size_cubit.dart';
 import 'package:zaitoon_petroleum/Features/PrintSettings/bloc/Printer/printer_cubit.dart';
@@ -40,20 +42,25 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/ProjectsById/bloc/proje
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/IncomeExpense/bloc/project_inc_exp_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/ProjectServices/bloc/project_services_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/bloc/project_tabs_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/AccountStatement/acc_statement.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/AccountStatement/bloc/acc_statement_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/Accounts/bloc/accounts_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/ArApReport/bloc/ar_ap_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/BalanceSheet/balance_sheet.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/BalanceSheet/bloc/balance_sheet_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/ExchangeRate/bloc/fx_rate_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/GLStatement/bloc/gl_statement_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/GLStatement/gl_statement.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/Treasury/bloc/cash_balances_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/TrialBalance/bloc/trial_balance_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/TrialBalance/trial_balance.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Projects/ProjectList/bloc/projects_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Projects/ServicesReport/bloc/services_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/Cardx/bloc/stock_record_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/OrdersReport/bloc/order_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/bloc/product_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/TotalDailyTxn/bloc/total_daily_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/TransactionRef/transaction_ref.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/UserReport/StakeholdersReport/bloc/stakeholders_report_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Backup/bloc/backup_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/BranchLimits/bloc/branch_limit_bloc.dart';
@@ -107,7 +114,7 @@ import 'Views/Menu/Ui/Settings/bloc/settings_tab_bloc.dart';
 import 'Views/Menu/Ui/Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import 'Views/Menu/Ui/Transport/Ui/Shipping/Ui/ShippingView/bloc/shipping_bloc.dart';
 import 'Views/PasswordSettings/bloc/password_bloc.dart';
-
+import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -236,25 +243,59 @@ class MyApp extends StatelessWidget {
           return BlocBuilder<ThemeBloc, ThemeMode>(
             builder: (context, themeMode) {
               final theme = AppThemes(TextTheme.of(context));
-              return MaterialApp(
-                  debugShowCheckedModeBanner: false,
-                  title: 'Zaitoon System',
-                  localizationsDelegates: [
-                    AppLocalizations.delegate,
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalWidgetsLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                  ],
-                  locale: locale,
-                  supportedLocales: L10n.all,
-                  themeMode: themeMode,
-                  darkTheme: theme.dark(),
-                  theme: theme.light(),
-                  builder: (context, child) {
-                    localizationService.update(AppLocalizations.of(context)!);
-                    return child!;
-                  },
-                  home: LoginView()
+              final authState = context.watch<AuthBloc>().state;
+
+              return GlobalShortcuts(
+                shortcuts: {
+                  /// Ctrl + S
+                  if(authState is AuthenticatedState)
+                  const SingleActivator(
+                    LogicalKeyboardKey.keyR,
+                    shift: true,
+                    control: true,
+                  ): () => ZNavigator.goto(TransactionByReferenceView()),
+                  if(authState is AuthenticatedState)
+                  const SingleActivator(
+                    LogicalKeyboardKey.keyS,
+                    shift: true,
+                    control: true,
+                  ): () => ZNavigator.goto(AccountStatementView()),
+                  if(authState is AuthenticatedState)
+                  const SingleActivator(
+                    LogicalKeyboardKey.keyG,
+                    shift: true,
+                    control: true,
+                  ): () => ZNavigator.goto(GlStatementView()),
+                  if(authState is AuthenticatedState)
+                  const SingleActivator(
+                    LogicalKeyboardKey.f12,
+                  ): () => ZNavigator.goto(BalanceSheetView()),
+                  if(authState is AuthenticatedState)
+                  const SingleActivator(
+                    LogicalKeyboardKey.f11,
+                  ): () => ZNavigator.goto(TrialBalanceView()),
+                },
+                child: MaterialApp(
+                    navigatorKey: ZNavigator.navigatorKey,
+                    debugShowCheckedModeBanner: false,
+                    title: 'Zaitoon System',
+                    localizationsDelegates: [
+                      AppLocalizations.delegate,
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+                    locale: locale,
+                    supportedLocales: L10n.all,
+                    themeMode: themeMode,
+                    darkTheme: theme.dark(),
+                    theme: theme.light(),
+                    builder: (context, child) {
+                      localizationService.update(AppLocalizations.of(context)!);
+                      return child!;
+                    },
+                    home: LoginView()
+                ),
               );
             },
           );

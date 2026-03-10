@@ -139,12 +139,7 @@ class _AddEditFormState extends State<_AddEditForm> {
     }
 
     // For mobile and tablet, use regular dialog with custom buttons
-    return BlocConsumer<UserRoleBloc, UserRoleState>(
-      listener: (context, state) {
-        if (state is UserRoleSuccessState) {
-          Navigator.of(context).pop();
-        }
-      },
+    return BlocBuilder<UserRoleBloc, UserRoleState>(
       builder: (context, roleState) {
         return Container(
           padding: const EdgeInsets.all(24),

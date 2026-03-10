@@ -2801,7 +2801,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get averageTitle => 'Average Rate';
 
   @override
-  String get rolesAndPermissions => 'Roles & Permissions';
+  String get rolesAndPermissions => 'Permissions';
 
   @override
   String get profileSettings => 'Profile Settings';

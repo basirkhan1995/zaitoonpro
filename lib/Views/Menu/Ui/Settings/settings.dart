@@ -218,7 +218,7 @@ class _Mobile extends StatelessWidget {
               ),
 
           ];
-          // 🟢 FIX: Handle empty tabs case
+
           if (tabs.isEmpty) {
             return Center(
               child: Column(
@@ -264,7 +264,7 @@ class _Mobile extends StatelessWidget {
 
             /// Colors and style
             style: ZTabStyle.rounded,
-            tabBarPadding: EdgeInsets.symmetric(horizontal: 5,vertical: 3),
+            tabBarPadding: EdgeInsets.symmetric(horizontal: 15,vertical: 3),
             borderRadius: 0,
             selectedColor: Theme.of(context).colorScheme.primary,
             unselectedTextColor: Theme.of(context).colorScheme.secondary,

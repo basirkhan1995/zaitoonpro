@@ -156,13 +156,11 @@ class BalanceSheetPrintSettings extends PrintServices {
   pw.Widget _mainTitle(String text) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 6),
-      child: pw.Text(
-        text,
-        style: pw.TextStyle(
+      child: zText(
+        text: text,
           fontSize: 15,
           fontWeight: pw.FontWeight.bold,
           color: pw.PdfColors.grey800,
-        ),
       ),
     );
   }
@@ -349,18 +347,18 @@ class BalanceSheetPrintSettings extends PrintServices {
           ),
           pw.Expanded(
             flex: 3,
-            child: pw.Text(
-              cy.toAmount(),
+            child: zText(
+              text: cy.toAmount(),
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(fontSize: 8),
+              fontSize: 8
             ),
           ),
           pw.Expanded(
             flex: 3,
-            child: pw.Text(
-              ly.toAmount(),
+            child: zText(
+              text: ly.toAmount(),
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(fontSize: 8),
+              fontSize: 8
             ),
           ),
         ],
@@ -387,24 +385,20 @@ class BalanceSheetPrintSettings extends PrintServices {
           ),
           pw.Expanded(
             flex: 3,
-            child: pw.Text(
-              cy.toAmount(),
+            child: zText(
+              text:  cy.toAmount(),
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.Expanded(
             flex: 3,
-            child: pw.Text(
-              ly.toAmount(),
+            child: zText(
+              text: ly.toAmount(),
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
             ),
           ),
         ],
@@ -424,34 +418,28 @@ class BalanceSheetPrintSettings extends PrintServices {
         children: [
           pw.Expanded(
             flex: 4,
-            child: pw.Text(
-              label,
-              style: pw.TextStyle(
-                fontSize: 11,
-                fontWeight: pw.FontWeight.bold,
-              ),
+            child: zText(
+             text:  label,
+              fontSize: 11,
+              fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.Expanded(
             flex: 3,
-            child: pw.Text(
-              "${cy.toAmount()} ${company.baseCurrency ?? 'USD'}",
+            child: zText(
+              text:  "${cy.toAmount()} ${company.baseCurrency ?? 'USD'}",
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(
-                fontSize: 11,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              fontSize: 11,
+              fontWeight: pw.FontWeight.bold,
             ),
           ),
           pw.Expanded(
             flex: 3,
-            child: pw.Text(
-              "${ly.toAmount()} ${company.baseCurrency ?? 'USD'}",
+            child: zText(
+              text:  "${ly.toAmount()} ${company.baseCurrency ?? 'USD'}",
               textAlign: pw.TextAlign.right,
-              style: pw.TextStyle(
-                fontSize: 11,
-                fontWeight: pw.FontWeight.bold,
-              ),
+              fontSize: 11,
+              fontWeight: pw.FontWeight.bold,
             ),
           ),
         ],

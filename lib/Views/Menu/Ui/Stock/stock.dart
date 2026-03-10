@@ -6,6 +6,7 @@ import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Other/zForm_dialog.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/product_report.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stock/Ui/Adjustment/add_adjustment.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stock/Ui/Estimate/View/add_estimate.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stock/Ui/Estimate/View/estimate.dart';
@@ -17,6 +18,7 @@ import '../../../../Features/Generic/tab_bar.dart';
 import '../../../../Features/Widgets/outline_button.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
+import '../Report/Ui/Stock/Cardx/Ui/cardx.dart';
 import 'Ui/Adjustment/adjustment.dart';
 import 'Ui/GoodsShift/goods_shift.dart';
 import 'Ui/OrderScreen/GetOrderById/order_by_id.dart';
@@ -497,6 +499,38 @@ class _StockViewState extends State<StockView> {
                 width: double.infinity,
                 onPressed: () => Utils.goto(context, AddAdjustmentView()),
               ),
+
+            if (_isExpanded) ...[
+              const SizedBox(height: 3),
+              Wrap(
+                spacing: 5,
+                children: [
+                  Icon(Icons.report_gmailerrorred, size: 18, color: color.outline),
+                  Text(
+                    locale.report,
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ],
+              ),
+            ],
+
+            ZOutlineButton(
+              backgroundColor: color.primary.withValues(alpha: opacity),
+              toolTip: "F9 - ${locale.stock}",
+              label: Text(locale.stock),
+              icon: Icons.inventory_2_outlined,
+              width: double.infinity,
+              onPressed: () => Utils.goto(context, ProductReportView()),
+            ),
+
+            ZOutlineButton(
+              backgroundColor: color.primary.withValues(alpha: opacity),
+              toolTip: "F10 - ${"Movement"}",
+              label: Text("Movement"),
+              icon: Icons.crop,
+              width: double.infinity,
+              onPressed: () => Utils.goto(context, StockRecordReportView()),
+            ),
           ],
         ),
       ),

@@ -94,14 +94,14 @@ class Utils{
 
 
   //Goto
-  static Future<dynamic> goto(context, Widget route) {
-    return Navigator.of(context).push(_animatedRouting(route));
+  static Future<dynamic> goto(BuildContext context, Widget page) {
+    return Navigator.of(context).push(_animatedRouting(page));
   }
 
   //Push and remove previous routes
-  static void gotoReplacement(context, Widget route) {
+  static void gotoReplacement(BuildContext context, Widget page) {
     Navigator.of(context).popUntil((route) => false);
-    Navigator.push(context, _animatedRouting(route));
+    Navigator.push(context, _animatedRouting(page));
   }
 
   //Part of GOTO Widget
@@ -172,14 +172,14 @@ class Utils{
     return null; // Username is valid
   }
 
-  static GestureDetector zBackButton(context){
+  static Widget zBackButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        Navigator.of(context).pop();
+        Navigator.of(context).maybePop();
       },
       child: Container(
-        padding: EdgeInsets.all(8),
-        margin: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
+        padding: const EdgeInsets.all(8),
+        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 5),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(50),
@@ -191,7 +191,10 @@ class Utils{
             ),
           ],
         ),
-        child: Icon(Icons.arrow_back_ios_rounded, size: 13),
+        child: const Icon(
+          Icons.arrow_back_ios_rounded,
+          size: 13,
+        ),
       ),
     );
   }

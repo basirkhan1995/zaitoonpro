@@ -162,8 +162,8 @@ class _DesktopState extends State<_Desktop> {
       {"title": tr.shipping, "icon": Icons.emoji_transportation_rounded, "action": ActionKey.shipping},
       if(login.hasPermission(103) ?? false)
       {"title": tr.vehicle, "icon": Icons.car_crash_sharp, "action": ActionKey.vehicles},
-      if(login.hasPermission(104) ?? false)
-        {"title": tr.drivers, "icon": Icons.person, "action": ActionKey.shipping},
+      // if(login.hasPermission(104) ?? false)
+      //   {"title": tr.drivers, "icon": Icons.person, "action": ActionKey.drivers},
     ];
 
     // final List<Map<String, dynamic>> projectsButtons = [

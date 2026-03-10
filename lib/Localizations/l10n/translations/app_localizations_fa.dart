@@ -2790,7 +2790,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get averageTitle => 'نرخ اوسط';
 
   @override
-  String get rolesAndPermissions => 'نقش‌ها و دسترسی‌ها';
+  String get rolesAndPermissions => 'دسترسی ها';
 
   @override
   String get profileSettings => 'تنظیمات پروفایل';

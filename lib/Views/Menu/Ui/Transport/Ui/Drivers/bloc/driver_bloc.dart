@@ -9,6 +9,7 @@ part 'driver_state.dart';
 class DriverBloc extends Bloc<DriverEvent, DriverState> {
   final Repositories _repo;
   DriverBloc(this._repo) : super(DriverInitial()) {
+
     on<LoadDriverEvent>((event, emit) async{
       emit(DriverLoadingState());
      try{
@@ -18,5 +19,6 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
        emit(DriverErrorState(e.toString()));
      }
     });
+
   }
 }

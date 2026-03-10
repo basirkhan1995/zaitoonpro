@@ -5539,7 +5539,7 @@ abstract class AppLocalizations {
   /// No description provided for @rolesAndPermissions.
   ///
   /// In en, this message translates to:
-  /// **'Roles & Permissions'**
+  /// **'Permissions'**
   String get rolesAndPermissions;
 
   /// No description provided for @profileSettings.

@@ -17,7 +17,7 @@ class UserRoleSettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return ResponsiveLayout(
       mobile: const _Mobile(),
-      tablet: const _Tablet(),
+      tablet: const _Mobile(),
       desktop: const _Desktop(),
     );
   }
@@ -50,8 +50,18 @@ class _MobileState extends State<_Mobile> {
         title: Text(tr.userRole),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
+          ZOutlineButton(
+            label: Text(tr.refresh),
+            icon: Icons.refresh,
+            height: 40,
+            onPressed: _onRefresh,
+          ),
+          const SizedBox(width: 8),
+          ZOutlineButton(
+            label: Text(tr.newKeyword),
+            icon: Icons.add,
+            isActive: true,
+            height: 40,
             onPressed: () {
               showDialog(
                 context: context,
@@ -59,7 +69,7 @@ class _MobileState extends State<_Mobile> {
               );
             },
           ),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _onRefresh),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(
@@ -72,19 +82,19 @@ class _MobileState extends State<_Mobile> {
               title: '',
               end: searchController.text.isNotEmpty
                   ? InkWell(
-                      splashColor: Colors.transparent,
-                      hoverColor: Colors.transparent,
-                      highlightColor: Colors.transparent,
-                      onTap: () {
-                        setState(() {
-                          searchController.clear();
-                        });
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Icon(Icons.clear, size: 15),
-                      ),
-                    )
+                splashColor: Colors.transparent,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onTap: () {
+                  setState(() {
+                    searchController.clear();
+                  });
+                },
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Icon(Icons.clear, size: 15),
+                ),
+              )
                   : const SizedBox(),
               onChanged: (e) {
                 setState(() {});
@@ -250,273 +260,6 @@ class _MobileState extends State<_Mobile> {
   }
 }
 
-// Tablet Version
-class _Tablet extends StatefulWidget {
-  const _Tablet();
-
-  @override
-  State<_Tablet> createState() => _TabletState();
-}
-
-class _TabletState extends State<_Tablet> {
-  final searchController = TextEditingController();
-
-  @override
-  void initState() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserRoleBloc>().add(LoadUserRolesEvent());
-    });
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final tr = AppLocalizations.of(context)!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(tr.userRole),
-        centerTitle: true,
-        actions: [
-          ZOutlineButton(
-            label: Text(tr.refresh),
-            icon: Icons.refresh,
-            height: 40,
-            onPressed: _onRefresh,
-          ),
-          const SizedBox(width: 8),
-          ZOutlineButton(
-            label: Text(tr.newKeyword),
-            icon: Icons.add,
-            isActive: true,
-            height: 40,
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => const AddEditUserRoleSettingsView(),
-              );
-            },
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: 400,
-              child: ZSearchField(
-                controller: searchController,
-                hint: tr.search,
-                title: '',
-                end: searchController.text.isNotEmpty
-                    ? InkWell(
-                        splashColor: Colors.transparent,
-                        hoverColor: Colors.transparent,
-                        highlightColor: Colors.transparent,
-                        onTap: () {
-                          setState(() {
-                            searchController.clear();
-                          });
-                        },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Icon(Icons.clear, size: 15),
-                        ),
-                      )
-                    : const SizedBox(),
-                onChanged: (e) {
-                  setState(() {});
-                },
-                icon: FontAwesomeIcons.magnifyingGlass,
-              ),
-            ),
-          ),
-          Expanded(child: _buildContent(context)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContent(BuildContext context) {
-    final color = Theme.of(context).colorScheme;
-    final tr = AppLocalizations.of(context)!;
-
-    return BlocConsumer<UserRoleBloc, UserRoleState>(
-      listener: (context, state) {
-        if (state is UserRoleSuccessState) {
-          ToastManager.show(
-            context: context,
-            title: tr.successTitle,
-            message: tr.successMessage,
-            type: ToastType.success,
-          );
-        }
-        Navigator.of(context).pop();
-      },
-      builder: (context, state) {
-        if (state is UserRoleLoadingState) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is UserRoleErrorState) {
-          return NoDataWidget(
-            title: tr.errorTitle,
-            message: state.message,
-            onRefresh: () => _onRefresh(),
-          );
-        }
-        if (state is UserRoleLoadedState) {
-          final query = searchController.text.toLowerCase().trim();
-
-          final filteredList = state.roles.where((item) {
-            final name = item.rolName?.toLowerCase() ?? '';
-            final id = item.rolId?.toString() ?? '';
-            return name.contains(query) || id.contains(query);
-          }).toList();
-
-          if (filteredList.isEmpty) {
-            return NoDataWidget(
-              title: tr.noData,
-              message: tr.noDataFound,
-              onRefresh: () => _onRefresh(),
-            );
-          }
-
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 3,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-              ),
-              itemCount: filteredList.length,
-              itemBuilder: (context, index) {
-                final role = filteredList[index];
-                final statusColor = role.rolStatus == 1
-                    ? Colors.green
-                    : Colors.red;
-
-                return Card(
-                  elevation: 0,
-                  color: color.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                    side: BorderSide(
-                      color: color.outline.withValues(alpha: .1),
-                    ),
-                  ),
-                  child: InkWell(
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) =>
-                            AddEditUserRoleSettingsView(model: role),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(5),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              color: color.primary.withValues(alpha: .1),
-                              borderRadius: BorderRadius.circular(5),
-                            ),
-                            child: Center(
-                              child: Text(
-                                role.rolId?.toString() ?? '',
-                                style: TextStyle(
-                                  color: color.primary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  role.rolName ?? '',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 15,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: BoxDecoration(
-                                        color: statusColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      role.rolStatus == 1
-                                          ? tr.active
-                                          : tr.inactive,
-                                      style: TextStyle(
-                                        color: statusColor,
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () {
-                              context.read<UserRoleBloc>().add(
-                                DeleteUserRolesEvent(role.rolId!),
-                              );
-                            },
-                            icon: Icon(
-                              Icons.delete_outline,
-                              color: color.error,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        }
-        return const SizedBox();
-      },
-    );
-  }
-
-  void _onRefresh() {
-    context.read<UserRoleBloc>().add(LoadUserRolesEvent());
-  }
-
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
-  }
-}
 
 // Desktop Version
 class _Desktop extends StatefulWidget {
@@ -618,7 +361,6 @@ class _DesktopState extends State<_Desktop> {
                     message: tr.successMessage,
                     type: ToastType.success,
                   );
-                  Navigator.of(context).pop();
                 }
               },
               builder: (context, state) {
@@ -653,12 +395,9 @@ class _DesktopState extends State<_Desktop> {
                     itemCount: filteredList.length,
                     itemBuilder: (context, index) {
                       final role = filteredList[index];
-                      final statusColor = role.rolStatus == 1
-                          ? Colors.green
-                          : Colors.red;
 
-                      return ListTile(
-                        onTap: () {
+                      return InkWell(
+                        onTap: (){
                           showDialog(
                             context: context,
                             builder: (context) {
@@ -666,66 +405,34 @@ class _DesktopState extends State<_Desktop> {
                             },
                           );
                         },
-                        tileColor: index.isEven
-                            ? color.primary.withValues(alpha: .05)
-                            : Colors.transparent,
-                        leading: Container(
-                          width: 40,
-                          height: 40,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
                           decoration: BoxDecoration(
-                            color: color.primary.withValues(alpha: .1),
-                            borderRadius: BorderRadius.circular(5),
+                            color: index.isOdd? color.primary.withValues(alpha: .03) : Colors.transparent,
                           ),
-                          child: Center(
-                            child: Text(
-                              role.rolId?.toString() ?? '',
-                              style: TextStyle(
-                                color: color.primary,
-                                fontWeight: FontWeight.bold,
+                          child: Row(
+                            children: [
+
+                              CircleAvatar(
+                                  child: Text(role.rolId.toString())),
+                              SizedBox(width: 12),
+
+                              Expanded(
+                                child: Text(
+                                  role.rolName??"",
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
                               ),
-                            ),
+
+                              IconButton(
+                                  onPressed: (){
+                                    context.read<UserRoleBloc>().add(
+                                      DeleteUserRolesEvent(role.rolId!),
+                                    );
+                                  },
+                                  icon: Icon(Icons.delete_outline_rounded)),
+                            ],
                           ),
-                        ),
-                        title: Text(
-                          role.rolName ?? '',
-                          style: const TextStyle(fontWeight: FontWeight.w500),
-                        ),
-                        subtitle: Row(
-                          children: [
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: statusColor,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              role.rolStatus == 1 ? tr.active : tr.inactive,
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                context.read<UserRoleBloc>().add(
-                                  DeleteUserRolesEvent(role.rolId!),
-                                );
-                              },
-                              icon: Icon(
-                                Icons.delete,
-                                color: color.error,
-                                size: 20,
-                              ),
-                            ),
-                          ],
                         ),
                       );
                     },

@@ -32,18 +32,25 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   final searchController = TextEditingController();
   final phoneController = TextEditingController();
   String? gender;
-  String dob = DateTime.now().toFormattedDate();
+  String? dob;
 
   bool get hasActiveFilters {
     return searchController.text.isNotEmpty ||
         phoneController.text.isNotEmpty ||
         gender != null ||
-        dob != DateTime.now().toFormattedDate();
+        dob != null;
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((e){
+      context.read<StakeholdersReportBloc>().add(ResetStakeholdersReportEvent());
+    });
+    super.initState();
   }
 
   @override
@@ -460,18 +467,32 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   final searchController = TextEditingController();
   final phoneController = TextEditingController();
   String? gender;
-  String dob = DateTime.now().toFormattedDate();
+  String? dob;
 
   bool get hasActiveFilters {
     return searchController.text.isNotEmpty ||
         phoneController.text.isNotEmpty ||
         gender != null ||
-        dob != DateTime.now().toFormattedDate();
+        dob != null;
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((e){
+      context.read<StakeholdersReportBloc>().add(ResetStakeholdersReportEvent());
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    phoneController.dispose();
+    super.dispose();
   }
 
   @override
@@ -925,27 +946,31 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
-
 class _DesktopState extends State<_Desktop> {
   final searchController = TextEditingController();
   final phoneController = TextEditingController();
   String? gender;
-  String dob = DateTime.now().toFormattedDate();
+  String? dob;
 
   bool get hasActiveFilters {
     return searchController.text.isNotEmpty ||
         phoneController.text.isNotEmpty ||
         gender != null ||
-        dob != DateTime.now().toFormattedDate();
+        dob != null;
+  }
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((e){
+      context.read<StakeholdersReportBloc>().add(ResetStakeholdersReportEvent());
+    });
+    super.initState();
   }
 
   @override
   void dispose() {
     searchController.dispose();
     phoneController.dispose();
-    WidgetsBinding.instance.addPostFrameCallback((e){
-      context.read<StakeholdersReportBloc>().add(ResetStakeholdersReportEvent());
-    });
     super.dispose();
   }
   @override
@@ -1102,6 +1127,13 @@ class _DesktopState extends State<_Desktop> {
           Expanded(
             child: BlocBuilder<StakeholdersReportBloc, StakeholdersReportState>(
               builder: (context, state) {
+                if(state is StakeholdersReportInitial){
+                  return NoDataWidget(
+                    title: "Stakeholders Report",
+                    message: "Apply filter to see individuals",
+                    enableAction: false,
+                  );
+                }
                 if (state is StakeholdersReportLoadingState) {
                   return const Center(child: CircularProgressIndicator());
                 }

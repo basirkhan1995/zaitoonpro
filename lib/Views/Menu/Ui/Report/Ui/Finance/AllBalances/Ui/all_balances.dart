@@ -879,7 +879,7 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-// Add this method to _DesktopState
+
   Future<void> _printAllBalances() async {
     final state = context.read<AllBalancesBloc>().state;
 

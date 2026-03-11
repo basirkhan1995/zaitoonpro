@@ -479,6 +479,7 @@ abstract class PrintServices {
 
   String tr({required String text, required String tr}) {
     const translation = {
+
       'moneyReceipt' : {
         'en':"Money Receipt",
         'fa':"رسید پول",
@@ -1713,6 +1714,56 @@ abstract class PrintServices {
         'en': 'Total Value',
         'fa': 'ارزش کل',
         'ar': 'القيمة الإجمالية',
+      },
+      'cashBalances': {
+        'en': 'Cash Balances',
+        'fa': 'موجودی نقدی',
+        'ar': 'نقدی موجودی',
+      },
+      'allBranches': {
+        'en': 'All Branches',
+        'fa': 'تمام شعب',
+        'ar': 'ټول څانګې',
+      },
+      'cashFlow': {
+        'en': 'Cash Flow',
+        'fa': 'جریان نقدی',
+        'ar': 'نقدی جریان',
+      },
+      'phone': {
+        'en': 'Phone',
+        'fa': 'تلفن',
+        'ar': 'تلیفون',
+      },
+      'time': {
+        'en': 'Time',
+        'fa': 'زمان',
+        'ar': 'وخت',
+      },
+      'branchWiseDetails': {
+        'en': 'Branch-wise Details',
+        'fa': 'جزئیات هر شعبه',
+        'ar': 'د څانګو تفصیلات',
+      },
+      'noRecords': {
+        'en': 'No records found',
+        'fa': 'رکوردی یافت نشد',
+        'ar': 'هیڅ ریکارډ ونه موندل شو',
+      },
+      'branchTotal': {
+        'en': 'Branch Total',
+        'fa': 'مجموع شعبه',
+        'ar': 'د څانګې مجموعه',
+      },
+      'opening': {
+        'en': 'Opening',
+        'fa': 'افتتاحیه',
+        'ar': 'پرانیستل',
+      },
+      'closing': {
+        'en': 'Closing',
+        'fa': 'اختتامیه',
+        'ar': 'تړل',
       },
     };
 

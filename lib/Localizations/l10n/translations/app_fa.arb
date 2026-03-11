@@ -942,5 +942,8 @@
   "subscriptionExpired": "اشتراک منقضی شده",
   "subscriptionExpiredContact": "اشتراک شما منقضی شده است. لطفاً برای تمدید اشتراک خود با شرکت فناوری زیتون تماس بگیرید.",
   "noSubscriptionContact": "شما اشتراک فعال ندارید. لطفاً برای فعال‌سازی اشتراک خود با شرکت فناوری زیتون تماس بگیرید.",
-  "noSubscription": "بدون اشتراک"
+  "noSubscription": "بدون اشتراک",
+  "totalCashBalancesAllBranch": "موجودی نقدی - همه شعبات",
+  "activeFilters": "فلتر های فعال",
+  "accountsReport": "گزارش حسابها"
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
@@ -5,11 +6,16 @@ import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/Treasury/bloc/cash_balances_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/Treasury/model/cash_balance_model.dart';
+import '../../../../../../../Features/Other/toast.dart';
+import '../../../../../../../Features/PrintSettings/print_preview.dart';
+import '../../../../../../../Features/PrintSettings/report_model.dart';
+import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import 'Print/cash_print.dart';
+import 'Print/feature_model.dart';
 
 class TreasuryView extends StatelessWidget {
   const TreasuryView({super.key});
@@ -30,7 +36,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   String? baseCcy;
 
@@ -49,6 +54,183 @@ class _MobileState extends State<_Mobile> {
       }
     } catch (e) {
       baseCcy = "";
+    }
+  }
+
+  Map<String, CurrencyTotal> _calculateCurrencyTotalsForPrint(List<CashBalancesModel> cashList) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+    final tempData = <String, Map<String, dynamic>>{};
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          final currencyCode = record.trdCcy ?? 'UNKNOWN';
+
+          if (!tempData.containsKey(currencyCode)) {
+            tempData[currencyCode] = {
+              'name': record.ccyName ?? currencyCode,
+              'symbol': record.ccySymbol ?? '',
+              'totalOpening': 0.0,
+              'totalClosing': 0.0,
+              'totalOpeningSys': 0.0,
+              'totalClosingSys': 0.0,
+            };
+          }
+
+          tempData[currencyCode]!['totalOpening'] +=
+              double.tryParse(record.openingBalance ?? '0') ?? 0;
+          tempData[currencyCode]!['totalClosing'] +=
+              double.tryParse(record.closingBalance ?? '0') ?? 0;
+          tempData[currencyCode]!['totalOpeningSys'] +=
+              double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          tempData[currencyCode]!['totalClosingSys'] +=
+              double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    tempData.forEach((key, value) {
+      currencyTotals[key] = CurrencyTotal(
+        name: value['name'],
+        symbol: value['symbol'],
+        totalOpening: value['totalOpening'],
+        totalClosing: value['totalClosing'],
+        totalOpeningSys: value['totalOpeningSys'],
+        totalClosingSys: value['totalClosingSys'],
+      );
+    });
+
+    return currencyTotals;
+  }
+  Map<String, double> _calculateSystemTotalsForPrint(List<CashBalancesModel> cashList) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+    };
+  }
+  Future<void> _printReport() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is AllCashBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+      // Get base currency from AuthBloc
+      String? baseCcy;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        baseCcy = authState.loginData.company?.comLocalCcy;
+      }
+
+      // Calculate currency totals
+      final currencyTotals = _calculateCurrencyTotalsForPrint(state.cashList);
+
+      // Calculate system totals
+      final systemTotals = _calculateSystemTotalsForPrint(state.cashList);
+
+      // Prepare print data
+      final printData = CashBalancesPrintData(
+        reportType: 'all',
+        branches: state.cashList,
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
     }
   }
 
@@ -71,7 +253,7 @@ class _MobileState extends State<_Mobile> {
           ),
           IconButton(
             icon: const Icon(Icons.print),
-            onPressed: () {},
+            onPressed: _printReport,
           ),
         ],
       ),
@@ -632,7 +814,6 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   String? baseCcy;
   bool _showSummary = true;
@@ -655,6 +836,183 @@ class _TabletState extends State<_Tablet> {
     }
   }
 
+  Map<String, CurrencyTotal> _calculateCurrencyTotalsForPrint(List<CashBalancesModel> cashList) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+    final tempData = <String, Map<String, dynamic>>{};
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          final currencyCode = record.trdCcy ?? 'UNKNOWN';
+
+          if (!tempData.containsKey(currencyCode)) {
+            tempData[currencyCode] = {
+              'name': record.ccyName ?? currencyCode,
+              'symbol': record.ccySymbol ?? '',
+              'totalOpening': 0.0,
+              'totalClosing': 0.0,
+              'totalOpeningSys': 0.0,
+              'totalClosingSys': 0.0,
+            };
+          }
+
+          tempData[currencyCode]!['totalOpening'] +=
+              double.tryParse(record.openingBalance ?? '0') ?? 0;
+          tempData[currencyCode]!['totalClosing'] +=
+              double.tryParse(record.closingBalance ?? '0') ?? 0;
+          tempData[currencyCode]!['totalOpeningSys'] +=
+              double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          tempData[currencyCode]!['totalClosingSys'] +=
+              double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    tempData.forEach((key, value) {
+      currencyTotals[key] = CurrencyTotal(
+        name: value['name'],
+        symbol: value['symbol'],
+        totalOpening: value['totalOpening'],
+        totalClosing: value['totalClosing'],
+        totalOpeningSys: value['totalOpeningSys'],
+        totalClosingSys: value['totalClosingSys'],
+      );
+    });
+
+    return currencyTotals;
+  }
+  Map<String, double> _calculateSystemTotalsForPrint(List<CashBalancesModel> cashList) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+    };
+  }
+  Future<void> _printReport() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is AllCashBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+      // Get base currency from AuthBloc
+      String? baseCcy;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        baseCcy = authState.loginData.company?.comLocalCcy;
+      }
+
+      // Calculate currency totals
+      final currencyTotals = _calculateCurrencyTotalsForPrint(state.cashList);
+
+      // Calculate system totals
+      final systemTotals = _calculateSystemTotalsForPrint(state.cashList);
+
+      // Prepare print data
+      final printData = CashBalancesPrintData(
+        reportType: 'all',
+        branches: state.cashList,
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -664,7 +1022,7 @@ class _TabletState extends State<_Tablet> {
       backgroundColor: color.surface,
       appBar: AppBar(
         titleSpacing: 0,
-        title: const Text("Cash Balances"),
+        title: Text(AppLocalizations.of(context)!.cashBalances),
         actions: [
           IconButton(
             icon: Icon(_showSummary ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down),
@@ -682,7 +1040,7 @@ class _TabletState extends State<_Tablet> {
           ),
           IconButton(
             icon: const Icon(Icons.print),
-            onPressed: () {},
+            onPressed: _printReport,
           ),
         ],
       ),
@@ -1271,6 +1629,12 @@ class _TabletState extends State<_Tablet> {
   }
 }
 
+class _Desktop extends StatefulWidget {
+  const _Desktop();
+
+  @override
+  State<_Desktop> createState() => _DesktopState();
+}
 class _DesktopState extends State<_Desktop> {
   String? baseCcy;
 
@@ -1300,19 +1664,19 @@ class _DesktopState extends State<_Desktop> {
         titleSpacing: 0,
         actionsPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         actions: [
-          ZOutlineButton(
-            onPressed: () {},
-            icon: Icons.print,
-            label: Text(AppLocalizations.of(context)!.print),
-          ),
-          const SizedBox(width: 8),
-          ZOutlineButton(
+          IconButton(
             onPressed: () {
               context.read<CashBalancesBloc>().add(const LoadAllCashBalancesEvent());
             },
-            icon: Icons.refresh,
-            label: const Text('Refresh'),
+            icon: Icon(Icons.refresh),
           ),
+          const SizedBox(width: 5),
+          IconButton(
+            onPressed: _printReport,
+            icon: Icon(Icons.print),
+          ),
+
+
         ],
       ),
       body: BlocBuilder<CashBalancesBloc, CashBalancesState>(
@@ -1374,7 +1738,183 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-  // Calculate currency totals across all branches
+  Map<String, CurrencyTotal> _calculateCurrencyTotalsForPrint(List<CashBalancesModel> cashList) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+    final tempData = <String, Map<String, dynamic>>{};
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          final currencyCode = record.trdCcy ?? 'UNKNOWN';
+
+          if (!tempData.containsKey(currencyCode)) {
+            tempData[currencyCode] = {
+              'name': record.ccyName ?? currencyCode,
+              'symbol': record.ccySymbol ?? '',
+              'totalOpening': 0.0,
+              'totalClosing': 0.0,
+              'totalOpeningSys': 0.0,
+              'totalClosingSys': 0.0,
+            };
+          }
+
+          tempData[currencyCode]!['totalOpening'] +=
+              double.tryParse(record.openingBalance ?? '0') ?? 0;
+          tempData[currencyCode]!['totalClosing'] +=
+              double.tryParse(record.closingBalance ?? '0') ?? 0;
+          tempData[currencyCode]!['totalOpeningSys'] +=
+              double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          tempData[currencyCode]!['totalClosingSys'] +=
+              double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    tempData.forEach((key, value) {
+      currencyTotals[key] = CurrencyTotal(
+        name: value['name'],
+        symbol: value['symbol'],
+        totalOpening: value['totalOpening'],
+        totalClosing: value['totalClosing'],
+        totalOpeningSys: value['totalOpeningSys'],
+        totalClosingSys: value['totalClosingSys'],
+      );
+    });
+
+    return currencyTotals;
+  }
+  Map<String, double> _calculateSystemTotalsForPrint(List<CashBalancesModel> cashList) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+    };
+  }
+  Future<void> _printReport() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is AllCashBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+      // Get base currency from AuthBloc
+      String? baseCcy;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        baseCcy = authState.loginData.company?.comLocalCcy;
+      }
+
+      // Calculate currency totals
+      final currencyTotals = _calculateCurrencyTotalsForPrint(state.cashList);
+
+      // Calculate system totals
+      final systemTotals = _calculateSystemTotalsForPrint(state.cashList);
+
+      // Prepare print data
+      final printData = CashBalancesPrintData(
+        reportType: 'all',
+        branches: state.cashList,
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
+    }
+  }
+
   Map<String, Map<String, dynamic>> _calculateCurrencyTotals(List<CashBalancesModel> cashList) {
     final Map<String, Map<String, dynamic>> currencyTotals = {};
 
@@ -1407,8 +1947,6 @@ class _DesktopState extends State<_Desktop> {
 
     return currencyTotals;
   }
-
-  // Calculate system equivalent totals across all branches
   Map<String, double> _calculateSystemTotals(List<CashBalancesModel> cashList) {
     double totalOpeningSys = 0;
     double totalClosingSys = 0;
@@ -1430,11 +1968,7 @@ class _DesktopState extends State<_Desktop> {
       'cashFlow': totalCashFlowSys,
     };
   }
-
-  Widget _buildGeneralTotalsSection(
-      Map<String, Map<String, dynamic>> currencyTotals,
-      Map<String, double> systemTotals,
-      ) {
+  Widget _buildGeneralTotalsSection(Map<String, Map<String, dynamic>> currencyTotals, Map<String, double> systemTotals) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1442,7 +1976,7 @@ class _DesktopState extends State<_Desktop> {
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
           child: Text(
-            'TOTAL CASH BALANCES - ALL BRANCHES',
+            AppLocalizations.of(context)!.totalCashBalancesAllBranch.toUpperCase(),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -1460,7 +1994,6 @@ class _DesktopState extends State<_Desktop> {
       ],
     );
   }
-
   Widget _buildCurrencyTotalsGrid(Map<String, Map<String, dynamic>> currencyTotals) {
     // Determine grid column count based on screen width
     return LayoutBuilder(
@@ -1623,7 +2156,6 @@ class _DesktopState extends State<_Desktop> {
       },
     );
   }
-
   Widget _buildGrandTotalCard(Map<String, double> systemTotals) {
     return ZCover(
       color: Colors.purple.withValues(alpha: .05),
@@ -1687,12 +2219,7 @@ class _DesktopState extends State<_Desktop> {
       ),
     );
   }
-
-  Widget _buildTotalItem({
-    required String label,
-    required double value,
-    required Color color,
-  }) {
+  Widget _buildTotalItem({required String label, required double value, required Color color}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1730,7 +2257,6 @@ class _DesktopState extends State<_Desktop> {
       ],
     );
   }
-
   Widget _buildCashBalancesList(List<CashBalancesModel> cashList) {
     return Column(
       children: List.generate(cashList.length, (index) {
@@ -1739,7 +2265,6 @@ class _DesktopState extends State<_Desktop> {
       }),
     );
   }
-
   Widget _buildBranchCard(CashBalancesModel branch) {
     final tr = AppLocalizations.of(context)!;
     return ZCover(
@@ -1784,7 +2309,6 @@ class _DesktopState extends State<_Desktop> {
       ),
     );
   }
-
   Widget _buildInfoRow(String label, String value) {
     return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -1808,7 +2332,6 @@ class _DesktopState extends State<_Desktop> {
         )
     );
   }
-
   Widget _buildRecordsList(List<Record> records) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
@@ -2046,9 +2569,3 @@ class _DesktopState extends State<_Desktop> {
   }
 }
 
-class _Desktop extends StatefulWidget {
-  const _Desktop();
-
-  @override
-  State<_Desktop> createState() => _DesktopState();
-}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
+import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
@@ -16,6 +17,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/TxnByReference/bloc/t
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/TxnByReference/txn_reference.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/bloc/transactions_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/model/transaction_model.dart';
 import '../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../GetOrder/bloc/order_txn_bloc.dart';
@@ -36,15 +38,921 @@ class PendingTransactionsView extends StatelessWidget {
   }
 }
 
-class _Mobile extends StatelessWidget {
+
+class _Mobile extends StatefulWidget {
   const _Mobile();
 
   @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
+  State<_Mobile> createState() => _MobileState();
 }
 
+class _MobileState extends State<_Mobile> {
+  final Set<String> _selectedRefs = {}; // selecting by trnReference
+  bool _selectionMode = false;
+  bool _isLoadingDialog = false;
+  String? _loadingRef;
+  String? myLocale;
+  final TextEditingController searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  // Track copied state for each reference
+  final Map<String, bool> _copiedStates = {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      myLocale = context.read<LocalizationBloc>().state.languageCode;
+      context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('pending'));
+    });
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _handleTransactionTap(dynamic txn) {
+    setState(() {
+      _isLoadingDialog = true;
+      _loadingRef = txn.trnReference;
+    });
+
+    final handlers = <String, void Function(String)>{
+      "PRJT": (ref) => context.read<ProjectTxnBloc>().add(LoadProjectTxnEvent(ref)),
+      "ATAT": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
+      "SLRY": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
+      "CRFX": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
+      "TRPT": (ref) => context.read<TrptBloc>().add(LoadTrptEvent(ref)),
+      "GLAT": (ref) => context.read<GlatBloc>().add(LoadGlatEvent(ref)),
+      "SALE": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
+      "PRCH": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
+    };
+
+    final handler = handlers[txn.trnType];
+    if (handler != null) {
+      handler(txn.trnReference ?? "");
+    } else {
+      context.read<TxnReferenceBloc>().add(FetchTxnByReferenceEvent(txn.trnReference ?? ""));
+    }
+  }
+
+  Future<void> _copyToClipboard(String reference, BuildContext context) async {
+    await Utils.copyToClipboard(reference);
+
+    setState(() {
+      _copiedStates[reference] = true;
+    });
+
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _copiedStates.remove(reference);
+        });
+      }
+    });
+  }
+
+  void _toggleSelection(dynamic record) {
+    setState(() {
+      final ref = record.trnReference!;
+
+      if (_selectedRefs.contains(ref)) {
+        _selectedRefs.remove(ref);
+        if (_selectedRefs.isEmpty) _selectionMode = false;
+      } else {
+        _selectionMode = true;
+        _selectedRefs.add(ref);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ProjectTxnBloc, ProjectTxnState>(
+          listener: (context, state) {
+            if (state is ProjectTxnLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => ProjectTxnView(reference: state.txn.transaction?.trnReference ?? ""),
+              );
+            } else if (state is ProjectTxnErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<OrderTxnBloc, OrderTxnState>(
+          listener: (context, state) {
+            if (state is OrderTxnLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => OrderTxnView(reference: state.data.trnReference ?? ""),
+              );
+            } else if (state is OrderTxnErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<TrptBloc, TrptState>(
+          listener: (context, state) {
+            if (state is TrptLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
+              );
+            } else if (state is TrptErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.error,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<GlatBloc, GlatState>(
+          listener: (context, state) {
+            if (state is GlatLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => GlatView(),
+              );
+            } else if (state is GlatErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<FetchAtatBloc, FetchAtatState>(
+          listener: (context, state) {
+            if (state is FetchATATLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => FetchAtatView(),
+              );
+            } else if (state is FetchATATErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<TxnReferenceBloc, TxnReferenceState>(
+          listener: (context, state) {
+            if (state is TxnReferenceLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => TxnReferenceView(),
+              );
+            } else if (state is TxnReferenceErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.error,
+                isError: true,
+              );
+            }
+          },
+        ),
+      ],
+      child: Stack(
+        children: [
+          Scaffold(
+            appBar: AppBar(
+              title: Text(
+                tr.pendingTransactions,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              centerTitle: false,
+              actions: [
+                // Selection mode indicator and actions
+                if (_selectionMode)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${_selectedRefs.length}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: color.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      IconButton(
+                        icon: const Icon(Icons.check_box_rounded),
+                        onPressed: () {
+                          // Show bottom sheet with bulk actions
+                          _showBulkActionsSheet(context, tr);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close_rounded),
+                        onPressed: () {
+                          setState(() {
+                            _selectionMode = false;
+                            _selectedRefs.clear();
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+
+                // Refresh button (hide in selection mode)
+                if (!_selectionMode)
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded),
+                    onPressed: () {
+                      context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('pending'));
+                    },
+                  ),
+              ],
+            ),
+            body: Column(
+              children: [
+                // Search Bar
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: ZSearchField(
+                    icon: Icons.search_rounded,
+                    controller: searchController,
+                    hint: "${tr.search} ${tr.pendingTransactions.toLowerCase()}...",
+                    onChanged: (_) => setState(() {}),
+                    title: "",
+                  ),
+                ),
+
+                // Stats Summary
+                BlocBuilder<TransactionsBloc, TransactionsState>(
+                  builder: (context, state) {
+                    int totalCount = 0;
+                    if (state is TransactionLoadedState) {
+                      totalCount = state.txn.length;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withAlpha(20),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.pending_actions_rounded,
+                                  size: 16,
+                                  color: Colors.orange.shade800,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$totalCount ${tr.pendingTransactions}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.orange.shade800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Hint text
+                          Expanded(
+                            child: Text(
+                              tr.pendingTransactionHint,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: color.onSurface.withAlpha(150),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                // Transactions List
+                Expanded(
+                  child: BlocConsumer<TransactionsBloc, TransactionsState>(
+                    listener: (context, state) {
+                      if (state is TransactionErrorState) {
+                        Utils.showOverlayMessage(
+                          context,
+                          title: tr.accessDenied,
+                          message: state.message,
+                          isError: true,
+                        );
+                      }
+                      if (state is TransactionSuccessState) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          Navigator.of(context).pop();
+                          context.read<TransactionsBloc>().add(
+                            LoadAllTransactionsEvent('pending'),
+                          );
+                        });
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is TransactionErrorState) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                size: 64,
+                                color: color.error.withAlpha(100),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                tr.errorTitle,
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                state.message,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: color.onSurface.withAlpha(150),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 20),
+                              ZOutlineButton(
+                                icon: Icons.refresh_rounded,
+                                onPressed: () {
+                                  context.read<TransactionsBloc>().add(
+                                    LoadAllTransactionsEvent('pending'),
+                                  );
+                                },
+                                label: Text(tr.refresh),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (state is TxnLoadingState) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      if (state is TransactionLoadedState) {
+                        final query = searchController.text.toLowerCase().trim();
+                        final filteredList = state.txn.where((item) {
+                          final reference = item.trnReference?.toLowerCase() ?? '';
+                          final type = item.trnType?.toLowerCase() ?? '';
+                          final maker = item.maker?.toLowerCase() ?? '';
+
+                          return reference.contains(query) ||
+                              type.contains(query) ||
+                              maker.contains(query);
+                        }).toList();
+
+                        if (filteredList.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  query.isEmpty ? Icons.pending_actions_rounded : Icons.search_off_rounded,
+                                  size: 64,
+                                  color: color.onSurface.withAlpha(80),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  query.isEmpty ? tr.noTransactionFound : tr.noDataFound,
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                ),
+                                if (query.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    '"$query"',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: color.onSurface.withAlpha(150),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  ZOutlineButton(
+                                    icon: Icons.clear_rounded,
+                                    onPressed: () {
+                                      searchController.clear();
+                                      setState(() {});
+                                    },
+                                    label: Text(tr.clearFilters),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('pending'));
+                          },
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final txn = filteredList[index];
+                              final reference = txn.trnReference ?? "";
+                              final isSelected = _selectedRefs.contains(reference);
+                              final isLoadingThisItem = _isLoadingDialog && _loadingRef == reference;
+                              final isCopied = _copiedStates[reference] ?? false;
+
+                              return _buildTransactionCard(
+                                txn: txn,
+                                isSelected: isSelected,
+                                isLoading: isLoadingThisItem,
+                                isCopied: isCopied,
+                                reference: reference,
+                                color: color,
+                                tr: tr,
+                                onTap: () => _handleTransactionTap(txn),
+                                onLongPress: () => _toggleSelection(txn),
+                                onCopy: () => _copyToClipboard(reference, context),
+                              );
+                            },
+                          ),
+                        );
+                      }
+
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Global Loading Overlay
+          if (_isLoadingDialog && _loadingRef == null)
+            Container(
+              color: Colors.black.withAlpha(100),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: color.surface,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(40),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text(
+                        'Loading...',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showBulkActionsSheet(BuildContext context, AppLocalizations tr) {
+    final color = Theme.of(context).colorScheme;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: color.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: color.outlineVariant,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Text(
+                    '${_selectedRefs.length} itemsSelected}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: color.primary.withAlpha(15),
+                child: Icon(
+                  Icons.check_box_rounded,
+                  color: color.primary,
+                ),
+              ),
+              title: Text(tr.authorize),
+              subtitle: Text("authorizeSelected"),
+              onTap: () {
+                Navigator.pop(context);
+                // Handle authorize action
+              },
+            ),
+            ListTile(
+              leading: CircleAvatar(
+                backgroundColor: Colors.red.withAlpha(15),
+                child: Icon(
+                  Icons.delete_outline_rounded,
+                  color: Colors.red,
+                ),
+              ),
+              title: Text(tr.delete),
+              subtitle: Text("deleteSelected"),
+              onTap: () {
+                Navigator.pop(context);
+                // Handle delete action
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard({
+    required TransactionsModel txn,
+    required bool isSelected,
+    required bool isLoading,
+    required bool isCopied,
+    required String reference,
+    required ColorScheme color,
+    required AppLocalizations tr,
+    required VoidCallback onTap,
+    required VoidCallback onLongPress,
+    required VoidCallback onCopy,
+  }) {
+    // Determine transaction type color and icon
+    Color typeColor = color.primary;
+    IconData typeIcon = Icons.receipt_rounded;
+
+    switch (txn.trnType) {
+      case 'SALE':
+        typeColor = Colors.green;
+        typeIcon = Icons.shopping_cart_rounded;
+        break;
+      case 'PRCH':
+        typeColor = Colors.blue;
+        typeIcon = Icons.shopping_bag_rounded;
+        break;
+      case 'TRPT':
+        typeColor = Colors.orange;
+        typeIcon = Icons.local_shipping_rounded;
+        break;
+      case 'GLAT':
+        typeColor = Colors.teal;
+        typeIcon = Icons.account_balance_rounded;
+        break;
+      case 'ATAT':
+        typeColor = Colors.indigo;
+        typeIcon = Icons.swap_horiz_rounded;
+        break;
+      case 'SLRY':
+        typeColor = Colors.purple;
+        typeIcon = Icons.attach_money_rounded;
+        break;
+      case 'CRFX':
+        typeColor = Colors.pink;
+        typeIcon = Icons.currency_exchange_rounded;
+        break;
+      case 'PRJT':
+        typeColor = Colors.brown;
+        typeIcon = Icons.account_tree_rounded;
+        break;
+    }
+
+    return ZCover(
+      margin: const EdgeInsets.only(bottom: 12),
+      radius: 4,
+      color: color.surface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLoading ? null : onTap,
+          onLongPress: isLoading ? null : onLongPress,
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // Loading overlay
+              if (isLoading)
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: color.surface.withAlpha(200),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Center(
+                      child: SizedBox(
+                        width: 32,
+                        height: 32,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  ),
+                ),
+
+              // Selection indicator (small check in corner when selected)
+              if (isSelected && !isLoading)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: color.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.check_rounded,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+
+              // Main content
+              Opacity(
+                opacity: isLoading ? 0.5 : 1.0,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row: Type Chip
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: typeColor.withAlpha(15),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  typeIcon,
+                                  size: 14,
+                                  color: typeColor,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  Utils.getTxnCode(txn: txn.trnType ?? "", context: context),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: typeColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Reference Number with Copy
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  tr.referenceNumber,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: color.onSurface.withAlpha(150),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  reference,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Copy Button
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: isLoading ? null : onCopy,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isCopied
+                                      ? color.primary.withAlpha(15)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  isCopied ? Icons.check_rounded : Icons.copy_rounded,
+                                  size: 20,
+                                  color: isCopied
+                                      ? color.primary
+                                      : color.onSurface.withAlpha(150),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      // Date and Maker Row
+                      Row(
+                        children: [
+                          // Date
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 14,
+                                  color: color.onSurface.withAlpha(150),
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    txn.trnEntryDate?.toFormattedDate() ?? '',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: color.onSurface.withAlpha(200),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Maker
+                          if (txn.maker != null && txn.maker!.isNotEmpty)
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(
+                                    Icons.person_outline_rounded,
+                                    size: 14,
+                                    color: color.onSurface.withAlpha(150),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    txn.maker!,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: color.onSurface.withAlpha(200),
+                                    ),
+                                    textAlign: TextAlign.end,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+}
 
 class _Desktop extends StatefulWidget {
   const _Desktop();
@@ -54,13 +962,12 @@ class _Desktop extends StatefulWidget {
 }
 
 class _DesktopState extends State<_Desktop> {
-  final Set<String> _selectedRefs = {}; // selecting by trnReference
+  final Set<String> _selectedRefs = {};
   bool _selectionMode = false;
   bool _isLoadingDialog = false;
   String? _loadingRef;
   String? myLocale;
 
-  // Track copied state for each reference
   final Map<String, bool> _copiedStates = {};
 
   @override

@@ -297,12 +297,14 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
   Widget _buildMobileTabletLayout(BuildContext context, AppLocalizations locale) {
     return Stack(
       children: [
-        _buildPreview(context),
+        _buildPreview(context),  // Now this returns a Container, not Expanded
+
         if (_isPanelVisible)
           GestureDetector(
             onTap: () => setState(() => _isPanelVisible = false),
             child: Container(color: Colors.black54),
           ),
+
         if (_isPanelVisible)
           Positioned(
             left: 0,
@@ -313,6 +315,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
               child: _buildSidebar(context, locale),
             ),
           ),
+
         Positioned(
           right: 16,
           bottom: 16,
@@ -640,41 +643,40 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
     final PdfPageFormat pageFormat = _cachedPageFormat ??
         context.read<PaperSizeCubit>().state;
 
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          boxShadow: [
-            BoxShadow(
-              blurRadius: 1,
-              color: Colors.grey.withAlpha(77),
-            ),
-          ],
-        ),
-        child: ClipRRect( // Add this to prevent overflow
-          borderRadius: BorderRadius.circular(4),
-          child: LayoutBuilder( // Add LayoutBuilder to get constraints
-            builder: (context, constraints) {
-              return PdfPreview(
-                padding: EdgeInsets.zero,
-                useActions: false,
-                previewPageMargin: EdgeInsets.zero,
-                maxPageWidth: constraints.maxWidth, // Use available width
-                dynamicLayout: true,
-                shouldRepaint: true,
-                canChangeOrientation: true,
-                canChangePageFormat: true,
-                pdfPreviewPageDecoration: const BoxDecoration(color: Colors.white),
-                build: (_) => widget.buildPreview(
-                  data: widget.data,
-                  language: language,
-                  orientation: orientation,
-                  pageFormat: pageFormat,
-                ).then((doc) => doc.save()),
-              );
-            },
+    // Return just the preview content without the Expanded wrapper
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 1,
+            color: Colors.grey.withAlpha(77),
           ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return PdfPreview(
+              padding: EdgeInsets.zero,
+              useActions: false,
+              previewPageMargin: EdgeInsets.zero,
+              maxPageWidth: constraints.maxWidth,
+              dynamicLayout: true,
+              shouldRepaint: true,
+              canChangeOrientation: true,
+              canChangePageFormat: true,
+              pdfPreviewPageDecoration: const BoxDecoration(color: Colors.white),
+              build: (_) => widget.buildPreview(
+                data: widget.data,
+                language: language,
+                orientation: orientation,
+                pageFormat: pageFormat,
+              ).then((doc) => doc.save()),
+            );
+          },
         ),
       ),
     );

@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
@@ -10,6 +12,12 @@ import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/Treasury/bloc/cash_balances_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/Treasury/model/cash_balance_model.dart';
+import '../../../../../../../Features/Other/toast.dart';
+import '../../../../../../../Features/PrintSettings/print_preview.dart';
+import '../../../../../../../Features/PrintSettings/report_model.dart';
+import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import 'Print/cash_print.dart';
+import 'Print/feature_model.dart';
 
 class CashBalancesBranchWiseView extends StatelessWidget {
   const CashBalancesBranchWiseView({super.key});
@@ -30,7 +38,6 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
-
 class _DesktopState extends State<_Desktop> {
   String? baseCcy;
   int? branchId;
@@ -38,10 +45,9 @@ class _DesktopState extends State<_Desktop> {
   @override
   void initState() {
     super.initState();
-    _loadAuth();
+    _loadBalances();
   }
-
-  void _loadAuth() {
+  void _loadBalances() {
     try {
       final auth = context.read<AuthBloc>().state;
       if (auth is AuthenticatedState) {
@@ -57,6 +63,158 @@ class _DesktopState extends State<_Desktop> {
       branchId = null;
     }
   }
+  Future<void> _printBranchBalance() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is CashBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+      // Get base currency from AuthBloc
+      String? baseCcy;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        baseCcy = authState.loginData.company?.comLocalCcy;
+      }
+
+      // Calculate currency totals for single branch
+      final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
+
+      // Calculate system totals for single branch
+      final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
+
+      // Prepare print data
+      final printData = CashBalancesPrintData(
+        reportType: 'single',
+        branches: [state.cash],
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+        selectedBranchName: state.cash.brcName,
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
+    }
+  }
+  Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        final currencyCode = record.trdCcy ?? 'UNKNOWN';
+
+        currencyTotals[currencyCode] = CurrencyTotal(
+          name: record.ccyName ?? currencyCode,
+          symbol: record.ccySymbol ?? '',
+          totalOpening: double.tryParse(record.openingBalance ?? '0') ?? 0,
+          totalClosing: double.tryParse(record.closingBalance ?? '0') ?? 0,
+          totalOpeningSys: double.tryParse(record.openingSysEquivalent ?? '0') ?? 0,
+          totalClosingSys: double.tryParse(record.closingSysEquivalent ?? '0') ?? 0,
+        );
+      }
+    }
+
+    return currencyTotals;
+  }
+  Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+      }
+    }
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+    };
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -75,7 +233,7 @@ class _DesktopState extends State<_Desktop> {
           ),
           IconButton(
             icon: const Icon(Icons.print),
-            onPressed: _printReport,
+            onPressed: _printBranchBalance,
           ),
         ],
       ),
@@ -180,6 +338,7 @@ class _DesktopState extends State<_Desktop> {
                   width: 300,
                   child: BranchDropdown(
                     selectedId: branchId,
+                    disableAction: true,
                     height: 40,
                     title: "",
                     onBranchSelected: (e) {
@@ -575,13 +734,41 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-  void _printReport() {}
+
 }
 
-// Fixed Tablet View
-class _Tablet extends StatelessWidget {
+
+class _Tablet extends StatefulWidget {
   const _Tablet();
 
+  @override
+  State<_Tablet> createState() => _TabletState();
+}
+class _TabletState extends State<_Tablet> {
+  String? baseCcy;
+  int? branchId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBalances();
+  }
+  void _loadBalances() {
+    try {
+      final auth = context.read<AuthBloc>().state;
+      if (auth is AuthenticatedState) {
+        branchId = auth.loginData.usrBranch;
+        baseCcy = auth.loginData.company?.comLocalCcy;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<CashBalancesBloc>().add(
+            LoadCashBalanceBranchWiseEvent(branchId: branchId),
+          );
+        });
+      }
+    } catch (e) {
+      branchId = null;
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -590,9 +777,12 @@ class _Tablet extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              // Add refresh logic
-            },
+            onPressed: _loadBalances,
+          ),
+          SizedBox(width: 5),
+          IconButton(
+            icon: const Icon(Icons.print),
+            onPressed: _printBranchBalance,
           ),
         ],
       ),
@@ -611,9 +801,8 @@ class _Tablet extends StatelessWidget {
           return Center(
             child: NoDataWidget(
               message: state.error,
-              onRefresh: () {
-                // Add refresh logic
-              },
+              title: "Error",
+              enableAction: false,
             ),
           );
         }
@@ -925,16 +1114,168 @@ class _Tablet extends StatelessWidget {
       ],
     );
   }
+
+  Future<void> _printBranchBalance() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is CashBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+      // Get base currency from AuthBloc
+      String? baseCcy;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        baseCcy = authState.loginData.company?.comLocalCcy;
+      }
+
+      // Calculate currency totals for single branch
+      final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
+
+      // Calculate system totals for single branch
+      final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
+
+      // Prepare print data
+      final printData = CashBalancesPrintData(
+        reportType: 'single',
+        branches: [state.cash],
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+        selectedBranchName: state.cash.brcName,
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
+    }
+  }
+
+  Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        final currencyCode = record.trdCcy ?? 'UNKNOWN';
+
+        currencyTotals[currencyCode] = CurrencyTotal(
+          name: record.ccyName ?? currencyCode,
+          symbol: record.ccySymbol ?? '',
+          totalOpening: double.tryParse(record.openingBalance ?? '0') ?? 0,
+          totalClosing: double.tryParse(record.closingBalance ?? '0') ?? 0,
+          totalOpeningSys: double.tryParse(record.openingSysEquivalent ?? '0') ?? 0,
+          totalClosingSys: double.tryParse(record.closingSysEquivalent ?? '0') ?? 0,
+        );
+      }
+    }
+
+    return currencyTotals;
+  }
+
+  Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+      }
+    }
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+    };
+  }
 }
 
-// Fixed Mobile View
+
 class _Mobile extends StatefulWidget {
   const _Mobile();
 
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   String? baseCcy;
   int? branchId;
@@ -942,10 +1283,9 @@ class _MobileState extends State<_Mobile> {
   @override
   void initState() {
     super.initState();
-    _loadAuth();
+    _loadBalances();
   }
-
-  void _loadAuth() {
+  void _loadBalances() {
     try {
       final auth = context.read<AuthBloc>().state;
       if (auth is AuthenticatedState) {
@@ -972,9 +1312,11 @@ class _MobileState extends State<_Mobile> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              // Add refresh logic
+             context.read<CashBalancesBloc>().add(LoadCashBalanceBranchWiseEvent(branchId: branchId));
             },
           ),
+          SizedBox(width: 5),
+          IconButton(onPressed: _printBranchBalance, icon: Icon(Icons.print))
         ],
       ),
       body: _buildContent(context),
@@ -1357,5 +1699,156 @@ class _MobileState extends State<_Mobile> {
         ),
       ],
     );
+  }
+
+  Future<void> _printBranchBalance() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is CashBalancesLoadedState) {
+      // Get company info from CompanyProfileBloc
+      final companyState = context.read<CompanyProfileBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (companyState is CompanyProfileLoadedState) {
+        company = ReportModel(
+          comName: companyState.company.comName ?? '',
+          comAddress: companyState.company.addName ?? '',
+          compPhone: companyState.company.comPhone ?? '',
+          comEmail: companyState.company.comEmail ?? '',
+          statementDate: DateTime.now().toFullDateTime,
+          comLogo: companyState.company.comLogo != null
+              ? base64Decode(companyState.company.comLogo!)
+              : null,
+        );
+      }
+
+      // Get base currency from AuthBloc
+      String? baseCcy;
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        baseCcy = authState.loginData.company?.comLocalCcy;
+      }
+
+      // Calculate currency totals for single branch
+      final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
+
+      // Calculate system totals for single branch
+      final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
+
+      // Prepare print data
+      final printData = CashBalancesPrintData(
+        reportType: 'single',
+        branches: [state.cash],
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+        selectedBranchName: state.cash.brcName,
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
+    }
+  }
+  Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        final currencyCode = record.trdCcy ?? 'UNKNOWN';
+
+        currencyTotals[currencyCode] = CurrencyTotal(
+          name: record.ccyName ?? currencyCode,
+          symbol: record.ccySymbol ?? '',
+          totalOpening: double.tryParse(record.openingBalance ?? '0') ?? 0,
+          totalClosing: double.tryParse(record.closingBalance ?? '0') ?? 0,
+          totalOpeningSys: double.tryParse(record.openingSysEquivalent ?? '0') ?? 0,
+          totalClosingSys: double.tryParse(record.closingSysEquivalent ?? '0') ?? 0,
+        );
+      }
+    }
+
+    return currencyTotals;
+  }
+  Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+      }
+    }
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+    };
   }
 }

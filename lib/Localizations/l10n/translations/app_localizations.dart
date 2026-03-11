@@ -5637,6 +5637,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No Subscription'**
   String get noSubscription;
+
+  /// No description provided for @totalCashBalancesAllBranch.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cash Balances - All Branches'**
+  String get totalCashBalancesAllBranch;
+
+  /// No description provided for @activeFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Filters'**
+  String get activeFilters;
+
+  /// No description provided for @accountsReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts Report'**
+  String get accountsReport;
 }
 
 class _AppLocalizationsDelegate

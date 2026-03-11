@@ -942,5 +942,8 @@
   "subscriptionExpired": "ګډون پای ته رسیدلی",
   "subscriptionExpiredContact": "ستاسو ګډون پای ته رسیدلی. مهرباني وکړئ د خپل ګډون د نوي کولو لپاره د زیتون ټیکنالوژۍ شرکت سره اړیکه ونیسئ.",
   "noSubscriptionContact": "تاسو فعال ګډون نه لرئ. مهرباني وکړئ د خپل ګډون د فعالولو لپاره د زیتون ټیکنالوژۍ شرکت سره اړیکه ونیسئ.",
-  "noSubscription": "ګډون نشته"
+  "noSubscription": "ګډون نشته",
+  "totalCashBalancesAllBranch": "موجودی نقدی - همه شعبات",
+  "activeFilters": "فلتر های فعال",
+  "accountsReport": "حسابهانه گزارش"
 }

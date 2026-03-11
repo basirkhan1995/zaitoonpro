@@ -2845,4 +2845,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get noSubscription => 'ګډون نشته';
+
+  @override
+  String get totalCashBalancesAllBranch => 'موجودی نقدی - همه شعبات';
+
+  @override
+  String get activeFilters => 'فلتر های فعال';
+
+  @override
+  String get accountsReport => 'حسابهانه گزارش';
 }

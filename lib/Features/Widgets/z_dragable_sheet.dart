@@ -14,7 +14,7 @@ class ZDraggableSheet {
     String? title,
     Widget? leading,
     Widget? trailing,
-    bool showCloseButton = true,
+    bool showCloseButton = false,
     bool showDragHandle = true,
     TextStyle? titleStyle,
 
@@ -71,7 +71,7 @@ class ZDraggableSheet {
               decoration: BoxDecoration(
                 color: backgroundColor ?? color.surface,
                 borderRadius: borderRadius ??
-                    const BorderRadius.vertical(top: Radius.circular(20)),
+                    const BorderRadius.vertical(top: Radius.circular(15)),
                 boxShadow: const [
                   BoxShadow(
                     blurRadius: 20,
@@ -95,7 +95,7 @@ class ZDraggableSheet {
                         sheetController.jumpTo(newSize);
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        padding: const EdgeInsets.symmetric(vertical: 0),
                         child: Center(
                           child: Container(
                             width: 40,

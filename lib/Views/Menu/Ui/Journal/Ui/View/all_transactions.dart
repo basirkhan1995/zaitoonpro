@@ -15,6 +15,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/ProjectTxn/bloc/proje
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/ProjectTxn/project_txn.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/bloc/transactions_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/model/transaction_model.dart';
 import '../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../Features/Widgets/search_field.dart';
 import '../FetchATAT/bloc/fetch_atat_bloc.dart';
@@ -42,12 +43,14 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
+
 class _MobileState extends State<_Mobile> {
   final Map<String, bool> _copiedStates = {};
   bool _isLoadingDialog = false;
   String? _loadingRef;
   String? myLocale;
   final TextEditingController searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -61,6 +64,7 @@ class _MobileState extends State<_Mobile> {
   @override
   void dispose() {
     searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -90,331 +94,6 @@ class _MobileState extends State<_Mobile> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final tr = AppLocalizations.of(context)!;
-    final color = Theme.of(context).colorScheme;
-
-    return MultiBlocListener(
-
-    listeners: [
-      BlocListener<ProjectTxnBloc, ProjectTxnState>(
-        listener: (context, state) {
-          if (state is ProjectTxnLoadedState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            showDialog(
-              context: context,
-              builder: (context) => ProjectTxnView(reference: state.txn.transaction?.trnReference ?? ""),
-            );
-          } else if (state is ProjectTxnErrorState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            Utils.showOverlayMessage(
-              context,
-              title: tr.noData,
-              message: state.message,
-              isError: true,
-            );
-          }
-        },
-      ),
-      BlocListener<OrderTxnBloc, OrderTxnState>(
-        listener: (context, state) {
-          if (state is OrderTxnLoadedState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            showDialog(
-              context: context,
-              builder: (context) => OrderTxnView(reference: state.data.trnReference ?? ""),
-            );
-          } else if (state is OrderTxnErrorState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            Utils.showOverlayMessage(
-              context,
-              title: tr.noData,
-              message: state.message,
-              isError: true,
-            );
-          }
-        },
-      ),
-      BlocListener<TrptBloc, TrptState>(
-        listener: (context, state) {
-          if (state is TrptLoadedState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            showDialog(
-              context: context,
-              builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-            );
-          } else if (state is TrptErrorState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            Utils.showOverlayMessage(
-              context,
-              title: tr.noData,
-              message: state.error,
-              isError: true,
-            );
-          }
-        },
-      ),
-      BlocListener<GlatBloc, GlatState>(
-        listener: (context, state) {
-          if (state is GlatLoadedState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            showDialog(
-              context: context,
-              builder: (context) => GlatView(),
-            );
-          } else if (state is GlatErrorState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            Utils.showOverlayMessage(
-              context,
-              title: tr.noData,
-              message: state.message,
-              isError: true,
-            );
-          } else if (state is GlatLoadingState) {
-            setState(() {
-              _isLoadingDialog = true;
-            });
-          }
-        },
-      ),
-      BlocListener<FetchAtatBloc, FetchAtatState>(
-        listener: (context, state) {
-          if (state is FetchATATLoadedState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            showDialog(
-              context: context,
-              builder: (context) => FetchAtatView(),
-            );
-          } else if (state is FetchATATErrorState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            Utils.showOverlayMessage(
-              context,
-              title: tr.noData,
-              message: state.message,
-              isError: true,
-            );
-          } else if (state is FetchATATLoadingState) {
-            setState(() {
-              _isLoadingDialog = true;
-            });
-          }
-        },
-      ),
-      BlocListener<TxnReferenceBloc, TxnReferenceState>(
-        listener: (context, state) {
-          if (state is TxnReferenceLoadedState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            showDialog(
-              context: context,
-              builder: (context) => TxnReferenceView(),
-            );
-          } else if (state is TxnReferenceErrorState) {
-            setState(() {
-              _isLoadingDialog = false;
-              _loadingRef = null;
-            });
-            Utils.showOverlayMessage(
-              context,
-              title: tr.accessDenied,
-              message: state.error,
-              isError: true,
-            );
-          } else if (state is TxnReferenceLoadingState) {
-            setState(() {
-              _isLoadingDialog = true;
-            });
-          }
-        },
-      ),
-    ],
-
-  child: Stack(
-      children: [
-        Scaffold(
-          appBar: AppBar(
-            title: Text(tr.todayTransaction),
-          ),
-          body: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: ZSearchField(
-                  hint: tr.search,
-                  title: '',
-                  controller: searchController,
-                  onChanged: (_) => setState(() {}),
-                  trailing: IconButton(onPressed: () {
-                    context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
-                  }, icon: Icon(Icons.search)),
-                ),
-              ),
-              Expanded(
-                child: BlocConsumer<TransactionsBloc, TransactionsState>(
-                  listener: (context, state) {
-                    if (state is TransactionSuccessState) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Navigator.of(context).pop();
-                        context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
-                      });
-                    }
-                  },
-                  builder: (context, state) {
-                    if (state is TransactionErrorState) {
-                      return Center(
-                        child: Text(tr.noDataFound),
-                      );
-                    }
-
-                    if (state is TxnLoadingState) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    if (state is TransactionLoadedState) {
-                      final query = searchController.text.toLowerCase().trim();
-                      final filteredList = state.txn.where((item) {
-                        final name = item.trnReference?.toLowerCase() ?? '';
-                        final status = item.trnStateText?.toLowerCase() ?? '';
-                        final trnName = item.trnType?.toLowerCase() ?? '';
-                        final usrName = item.usrName?.toLowerCase() ?? '';
-                        return name.contains(query) ||
-                            status.contains(query) ||
-                            usrName.contains(query) ||
-                            trnName.contains(query);
-                      }).toList();
-
-                      if (filteredList.isEmpty) {
-                        return Center(child: Text(tr.noDataFound));
-                      }
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(8),
-                        itemCount: filteredList.length,
-                        itemBuilder: (context, index) {
-                          final txn = filteredList[index];
-                          final isLoadingThisItem = _isLoadingDialog && _loadingRef == txn.trnReference;
-                          final isCopied = _copiedStates[txn.trnReference ?? ""] ?? false;
-                          final reference = txn.trnReference ?? "";
-
-                          return ZCover(
-                            margin: const EdgeInsets.symmetric(vertical: 4),
-                            radius: 5,
-                            child: InkWell(
-                              onTap: isLoadingThisItem ? null : () => _handleTransactionTap(txn),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Date and Loading
-                                    Row(
-                                      children: [
-                                        if (isLoadingThisItem)...[
-                                          const SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(strokeWidth: 2),
-                                          ),
-                                          const SizedBox(width: 8),
-                                        ],
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          Utils.getTxnCode(txn: txn.trnType ?? "", context: context),
-                                        ),
-                                        TransactionStatusBadge(status: txn.trnStateText ?? ""),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 6),
-
-                                    // Reference with copy
-                                        Text(
-                                          txn.trnReference ?? "",
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
-                                        ),
-
-                                    const SizedBox(height: 6),
-                                    // Type and User
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Expanded(
-                                          child: Text(txn.trnEntryDate?.toFormattedDate() ?? "")
-                                        ),
-                                        GestureDetector(
-                                          onTap: () => _copyToClipboard(reference, context),
-                                          child: Icon(
-                                            isCopied ? Icons.check : Icons.content_copy,
-                                            size: 20,
-                                            color: isCopied ? color.primary : color.onSurface.withValues(alpha: .6),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-
-
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-
-                    return const SizedBox();
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (_isLoadingDialog && _loadingRef == null)
-          Container(
-            color: Colors.black.withAlpha(100),
-            child: const Center(child: CircularProgressIndicator()),
-          ),
-      ],
-    ),
-);
-  }
-
   Future<void> _copyToClipboard(String reference, BuildContext context) async {
     await Utils.copyToClipboard(reference);
 
@@ -429,6 +108,669 @@ class _MobileState extends State<_Mobile> {
         });
       }
     });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+
+    return MultiBlocListener(
+      listeners: [
+
+        BlocListener<ProjectTxnBloc, ProjectTxnState>(
+          listener: (context, state) {
+            if (state is ProjectTxnLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => ProjectTxnView(reference: state.txn.transaction?.trnReference ?? ""),
+              );
+            } else if (state is ProjectTxnErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<OrderTxnBloc, OrderTxnState>(
+          listener: (context, state) {
+            if (state is OrderTxnLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => OrderTxnView(reference: state.data.trnReference ?? ""),
+              );
+            } else if (state is OrderTxnErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<TrptBloc, TrptState>(
+          listener: (context, state) {
+            if (state is TrptLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
+              );
+            } else if (state is TrptErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.error,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<GlatBloc, GlatState>(
+          listener: (context, state) {
+            if (state is GlatLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => GlatView(),
+              );
+            } else if (state is GlatErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            } else if (state is GlatLoadingState) {
+              setState(() {
+                _isLoadingDialog = true;
+              });
+            }
+          },
+        ),
+        BlocListener<FetchAtatBloc, FetchAtatState>(
+          listener: (context, state) {
+            if (state is FetchATATLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => FetchAtatView(),
+              );
+            } else if (state is FetchATATErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            } else if (state is FetchATATLoadingState) {
+              setState(() {
+                _isLoadingDialog = true;
+              });
+            }
+          },
+        ),
+        BlocListener<TxnReferenceBloc, TxnReferenceState>(
+          listener: (context, state) {
+            if (state is TxnReferenceLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => TxnReferenceView(),
+              );
+            } else if (state is TxnReferenceErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.accessDenied,
+                message: state.error,
+                isError: true,
+              );
+            } else if (state is TxnReferenceLoadingState) {
+              setState(() {
+                _isLoadingDialog = true;
+              });
+            }
+          },
+        ),
+      ],
+      child: Stack(
+        children: [
+          Scaffold(
+            appBar: AppBar(
+              title: Text(
+                tr.todayTransaction,
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              centerTitle: false,
+              actions: [
+                // Refresh button
+                IconButton(
+                  icon: const Icon(Icons.refresh_rounded),
+                  onPressed: () {
+                    context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
+                  },
+                ),
+              ],
+            ),
+            body: Column(
+              children: [
+                // Search Bar - Sticky at top
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 8),
+                  child: ZSearchField(
+                    icon: Icons.search_rounded,
+                    controller: searchController,
+                    hint: "${tr.search} ${tr.transactions.toLowerCase()}...",
+                    onChanged: (_) => setState(() {}),
+                    title: "",
+                  ),
+                ),
+
+                // Stats Summary
+                BlocBuilder<TransactionsBloc, TransactionsState>(
+                  builder: (context, state) {
+                    int totalCount = 0;
+                    if (state is TransactionLoadedState) {
+                      totalCount = state.txn.length;
+                    }
+
+                    return Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: color.primaryContainer,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.receipt_long_rounded,
+                                  size: 16,
+                                  color: color.onPrimaryContainer,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  '$totalCount ${tr.transactions}',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: color.onPrimaryContainer,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+                // Transactions List
+                Expanded(
+                  child: BlocConsumer<TransactionsBloc, TransactionsState>(
+                    listener: (context, state) {
+                      if (state is TransactionSuccessState) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          Navigator.of(context).pop();
+                          context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
+                        });
+                      }
+                    },
+                    builder: (context, state) {
+                      if (state is TransactionErrorState) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                size: 64,
+                                color: color.error.withAlpha(100),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                tr.noDataFound,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                state.message,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: color.onSurface.withAlpha(150),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 20),
+                              ZOutlineButton(
+                                icon: Icons.refresh_rounded,
+                                onPressed: () {
+                                  context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
+                                },
+                                label: Text(tr.refresh),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      if (state is TxnLoadingState) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      if (state is TransactionLoadedState) {
+                        final query = searchController.text.toLowerCase().trim();
+                        final filteredList = state.txn.where((item) {
+                          final reference = item.trnReference?.toLowerCase() ?? '';
+                          final type = item.trnType?.toLowerCase() ?? '';
+                          final user = item.usrName?.toLowerCase() ?? '';
+                          final status = item.trnStateText?.toLowerCase() ?? '';
+
+                          return reference.contains(query) ||
+                              type.contains(query) ||
+                              user.contains(query) ||
+                              status.contains(query);
+                        }).toList();
+
+                        if (filteredList.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.search_off_rounded,
+                                  size: 64,
+                                  color: color.onSurface.withAlpha(80),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  tr.noDataFound,
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                                if (query.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'No results for "$query"',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: color.onSurface.withAlpha(150),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        }
+
+                        return RefreshIndicator(
+                          onRefresh: () async {
+                            context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
+                          },
+                          child: ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.all(12),
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final txn = filteredList[index];
+                              final isLoadingThisItem = _isLoadingDialog && _loadingRef == txn.trnReference;
+                              final isCopied = _copiedStates[txn.trnReference ?? ""] ?? false;
+                              final reference = txn.trnReference ?? "";
+
+                              return _buildTransactionCard(
+                                txn: txn,
+                                isLoading: isLoadingThisItem,
+                                isCopied: isCopied,
+                                reference: reference,
+                                color: color,
+                                tr: tr,
+                                onTap: () => _handleTransactionTap(txn),
+                                onCopy: () => _copyToClipboard(reference, context),
+                              );
+                            },
+                          ),
+                        );
+                      }
+
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Global Loading Overlay
+          if (_isLoadingDialog && _loadingRef == null)
+            Container(
+              color: Colors.black.withAlpha(100),
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: color.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(40),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading...'),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionCard({
+    required TransactionsModel txn,
+    required bool isLoading,
+    required bool isCopied,
+    required String reference,
+    required ColorScheme color,
+    required AppLocalizations tr,
+    required VoidCallback onTap,
+    required VoidCallback onCopy,
+  }) {
+    // Determine transaction type color
+    Color typeColor = color.primary;
+    IconData typeIcon = Icons.receipt_rounded;
+
+    switch (txn.trnType) {
+      case 'SALE':
+        typeColor = Colors.green;
+        typeIcon = Icons.shopping_cart_rounded;
+        break;
+      case 'PRCH':
+        typeColor = Colors.blue;
+        typeIcon = Icons.shopping_bag_rounded;
+        break;
+      case 'PRJT':
+        typeColor = Colors.purple;
+        typeIcon = Icons.account_tree_rounded;
+        break;
+      case 'TRPT':
+        typeColor = Colors.orange;
+        typeIcon = Icons.local_shipping_rounded;
+        break;
+      case 'GLAT':
+        typeColor = Colors.teal;
+        typeIcon = Icons.account_balance_rounded;
+        break;
+      case 'ATAT':
+        typeColor = Colors.indigo;
+        typeIcon = Icons.swap_horiz_rounded;
+        break;
+    }
+
+    return ZCover(
+      margin: const EdgeInsets.only(bottom: 12),
+      radius: 5,
+      color: Theme.of(context).colorScheme.surface,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isLoading ? null : onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Stack(
+              children: [
+                // Loading indicator overlay for this specific item
+                if (isLoading)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: color.surface.withAlpha(200),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                // Main content
+                Opacity(
+                  opacity: isLoading ? 0.5 : 1.0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header Row: Type & Status
+                      Row(
+                        children: [
+                          // Transaction Type Chip
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 5,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: typeColor.withAlpha(15),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  typeIcon,
+                                  size: 14,
+                                  color: typeColor,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  Utils.getTxnCode(txn: txn.trnType ?? "", context: context),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: typeColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Status Badge
+                          Expanded(
+                            child: TransactionStatusBadge(
+                              status: txn.trnStateText ?? "",
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Reference & Copy Button
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  tr.referenceNumber,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: color.onSurface.withAlpha(150),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  reference,
+                                  style: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Copy Button
+                          Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: isLoading ? null : onCopy,
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: isCopied
+                                      ? color.primary.withAlpha(15)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  isCopied ? Icons.check_rounded : Icons.copy_rounded,
+                                  size: 20,
+                                  color: isCopied
+                                      ? color.primary
+                                      : color.onSurface.withAlpha(150),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Date & User Info
+                      Row(
+                        children: [
+                          // Date
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.calendar_today_rounded,
+                                  size: 14,
+                                  color: color.onSurface.withAlpha(150),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  txn.trnEntryDate?.toFormattedDate() ?? '',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: color.onSurface.withAlpha(200),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // User
+                          if (txn.maker != null && txn.maker!.isNotEmpty)
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Icon(
+                                    Icons.person_outline_rounded,
+                                    size: 14,
+                                    color: color.onSurface.withAlpha(150),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      txn.maker!,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: color.onSurface.withAlpha(200),
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

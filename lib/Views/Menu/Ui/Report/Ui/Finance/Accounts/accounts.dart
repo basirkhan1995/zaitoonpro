@@ -12,6 +12,7 @@ import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizati
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/features/currency_drop.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Transport/Shipments/features/status_drop.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
+import '../../../../../../../Features/Widgets/zcard_mobile.dart';
 import 'bloc/accounts_report_bloc.dart';
 
 class AccountsReportView extends StatelessWidget {
@@ -61,30 +62,20 @@ class _MobileState extends State<_Mobile> {
 
     ZDraggableSheet.show(
       context: context,
-      title: "filter",
-      showCloseButton: true,
+      title: tr.filterTitle,
+      showCloseButton: false,
       showDragHandle: true,
-      estimatedContentHeight: 400,
+
       bodyBuilder: (context, scrollController) {
         return ListView(
           controller: scrollController,
           children: [
+            const SizedBox(height: 5),
             // Search Field
             ZTextFieldEntitled(
               onChanged: (e) {},
               controller: tempSearchController,
-              title: tr.search,
-            ),
-            const SizedBox(height: 16),
-
-            // Account Limit Field
-            ZTextFieldEntitled(
-              inputFormat: [FilteringTextInputFormatter.digitsOnly],
-              onChanged: (e) {
-                tempLimit = double.tryParse(e);
-              },
-              controller: tempAccountLimitController,
-              title: tr.accountLimit,
+              title: "Search by Account Name",
             ),
             const SizedBox(height: 16),
 
@@ -106,6 +97,17 @@ class _MobileState extends State<_Mobile> {
                 tempStatus = e;
               },
             ),
+            const SizedBox(height: 16),
+            // Account Limit Field
+            ZTextFieldEntitled(
+              inputFormat: [FilteringTextInputFormatter.digitsOnly],
+              onChanged: (e) {
+                tempLimit = double.tryParse(e);
+              },
+              controller: tempAccountLimitController,
+              title: tr.accountLimit,
+            ),
+
             const SizedBox(height: 24),
 
             // Action Buttons
@@ -114,10 +116,8 @@ class _MobileState extends State<_Mobile> {
                 Expanded(
                   child: ZOutlineButton(
                     height: 47,
-                    isActive: true,
-                    icon: Icons.clear_all,
+                    icon: Icons.filter_alt_off_outlined,
                     onPressed: () {
-                      // Clear temp values
                       tempSearchController.clear();
                       tempAccountLimitController.clear();
                       tempCcy = null;
@@ -215,7 +215,7 @@ class _MobileState extends State<_Mobile> {
                     Icon(Icons.filter_alt, size: 16, color: color.onPrimaryContainer),
                     const SizedBox(width: 8),
                     Text(
-                      "activeFilters",
+                      tr.activeFilters,
                       style: TextStyle(color: color.onPrimaryContainer),
                     ),
                     const SizedBox(width: 8),
@@ -272,35 +272,18 @@ class _MobileState extends State<_Mobile> {
               ),
             ),
 
-          // Header
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: color.primary,
-            ),
-            child: Row(
-              children: [
-                Expanded(child: Text(tr.accounts, style: TextStyle(color: color.surface))),
-                Expanded(
-                  child: Text(tr.ownerInformation, style: TextStyle(color: color.surface)),
-                ),
-                SizedBox(
-                  width: 100,
-                  child: Text(tr.accountLimit, style: TextStyle(color: color.surface)),
-                ),
-                SizedBox(
-                  width: 80,
-                  child: Text(tr.status, style: TextStyle(color: color.surface)),
-                ),
-              ],
-            ),
-          ),
 
-          // List
+          // List with MobileInfoCard
           Expanded(
             child: BlocBuilder<AccountsReportBloc, AccountsReportState>(
               builder: (context, state) {
+                if(state is AccountsReportInitial){
+                  return NoDataWidget(
+                    title: "Accounts Report",
+                    message: "Apply filters to see accounts",
+                    enableAction: false,
+                  );
+                }
                 if (state is AccountsReportLoadingState) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -324,67 +307,45 @@ class _MobileState extends State<_Mobile> {
                     );
                   }
                   return ListView.builder(
+                    padding: const EdgeInsets.all(8),
                     itemCount: state.accounts.length,
                     itemBuilder: (context, index) {
                       final acc = state.accounts[index];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+
+                      // Create info items for the card
+                      final infoItems = [
+                        MobileInfoItem(
+                          icon: Icons.account_balance_wallet,
+                          text: acc.creditLimit.toAmount(),
                         ),
-                        decoration: BoxDecoration(
-                          color: index.isOdd
-                              ? color.primary.withValues(alpha: .05)
-                              : Colors.transparent,
+                        MobileInfoItem(
+                          icon: Icons.business,
+                          text: acc.accNumber.toString(),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    acc.accName ?? "",
-                                    style: TextStyle(color: color.onSurface),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 5,
-                                    children: [
-                                      ZCover(
-                                        child: Text(
-                                          acc.accNumber.toString(),
-                                          style: TextStyle(color: color.outline),
-                                        ),
-                                      ),
-                                      ZCover(
-                                        child: Text(
-                                          acc.ccyName.toString(),
-                                          style: TextStyle(color: color.outline),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(acc.ownerName ?? ""),
-                            ),
-                            SizedBox(
-                              width: 100,
-                              child: Text(acc.creditLimit.toAmount()),
-                            ),
-                            SizedBox(
-                              width: 80,
-                              child: StatusBadge(
-                                trueValue: tr.active,
-                                falseValue: tr.blocked,
-                                status: acc.status == "Active" ? 1 : 0,
-                              ),
-                            ),
-                          ],
+                        MobileInfoItem(
+                          icon: Icons.currency_exchange,
+                          text: acc.ccyName ?? '',
                         ),
+                      ];
+
+                      // Create status for the card
+                      final accountStatus = MobileStatus(
+                        label: acc.status == "Active" ? tr.active : tr.blocked,
+                        color: acc.status == "Active"
+                            ? Colors.green
+                            : Colors.red,
+                        backgroundColor: acc.status == "Active"
+                            ? Colors.green.withValues(alpha: .12)
+                            : Colors.red.withValues(alpha: .12),
+                      );
+
+                      return MobileInfoCard(
+                        title: acc.accName ?? "",
+                        subtitle: acc.ownerName,
+                        infoItems: infoItems,
+                        status: accountStatus,
+                        showActions: false, // Disable the View Details button
+                        // No onTap, so it won't be clickable
                       );
                     },
                   );
@@ -554,7 +515,7 @@ class _TabletState extends State<_Tablet> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Text("Accounts Report"),
+        title: Text(tr.accountsReport),
         actions: [
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -591,7 +552,7 @@ class _TabletState extends State<_Tablet> {
                 runSpacing: 8,
                 children: [
                   Chip(
-                    label: Text("Active Filters"),
+                    label: Text(tr.activeFilters),
                     backgroundColor: color.primary,
                     labelStyle: TextStyle(color: color.onPrimary),
                   ),
@@ -664,34 +625,17 @@ class _TabletState extends State<_Tablet> {
               ),
             ),
 
-          // Header and list (similar to mobile but with adjusted widths)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            decoration: BoxDecoration(
-              color: color.primary,
-            ),
-            child: Row(
-              children: [
-                Expanded(child: Text(tr.accounts, style: TextStyle(color: color.surface))),
-                Expanded(
-                  child: Text(tr.ownerInformation, style: TextStyle(color: color.surface)),
-                ),
-                SizedBox(
-                  width: 120,
-                  child: Text(tr.accountLimit, style: TextStyle(color: color.surface)),
-                ),
-                SizedBox(
-                  width: 100,
-                  child: Text(tr.status, style: TextStyle(color: color.surface)),
-                ),
-              ],
-            ),
-          ),
-
+          // List with MobileInfoCard for tablet (can use grid layout for better tablet experience)
           Expanded(
             child: BlocBuilder<AccountsReportBloc, AccountsReportState>(
               builder: (context, state) {
+                if(state is AccountsReportInitial){
+                  return NoDataWidget(
+                    title: "Accounts Report",
+                    message: "Apply filters to see accounts",
+                    enableAction: false,
+                  );
+                }
                 if (state is AccountsReportLoadingState) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -714,68 +658,54 @@ class _TabletState extends State<_Tablet> {
                       },
                     );
                   }
-                  return ListView.builder(
+
+                  // Use GridView for tablet for better space utilization
+                  return GridView.builder(
+                    padding: const EdgeInsets.all(8),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 1.6,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
                     itemCount: state.accounts.length,
                     itemBuilder: (context, index) {
                       final acc = state.accounts[index];
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
+
+                      // Create info items for the card
+                      final infoItems = [
+                        MobileInfoItem(
+                          icon: Icons.account_balance_wallet,
+                          text: acc.creditLimit.toAmount(),
                         ),
-                        decoration: BoxDecoration(
-                          color: index.isOdd
-                              ? color.primary.withValues(alpha: .05)
-                              : Colors.transparent,
+                        MobileInfoItem(
+                          icon: Icons.business,
+                          text: acc.accNumber.toString(),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    acc.accName ?? "",
-                                    style: TextStyle(color: color.onSurface),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Wrap(
-                                    spacing: 5,
-                                    children: [
-                                      ZCover(
-                                        child: Text(
-                                          acc.accNumber.toString(),
-                                          style: TextStyle(color: color.outline),
-                                        ),
-                                      ),
-                                      ZCover(
-                                        child: Text(
-                                          acc.ccyName.toString(),
-                                          style: TextStyle(color: color.outline),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(acc.ownerName ?? ""),
-                            ),
-                            SizedBox(
-                              width: 120,
-                              child: Text(acc.creditLimit.toAmount()),
-                            ),
-                            SizedBox(
-                              width: 100,
-                              child: StatusBadge(
-                                trueValue: tr.active,
-                                falseValue: tr.blocked,
-                                status: acc.status == "Active" ? 1 : 0,
-                              ),
-                            ),
-                          ],
+                        MobileInfoItem(
+                          icon: Icons.currency_exchange,
+                          text: acc.ccyName ?? '',
                         ),
+                      ];
+
+                      // Create status for the card
+                      final accountStatus = MobileStatus(
+                        label: acc.status == "Active" ? tr.active : tr.blocked,
+                        color: acc.status == "Active"
+                            ? Colors.green
+                            : Colors.red,
+                        backgroundColor: acc.status == "Active"
+                            ? Colors.green.withValues(alpha: .12)
+                            : Colors.red.withValues(alpha: .12),
+                      );
+
+                      return MobileInfoCard(
+                        title: acc.accName ?? "",
+                        subtitle: acc.ownerName,
+                        infoItems: infoItems,
+                        status: accountStatus,
+                        showActions: false, // Disable the View Details button
+                        // No onTap, so it won't be clickable
                       );
                     },
                   );
@@ -933,7 +863,7 @@ class _DesktopState extends State<_Desktop> {
                 spacing: 8,
                 runSpacing: 4,
                 children: [
-                  Text("Active Filters", style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(tr.activeFilters, style: TextStyle(fontWeight: FontWeight.bold)),
                   if (searchController.text.isNotEmpty)
                     Chip(
                       label: Text("${tr.search}: ${searchController.text}"),
@@ -958,6 +888,7 @@ class _DesktopState extends State<_Desktop> {
               ),
             ),
 
+          // Desktop header (keep table view for desktop)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
@@ -982,6 +913,8 @@ class _DesktopState extends State<_Desktop> {
               ],
             ),
           ),
+
+          // Desktop list (keep table view for desktop)
           Expanded(
             child: BlocBuilder<AccountsReportBloc, AccountsReportState>(
               builder: (context, state) {

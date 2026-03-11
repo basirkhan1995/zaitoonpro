@@ -942,5 +942,8 @@
   "subscriptionExpired": "Subscription Expired",
   "subscriptionExpiredContact": "Your subscription has expired. Please contact Zaitoon Technology to renew your subscription.",
   "noSubscriptionContact": "You don't have an active subscription. Please contact Zaitoon Technology to activate one.",
-  "noSubscription": "No Subscription"
+  "noSubscription": "No Subscription",
+  "totalCashBalancesAllBranch": "Total Cash Balances - All Branches",
+  "activeFilters": "Active Filters",
+  "accountsReport": "Accounts Report"
 }

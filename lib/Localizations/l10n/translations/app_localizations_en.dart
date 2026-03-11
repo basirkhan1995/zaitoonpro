@@ -2852,4 +2852,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noSubscription => 'No Subscription';
+
+  @override
+  String get totalCashBalancesAllBranch => 'Total Cash Balances - All Branches';
+
+  @override
+  String get activeFilters => 'Active Filters';
+
+  @override
+  String get accountsReport => 'Accounts Report';
 }

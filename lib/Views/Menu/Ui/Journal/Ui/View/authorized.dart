@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/znavigator.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchGLAT/Ui/glat_view.dart';
@@ -109,6 +110,8 @@ class _MobileState extends State<_Mobile> {
     });
   }
 
+  bool isSearch = false;
+
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -123,10 +126,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => OrderTxnView(reference: state.data.trnReference ?? ""),
-              );
+              ZNavigator.goto(OrderTxnView(reference: state.data.trnReference ?? ""));
             } else if (state is OrderTxnErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -148,10 +148,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-              );
+              ZNavigator.goto(TrptView(reference: state.trpt.shdTrnRef ?? ""));
             } else if (state is TrptErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -173,10 +170,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => GlatView(),
-              );
+              ZNavigator.goto(GlatView());
             } else if (state is GlatErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -202,10 +196,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => FetchAtatView(),
-              );
+             ZNavigator.goto(FetchAtatView());
             } else if (state is FetchATATErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -231,10 +222,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => TxnReferenceView(),
-              );
+              ZNavigator.goto(TxnReferenceView());
             } else if (state is TxnReferenceErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -264,6 +252,14 @@ class _MobileState extends State<_Mobile> {
               centerTitle: false,
               actions: [
                 IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      isSearch =! isSearch;
+                    });
+                  },
+                ),
+                IconButton(
                   icon: const Icon(Icons.refresh_rounded),
                   onPressed: () {
                     context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('auth'));
@@ -274,12 +270,13 @@ class _MobileState extends State<_Mobile> {
             body: Column(
               children: [
                 // Search Bar
+                if(isSearch)
                 Padding(
                   padding: const EdgeInsets.all(8),
                   child: ZSearchField(
                     icon: Icons.search_rounded,
                     controller: searchController,
-                    hint: "${tr.search} ${tr.transactions.toLowerCase()}...",
+                    hint: "${tr.search} ${tr.transactions.toLowerCase()}",
                     onChanged: (_) => setState(() {}),
                     title: "",
                   ),
@@ -820,7 +817,6 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
   final Map<String, bool> _copiedStates = {};
   bool _isLoadingDialog = false;
@@ -1313,9 +1309,6 @@ class _TabletState extends State<_Tablet> {
     });
   }
 }
-
-
-
 
 class _Desktop extends StatefulWidget {
   const _Desktop();

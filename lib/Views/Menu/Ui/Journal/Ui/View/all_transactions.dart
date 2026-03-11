@@ -110,6 +110,8 @@ class _MobileState extends State<_Mobile> {
     });
   }
 
+  bool isSearch = false;
+
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -290,6 +292,14 @@ class _MobileState extends State<_Mobile> {
               ),
               centerTitle: false,
               actions: [
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      isSearch =! isSearch;
+                    });
+                  },
+                ),
                 // Refresh button
                 IconButton(
                   icon: const Icon(Icons.refresh_rounded),
@@ -297,11 +307,13 @@ class _MobileState extends State<_Mobile> {
                     context.read<TransactionsBloc>().add(LoadAllTransactionsEvent('all'));
                   },
                 ),
+
               ],
             ),
             body: Column(
               children: [
                 // Search Bar - Sticky at top
+                if(isSearch)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 8),
                   child: ZSearchField(

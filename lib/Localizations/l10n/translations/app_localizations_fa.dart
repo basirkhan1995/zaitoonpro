@@ -2850,4 +2850,23 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get accountsReport => 'گزارش حسابها';
+
+  @override
+  String get editProfile => 'بروزرسانی پروفایل';
+
+  @override
+  String get workInformation => 'معلومات شغل';
+
+  @override
+  String get memberSince => 'عضویت';
+
+  @override
+  String get securityTitle => 'امنیت';
+
+  @override
+  String get passwordChangeHint =>
+      'رمز عبور خود را به‌طور منظم به‌روزرسانی کنید';
+
+  @override
+  String get logoutHint => 'از حساب کاربری خود خارج شوید';
 }

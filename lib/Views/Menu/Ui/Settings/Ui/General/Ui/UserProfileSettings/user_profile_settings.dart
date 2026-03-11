@@ -195,60 +195,7 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            // Header with title and edit button in a row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Profile Information',
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                if (!isEditing)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withAlpha(20),
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: _toggleEdit,
-                        borderRadius: BorderRadius.circular(5),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.edit_outlined,
-                                size: 18,
-                                color: theme.colorScheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Edit Profile',
-                                style: TextStyle(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-      
-            const SizedBox(height: 32),
-      
+
             // Profile Photo and Basic Info - Aligned to left
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -309,7 +256,7 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
                     children: [
                       Text(
                         loginData.usrFullName ?? 'No Name',
-                        style: theme.textTheme.titleLarge?.copyWith(
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -329,25 +276,60 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
                         ),
                       ),
                       const SizedBox(height: 2),
-      
+                      if (!isEditing)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primary.withAlpha(20),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: _toggleEdit,
+                              borderRadius: BorderRadius.circular(5),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.edit_outlined,
+                                      size: 18,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      AppLocalizations.of(context)!.editProfile,
+                                      style: TextStyle(
+                                        color: theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ),
               ],
             ),
       
-            const SizedBox(height: 32),
-      
+            const SizedBox(height: 15),
+
             // Edit/Save buttons when in edit mode
             if (isEditing)
               Container(
-                margin: const EdgeInsets.only(bottom: 24),
+                margin: const EdgeInsets.only(bottom: 12),
                 child: Row(
                   children: [
                     Expanded(
                       child: ZOutlineButton(
                         onPressed: _toggleEdit,
-      
                         label: Text(AppLocalizations.of(context)!.cancel),
                       ),
                     ),
@@ -399,12 +381,12 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
               ],
             ),
       
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
       
             // Work Information Section
             _buildSection(
               context,
-              title: 'Work Information',
+              title: AppLocalizations.of(context)!.workInformation,
               children: [
                 _buildReadOnlyInfo(
                   context: context,
@@ -416,20 +398,20 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
                 if (loginData.usrEntryDate != null)
                   _buildReadOnlyInfo(
                     context: context,
-                    label: 'Member Since',
+                    label: AppLocalizations.of(context)!.memberSince,
                     icon: Icons.calendar_today_outlined,
                     value: _formatDate(loginData.usrEntryDate!),
                   ),
               ],
             ),
       
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
       
             // Security Section
             if (login.hasPermission(65) ?? false)
             _buildSection(
               context,
-              title: 'Security',
+              title:AppLocalizations.of(context)!.securityTitle,
               children: [
                 _buildActionTile(
                   context,
@@ -437,7 +419,7 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
                   iconColor: theme.colorScheme.primary,
                   backgroundColor: theme.colorScheme.primaryContainer,
                   title: AppLocalizations.of(context)!.changePasswordTitle,
-                  subtitle: 'Update your password regularly',
+                  subtitle: AppLocalizations.of(context)!.passwordChangeHint,
                   onTap: () {
                     showDialog(context: context, builder: (context){
                       return const PasswordSettingsView();
@@ -451,14 +433,14 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
                   iconColor: theme.colorScheme.error,
                   backgroundColor: theme.colorScheme.errorContainer,
                   title: AppLocalizations.of(context)!.logout,
-                  subtitle: 'Sign out from your account',
+                  subtitle: AppLocalizations.of(context)!.logoutHint,
                   onTap: () => _showLogoutDialog(context),
                   showTrailing: false,
                 ),
               ],
             ),
       
-            const SizedBox(height: 32),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -482,17 +464,17 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
             color: theme.colorScheme.onSurface,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
             color: theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: theme.colorScheme.outline.withAlpha(51),
+              color: theme.colorScheme.outline.withAlpha(40),
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(15),
             child: Column(
               children: children,
             ),
@@ -528,7 +510,7 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withAlpha(51),
+            color: theme.colorScheme.primaryContainer.withAlpha(150),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -567,7 +549,7 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
         Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: theme.colorScheme.primaryContainer.withAlpha(51),
+            color: theme.colorScheme.primaryContainer.withAlpha(160),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -620,13 +602,13 @@ class _ProfileDetailsState extends State<_ProfileDetails> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(6),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: backgroundColor.withAlpha(51),
+                  color: backgroundColor.withAlpha(150),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(

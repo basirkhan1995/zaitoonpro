@@ -321,7 +321,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
           bottom: 16,
           child: FloatingActionButton(
             onPressed: () => setState(() => _isPanelVisible = !_isPanelVisible),
-            child: Icon(_isPanelVisible ? Icons.close : Icons.settings),
+            child: Icon(_isPanelVisible ? Icons.close : Icons.settings_rounded),
           ),
         ),
       ],
@@ -330,7 +330,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
 
   Widget _buildMobileHeader(BuildContext context, AppLocalizations locale) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         border: Border(
@@ -345,7 +345,6 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
             icon: const Icon(Icons.clear),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          const Spacer(),
           Text(
             locale.printPreview,
             style: Theme.of(context).textTheme.titleMedium,

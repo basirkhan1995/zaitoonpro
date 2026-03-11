@@ -945,5 +945,11 @@
   "noSubscription": "No Subscription",
   "totalCashBalancesAllBranch": "Total Cash Balances - All Branches",
   "activeFilters": "Active Filters",
-  "accountsReport": "Accounts Report"
+  "accountsReport": "Accounts Report",
+  "editProfile": "Edit Profile",
+  "workInformation": "Work Information",
+  "memberSince": "Member since",
+  "securityTitle": "Security",
+  "passwordChangeHint": "Update your password regularly",
+  "logoutHint": "Sign out from your account"
 }

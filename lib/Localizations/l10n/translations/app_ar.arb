@@ -945,5 +945,11 @@
   "noSubscription": "ګډون نشته",
   "totalCashBalancesAllBranch": "موجودی نقدی - همه شعبات",
   "activeFilters": "فلتر های فعال",
-  "accountsReport": "حسابهانه گزارش"
+  "accountsReport": "حسابهانه گزارش",
+  "editProfile": "بروزرسانی پروفایل",
+  "workInformation": "دنده معلومات",
+  "memberSince": "عضویت",
+  "securityTitle": "امنیت",
+  "passwordChangeHint": "خپل پټنوم په منظم ډول نوي کړئ",
+  "logoutHint": "له خپل حساب څخه ووځئ"
 }

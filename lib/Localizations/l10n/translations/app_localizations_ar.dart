@@ -2854,4 +2854,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountsReport => 'حسابهانه گزارش';
+
+  @override
+  String get editProfile => 'بروزرسانی پروفایل';
+
+  @override
+  String get workInformation => 'دنده معلومات';
+
+  @override
+  String get memberSince => 'عضویت';
+
+  @override
+  String get securityTitle => 'امنیت';
+
+  @override
+  String get passwordChangeHint => 'خپل پټنوم په منظم ډول نوي کړئ';
+
+  @override
+  String get logoutHint => 'له خپل حساب څخه ووځئ';
 }

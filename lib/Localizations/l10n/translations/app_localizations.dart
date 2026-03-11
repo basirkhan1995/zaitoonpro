@@ -5655,6 +5655,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Accounts Report'**
   String get accountsReport;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @workInformation.
+  ///
+  /// In en, this message translates to:
+  /// **'Work Information'**
+  String get workInformation;
+
+  /// No description provided for @memberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get memberSince;
+
+  /// No description provided for @securityTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get securityTitle;
+
+  /// No description provided for @passwordChangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Update your password regularly'**
+  String get passwordChangeHint;
+
+  /// No description provided for @logoutHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out from your account'**
+  String get logoutHint;
 }
 
 class _AppLocalizationsDelegate

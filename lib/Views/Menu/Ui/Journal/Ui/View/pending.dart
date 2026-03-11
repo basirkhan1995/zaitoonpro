@@ -4,6 +4,7 @@ import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
+import 'package:zaitoon_petroleum/Features/Other/znavigator.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
@@ -48,7 +49,6 @@ class _Mobile extends StatefulWidget {
 
 class _MobileState extends State<_Mobile> {
   final Set<String> _selectedRefs = {}; // selecting by trnReference
-  bool _selectionMode = false;
   bool _isLoadingDialog = false;
   String? _loadingRef;
   String? myLocale;
@@ -121,13 +121,14 @@ class _MobileState extends State<_Mobile> {
 
       if (_selectedRefs.contains(ref)) {
         _selectedRefs.remove(ref);
-        if (_selectedRefs.isEmpty) _selectionMode = false;
+        if (_selectedRefs.isEmpty) {}
       } else {
-        _selectionMode = true;
         _selectedRefs.add(ref);
       }
     });
   }
+
+  bool isSearch = false;
 
   @override
   Widget build(BuildContext context) {
@@ -143,10 +144,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => ProjectTxnView(reference: state.txn.transaction?.trnReference ?? ""),
-              );
+              ZNavigator.goto(ProjectTxnView(reference: state.txn.transaction?.trnReference ?? ""),);
             } else if (state is ProjectTxnErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -168,10 +166,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => OrderTxnView(reference: state.data.trnReference ?? ""),
-              );
+              ZNavigator.goto(OrderTxnView(reference: state.data.trnReference ?? ""),);
             } else if (state is OrderTxnErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -193,10 +188,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-              );
+              ZNavigator.goto(TrptView(reference: state.trpt.shdTrnRef ?? ""),);
             } else if (state is TrptErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -218,10 +210,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => GlatView(),
-              );
+              ZNavigator.goto(GlatView());
             } else if (state is GlatErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -243,10 +232,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => FetchAtatView(),
-              );
+              ZNavigator.goto(FetchAtatView());
             } else if (state is FetchATATErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -268,10 +254,7 @@ class _MobileState extends State<_Mobile> {
                 _isLoadingDialog = false;
                 _loadingRef = null;
               });
-              showDialog(
-                context: context,
-                builder: (context) => TxnReferenceView(),
-              );
+              ZNavigator.goto(TxnReferenceView());
             } else if (state is TxnReferenceErrorState) {
               setState(() {
                 _isLoadingDialog = false;
@@ -293,45 +276,16 @@ class _MobileState extends State<_Mobile> {
             appBar: AppBar(
               title: Text(
                 tr.pendingTransactions,
-                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              centerTitle: false,
               actions: [
-                // Selection mode indicator and actions
-                if (_selectionMode)
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${_selectedRefs.length}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: color.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      IconButton(
-                        icon: const Icon(Icons.check_box_rounded),
-                        onPressed: () {
-                          // Show bottom sheet with bulk actions
-                          _showBulkActionsSheet(context, tr);
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () {
-                          setState(() {
-                            _selectionMode = false;
-                            _selectedRefs.clear();
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-
-                // Refresh button (hide in selection mode)
-                if (!_selectionMode)
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    setState(() {
+                      isSearch =! isSearch;
+                    });
+                  },
+                ),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded),
                     onPressed: () {
@@ -343,12 +297,13 @@ class _MobileState extends State<_Mobile> {
             body: Column(
               children: [
                 // Search Bar
+                if(isSearch)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  padding: const EdgeInsets.all(8),
                   child: ZSearchField(
                     icon: Icons.search_rounded,
                     controller: searchController,
-                    hint: "${tr.search} ${tr.pendingTransactions.toLowerCase()}...",
+                    hint: "${tr.search} ${tr.pendingTransactions.toLowerCase()}",
                     onChanged: (_) => setState(() {}),
                     title: "",
                   ),
@@ -363,7 +318,7 @@ class _MobileState extends State<_Mobile> {
                     }
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                       child: Row(
                         children: [
                           Container(
@@ -538,7 +493,7 @@ class _MobileState extends State<_Mobile> {
                           },
                           child: ListView.builder(
                             controller: _scrollController,
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(8),
                             itemCount: filteredList.length,
                             itemBuilder: (context, index) {
                               final txn = filteredList[index];
@@ -578,7 +533,7 @@ class _MobileState extends State<_Mobile> {
               color: Colors.black.withAlpha(100),
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: color.surface,
                     borderRadius: BorderRadius.circular(20),
@@ -605,82 +560,6 @@ class _MobileState extends State<_Mobile> {
               ),
             ),
         ],
-      ),
-    );
-  }
-
-  void _showBulkActionsSheet(BuildContext context, AppLocalizations tr) {
-    final color = Theme.of(context).colorScheme;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: color.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 8),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: color.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                children: [
-                  Text(
-                    '${_selectedRefs.length} itemsSelected}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: color.primary.withAlpha(15),
-                child: Icon(
-                  Icons.check_box_rounded,
-                  color: color.primary,
-                ),
-              ),
-              title: Text(tr.authorize),
-              subtitle: Text("authorizeSelected"),
-              onTap: () {
-                Navigator.pop(context);
-                // Handle authorize action
-              },
-            ),
-            ListTile(
-              leading: CircleAvatar(
-                backgroundColor: Colors.red.withAlpha(15),
-                child: Icon(
-                  Icons.delete_outline_rounded,
-                  color: Colors.red,
-                ),
-              ),
-              title: Text(tr.delete),
-              subtitle: Text("deleteSelected"),
-              onTap: () {
-                Navigator.pop(context);
-                // Handle delete action
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
-        ),
       ),
     );
   }
@@ -737,8 +616,8 @@ class _MobileState extends State<_Mobile> {
     }
 
     return ZCover(
-      margin: const EdgeInsets.only(bottom: 12),
-      radius: 4,
+      margin: const EdgeInsets.only(bottom: 8),
+      radius: 12,
       color: color.surface,
       child: Material(
         color: Colors.transparent,
@@ -762,25 +641,6 @@ class _MobileState extends State<_Mobile> {
                         height: 32,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                    ),
-                  ),
-                ),
-
-              // Selection indicator (small check in corner when selected)
-              if (isSelected && !isLoading)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: color.primary,
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.check_rounded,
-                      size: 14,
-                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -828,7 +688,7 @@ class _MobileState extends State<_Mobile> {
                         ],
                       ),
 
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 8),
 
                       // Reference Number with Copy
                       Row(

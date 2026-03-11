@@ -104,8 +104,6 @@ class _MobileViewState extends State<_MobileView> {
     }
   }
 
-  // All your existing methods here (onCashDepositWithdraw, onCashIncome, onCashExpense, etc.)
-  // Copy all the methods from _DesktopState exactly as they are
   void onCashDepositWithdraw({String? trnType}) {
     // Copy the exact same implementation from _DesktopState
     final locale = AppLocalizations.of(context)!;
@@ -2045,23 +2043,21 @@ class _MobileViewState extends State<_MobileView> {
           builder: (_) => PrintPreviewDialog<TransactionsModel>(
             data: data,
             company: company,
-            buildPreview:
-                ({
+            buildPreview: ({
               required data,
-              required language,
+              required String language,
               required orientation,
               required pageFormat,
             }) {
               return CashFlowTransactionPrint().printPreview(
                 company: company,
-                language: language,
+                language: context.read<LocalizationBloc>().state.languageCode,
                 orientation: orientation,
                 pageFormat: pageFormat,
                 data: data,
               );
             },
-            onPrint:
-                ({
+            onPrint: ({
               required data,
               required language,
               required orientation,
@@ -2081,8 +2077,7 @@ class _MobileViewState extends State<_MobileView> {
                 pages: pages,
               );
             },
-            onSave:
-                ({
+            onSave: ({
               required data,
               required language,
               required orientation,
@@ -2116,8 +2111,6 @@ class _MobileViewState extends State<_MobileView> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showTransactionSheet(context, login),
-        backgroundColor: color.primary,
-        foregroundColor: color.surface,
         child: Icon(Icons.add),
       ),
       body: BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
@@ -2145,58 +2138,48 @@ class _MobileViewState extends State<_MobileView> {
                 getPrinted(data: trState.printTxn!, company: company);
               }
             },
-            child: Stack(
-              children: [
-                // Main Content with Tab Bar
-                BlocBuilder<JournalTabBloc, JournalTabState>(
-                  builder: (context, tabState) {
-                    final tabs = <ZTabItem<JournalTabName>>[
-                      if (login.hasPermission(19) ?? false)
-                        ZTabItem(
-                          value: JournalTabName.allTransactions,
-                          label: locale.allTransactions,
-                          screen: const AllTransactionsView(),
-                        ),
-                      if (login.hasPermission(20) ?? false)
-                        ZTabItem(
-                          value: JournalTabName.authorized,
-                          label: locale.authorizedTransactions,
-                          screen: const AuthorizedTransactionsView(),
-                        ),
-                      if (login.hasPermission(21) ?? false)
-                        ZTabItem(
-                          value: JournalTabName.pending,
-                          label: locale.pendingTransactions,
-                          screen: const PendingTransactionsView(),
-                        ),
-                    ];
+            child: BlocBuilder<JournalTabBloc, JournalTabState>(
+              builder: (context, tabState) {
+                final tabs = <ZTabItem<JournalTabName>>[
+                  if (login.hasPermission(19) ?? false)
+                    ZTabItem(
+                      value: JournalTabName.allTransactions,
+                      label: locale.allTransactions,
+                      screen: const AllTransactionsView(),
+                    ),
+                  if (login.hasPermission(20) ?? false)
+                    ZTabItem(
+                      value: JournalTabName.authorized,
+                      label: locale.authorizedTransactions,
+                      screen: const AuthorizedTransactionsView(),
+                    ),
+                  if (login.hasPermission(21) ?? false)
+                    ZTabItem(
+                      value: JournalTabName.pending,
+                      label: locale.pendingTransactions,
+                      screen: const PendingTransactionsView(),
+                    ),
+                ];
 
-                    final availableValues = tabs.map((tab) => tab.value).toList();
-                    final selected = availableValues.contains(tabState.tab)
-                        ? tabState.tab
-                        : availableValues.first;
+                final availableValues = tabs.map((tab) => tab.value).toList();
+                final selected = availableValues.contains(tabState.tab)
+                    ? tabState.tab
+                    : availableValues.first;
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 80),
-                      child: ZTabContainer<JournalTabName>(
-                        tabs: tabs,
-                        selectedValue: selected,
-                        onChanged: (val) => context.read<JournalTabBloc>().add(JournalOnChangedEvent(val)),
+                return ZTabContainer<JournalTabName>(
+                  tabs: tabs,
+                  selectedValue: selected,
+                  onChanged: (val) => context.read<JournalTabBloc>().add(JournalOnChangedEvent(val)),
 
-                        style: ZTabStyle.rounded,
-                        tabBarPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 3),
-                        borderRadius: 0,
-                        selectedColor: color.primary,
-                        unselectedTextColor: color.secondary,
-                        selectedTextColor: color.surface,
-                        tabContainerColor: color.surface,
-                      ),
-                    );
-                  },
-                ),
-
-
-              ],
+                  style: ZTabStyle.rounded,
+                  tabBarPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  borderRadius: 0,
+                  selectedColor: color.primary,
+                  unselectedTextColor: color.secondary,
+                  selectedTextColor: color.surface,
+                  tabContainerColor: color.surface,
+                );
+              },
             ),
           );
         },
@@ -2212,7 +2195,6 @@ class _MobileViewState extends State<_MobileView> {
     ZDraggableSheet.show(
       context: context,
       title: locale.actions,
-      showCloseButton: true,
       showDragHandle: true,
       initialChildSize: 0.5,
       minChildSize: 0.3,

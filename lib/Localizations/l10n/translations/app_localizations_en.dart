@@ -2861,4 +2861,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountsReport => 'Accounts Report';
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get workInformation => 'Work Information';
+
+  @override
+  String get memberSince => 'Member since';
+
+  @override
+  String get securityTitle => 'Security';
+
+  @override
+  String get passwordChangeHint => 'Update your password regularly';
+
+  @override
+  String get logoutHint => 'Sign out from your account';
 }

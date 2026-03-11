@@ -655,12 +655,12 @@ class _DrawerHomeView extends StatefulWidget {
 }
 class _DrawerHomeViewState extends State<_DrawerHomeView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late MenuName _currentTab;
+  // Removed: late MenuName _currentTab; - Using bloc state instead
 
   @override
   void initState() {
     super.initState();
-    _currentTab = context.read<MenuBloc>().state.tabs;
+    // Removed: _currentTab = context.read<MenuBloc>().state.tabs;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CompanyProfileBloc>().add(LoadCompanyProfileEvent());
     });
@@ -690,7 +690,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
             icon: const Icon(Icons.menu),
             onPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
-          actionsPadding: EdgeInsets.all(8),
+          actionsPadding: const EdgeInsets.all(8),
           title: BlocBuilder<MenuBloc, MenuState>(
             builder: (context, state) {
               return Text(
@@ -938,7 +938,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
       );
     }
 
-    // Projects - Permission
+    // Projects - Permission (commented out)
     // if ((login.hasPermission(46) ?? false)) {
     //   menuItems.add(
     //     _DrawerMenuItem(
@@ -950,7 +950,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
     //   );
     // }
 
-    // Stock/Inventory - Permission 66 (with visibility check)
+    // Stock/Inventory - Permission 51 (with visibility check)
     if ((login.hasPermission(51) ?? false) && visibility.orders) {
       menuItems.add(
         _DrawerMenuItem(
@@ -962,7 +962,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
       );
     }
 
-    // Settings - Permission 57
+    // Settings - Permission 62
     if (login.hasPermission(62) ?? false) {
       menuItems.add(
         _DrawerMenuItem(
@@ -974,7 +974,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
       );
     }
 
-    // Report - Permission 71
+    // Report - Permission 78
     if (login.hasPermission(78) ?? false) {
       menuItems.add(
         _DrawerMenuItem(
@@ -1029,70 +1029,13 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
   }
 
   void _onMenuItemTap(MenuName menuName) {
-    if (_currentTab != menuName) {
-      setState(() {
-        _currentTab = menuName;
-      });
-      context.read<MenuBloc>().add(MenuOnChangedEvent(menuName));
-    }
+    // Update only the bloc - no local state management
+    context.read<MenuBloc>().add(MenuOnChangedEvent(menuName));
+
     // Close drawer on mobile, keep open on tablet
     if (!widget.isTablet) {
       Navigator.pop(context);
     }
-  }
-
-  Widget _getScreenForMenu(MenuName menuName) {
-    switch (menuName) {
-      case MenuName.dashboard:
-        return const DashboardView();
-      case MenuName.projects:
-        return const AllProjectsView();
-      case MenuName.finance:
-        return const FinanceView();
-      case MenuName.journal:
-        return const JournalView();
-      case MenuName.stakeholders:
-        return const IndividualsView();
-      case MenuName.hr:
-        return const HrTabView();
-      case MenuName.transport:
-        return const TransportView();
-      case MenuName.stock:
-        return const StockView();
-      case MenuName.settings:
-        return const SettingsView();
-      case MenuName.report:
-        return const ReportView();
-    }
-  }
-
-  String _getMenuTitle(BuildContext context, MenuName menuName) {
-    switch (menuName) {
-      case MenuName.dashboard:return AppLocalizations.of(context)!.dashboard;
-      case MenuName.finance:return AppLocalizations.of(context)!.finance;
-      case MenuName.journal:return AppLocalizations.of(context)!.journal;
-      case MenuName.stakeholders:return AppLocalizations.of(context)!.stakeholders;
-      case MenuName.hr:return AppLocalizations.of(context)!.hr;
-      case MenuName.transport:return AppLocalizations.of(context)!.transport;
-      case MenuName.projects:return AppLocalizations.of(context)!.projects;
-      case MenuName.stock:return AppLocalizations.of(context)!.stock;
-      case MenuName.settings:return AppLocalizations.of(context)!.settings;
-      case MenuName.report: return AppLocalizations.of(context)!.report;
-    }
-  }
-
-  Uint8List? _getCompanyLogo(CompanyProfileState state) {
-    if (state is CompanyProfileLoadedState) {
-      final base64Logo = state.company.comLogo;
-      if (base64Logo != null && base64Logo.isNotEmpty) {
-        try {
-          return base64Decode(base64Logo);
-        } catch (_) {
-          return null;
-        }
-      }
-    }
-    return null;
   }
 
   void _showProfileDialog(BuildContext context) {
@@ -1106,7 +1049,7 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
         return Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(15),
                 topRight: Radius.circular(15)),
             boxShadow: [
@@ -1183,15 +1126,22 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
                   ],
                 ),
               ),
+
+              // Buttons
               Container(
-                margin: EdgeInsets.all(8),
+                margin: const EdgeInsets.all(8),
                 width: double.infinity,
-                child: ZOutlineButton(
-                  isActive: true,
-                  height: 45,
-                  backgroundHover: Theme.of(context).colorScheme.error,
-                  onPressed: _logout,
-                  label: Text(AppLocalizations.of(context)!.logout),
+                child: Expanded(
+                  child: ZOutlineButton(
+                    isActive: true,
+                    height: 40,
+                    backgroundHover: Theme.of(context).colorScheme.error,
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _logout();
+                    },
+                    label: Text(AppLocalizations.of(context)!.logout),
+                  ),
                 ),
               ),
             ],
@@ -1199,6 +1149,70 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
         );
       },
     );
+  }
+
+  Widget _getScreenForMenu(MenuName menuName) {
+    switch (menuName) {
+      case MenuName.dashboard:
+        return const DashboardView();
+      case MenuName.projects:
+        return const AllProjectsView();
+      case MenuName.finance:
+        return const FinanceView();
+      case MenuName.journal:
+        return const JournalView();
+      case MenuName.stakeholders:
+        return const IndividualsView();
+      case MenuName.hr:
+        return const HrTabView();
+      case MenuName.transport:
+        return const TransportView();
+      case MenuName.stock:
+        return const StockView();
+      case MenuName.settings:
+        return const SettingsView();
+      case MenuName.report:
+        return const ReportView();
+    }
+  }
+
+  String _getMenuTitle(BuildContext context, MenuName menuName) {
+    switch (menuName) {
+      case MenuName.dashboard:
+        return AppLocalizations.of(context)!.dashboard;
+      case MenuName.finance:
+        return AppLocalizations.of(context)!.finance;
+      case MenuName.journal:
+        return AppLocalizations.of(context)!.journal;
+      case MenuName.stakeholders:
+        return AppLocalizations.of(context)!.stakeholders;
+      case MenuName.hr:
+        return AppLocalizations.of(context)!.hr;
+      case MenuName.transport:
+        return AppLocalizations.of(context)!.transport;
+      case MenuName.projects:
+        return AppLocalizations.of(context)!.projects;
+      case MenuName.stock:
+        return AppLocalizations.of(context)!.stock;
+      case MenuName.settings:
+        return AppLocalizations.of(context)!.settings;
+      case MenuName.report:
+        return AppLocalizations.of(context)!.report;
+    }
+  }
+
+  Uint8List? _getCompanyLogo(CompanyProfileState state) {
+    if (state is CompanyProfileLoadedState) {
+      final base64Logo = state.company.comLogo;
+      if (base64Logo != null && base64Logo.isNotEmpty) {
+        try {
+          return base64Decode(base64Logo);
+        } catch (_) {
+          return null;
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -1220,7 +1234,7 @@ class _DrawerMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.symmetric(horizontal: 15),
-      visualDensity: VisualDensity(vertical: -4),
+      visualDensity: VisualDensity(vertical: -3),
       leading: Icon(
         icon,
         color: isSelected
@@ -1244,7 +1258,6 @@ class _DrawerMenuItem extends StatelessWidget {
   }
 }
 
-// Bottom Sheet Detail Row
 class _BottomSheetDetailRow extends StatelessWidget {
   final IconData icon;
   final String text;

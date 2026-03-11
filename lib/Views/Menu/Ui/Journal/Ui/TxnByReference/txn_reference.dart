@@ -86,6 +86,7 @@ class _MobileTxnReferenceViewState extends State<_MobileTxnReferenceView> {
 
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 0,
         title: Text(locale.txnDetails),
         actions: [
           IconButton(
@@ -448,63 +449,57 @@ class _MobileTxnReferenceViewState extends State<_MobileTxnReferenceView> {
   void _getPrint({required TxnByReferenceModel data, required ReportModel company}) {
     showDialog(
       context: context,
-      builder: (_) => Dialog(
-        insetPadding: const EdgeInsets.all(16),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-          child: PrintPreviewDialog<TxnByReferenceModel>(
+      builder: (_) => PrintPreviewDialog<TxnByReferenceModel>(
+        data: data,
+        company: company,
+        buildPreview: ({
+          required data,
+          required language,
+          required orientation,
+          required pageFormat,
+        }) {
+          return TransactionReferencePrintSettings().printPreview(
+            company: company,
+            language: language,
+            orientation: orientation,
+            pageFormat: pageFormat,
+            data: data,
+          );
+        },
+        onPrint: ({
+          required data,
+          required language,
+          required orientation,
+          required pageFormat,
+          required selectedPrinter,
+          required copies,
+          required pages,
+        }) {
+          return TransactionReferencePrintSettings().printDocument(
+            company: company,
+            language: language,
+            orientation: orientation,
+            pageFormat: pageFormat,
+            selectedPrinter: selectedPrinter,
+            data: data,
+            copies: copies,
+            pages: pages,
+          );
+        },
+        onSave: ({
+          required data,
+          required language,
+          required orientation,
+          required pageFormat,
+        }) {
+          return TransactionReferencePrintSettings().createDocument(
             data: data,
             company: company,
-            buildPreview: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return TransactionReferencePrintSettings().printPreview(
-                company: company,
-                language: language,
-                orientation: orientation,
-                pageFormat: pageFormat,
-                data: data,
-              );
-            },
-            onPrint: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-              required selectedPrinter,
-              required copies,
-              required pages,
-            }) {
-              return TransactionReferencePrintSettings().printDocument(
-                company: company,
-                language: language,
-                orientation: orientation,
-                pageFormat: pageFormat,
-                selectedPrinter: selectedPrinter,
-                data: data,
-                copies: copies,
-                pages: pages,
-              );
-            },
-            onSave: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return TransactionReferencePrintSettings().createDocument(
-                data: data,
-                company: company,
-                language: language,
-                orientation: orientation,
-                pageFormat: pageFormat,
-              );
-            },
-          ),
-        ),
+            language: language,
+            orientation: orientation,
+            pageFormat: pageFormat,
+          );
+        },
       ),
     );
   }

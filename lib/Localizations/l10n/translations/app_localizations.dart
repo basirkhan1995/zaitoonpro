@@ -5733,6 +5733,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total OUT'**
   String get totalOut;
+
+  /// No description provided for @allTime.
+  ///
+  /// In en, this message translates to:
+  /// **'All Time'**
+  String get allTime;
+
+  /// No description provided for @thisYear.
+  ///
+  /// In en, this message translates to:
+  /// **'This year'**
+  String get thisYear;
 }
 
 class _AppLocalizationsDelegate

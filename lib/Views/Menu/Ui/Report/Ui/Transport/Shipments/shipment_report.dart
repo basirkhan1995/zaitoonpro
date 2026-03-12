@@ -6,6 +6,7 @@ import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:flutter/services.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Individuals/features/individuals_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Transport/Ui/Drivers/driver_drop.dart';
@@ -15,7 +16,7 @@ import '../../../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../../../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../../Features/Date/z_generic_date.dart';
-import '../../../../../../../Features/Other/utils.dart';
+import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
@@ -830,14 +831,8 @@ class _Desktop extends StatefulWidget {
 }
 
 class _DesktopState extends State<_Desktop> {
-  String fromDate = DateTime.now()
-      .subtract(Duration(days: 7))
-      .toFormattedDate();
-  String toDate = DateTime.now().toFormattedDate();
-  Jalali shamsiFromDate = DateTime.now()
-      .subtract(Duration(days: 7))
-      .toAfghanShamsi;
-  Jalali shamsiToDate = DateTime.now().toAfghanShamsi;
+  late String fromDate;
+  late String toDate;
   final TextEditingController searchController = TextEditingController();
   int? perId;
   int? vehicleId;
@@ -857,6 +852,12 @@ class _DesktopState extends State<_Desktop> {
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final lastMonthEnd = DateTime(now.year, now.month, 0);
+    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+
+    fromDate = lastMonthStart.toFormattedDate();
+    toDate = lastMonthEnd.toFormattedDate();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ShippingReportBloc>().add(ResetShippingReportEvent());
@@ -912,7 +913,6 @@ class _DesktopState extends State<_Desktop> {
           if (perId != null || vehicleId != null || driverId !=null)...[
             ZOutlineButton(
               toolTip: "F5",
-              width: 120,
               icon: Icons.filter_alt_off_outlined,
               onPressed: () {
                 setState(() {
@@ -928,15 +928,13 @@ class _DesktopState extends State<_Desktop> {
           ],
           ZOutlineButton(
             toolTip: "F6",
-            width: 120,
-            icon: FontAwesomeIcons.solidFilePdf,
+            icon: Icons.print,
             onPressed: onPdf,
-            label: Text("PDF"),
+            label: Text(tr.print),
           ),
           SizedBox(width: 8),
           ZOutlineButton(
             toolTip: "F5",
-            width: 120,
             isActive: true,
             icon: Icons.filter_alt,
             onPressed: onRefresh,
@@ -998,27 +996,26 @@ class _DesktopState extends State<_Desktop> {
                 ),
 
                 Expanded(
-                  child: ZDatePicker(
-                    label: tr.fromDate,
-                    value: fromDate,
-                    onDateChanged: (v) {
+                  child: ZRangeDatePicker(
+                    label: tr.selectDate,
+                    initialStartDate: DateTime.tryParse(fromDate),
+                    initialEndDate: DateTime.tryParse(toDate),
+                    startValue: fromDate,
+                    endValue: toDate,
+                    onStartDateChanged: (startDate) {
                       setState(() {
-                        fromDate = v;
-                        shamsiFromDate = v.toAfghanShamsi;
+                        fromDate = startDate;
                       });
                     },
-                  ),
-                ),
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.toDate,
-                    value: toDate,
-                    onDateChanged: (v) {
+                    onEndDateChanged: (endDate) {
                       setState(() {
-                        toDate = v;
-                        shamsiToDate = v.toAfghanShamsi;
+                        toDate = endDate;
                       });
+                      onRefresh();
                     },
+                    disablePastDate: false,
+                    minYear: 2000,
+                    maxYear: 2100,
                   ),
                 ),
               ],
@@ -1039,8 +1036,7 @@ class _DesktopState extends State<_Desktop> {
                 }
                 if (state is ShippingReportInitial) {
                   return NoDataWidget(
-                    imageName: "shipment.png",
-                    title: "Shipments Overview",
+                    title: "Shipments Report",
                     message: "Select filters and generate the report.",
                     enableAction: false,
                   );
@@ -1208,7 +1204,7 @@ class _DesktopState extends State<_Desktop> {
     }
 
     if (shippingList.isEmpty) {
-      Utils.showOverlayMessage(context, message: tr.noData, isError: true);
+      ToastManager.show(context: context, title: tr.noData, message: "No shipment found", type: ToastType.error);
       return;
     }
 

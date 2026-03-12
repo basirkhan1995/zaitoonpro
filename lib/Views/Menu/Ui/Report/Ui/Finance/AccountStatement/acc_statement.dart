@@ -14,6 +14,7 @@ import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizati
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../../../../../Features/Date/z_generic_date.dart';
+import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
@@ -26,7 +27,6 @@ import '../../TransactionRef/transaction_ref.dart';
 import 'PDF/pdf.dart';
 import 'bloc/acc_statement_bloc.dart';
 import 'model/stmt_model.dart';
-import 'package:shamsi_date/shamsi_date.dart';
 import 'package:flutter/services.dart';
 class AccountStatementView extends StatelessWidget {
   const AccountStatementView({super.key});
@@ -521,10 +521,8 @@ class _DesktopState extends State<_Desktop> {
   final formKey = GlobalKey<FormState>();
   Uint8List _companyLogo = Uint8List(0);
   final company = ReportModel();
-  String fromDate = DateTime.now().subtract(Duration(days: 7)).toFormattedDate();
-  String toDate = DateTime.now().toFormattedDate();
-  Jalali shamsiFromDate = DateTime.now().subtract(Duration(days: 7)).toAfghanShamsi;
-  Jalali shamsiToDate = DateTime.now().toAfghanShamsi;
+  late String fromDate;
+  late String toDate;
 
   List<AccountStatementModel> records = [];
   AccountStatementModel? accountStatementModel;
@@ -549,6 +547,12 @@ class _DesktopState extends State<_Desktop> {
   @override
   void initState() {
     myLocale = context.read<LocalizationBloc>().state.languageCode;
+    final now = DateTime.now();
+    final lastMonthEnd = DateTime(now.year, now.month, 0);
+    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+
+    fromDate = lastMonthStart.toFormattedDate();
+    toDate = lastMonthEnd.toFormattedDate();
     WidgetsBinding.instance.addPostFrameCallback((_) {});
     context.read<AccStatementBloc>().add(ResetAccStmtEvent());
     super.initState();
@@ -823,33 +827,29 @@ class _DesktopState extends State<_Desktop> {
 
                           ),
                           SizedBox(
-                            width: 150,
-                            child: ZDatePicker(
-                              label: tr.fromDate,
-                              value: fromDate,
-                              onDateChanged: (v) {
+                            width: 220,
+                            child: ZRangeDatePicker(
+                              label: tr.selectDate,
+                              initialStartDate: DateTime.tryParse(fromDate),
+                              initialEndDate: DateTime.tryParse(toDate),
+                              startValue: fromDate,
+                              endValue: toDate,
+                              onStartDateChanged: (startDate) {
                                 setState(() {
-                                  fromDate = v;
-                                  shamsiFromDate = v.toAfghanShamsi;
+                                  fromDate = startDate;
                                 });
                               },
-                            ),
-                          ),
-
-                          SizedBox(
-                            width: 150,
-                            child: ZDatePicker(
-                              label: tr.toDate,
-                              value: toDate,
-                              onDateChanged: (v) {
+                              onEndDateChanged: (endDate) {
                                 setState(() {
-                                  toDate = v;
-                                  shamsiToDate = v.toAfghanShamsi;
+                                  toDate = endDate;
                                 });
+                                onSubmit();
                               },
+                              disablePastDate: false,
+                              minYear: 2000,
+                              maxYear: 2100,
                             ),
                           ),
-
                         ],
                       ),
                     ),

@@ -2901,4 +2901,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalOut => 'Total OUT';
+
+  @override
+  String get allTime => 'All Time';
+
+  @override
+  String get thisYear => 'This year';
 }

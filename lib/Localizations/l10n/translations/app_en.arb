@@ -958,5 +958,7 @@
   "noProductSelectedTitle": "No Product Selected",
   "noProductSelectedMsg": "Please select a product first to continue.",
   "totalIn": "Total IN",
-  "totalOut": "Total OUT"
+  "totalOut": "Total OUT",
+  "allTime": "All Time",
+  "thisYear": "This year"
 }

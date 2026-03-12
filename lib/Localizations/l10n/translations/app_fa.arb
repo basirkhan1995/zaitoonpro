@@ -958,5 +958,7 @@
   "noProductSelectedTitle": "کالا انتخاب نشده",
   "noProductSelectedMsg": "لطفاً ابتدا یک کالا انتخاب کنید تا ادامه دهید",
   "totalIn": "مجموعه ورودی",
-  "totalOut": "مجموعه خروجی"
+  "totalOut": "مجموعه خروجی",
+  "allTime": "همه وقت",
+  "thisYear": "امسال"
 }

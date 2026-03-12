@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import '../../Localizations/l10n/translations/app_localizations.dart';
-import '../Widgets/button.dart';
 import '../Widgets/outline_button.dart';
 
 class JalaliRange {
@@ -20,6 +19,17 @@ class JalaliRange {
   @override
   String toString() =>
       '${start.year}/${start.month}/${start.day} - ${end.year}/${end.month}/${end.day}';
+}
+
+enum QuickOption {
+  none,
+  today,
+  yesterday,
+  lastWeek,
+  lastMonth,
+  lastYear,
+  thisYear,
+  allTime,
 }
 
 class AfghanDateRangePicker extends StatefulWidget {
@@ -47,10 +57,14 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   final List<String> _weekdays = ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'];
 
   bool _showYearSelector = false;
+  bool _showQuickOptions = true;
   late int _selectedYear;
   Jalali? _startDate;
   Jalali? _endDate;
   late ScrollController _yearScrollController;
+
+  // Track selected quick option
+  QuickOption _selectedQuickOption = QuickOption.none;
 
   @override
   void initState() {
@@ -62,6 +76,103 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     _startDate = _selectedRange.start;
     _endDate = _selectedRange.end;
     _yearScrollController = ScrollController();
+
+    // Determine which quick option matches the initial range
+    _determineInitialQuickOption();
+  }
+
+  void _determineInitialQuickOption() {
+    if (_startDate == null || _endDate == null) {
+      _selectedQuickOption = QuickOption.none;
+      return;
+    }
+
+    // Create Jalali dates without time components for comparison
+    final todayDate = Jalali(_today.year, _today.month, _today.day);
+    final startDateOnly = Jalali(_startDate!.year, _startDate!.month, _startDate!.day);
+    final endDateOnly = Jalali(_endDate!.year, _endDate!.month, _endDate!.day);
+
+    // Check Today
+    if (startDateOnly == todayDate && endDateOnly == todayDate) {
+      _selectedQuickOption = QuickOption.today;
+      return;
+    }
+
+    // Check Yesterday
+    final yesterday = _getYesterday(todayDate);
+    if (startDateOnly == yesterday && endDateOnly == yesterday) {
+      _selectedQuickOption = QuickOption.yesterday;
+      return;
+    }
+
+    // Check Last Week
+    final lastWeekEnd = _getYesterday(todayDate);
+    final lastWeekStart = _getDaysAgo(todayDate, 7);
+    if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
+      _selectedQuickOption = QuickOption.lastWeek;
+      return;
+    }
+
+    // Check Last Month
+    final lastMonthEnd = _getLastDayOfPreviousMonth(_currentMonth);
+    final lastMonthStart = Jalali(_today.year, _today.month - 1, 1);
+    if (startDateOnly == lastMonthStart && endDateOnly == lastMonthEnd) {
+      _selectedQuickOption = QuickOption.lastMonth;
+      return;
+    }
+
+    // Check Last Year
+    final lastYearEnd = Jalali(_today.year - 1, 12, _getMonthLength(_today.year - 1, 12));
+    final lastYearStart = Jalali(_today.year - 1, 1, 1);
+    if (startDateOnly == lastYearStart && endDateOnly == lastYearEnd) {
+      _selectedQuickOption = QuickOption.lastYear;
+      return;
+    }
+
+    // Check This Year
+    final thisYearStart = Jalali(_today.year, 1, 1);
+    if (startDateOnly == thisYearStart && endDateOnly == todayDate) {
+      _selectedQuickOption = QuickOption.thisYear;
+      return;
+    }
+
+    // Check All Time
+    final allTimeStart = Jalali(1380, 1, 1); // Corresponds to 2001-2002
+    if (startDateOnly == allTimeStart && endDateOnly == todayDate) {
+      _selectedQuickOption = QuickOption.allTime;
+      return;
+    }
+
+    _selectedQuickOption = QuickOption.none;
+  }
+
+  Jalali _getYesterday(Jalali date) {
+    final gregorian = date.toGregorian();
+    final yesterdayGreg = gregorian.toDateTime().subtract(const Duration(days: 1));
+    return Jalali.fromGregorian(
+        Gregorian(yesterdayGreg.year, yesterdayGreg.month, yesterdayGreg.day)
+    );
+  }
+
+  Jalali _getDaysAgo(Jalali date, int days) {
+    final gregorian = date.toGregorian();
+    final daysAgoGreg = gregorian.toDateTime().subtract(Duration(days: days));
+    return Jalali.fromGregorian(
+        Gregorian(daysAgoGreg.year, daysAgoGreg.month, daysAgoGreg.day)
+    );
+  }
+
+  Jalali _getLastDayOfPreviousMonth(Jalali date) {
+    if (date.month == 1) {
+      return Jalali(date.year - 1, 12, _getMonthLength(date.year - 1, 12));
+    } else {
+      return Jalali(date.year, date.month - 1, _getMonthLength(date.year, date.month - 1));
+    }
+  }
+
+  int _getMonthLength(int year, int month) {
+    final jalali = Jalali(year, month, 1);
+    return jalali.monthLength;
   }
 
   @override
@@ -97,15 +208,15 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     final text = _formatRange(start, end);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 5),
-
       child: Text(
         text,
         style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
           fontFamily: "NotoNaskh",
           color: Theme.of(context).colorScheme.primary.withValues(alpha: .7),
         ),
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -118,6 +229,8 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
 
   void _onDateTapped(Jalali date) {
     setState(() {
+      _selectedQuickOption = QuickOption.none; // Reset quick option when manually selecting
+
       if (_startDate == null || (_startDate != null && _endDate != null)) {
         _startDate = date;
         _endDate = null;
@@ -143,11 +256,11 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     }
     _selectedYear = _selectedRange.start.year;
     widget.onRangeSelected(_selectedRange);
-    //Navigator.of(context).pop();
   }
 
   void _selectToday() {
     setState(() {
+      _selectedQuickOption = QuickOption.today;
       _startDate = _today;
       _endDate = _today;
       _currentMonth = Jalali(_today.year, _today.month, 1);
@@ -155,11 +268,84 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     });
   }
 
+  void _selectYesterday() {
+    final yesterday = _getYesterday(_today);
+    setState(() {
+      _selectedQuickOption = QuickOption.yesterday;
+      _startDate = yesterday;
+      _endDate = yesterday;
+      _currentMonth = Jalali(yesterday.year, yesterday.month, 1);
+      _selectedYear = yesterday.year;
+    });
+  }
+
+  void _selectLastWeek() {
+    final end = _getYesterday(_today);
+    final start = _getDaysAgo(_today, 7);
+    setState(() {
+      _selectedQuickOption = QuickOption.lastWeek;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(start.year, start.month, 1);
+      _selectedYear = start.year;
+    });
+  }
+
+  void _selectThisYear() {
+    final start = Jalali(_today.year, 1, 1);
+    final end = _today;
+    setState(() {
+      _selectedQuickOption = QuickOption.thisYear;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(_today.year, _today.month, 1);
+      _selectedYear = _today.year;
+    });
+  }
+
+  void _selectAllTime() {
+    final start = Jalali(1380, 1, 1); // Corresponds to 2001-2002
+    final end = _today;
+    setState(() {
+      _selectedQuickOption = QuickOption.allTime;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(_today.year, _today.month, 1);
+      _selectedYear = _today.year;
+    });
+  }
+
+  void _selectLastMonth() {
+    final lastMonthEnd = _getLastDayOfPreviousMonth(_currentMonth);
+    final lastMonthStart = Jalali(_today.year, _today.month - 1, 1);
+    setState(() {
+      _selectedQuickOption = QuickOption.lastMonth;
+      _startDate = lastMonthStart;
+      _endDate = lastMonthEnd;
+      _currentMonth = Jalali(lastMonthStart.year, lastMonthStart.month, 1);
+      _selectedYear = lastMonthStart.year;
+    });
+  }
+
+  void _selectLastYear() {
+    final lastYearEnd = Jalali(_today.year - 1, 12, _getMonthLength(_today.year - 1, 12));
+    final lastYearStart = Jalali(_today.year - 1, 1, 1);
+    setState(() {
+      _selectedQuickOption = QuickOption.lastYear;
+      _startDate = lastYearStart;
+      _endDate = lastYearEnd;
+      _currentMonth = Jalali(lastYearStart.year, lastYearStart.month, 1);
+      _selectedYear = lastYearStart.year;
+    });
+  }
+
   void _clearSelection() {
     setState(() {
+      _selectedQuickOption = QuickOption.none;
       _startDate = null;
       _endDate = null;
     });
+    Navigator.of(context).pop();
   }
 
   void _navigateMonth(int offset) {
@@ -221,6 +407,49 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     return monthNames[month] ?? '';
   }
 
+  bool _isQuickOptionSelected(QuickOption option) {
+    return _selectedQuickOption == option;
+  }
+
+  Widget _buildQuickOption({
+    required String label,
+    required VoidCallback onTap,
+    required QuickOption option,
+  }) {
+    final color = Theme.of(context).colorScheme;
+    final isSelected = _isQuickOptionSelected(option);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: InkWell(
+        onTap: () {
+          onTap();
+          setState(() {});
+        },
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: isSelected ? color.primary.withValues(alpha: .1) : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(
+              color: isSelected ? color.primary.withValues(alpha: .1) : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? color.primary : color.onSurface,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
@@ -231,9 +460,9 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
-        width: _showYearSelector? 500 : 400,
-        height: 500,
-        padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+        width: _showYearSelector ? 650 : (_showQuickOptions ? 500 : 400),
+        height: 460,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: color.surface,
           borderRadius: BorderRadius.circular(5),
@@ -241,16 +470,79 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
             // Calendar + Year Selector Row
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Quick Options Section (Left Side)
+                  if (_showQuickOptions)
+                    Container(
+                      width: 140,
+                      padding: const EdgeInsets.all(5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: Column(
+                                children: [
+                                  _buildQuickOption(
+                                    label: locale.today,
+                                    onTap: _selectToday,
+                                    option: QuickOption.today,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.yesterday,
+                                    onTap: _selectYesterday,
+                                    option: QuickOption.yesterday,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.lastWeek,
+                                    onTap: _selectLastWeek,
+                                    option: QuickOption.lastWeek,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.lastMonth,
+                                    onTap: _selectLastMonth,
+                                    option: QuickOption.lastMonth,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.lastYear,
+                                    onTap: _selectLastYear,
+                                    option: QuickOption.lastYear,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.thisYear,
+                                    onTap: _selectThisYear,
+                                    option: QuickOption.thisYear,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.allTime,
+                                    onTap: _selectAllTime,
+                                    option: QuickOption.allTime,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
 
-                  // Year selector panel on right
-                  if (_showYearSelector)
-                  SizedBox(
+                  if (_showQuickOptions) ...[
+                    const SizedBox(width: 5),
+                    SizedBox(
+                      height: double.infinity,
+                      child: VerticalDivider(width: 1, color: color.outlineVariant),
+                    ),
+                    const SizedBox(width: 5),
+                  ],
+
+                  // Year selector panel
+                  if (_showYearSelector) ...[
+                    const SizedBox(width: 10),
+                    SizedBox(
                       width: 130,
                       height: double.infinity,
                       child: GridView.builder(
@@ -269,7 +561,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                           return InkWell(
                             onTap: () => _changeYear(year),
                             child: Container(
-
                               decoration: BoxDecoration(
                                 color: selected ? color.primary : color.surface,
                                 borderRadius: BorderRadius.circular(3),
@@ -289,131 +580,184 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                         },
                       ),
                     ),
-                  SizedBox(width: 5),
-                  if(_showYearSelector)
-                    VerticalDivider(width: 1, color: color.outlineVariant),
-                  if(_showYearSelector)
-                    SizedBox(width: 10),
+                    const SizedBox(width: 10),
+                    SizedBox(
+                      height: double.infinity,
+                      child: VerticalDivider(width: 1, color: color.outlineVariant),
+                    ),
+                    const SizedBox(width: 10),
+                  ],
+
                   // Calendar Panel
                   Expanded(
                     child: Column(
                       children: [
-                        // Selected Range display
-                        Row(
-                          children: [
-                            _buildBorderedRangeText(_startDate, _endDate),
-                          ],
-                        ),
-
-                        // Month navigation + weekday names
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                setState(() {
-                                  _showYearSelector = !_showYearSelector;
-                                  if (_showYearSelector) _scrollToSelectedYear();
-                                });
-                              },
-                              child: Text(
-                                '${_getAfghanMonthName(_currentMonth.month)} | ${_toPersianNumbers(_selectedYear.toString())}',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: color.primary,
-                                ),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: Icon(Icons.chevron_left),
-                                  onPressed: () => _navigateMonth(-1),
-                                ),
-                                IconButton(
-                                  icon: Icon(Icons.chevron_right),
-                                  onPressed: () => _navigateMonth(1),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        // Weekday headers
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: _weekdays
-                              .map((d) => Expanded(
-                            child: Center(
-                              child: Text(
-                                d,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: color.primary.withAlpha(180),
-                                ),
-                              ),
-                            ),
-                          ))
-                              .toList(),
-                        ),
-                        const SizedBox(height: 6),
-                        // Calendar Grid
                         Expanded(
-                          child: GridView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            padding: EdgeInsets.zero,
-                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 7,
-                              childAspectRatio: 1,
-                            ),
-                            itemCount: firstWeekdayOfMonth + monthLength - 1,
-                            itemBuilder: (context, index) {
-                              if (index < firstWeekdayOfMonth - 1) return const SizedBox.shrink();
-                              final day = index - firstWeekdayOfMonth + 2;
-                              final date = Jalali(_currentMonth.year, _currentMonth.month, day);
+                          child: Column(
+                            children: [
+                              // Selected Range display with toggle button
+                              Padding(
+                                padding: const EdgeInsets.all(3.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: _buildBorderedRangeText(_startDate, _endDate),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        _showQuickOptions ? Icons.menu_open : Icons.menu,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _showQuickOptions = !_showQuickOptions;
+                                        });
+                                      },
+                                      tooltip: 'Toggle quick options',
+                                    ),
+                                  ],
+                                ),
+                              ),
 
-                              final isStartDate = _startDate != null && _isSameDate(date, _startDate!);
-                              final isEndDate = _endDate != null && _isSameDate(date, _endDate!);
-                              final isInRange = _startDate != null && _endDate != null &&
-                                  date.toGregorian().toDateTime().isAfter(_startDate!.toGregorian().toDateTime().subtract(const Duration(days: 1))) &&
-                                  date.toGregorian().toDateTime().isBefore(_endDate!.toGregorian().toDateTime().add(const Duration(days: 1)));
+                              // Month navigation + weekday names
+                              Padding(
+                                padding: const EdgeInsets.all(3.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          _showYearSelector = !_showYearSelector;
+                                          if (_showYearSelector) _scrollToSelectedYear();
+                                        });
+                                      },
+                                      child: Text(
+                                        '${_getAfghanMonthName(_currentMonth.month)} | ${_toPersianNumbers(_selectedYear.toString())}',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: color.primary,
+                                        ),
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.chevron_left),
+                                          onPressed: () => _navigateMonth(-1),
+                                        ),
+                                        IconButton(
+                                          icon: Icon(Icons.chevron_right),
+                                          onPressed: () => _navigateMonth(1),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 6),
 
-                              Color? background;
-                              BoxShape shape = BoxShape.rectangle;
-                              if (isStartDate || isEndDate) { background = color.primary; shape = BoxShape.circle; }
-                              else if (isInRange) {
-                                background = color.primary.withAlpha(50);
-                              }
-                              final isToday = _isSameDate(date, _today);
-
-                              return GestureDetector(
-                                onTap: () => _onDateTapped(date),
-                                child: Container(
-                                  margin: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: background,
-                                    shape: shape,
-                                    border: isToday ? Border.all(color: color.primary, width: 1) : null,
-                                  ),
+                              // Weekday headers
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                children: _weekdays
+                                    .map((d) => Expanded(
                                   child: Center(
                                     child: Text(
-                                      _toPersianNumbers(day.toString()),
+                                      d,
                                       style: TextStyle(
-                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
-                                        color: isStartDate || isEndDate
-                                            ? color.surface
-                                            : isToday
-                                            ? color.primary
-                                            : color.secondary,
+                                        fontSize: 16,
+                                        color: color.primary.withAlpha(180),
                                       ),
                                     ),
                                   ),
+                                ))
+                                    .toList(),
+                              ),
+                              const SizedBox(height: 6),
+
+                              // Calendar Grid
+                              Expanded(
+                                child: GridView.builder(
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  padding: EdgeInsets.zero,
+                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: 7,
+                                    childAspectRatio: 1,
+                                  ),
+                                  itemCount: firstWeekdayOfMonth + monthLength - 1,
+                                  itemBuilder: (context, index) {
+                                    if (index < firstWeekdayOfMonth - 1) return const SizedBox.shrink();
+                                    final day = index - firstWeekdayOfMonth + 2;
+                                    final date = Jalali(_currentMonth.year, _currentMonth.month, day);
+
+                                    final isStartDate = _startDate != null && _isSameDate(date, _startDate!);
+                                    final isEndDate = _endDate != null && _isSameDate(date, _endDate!);
+                                    final isInRange = _startDate != null && _endDate != null &&
+                                        date.toGregorian().toDateTime().isAfter(_startDate!.toGregorian().toDateTime().subtract(const Duration(days: 1))) &&
+                                        date.toGregorian().toDateTime().isBefore(_endDate!.toGregorian().toDateTime().add(const Duration(days: 1)));
+
+                                    Color? background;
+                                    BoxShape shape = BoxShape.rectangle;
+                                    if (isStartDate || isEndDate) {
+                                      background = color.primary;
+                                      shape = BoxShape.circle;
+                                    } else if (isInRange) {
+                                      background = color.primary.withAlpha(20);
+                                    }
+                                    final isToday = _isSameDate(date, _today);
+
+                                    return GestureDetector(
+                                      onTap: () => _onDateTapped(date),
+                                      child: Container(
+                                        margin: const EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                          color: background,
+                                          shape: shape,
+                                          border: isToday ? Border.all(color: color.primary, width: 1) : null,
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            _toPersianNumbers(day.toString()),
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: isStartDate || isEndDate
+                                                  ? color.surface
+                                                  : isToday
+                                                  ? color.primary
+                                                  : color.secondary,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
-                              );
-                            },
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Footer buttons - positioned at bottom right
+                        Padding(
+                          padding: const EdgeInsets.only(right: 8, bottom: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              ZOutlineButton(
+                                onPressed: _clearSelection,
+                                label: Text(locale.cancel),
+                              ),
+                              const SizedBox(width: 8),
+                              ZOutlineButton(
+                                isActive: true,
+                                onPressed: (_startDate != null) ? _confirmSelection : null,
+                                label: Text(locale.selectKeyword),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -423,35 +767,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
               ),
             ),
 
-            const SizedBox(height: 10),
-            // Footer buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ZOutlineButton(
-                    height: 40,
-                    onPressed: _clearSelection,
-                    label: Text(locale.clear),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ZOutlineButton(
-                    height: 40,
-                    onPressed: _selectToday,
-                    label: Text(locale.today),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ZButton(
-                    height: 40,
-                    onPressed: (_startDate != null) ? _confirmSelection : null,
-                    label: Text(locale.selectKeyword),
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
       ),

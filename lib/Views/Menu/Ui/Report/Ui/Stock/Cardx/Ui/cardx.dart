@@ -14,6 +14,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/StockAvailabilit
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../../../../../../../Features/Date/z_generic_date.dart';
+import '../../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/z_dragable_sheet.dart';
@@ -564,8 +565,13 @@ class _DesktopState extends State<_Desktop> {
   void initState() {
     super.initState();
     baseCcy = _getBaseCurrency();
-    fromDate = DateTime.now().subtract(Duration(days: 30)).toFormattedDate();
-    toDate = DateTime.now().toFormattedDate();
+
+    final now = DateTime.now();
+    final lastMonthEnd = DateTime(now.year, now.month, 0);
+    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+
+    fromDate = lastMonthStart.toFormattedDate();
+    toDate = lastMonthEnd.toFormattedDate();
     myLocale = context.read<LocalizationBloc>().state.languageCode;
     context.read<StockRecordBloc>().add(ResetStockRecordEvent());
   }
@@ -585,6 +591,22 @@ class _DesktopState extends State<_Desktop> {
       return "";
     } catch (e) {
       return "";
+    }
+  }
+
+  void onSelection(){
+    if(productId !=null && _productController.text.isNotEmpty){
+      context.read<StockRecordBloc>().add(LoadStockRecordEvent(
+          fromDate: fromDate,
+          toDate: toDate,
+          productId: productId,
+          storageId: storageId,
+          partyId: partyId
+      ));
+    }else{
+      ToastManager.show(context: context,
+          title: AppLocalizations.of(context)!.noProductSelectedTitle,
+          message: AppLocalizations.of(context)!.noProductSelectedMsg, type: ToastType.info);
     }
   }
 
@@ -785,33 +807,34 @@ class _DesktopState extends State<_Desktop> {
                             message: tr.noProductSelectedMsg, type: ToastType.info);
                       }
                     },
-                    initiallySelected: StockMovementType.all, // Default to show both
+                    initiallySelected: StockMovementType.all,
                   ),
                 ),
                 Expanded(
-                  flex: 2,
-                  child: ZDatePicker(
-                    label: tr.fromDate,
-                    value: fromDate,
-                    onDateChanged: (v) {
+                  flex: 3,
+                  child: ZRangeDatePicker(
+                    label: tr.selectDate,
+                    initialStartDate: DateTime.tryParse(fromDate),
+                    initialEndDate: DateTime.tryParse(toDate),
+                    startValue: fromDate,
+                    endValue: toDate,
+                    onStartDateChanged: (startDate) {
                       setState(() {
-                        fromDate = v;
+                        fromDate = startDate;
                       });
                     },
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: ZDatePicker(
-                    label: tr.toDate,
-                    value: toDate,
-                    onDateChanged: (v) {
+                    onEndDateChanged: (endDate) {
                       setState(() {
-                        toDate = v;
+                        toDate = endDate;
                       });
+                      onSelection();
                     },
+                    disablePastDate: false,
+                    minYear: 2000,
+                    maxYear: 2100,
                   ),
                 ),
+
               ],
             ),
           ),

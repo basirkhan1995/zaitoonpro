@@ -2891,4 +2891,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get totalOut => 'مجموعه خروجی';
+
+  @override
+  String get allTime => 'همه وقت';
+
+  @override
+  String get thisYear => 'امسال';
 }

@@ -7,6 +7,7 @@ import 'package:zaitoon_petroleum/Features/Date/z_generic_date.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
 import 'package:zaitoon_petroleum/Features/Other/shortcut.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/Bloc/localizations_bloc.dart';
@@ -19,6 +20,7 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_drop
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/GLStatement/bloc/gl_statement_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/GLStatement/model/gl_statement_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../Features/Other/utils.dart';
@@ -561,10 +563,9 @@ class _DesktopState extends State<_Desktop> {
   final formKey = GlobalKey<FormState>();
   Uint8List _companyLogo = Uint8List(0);
   final company = ReportModel();
-  String fromDate = DateTime.now().toFormattedDate();
-  String toDate = DateTime.now().toFormattedDate();
-  Jalali shamsiFromDate = DateTime.now().toAfghanShamsi;
-  Jalali shamsiToDate = DateTime.now().toAfghanShamsi;
+  late String fromDate;
+  late String toDate;
+
 
   List<GlStatementModel> records = [];
   GlStatementModel? accountStatementModel;
@@ -575,8 +576,16 @@ class _DesktopState extends State<_Desktop> {
   }
   @override
   void initState() {
-    myLocale = context.read<LocalizationBloc>().state.languageCode;
-    context.read<GlStatementBloc>().add(ResetGlStmtEvent());
+    final now = DateTime.now();
+    final lastMonthEnd = DateTime(now.year, now.month, 0);
+    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+    fromDate = lastMonthStart.toFormattedDate();
+    toDate = lastMonthEnd.toFormattedDate();
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      myLocale = context.read<LocalizationBloc>().state.languageCode;
+      context.read<GlStatementBloc>().add(ResetGlStmtEvent());
+    });
+
     super.initState();
   }
 
@@ -655,8 +664,8 @@ class _DesktopState extends State<_Desktop> {
                                 children: [
                                   ZOutlineButton(
                                     width: 100,
-                                    icon: FontAwesomeIcons.filePdf,
-                                    label: Text("PDF"),
+                                    icon: Icons.print,
+                                    label: Text(tr.print),
                                     onPressed: (){
                                       if(formKey.currentState!.validate()){
                                           pdf();
@@ -761,6 +770,7 @@ class _DesktopState extends State<_Desktop> {
                             SizedBox(
                               width: 200,
                               child: BranchDropdown(
+                                  title: tr.branch,
                                   height: 40,
                                   onBranchSelected: (e){
                                     setState(() {
@@ -783,30 +793,40 @@ class _DesktopState extends State<_Desktop> {
                                  },
                               ),
                             ),
+                            if(widget.isSingleDate !=true)
                             SizedBox(
-                              width: 150,
-                              child: ZDatePicker(
-                                label: widget.isSingleDate? tr.date : tr.fromDate,
-                                value: fromDate,
-                                onDateChanged: (v) {
+                              width: 220,
+                              child: ZRangeDatePicker(
+                                label: tr.selectDate,
+                                initialStartDate: DateTime.tryParse(fromDate),
+                                initialEndDate: DateTime.tryParse(toDate),
+                                startValue: fromDate,
+                                endValue: toDate,
+                                onStartDateChanged: (startDate) {
                                   setState(() {
-                                    fromDate = v;
-                                    shamsiFromDate = v.toAfghanShamsi;
+                                    fromDate = startDate;
+                                  });
+                                },
+                                onEndDateChanged: (endDate) {
+                                  setState(() {
+                                    toDate = endDate;
                                   });
                                   onSubmit();
                                 },
+                                disablePastDate: false,
+                                minYear: 2000,
+                                maxYear: 2100,
                               ),
                             ),
-                            if(widget.isSingleDate != true)...[
+                            if(widget.isSingleDate)...[
                               SizedBox(
                                 width: 150,
                                 child: ZDatePicker(
-                                  label: tr.toDate,
-                                  value: toDate,
+                                  label: tr.date,
+                                  value: fromDate,
                                   onDateChanged: (v) {
                                     setState(() {
-                                      toDate = v;
-                                      shamsiToDate = v.toAfghanShamsi;
+                                      fromDate = v;
                                     });
                                     onSubmit();
                                   },
@@ -1086,12 +1106,14 @@ class _DesktopState extends State<_Desktop> {
           currency: currency ?? baseCurrency ?? "",
           branchCode: branchCode,
           accountNumber: accNumber!,
-          fromDate: fromDate,
+          fromDate: widget.isSingleDate? fromDate : fromDate,
           toDate: widget.isSingleDate? fromDate : toDate,
         ),
       );
     }else{
-      Utils.showOverlayMessage(context, message: "Please select an account", isError: true);
+      ToastManager.show(context: context,
+          title: "No Account Selected",
+          message: "Please select an account to continue", type: ToastType.info);
     }
   }
 

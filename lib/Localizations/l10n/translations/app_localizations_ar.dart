@@ -2894,4 +2894,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get totalOut => 'مجموعه خروجی';
+
+  @override
+  String get allTime => 'تلپاتې';
+
+  @override
+  String get thisYear => 'سږکال';
 }

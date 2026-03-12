@@ -958,5 +958,7 @@
   "noProductSelectedTitle": "کالا انتخاب نشده",
   "noProductSelectedMsg": "مهرباني وکړئ لومړی یو محصول انتخاب کړئ ترڅو دوام ورکړئ",
   "totalIn": "مجموعه ورودی",
-  "totalOut": "مجموعه خروجی"
+  "totalOut": "مجموعه خروجی",
+  "allTime": "تلپاتې",
+  "thisYear": "سږکال"
 }

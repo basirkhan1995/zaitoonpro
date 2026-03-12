@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Employees/bloc/employee_bloc.dart';
@@ -288,11 +289,13 @@ class _DesktopState extends State<_Desktop> {
                     title: "",
                   ),
                 ),
+
                 ZOutlineButton(
                     width: 120,
                     icon: Icons.refresh,
                     onPressed: onRefresh,
                     label: Text(tr.refresh)),
+
                 ZOutlineButton(
                     toolTip: 'F1',
                     width: 120,
@@ -306,6 +309,11 @@ class _DesktopState extends State<_Desktop> {
           Expanded(
             child: BlocConsumer<EmployeeBloc, EmployeeState>(
               listener: (context, state) {
+                if(state is EmployeeErrorState){
+                  ToastManager.show(context: context,
+                      title: tr.operationFailedTitle,
+                      message: state.message, type: ToastType.error);
+                }
                 if(state is EmployeeSuccessState){
                   Navigator.of(context).pop();
                 }

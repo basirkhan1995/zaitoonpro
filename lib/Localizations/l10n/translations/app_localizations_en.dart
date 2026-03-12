@@ -2882,4 +2882,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyTransactions => 'Daily Transactions';
+
+  @override
+  String get movement => 'Movement';
+
+  @override
+  String get stockRecord => 'Stock Records';
+
+  @override
+  String get noProductSelectedTitle => 'No Product Selected';
+
+  @override
+  String get noProductSelectedMsg =>
+      'Please select a product first to continue.';
+
+  @override
+  String get totalIn => 'Total IN';
+
+  @override
+  String get totalOut => 'Total OUT';
 }

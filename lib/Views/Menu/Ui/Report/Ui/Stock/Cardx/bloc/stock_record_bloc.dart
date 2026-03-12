@@ -9,10 +9,11 @@ part 'stock_record_state.dart';
 class StockRecordBloc extends Bloc<StockRecordEvent, StockRecordState> {
   final Repositories _repo;
   StockRecordBloc(this._repo) : super(StockRecordInitial()) {
+
     on<LoadStockRecordEvent>((event, emit) async{
       emit(StockRecordLoadingState());
        try{
-         final cardX = await _repo.stockRecord(fromDate: event.fromDate, toDate: event.toDate, proId: event.productId,storageId: event.storageId,partyId: event.partyId);
+         final cardX = await _repo.stockRecord(fromDate: event.fromDate, toDate: event.toDate, proId: event.productId,storageId: event.storageId,partyId: event.partyId,inOut: event.inOut);
          emit(StockRecordLoadedState(cardX));
        }catch(e){
          emit(StockRecordErrorState(e.toString()));

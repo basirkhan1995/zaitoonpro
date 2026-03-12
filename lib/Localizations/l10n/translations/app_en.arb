@@ -952,5 +952,11 @@
   "securityTitle": "Security",
   "passwordChangeHint": "Update your password regularly",
   "logoutHint": "Sign out from your account",
-  "dailyTransactions": "Daily Transactions"
+  "dailyTransactions": "Daily Transactions",
+  "movement": "Movement",
+  "stockRecord": "Stock Records",
+  "noProductSelectedTitle": "No Product Selected",
+  "noProductSelectedMsg": "Please select a product first to continue.",
+  "totalIn": "Total IN",
+  "totalOut": "Total OUT"
 }

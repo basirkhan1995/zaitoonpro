@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
+import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
@@ -11,14 +13,17 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/Cardx/bloc/stock
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/features/storage_drop.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
-
 import '../../../../../../../../Features/Date/z_generic_date.dart';
 import '../../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
+import '../../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../Stock/Ui/OrderScreen/GetOrderById/order_by_id.dart';
+import '../features/in_out_drop.dart';
+import '../features/stock_summary_widget.dart';
 
 class StockRecordReportView extends StatelessWidget {
   const StockRecordReportView({super.key});
@@ -50,7 +55,8 @@ class _MobileState extends State<_Mobile> {
 
   String? myLocale;
   String? baseCcy;
-
+  final _personController = TextEditingController();
+  int? partyId;
   @override
   void initState() {
     super.initState();
@@ -132,7 +138,40 @@ class _MobileState extends State<_Mobile> {
                 ),
 
                 const SizedBox(height: 16),
-
+                Expanded(
+                  flex: 4,
+                  child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                    controller: _personController,
+                    title: tr.customer,
+                    hintText: tr.customer,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return tr.required(tr.customer);
+                      }
+                      return null;
+                    },
+                    bloc: context.read<IndividualsBloc>(),
+                    fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                    searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
+                    itemBuilder: (context, ind) => Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                    ),
+                    itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
+                    stateToLoading: (state) => state is IndividualLoadingState,
+                    stateToItems: (state) {
+                      if (state is IndividualLoadedState) return state.individuals;
+                      return [];
+                    },
+                    onSelected: (value) {
+                      setState(() {
+                        partyId = value.perId;
+                      });
+                    },
+                    showClearButton: true,
+                  ),
+                ),
+                const SizedBox(height: 16),
                 /// 🔹 Branch
                 BranchDropdown(
                   showAllOption: true,
@@ -157,7 +196,27 @@ class _MobileState extends State<_Mobile> {
                 ),
 
                 const SizedBox(height: 16),
-
+                StockMovementDropDown(
+                  title: tr.movement,
+                  onChanged: (value) {
+                    if(productId !=null && _productController.text.isNotEmpty){
+                      context.read<StockRecordBloc>().add(LoadStockRecordEvent(
+                          fromDate: fromDate,
+                          toDate: toDate,
+                          productId: productId,
+                          storageId: storageId,
+                          partyId: partyId,
+                          inOut: value
+                      ));
+                    }else{
+                      ToastManager.show(context: context,
+                          title: tr.noProductSelectedTitle,
+                          message: tr.noProductSelectedMsg, type: ToastType.info);
+                    }
+                  },
+                  initiallySelected: StockMovementType.all, // Default to show both
+                ),
+                const SizedBox(height: 16),
                 /// 🔹 Date Range
                 Row(
                   children: [
@@ -196,24 +255,20 @@ class _MobileState extends State<_Mobile> {
                   onPressed: () {
                     Navigator.pop(context);
 
-                    if (productId != null &&
-                        _productController.text.isNotEmpty) {
-                      context
-                          .read<StockRecordBloc>()
-                          .add(
+                    if (productId != null && _productController.text.isNotEmpty) {
+                      context.read<StockRecordBloc>().add(
                         LoadStockRecordEvent(
                           fromDate: fromDate,
                           toDate: toDate,
                           productId: productId,
                           storageId: storageId,
+                          partyId: partyId
                         ),
                       );
                     } else {
-                      Utils.showOverlayMessage(
-                        context,
-                        message: "Please select a product first",
-                        isError: true,
-                      );
+                      ToastManager.show(context: context,
+                          title: tr.noProductSelectedTitle,
+                          message: tr.noProductSelectedMsg, type: ToastType.info);
                     }
                   },
                   label: Text(tr.apply),
@@ -236,7 +291,7 @@ class _MobileState extends State<_Mobile> {
     return Scaffold(
       backgroundColor: color.surface,
       appBar: AppBar(
-        title: Text("Stock Record"),
+        title: Text(tr.stockRecord),
         titleSpacing: 0,
         actions: [
           if (hasFilter)
@@ -286,6 +341,18 @@ class _MobileState extends State<_Mobile> {
                 ),
               ),
             ),
+          // Summary Box (only shows when data is loaded)
+          BlocBuilder<StockRecordBloc, StockRecordState>(
+            builder: (context, state) {
+              if (state is StockRecordLoadedState && state.cardX.isNotEmpty) {
+                return StockMovementSummary(
+                  records: state.cardX,
+                  baseCurrency: baseCcy ?? '',
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
           Expanded(
             child: BlocBuilder<StockRecordBloc, StockRecordState>(
               builder: (context, state) {
@@ -337,7 +404,9 @@ class _MobileState extends State<_Mobile> {
                     itemCount: state.cardX.length,
                     itemBuilder: (context, index) {
                       final stock = state.cardX[index];
-                      return Card(
+                      return ZCover(
+                        radius: 8,
+                        color: color.surface,
                         margin: const EdgeInsets.only(bottom: 8),
                         child: InkWell(
                           onTap: () {
@@ -472,8 +541,6 @@ class _MobileState extends State<_Mobile> {
   }
 }
 
-
-
 class _Desktop extends StatefulWidget {
   const _Desktop();
 
@@ -488,9 +555,11 @@ class _DesktopState extends State<_Desktop> {
   int? productId;
 
   final _productController = TextEditingController();
+  final _personController = TextEditingController();
 
   String? myLocale;
   String? baseCcy;
+  int? partyId;
   @override
   void initState() {
     super.initState();
@@ -526,7 +595,7 @@ class _DesktopState extends State<_Desktop> {
     final color = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-          title: Text("Stock Record"),
+          title: Text(tr.stockRecord),
         titleSpacing: 0,
         actionsPadding: EdgeInsets.symmetric(horizontal: 10),
         actions: [
@@ -544,7 +613,6 @@ class _DesktopState extends State<_Desktop> {
               },
               backgroundHover: Theme.of(context).colorScheme.error,
               isActive: true,
-              width: 140,
               icon: Icons.filter_alt_off_outlined,
               label: Text(tr.clearFilters),
             ),
@@ -552,7 +620,6 @@ class _DesktopState extends State<_Desktop> {
           ],
           ZOutlineButton(
             onPressed: () {},
-            width: 120,
             icon: Icons.print,
             label: Text(tr.print),
           ),
@@ -565,13 +632,15 @@ class _DesktopState extends State<_Desktop> {
                   toDate: toDate,
                   productId: productId,
                   storageId: storageId,
+                  partyId: partyId
                 ));
               }else{
-                Utils.showOverlayMessage(context, message: "Please select a product first", isError: true);
+                ToastManager.show(context: context,
+                    title: tr.noProductSelectedTitle,
+                    message: tr.noProductSelectedMsg, type: ToastType.info);
               }
             },
             isActive: true,
-            width: 120,
             icon: Icons.filter_alt_outlined,
             label: Text(tr.apply),
           ),
@@ -588,13 +657,13 @@ class _DesktopState extends State<_Desktop> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  flex: 3,
+                  flex: 4,
                   child:
                       GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
-                        key: const ValueKey('product_field'),
                         controller: _productController,
                         title: tr.products,
                         hintText: tr.products,
+                        isRequired: true,
                         bloc: context.read<ProductsBloc>(),
                         fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
                         searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
@@ -641,7 +710,40 @@ class _DesktopState extends State<_Desktop> {
                       ),
                 ),
                 Expanded(
-                  flex: 2,
+                  flex: 4,
+                  child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                    controller: _personController,
+                    title: tr.customer,
+                    hintText: tr.customer,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return tr.required(tr.customer);
+                      }
+                      return null;
+                    },
+                    bloc: context.read<IndividualsBloc>(),
+                    fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                    searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
+                    itemBuilder: (context, ind) => Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                    ),
+                    itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
+                    stateToLoading: (state) => state is IndividualLoadingState,
+                    stateToItems: (state) {
+                      if (state is IndividualLoadedState) return state.individuals;
+                      return [];
+                    },
+                    onSelected: (value) {
+                      setState(() {
+                        partyId = value.perId;
+                      });
+                    },
+                    showClearButton: true,
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
                   child: BranchDropdown(
                     showAllOption: true,
                     title: tr.branch,
@@ -653,7 +755,7 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: StorageDropDown(
                     title: tr.storage,
                     onChanged: (e) {
@@ -664,6 +766,30 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 Expanded(
+                  flex: 2,
+                  child: StockMovementDropDown(
+                    title: tr.movement,
+                    onChanged: (value) {
+                      if(productId !=null && _productController.text.isNotEmpty){
+                        context.read<StockRecordBloc>().add(LoadStockRecordEvent(
+                            fromDate: fromDate,
+                            toDate: toDate,
+                            productId: productId,
+                            storageId: storageId,
+                            partyId: partyId,
+                            inOut: value
+                        ));
+                      }else{
+                        ToastManager.show(context: context,
+                            title: tr.noProductSelectedTitle,
+                            message: tr.noProductSelectedMsg, type: ToastType.info);
+                      }
+                    },
+                    initiallySelected: StockMovementType.all, // Default to show both
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
                   child: ZDatePicker(
                     label: tr.fromDate,
                     value: fromDate,
@@ -675,6 +801,7 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 Expanded(
+                  flex: 2,
                   child: ZDatePicker(
                     label: tr.toDate,
                     value: toDate,
@@ -816,6 +943,19 @@ class _DesktopState extends State<_Desktop> {
                 return const SizedBox();
               },
             ),
+          ),
+
+          // Summary Box (only shows when data is loaded)
+          BlocBuilder<StockRecordBloc, StockRecordState>(
+            builder: (context, state) {
+              if (state is StockRecordLoadedState && state.cardX.isNotEmpty) {
+                return StockMovementSummary(
+                  records: state.cardX,
+                  baseCurrency: baseCcy ?? '',
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
         ],
       ),

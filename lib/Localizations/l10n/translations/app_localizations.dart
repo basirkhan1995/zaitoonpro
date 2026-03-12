@@ -5697,6 +5697,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Daily Transactions'**
   String get dailyTransactions;
+
+  /// No description provided for @movement.
+  ///
+  /// In en, this message translates to:
+  /// **'Movement'**
+  String get movement;
+
+  /// No description provided for @stockRecord.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Records'**
+  String get stockRecord;
+
+  /// No description provided for @noProductSelectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Product Selected'**
+  String get noProductSelectedTitle;
+
+  /// No description provided for @noProductSelectedMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a product first to continue.'**
+  String get noProductSelectedMsg;
+
+  /// No description provided for @totalIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Total IN'**
+  String get totalIn;
+
+  /// No description provided for @totalOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Total OUT'**
+  String get totalOut;
 }
 
 class _AppLocalizationsDelegate

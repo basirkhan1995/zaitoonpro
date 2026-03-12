@@ -2872,4 +2872,23 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get dailyTransactions => 'معاملات روزمره';
+
+  @override
+  String get movement => 'گردش';
+
+  @override
+  String get stockRecord => 'گردش کالا ها';
+
+  @override
+  String get noProductSelectedTitle => 'کالا انتخاب نشده';
+
+  @override
+  String get noProductSelectedMsg =>
+      'لطفاً ابتدا یک کالا انتخاب کنید تا ادامه دهید';
+
+  @override
+  String get totalIn => 'مجموعه ورودی';
+
+  @override
+  String get totalOut => 'مجموعه خروجی';
 }

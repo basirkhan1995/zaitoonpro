@@ -11,9 +11,10 @@ class LoadStockRecordEvent extends StockRecordEvent{
   final int? productId;
   final int? storageId;
   final int? partyId;
-  const LoadStockRecordEvent({this.fromDate, this.toDate, this.productId, this.storageId,this.partyId});
+  final String? inOut;
+  const LoadStockRecordEvent({this.fromDate, this.toDate, this.productId, this.storageId,this.partyId,this.inOut});
   @override
-  List<Object?> get props => [fromDate, toDate, productId, storageId,partyId];
+  List<Object?> get props => [fromDate, toDate, productId, storageId,partyId,inOut];
 }
 
 class ResetStockRecordEvent extends StockRecordEvent{

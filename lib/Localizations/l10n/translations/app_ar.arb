@@ -952,5 +952,11 @@
   "securityTitle": "امنیت",
   "passwordChangeHint": "خپل پټنوم په منظم ډول نوي کړئ",
   "logoutHint": "له خپل حساب څخه ووځئ",
-  "dailyTransactions": "معاملات روزمره"
+  "dailyTransactions": "معاملات روزمره",
+  "movement": "گردش",
+  "stockRecord": "گردش کالا ها",
+  "noProductSelectedTitle": "کالا انتخاب نشده",
+  "noProductSelectedMsg": "مهرباني وکړئ لومړی یو محصول انتخاب کړئ ترڅو دوام ورکړئ",
+  "totalIn": "مجموعه ورودی",
+  "totalOut": "مجموعه خروجی"
 }

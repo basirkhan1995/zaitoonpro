@@ -3031,6 +3031,7 @@ class Repositories {
     int? proId,
     int? storageId,
     int? partyId,
+    String? inOut,
   }) async {
     final response = await api.post(
       endpoint: "/reports/runningStock.php",
@@ -3040,6 +3041,7 @@ class Repositories {
         "proID": proId,
         "stgID": storageId,
         "perID": partyId,
+        "io": inOut,
       },
     );
 

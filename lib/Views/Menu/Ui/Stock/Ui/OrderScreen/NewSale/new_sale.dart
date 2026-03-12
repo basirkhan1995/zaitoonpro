@@ -45,7 +45,6 @@ class NewSaleView extends StatelessWidget {
   }
 }
 
-// Desktop Version (Original)
 class _DesktopNewSaleView extends StatefulWidget {
   const _DesktopNewSaleView();
 
@@ -64,6 +63,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   String? _userName;
   String? baseCurrency;
   int? signatory;
+
   // Track controllers for each row
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};

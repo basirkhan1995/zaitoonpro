@@ -952,5 +952,11 @@
   "securityTitle": "امنیت",
   "passwordChangeHint": "رمز عبور خود را به‌طور منظم به‌روزرسانی کنید",
   "logoutHint": "از حساب کاربری خود خارج شوید",
-  "dailyTransactions": "معاملات روزمره"
+  "dailyTransactions": "معاملات روزمره",
+  "movement": "گردش",
+  "stockRecord": "گردش کالا ها",
+  "noProductSelectedTitle": "کالا انتخاب نشده",
+  "noProductSelectedMsg": "لطفاً ابتدا یک کالا انتخاب کنید تا ادامه دهید",
+  "totalIn": "مجموعه ورودی",
+  "totalOut": "مجموعه خروجی"
 }

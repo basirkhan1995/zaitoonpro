@@ -10,6 +10,7 @@ import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/hr.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/AllProjects/all_projects.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/bloc/general_tab_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Individuals/Ui/individuals.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Transport/transport.dart';
 import '../../Features/Generic/generic_menu.dart';
@@ -485,40 +486,50 @@ class _ProfileDialogContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 15),
-        Column(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Theme.of(context).colorScheme.primary,
-                  width: 1.2,
+        InkWell(
+          onTap: (){
+            Navigator.of(context).pop();
+            WidgetsBinding.instance.addPostFrameCallback((_){
+              context.read<MenuBloc>().add(MenuOnChangedEvent(MenuName.settings));
+              context.read<SettingsTabBloc>().add(SettingsOnChangeEvent(SettingsTabName.general));
+              context.read<GeneralTabBloc>().add(GeneralTabOnChangedEvent(GeneralTabName.profileSettings));
+            });
+          },
+          child: Column(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 1.2,
+                  ),
+                ),
+                child: ImageHelper.stakeholderProfile(
+                  imageName: authState.loginData.usrPhoto,
+                  size: 80,
                 ),
               ),
-              child: ImageHelper.stakeholderProfile(
-                imageName: authState.loginData.usrPhoto,
-                size: 80,
+              const SizedBox(height: 5),
+              Text(
+                authState.loginData.usrFullName ?? "No Name",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
               ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              authState.loginData.usrFullName ?? "No Name",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Theme.of(context).colorScheme.onSurface,
+              Text(
+                authState.loginData.usrName ?? "No Name",
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              authState.loginData.usrName ?? "No Name",
-              style: TextStyle(
-                fontSize: 15,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
+            ],
+          ),
         ),
 
         const Divider(indent: 10, endIndent: 10),

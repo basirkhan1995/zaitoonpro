@@ -3,11 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
+import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/bloc/user_profile_settings_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/model/usr_profile_model.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../../../Features/Other/image_helper.dart';
+import '../../../../../../../PasswordSettings/change_password.dart';
 
 class UserProfileView extends StatefulWidget {
   const UserProfileView({super.key});
@@ -22,10 +24,17 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
   final double _expandedHeight = 280;
   final ScrollController _scrollController = ScrollController();
 
+  // Track if header is collapsed
+  bool _isHeaderCollapsed = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+
+    // Add scroll listener to detect header collapse
+    _scrollController.addListener(_onScroll);
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final auth = context.read<AuthBloc>().state;
       if (auth is AuthenticatedState) {
@@ -36,8 +45,19 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
     });
   }
 
+  void _onScroll() {
+    // Update collapse state based on scroll offset
+    final bool isCollapsed = _scrollController.offset > _expandedHeight - kToolbarHeight - 50;
+    if (_isHeaderCollapsed != isCollapsed) {
+      setState(() {
+        _isHeaderCollapsed = isCollapsed;
+      });
+    }
+  }
+
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
     _tabController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -141,62 +161,127 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
   }
 
   Widget _buildProfileContent(UsrProfileModel profile) {
-    return DefaultTabController(
-      length: 4,
-      child: NestedScrollView(
-        controller: _scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) {
-          return [
-            SliverAppBar(
-              expandedHeight: _expandedHeight,
-              pinned: true,
-              floating: false,
-              snap: false,
-              backgroundColor: _colors.surface,
-              elevation: innerBoxIsScrolled ? 0.5 : 0,
-              automaticallyImplyLeading: false,
-              leading: Container(), // Empty container to maintain spacing
-              flexibleSpace: FlexibleSpaceBar(
-                background: _buildHeader(profile),
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        // Main SliverAppBar with flexible space
+        SliverAppBar(
+          expandedHeight: _expandedHeight,
+          pinned: true,
+          floating: false,
+          snap: false,
+          backgroundColor: _colors.surface,
+          elevation: _isHeaderCollapsed ? 0.5 : 0,
+          automaticallyImplyLeading: false,
+
+          // Title that appears on collapse
+          title: _buildAnimatedTitle(profile),
+
+          // Flexible space with the header content
+          flexibleSpace: FlexibleSpaceBar(
+            collapseMode: CollapseMode.parallax,
+            background: _buildHeader(profile),
+          ),
+
+          // Bottom with TabBar
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              color: _colors.surface,
+              child: TabBar(
+                controller: _tabController,
+                labelColor: _colors.primary,
+                unselectedLabelColor: _colors.onSurfaceVariant,
+                indicatorColor: _colors.primary,
+                indicatorWeight: 2,
+                indicatorSize: TabBarIndicatorSize.label,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
+                ),
+                tabs: const [
+                  Tab(text: 'Personal'),
+                  Tab(text: 'Accounts'),
+                  Tab(text: 'Employment'),
+                  Tab(text: 'Settings'),
+                ],
               ),
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(48),
-                child: Container(
-                  color: _colors.surface,
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: _colors.primary,
-                    unselectedLabelColor: _colors.onSurfaceVariant,
-                    indicatorColor: _colors.primary,
-                    indicatorWeight: 2,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    labelStyle: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    unselectedLabelStyle: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    tabs: const [
-                      Tab(text: 'Personal'),
-                      Tab(text: 'Accounts'),
-                      Tab(text: 'Employment'),
-                      Tab(text: 'Settings'),
-                    ],
-                  ),
+            ),
+          ),
+        ),
+
+        // TabBarView content
+        SliverFillRemaining(
+          child: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildPersonalInfo(profile),
+              _buildAccountsInfo(profile),
+              _buildEmploymentInfo(profile),
+              _buildSettingsInfo(profile),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Animated title that appears on collapse
+  Widget _buildAnimatedTitle(UsrProfileModel profile) {
+    return AnimatedOpacity(
+      opacity: _isHeaderCollapsed ? 1.0 : 0.0,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        child: Row(
+          children: [
+            // Small circular avatar
+            ClipOval(
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: ImageHelper.stakeholderProfile(
+                  imageName: profile.perPhoto,
+                  size: 32,
                 ),
               ),
             ),
-          ];
-        },
-        body: TabBarView(
-          controller: _tabController,
-          children: [
-            _buildPersonalInfo(profile),
-            _buildAccountsInfo(profile),
-            _buildEmploymentInfo(profile),
-            _buildSettingsInfo(profile),
+            const SizedBox(width: 12),
+            // Name and email
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${profile.perName ?? ''} ${profile.perLastName ?? ''}'.trim(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: _colors.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (profile.user?.usrEmail != null)
+                    Text(
+                      profile.user!.usrEmail!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: _colors.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -209,9 +294,10 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
       child: SafeArea(
         bottom: false,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const SizedBox(height: 8),
-            // Profile Avatar - Simple circle without heavy shadows
+
+            // Profile Avatar
             Stack(
               children: [
                 Container(
@@ -227,7 +313,6 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
                     size: 100,
                   ),
                 ),
-
                 Positioned(
                   bottom: 0,
                   right: 0,
@@ -239,9 +324,7 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {
-
-                        },
+                        onTap: () {},
                         customBorder: const CircleBorder(),
                         child: Container(
                           padding: const EdgeInsets.all(8),
@@ -257,7 +340,7 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             // Profile Name
             Text(
               '${profile.perName ?? ''} ${profile.perLastName ?? ''}'.trim(),
@@ -274,9 +357,10 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
               ),
             ),
 
-            // Position/Title - Now properly visible
-            if(profile.employment?.empPosition !=null && profile.employment!.empPosition!.isNotEmpty)...[
-              const SizedBox(height: 4),
+            // Position/Title
+            if (profile.employment?.empPosition != null &&
+                profile.employment!.empPosition!.isNotEmpty) ...[
+              const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -295,9 +379,10 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
                   ),
                 ),
               ),
-            ]
+            ],
+            SizedBox(height: 15),
+             ],
 
-          ],
         ),
       ),
     );
@@ -410,7 +495,6 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
         return ZCover(
           radius: 12,
           margin: const EdgeInsets.only(bottom: 12),
-
           child: Column(
             children: [
               Padding(
@@ -638,6 +722,10 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
   }
 
   Widget _buildSettingsInfo(UsrProfileModel profile) {
+    final auth = context.read<AuthBloc>().state;
+    final hasPasswordPermission = auth is AuthenticatedState &&
+        (auth.loginData.hasPermission(65) ?? false);
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -650,7 +738,7 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
               icon: Icons.person_outline,
             ),
             _buildInfoTile(
-              label: 'email',
+              label: 'Email',
               value: profile.user?.usrEmail ?? 'Not specified',
               icon: Icons.email_outlined,
             ),
@@ -687,7 +775,148 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
             ),
           ],
         ),
+
+        const SizedBox(height: 16),
+
+        // Security Section
+        _buildSection(
+          title: 'Security',
+          children: [
+            // Change Password
+            _buildActionTile(
+              icon: Icons.lock_outline,
+              iconColor: _colors.primary,
+              backgroundColor: _colors.primaryContainer,
+              title: 'Change Password',
+              subtitle: 'Update your account password',
+              onTap: hasPasswordPermission ? () {
+                showDialog(
+                  context: context,
+                  builder: (context) => const PasswordSettingsView(),
+                );
+              } : null,
+            ),
+
+            const SizedBox(height: 8),
+
+            // Logout
+            _buildActionTile(
+              icon: Icons.logout_rounded,
+              iconColor: _colors.error,
+              backgroundColor: _colors.errorContainer,
+              title: 'Logout',
+              subtitle: 'Sign out from your account',
+              onTap: () => _showLogoutDialog(context),
+              showTrailing: false,
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+// Helper method for action tiles
+  Widget _buildActionTile({
+    required IconData icon,
+    required Color iconColor,
+    required Color backgroundColor,
+    required String title,
+    required String subtitle,
+    required VoidCallback? onTap,
+    bool showTrailing = true,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: _colors.outlineVariant,
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: backgroundColor.withAlpha(150),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _colors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: _colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (showTrailing && onTap != null)
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: _colors.onSurfaceVariant,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// Logout dialog method
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                context.read<AuthBloc>().add(OnLogoutEvent());
+              },
+              style: TextButton.styleFrom(
+                foregroundColor: _colors.error,
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -85,6 +85,7 @@ class _DesktopState extends State<_Desktop> {
     _narrationController.dispose();
     super.dispose();
   }
+
   Future<double> _fetchExchangeRate(String fromCcy, String toCcy) async {
     if (_baseCurrency == null) return 1.0;
 

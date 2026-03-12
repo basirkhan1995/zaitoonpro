@@ -58,7 +58,9 @@ class _DesktopState extends State<_Desktop> {
   String? fullName;
   @override
   void initState() {
-    context.read<StakeholderByIdBloc>().add(LoadStakeholderByIdEvent(stkId: widget.ind.perId!));
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      context.read<StakeholderByIdBloc>().add(LoadStakeholderByIdEvent(stkId: widget.ind.perId!));
+    });
     super.initState();
   }
   @override
@@ -115,7 +117,7 @@ class _DesktopState extends State<_Desktop> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "${individual?.perName} ${individual?.perLastName}",
+                                  fullName??"",
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18),
                                 ),
                                 ZCover(child: Text(individual?.perPhone ?? "")),

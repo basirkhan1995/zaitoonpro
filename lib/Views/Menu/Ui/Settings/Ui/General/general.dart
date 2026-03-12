@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/user_profile_settings.dart';
+import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/profile_view.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/user_role_settings.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Features/Other/responsive.dart';
@@ -77,7 +77,8 @@ class _BaseGeneralView extends StatelessWidget {
         MenuDefinition(
           value: GeneralTabName.profileSettings,
           label: AppLocalizations.of(context)!.profileSettings,
-          screen: const UserProfileSettingsView(),
+          //screen: const UserProfileSettingsView(),
+          screen: const UserProfileView(),
           icon: Icons.account_circle,
         ),
     ];

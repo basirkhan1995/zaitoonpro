@@ -73,6 +73,7 @@ import '../Views/Menu/Ui/Report/Ui/UserReport/StakeholdersReport/model/ind_repor
 import '../Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/BranchLimits/model/limit_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Company/Branches/model/branch_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/General/Ui/DefaultPermissions/model/permission_settings_model.dart';
+import '../Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/model/usr_profile_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/model/role_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
@@ -3804,6 +3805,19 @@ class Repositories {
     }
 
     return [];
+  }
+
+  Future<UsrProfileModel> getProfile({
+    required String usrName,
+    CancelToken? cancelToken,
+  }) async {
+    final response = await api.get(
+      endpoint: '/setting/personalProfile.php',
+      queryParams: {'user': usrName},
+      cancelToken: cancelToken,
+    );
+
+    return UsrProfileModel.fromMap(response.data);
   }
 
 }

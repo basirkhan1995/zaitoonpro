@@ -379,7 +379,7 @@ class _MobileState extends State<_Mobile> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "Inventory Report",
+                          tr.productMovement,
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +16,8 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Accounts/model/a
 import '../../../../../../../../../Features/Date/zdate_picker.dart';
 import '../../../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../../../Features/Other/thousand_separator.dart';
+import '../../../../../../../../../Features/PrintSettings/print_preview.dart';
+import '../../../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../../../Features/Widgets/stepper.dart';
 import '../../../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../../Auth/bloc/auth_bloc.dart';
@@ -26,6 +29,7 @@ import '../../../../../../Stakeholders/Ui/Individuals/model/individual_model.dar
 import '../../../../Vehicles/bloc/vehicle_bloc.dart';
 import '../../../../Vehicles/model/vehicle_model.dart';
 import '../../../feature/unit_drop.dart';
+import '../PDF/single_shp_print.dart';
 import '../bloc/shipping_bloc.dart';
 import '../model/shipping_model.dart';
 import '../model/shp_details_model.dart';
@@ -375,6 +379,90 @@ class _DesktopState extends State<_Desktop> {
     _validatePaymentAmounts(shipping);
   }
 
+
+// Add this method to your _DesktopState class
+  Future<void> _printShippingDetails(ShippingDetailsModel shippingDetails) async {
+    // Get company info from CompanyProfileBloc
+    final companyState = context.read<CompanyProfileBloc>().state;
+    ReportModel company = ReportModel();
+
+    if (companyState is CompanyProfileLoadedState) {
+      company = ReportModel(
+        comName: companyState.company.comName ?? '',
+        comAddress: companyState.company.addName ?? '',
+        compPhone: companyState.company.comPhone ?? '',
+        comEmail: companyState.company.comEmail ?? '',
+        statementDate: DateTime.now().toFullDateTime,
+        comLogo: companyState.company.comLogo != null
+            ? base64Decode(companyState.company.comLogo!)
+            : null,
+      );
+    }
+
+    // Get base currency from AuthBloc
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthenticatedState) {
+      baseCurrency = authState.loginData.company?.comLocalCcy;
+    }
+
+    if (context.mounted) {
+      showDialog(
+        context: context,
+        builder: (_) => PrintPreviewDialog<ShippingDetailsModel>(
+          data: shippingDetails,
+          company: company,
+          buildPreview: ({
+            required data,
+            required language,
+            required orientation,
+            required pageFormat,
+          }) {
+            return ShippingDetailsPdfServices().printPreview(
+              shippingDetails: data,
+              language: language,
+              orientation: orientation,
+              company: company,
+              pageFormat: pageFormat,
+            );
+          },
+          onPrint: ({
+            required data,
+            required language,
+            required orientation,
+            required pageFormat,
+            required selectedPrinter,
+            required copies,
+            required pages,
+          }) {
+            return ShippingDetailsPdfServices().printDocument(
+              shippingDetails: data,
+              language: language,
+              orientation: orientation,
+              company: company,
+              pageFormat: pageFormat,
+              selectedPrinter: selectedPrinter,
+              copies: copies,
+              pages: pages,
+            );
+          },
+          onSave: ({
+            required data,
+            required language,
+            required orientation,
+            required pageFormat,
+          }) {
+            return ShippingDetailsPdfServices().createDocument(
+              shippingDetails: data,
+              language: language,
+              orientation: orientation,
+              company: company,
+              pageFormat: pageFormat,
+            );
+          },
+        ),
+      );
+    }
+  }
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -2530,6 +2618,22 @@ class _DesktopState extends State<_Desktop> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Add Print Button at the top
+            if (hasShippingDetails)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ZOutlineButton(
+                    onPressed: () => _printShippingDetails(shipping),
+                    label: Text(tr.print),
+                    icon: Icons.print,
+                    isActive: true,
+                  ),
+                ],
+              ),
+
+            const SizedBox(height: 16),
+
             if (shipping != null)
               if (summaryData['status'] != null && summaryData['status']!.isNotEmpty)
                 Container(
@@ -2585,6 +2689,7 @@ class _DesktopState extends State<_Desktop> {
                     ],
                   ),
                 ),
+
             if (paymentStatusMessage.isNotEmpty)
               Container(
                 padding: const EdgeInsets.all(12),
@@ -5420,7 +5525,7 @@ class _MobileState extends State<_Mobile> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: expenses.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
                   itemBuilder: (context, index) {
                     final expense = expenses[index];
                     final isSelected = _selectedExpenseForEdit?.trdReference == expense.trdReference;

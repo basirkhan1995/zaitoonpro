@@ -1735,36 +1735,105 @@ abstract class PrintServices {
         'fa': 'تلفن',
         'ar': 'تلیفون',
       },
+
       'time': {
         'en': 'Time',
         'fa': 'زمان',
         'ar': 'وخت',
       },
+
       'branchWiseDetails': {
         'en': 'Branch-wise Details',
         'fa': 'جزئیات هر شعبه',
         'ar': 'د څانګو تفصیلات',
       },
+
       'noRecords': {
         'en': 'No records found',
         'fa': 'رکوردی یافت نشد',
         'ar': 'هیڅ ریکارډ ونه موندل شو',
       },
+
       'branchTotal': {
         'en': 'Branch Total',
         'fa': 'مجموع شعبه',
         'ar': 'د څانګې مجموعه',
       },
+
       'opening': {
         'en': 'Opening',
         'fa': 'افتتاحیه',
         'ar': 'پرانیستل',
       },
+
       'closing': {
         'en': 'Closing',
         'fa': 'اختتامیه',
         'ar': 'تړل',
       },
+
+      'arrivalDate': {
+        'en': 'Arrival Date',
+        'fa': 'تاریخ ورود',
+        'ar': 'د رسیدو نیټه',
+      },
+
+      'loadingDate': {
+        'en': 'Loading Date',
+        'fa': 'تاریخ بارگیری',
+        'ar': 'د بارگیری نیټه',
+      },
+
+      'route': {
+        'en': 'Route',
+        'fa': 'مسیر',
+        'ar': 'لاره',
+      },
+
+      'netAmount': {
+        'en': 'Net Amount',
+        'fa': 'مبلغ خالص',
+        'ar': 'خالص مقدار',
+      },
+
+      'cardPayment': {
+        'en': 'Card Payment',
+        'fa': 'پرداخت کریدت',
+        'ar': 'د کارت کریدت',
+      },
+
+      'totalCash': {
+        'en': 'Total Cash',
+        'fa': 'مجموع نقد',
+        'ar': 'ټول نغد',
+      },
+
+      'totalCard': {
+        'en': 'Total Credit',
+        'fa': 'مجموع کریدت',
+        'ar': 'ټول کریدت',
+      },
+      'expenses': {
+        'en': 'Expenses',
+        'fa': 'مصارف',
+        'ar': 'لګښتونه',
+      },
+      'remarks': {
+        'en': 'Remarks',
+        'fa': 'توضیحات',
+        'ar': 'ملاحظات',
+      },
+      'shippingDetails': {
+        'en': 'Shipping Details',
+        'fa': 'جزئیات محموله',
+        'ar': 'محموله جزئیات',
+      },
+      'cash': {
+        'en': 'Cash',
+        'fa': 'نقدی',
+        'ar': 'نقدی',
+      },
+
     };
 
     // Default to English if language not found

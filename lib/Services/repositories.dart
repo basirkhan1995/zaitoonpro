@@ -178,10 +178,7 @@ class Repositories {
     required Uint8List image,
   }) async {
     // Create a valid filename like Postman does
-    final String fileName =
-        "photo_${DateTime
-        .now()
-        .millisecondsSinceEpoch}.jpg";
+    final String fileName = "photo_${DateTime.now().millisecondsSinceEpoch}.jpg";
 
     FormData formData = FormData.fromMap({
       "image": MultipartFile.fromBytes(
@@ -200,11 +197,7 @@ class Repositories {
   }
 
   ///Stakeholder | Individuals .................................................
-  Future<List<IndividualsModel>> getStakeholders({
-    int? indId,
-    String? query,
-    CancelToken? cancelToken,
-  }) async {
+  Future<List<IndividualsModel>> getStakeholders({int? indId, String? query, CancelToken? cancelToken}) async {
     // Build query parameters dynamically
     final queryParams =  {'perID': indId, 'search': query};
 
@@ -236,31 +229,21 @@ class Repositories {
 
     return [];
   }
-
-  Future<Map<String, dynamic>> addStakeholder({
-    required IndividualsModel stk,
-  }) async {
+  Future<Map<String, dynamic>> addStakeholder({required IndividualsModel stk}) async {
     final response = await api.post(
       endpoint: "/stakeholder/personal.php",
       data: stk.toMap(),
     );
     return response.data;
   }
-
-  Future<Map<String, dynamic>> editStakeholder({
-    required IndividualsModel stk,
-  }) async {
+  Future<Map<String, dynamic>> editStakeholder({required IndividualsModel stk}) async {
     final response = await api.put(
       endpoint: "/stakeholder/personal.php",
       data: stk.toMap(),
     );
     return response.data;
   }
-
-  Future<IndividualsModel> getPersonProfileById({
-    required int perId,
-    CancelToken? cancelToken,
-  }) async {
+  Future<IndividualsModel> getPersonProfileById({required int perId, CancelToken? cancelToken}) async {
     final response = await api.get(
       endpoint: "/stakeholder/personal.php",
       queryParams: {'perID': perId},
@@ -291,11 +274,7 @@ class Repositories {
 
     throw Exception("Invalid API response format");
   }
-
-  Future<Map<String, dynamic>> uploadPersonalPhoto({
-    required int perID,
-    required Uint8List image,
-  }) async {
+  Future<Map<String, dynamic>> uploadPersonalPhoto({required int perID, required Uint8List image}) async {
     // Create a valid filename like Postman does
     final String fileName =
         "photo_${DateTime
@@ -320,10 +299,7 @@ class Repositories {
   }
 
   ///Accounts | Stakeholder's Account ..........................................
-  Future<List<AccountsModel>> getAccounts({
-    int? ownerId,
-    CancelToken? cancelToken,
-  }) async {
+  Future<List<AccountsModel>> getAccounts({int? ownerId, CancelToken? cancelToken}) async {
     // Build query parameters dynamically
     final queryParams = ownerId != null ? {'perID': ownerId} : null;
 
@@ -355,10 +331,7 @@ class Repositories {
 
     return [];
   }
-
-  Future<List<StakeholdersAccountsModel>> getStakeholdersAccounts({
-    String? search,
-  }) async {
+  Future<List<StakeholdersAccountsModel>> getStakeholdersAccounts({String? search}) async {
     final response = await api.post(
       endpoint: "/journal/accountDetails.php",
       data: {"searchValue": search},
@@ -385,20 +358,14 @@ class Repositories {
 
     return [];
   }
-
-  Future<Map<String, dynamic>> addAccount({
-    required AccountsModel newAccount,
-  }) async {
+  Future<Map<String, dynamic>> addAccount({required AccountsModel newAccount}) async {
     final response = await api.post(
       endpoint: "/stakeholder/account.php",
       data: newAccount.toMap(),
     );
     return response.data;
   }
-
-  Future<Map<String, dynamic>> editAccount({
-    required AccountsModel newAccount,
-  }) async {
+  Future<Map<String, dynamic>> editAccount({required AccountsModel newAccount}) async {
     final response = await api.put(
       endpoint: "/stakeholder/account.php",
       data: newAccount.toMap(),

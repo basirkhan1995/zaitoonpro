@@ -7,6 +7,7 @@ import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
 import 'package:zaitoon_petroleum/Features/Other/cover.dart';
 import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
 import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoon_petroleum/Features/Other/toast.dart';
 import 'package:zaitoon_petroleum/Features/Other/utils.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/Bloc/localizations_bloc.dart';
@@ -1315,30 +1316,32 @@ class _DesktopState extends State<_Desktop> {
     if (hasExistingPayment && _isEditingExistingPayment) {
       isValid = totalPayment == totalAmount;
       if (!isValid) {
-        Utils.showOverlayMessage(
-          context,
+        ToastManager.show(
           message: "${tr.editPaymentValidation} ${totalAmount.toAmount()} $baseCurrency",
-          isError: true,
+          type: ToastType.warning,
+          title: tr.attentionTitle, context: context,
         );
         return;
       }
     } else if (hasExistingPayment) {
       isValid = totalPayment == remainingBalance;
       if (!isValid) {
-        Utils.showOverlayMessage(
-          context,
+        ToastManager.show(
+          context: context,
           message: "${tr.paymentMustMatchRemaining} ${remainingBalance.toAmount()} $baseCurrency",
-          isError: true,
+          type: ToastType.warning,
+          title: tr.attentionTitle,
         );
         return;
       }
     } else {
       isValid = totalPayment == totalAmount;
       if (!isValid) {
-        Utils.showOverlayMessage(
-          context,
+        ToastManager.show(
+          context: context,
           message: "${tr.paymentMustMatchTotalShipping} ${totalAmount.toAmount()} $baseCurrency",
-          isError: true,
+          type: ToastType.warning,
+          title: tr.attentionTitle,
         );
         return;
       }
@@ -1352,19 +1355,21 @@ class _DesktopState extends State<_Desktop> {
     } else if (accountAmount > 0) {
       paymentType = "card";
     } else {
-      Utils.showOverlayMessage(
-        context,
+      ToastManager.show(
+        context: context,
         message: tr.selectPaymentMethod,
-        isError: true,
+        type: ToastType.warning,
+        title: tr.attentionTitle,
       );
       return;
     }
 
     if ((paymentType == "card" || paymentType == "dual") && paymentAccNumber == null) {
-      Utils.showOverlayMessage(
-        context,
+      ToastManager.show(
+        context: context,
         message: tr.selectAccountRequired,
-        isError: true,
+        type: ToastType.warning,
+        title: tr.attentionTitle,
       );
       return;
     }
@@ -2618,81 +2623,86 @@ class _DesktopState extends State<_Desktop> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Add Print Button at the top
-            if (hasShippingDetails)
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  ZOutlineButton(
-                    onPressed: () => _printShippingDetails(shipping),
-                    label: Text(tr.print),
-                    icon: Icons.print,
-                    isActive: true,
-                  ),
-                ],
-              ),
-
-            const SizedBox(height: 16),
-
-            if (shipping != null)
-              if (summaryData['status'] != null && summaryData['status']!.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: summaryData['status'] == "1" ? Colors.green.shade50 : Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: summaryData['status'] == "1" ? Colors.green : Colors.orange,
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        summaryData['status'] == "1" ? Icons.check_circle : Icons.schedule,
-                        color: summaryData['status'] == "1" ? Colors.green : Colors.orange,
-                      ),
-                      const SizedBox(width: 10),
+                  if (shipping != null)...[
+                    if (summaryData['status'] != null && summaryData['status']!.isNotEmpty)
                       Expanded(
-                        child: Text(
-                          summaryData['status'] == "1" ? tr.delivered : tr.pendingTitle,
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: summaryData['status'] == "1" ? Colors.green : Colors.orange,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 4),
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: summaryData['status'] == "1" ? Colors.green.shade50 : Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(
+                              color: summaryData['status'] == "1" ? Colors.green : Colors.orange,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                summaryData['status'] == "1" ? Icons.check_circle : Icons.schedule,
+                                color: summaryData['status'] == "1" ? Colors.green : Colors.orange,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  summaryData['status'] == "1" ? tr.delivered : tr.pendingTitle,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: summaryData['status'] == "1" ? Colors.green : Colors.orange,
+                                  ),
+                                ),
+                              ),
+                              Switch(
+                                value: shpStatus == 1,
+                                onChanged: (e) {
+                                  if (e && !canBeDelivered) {
+                                    Utils.showOverlayMessage(
+                                      context,
+                                      message: tr.paymentIsNotComplete,
+                                      isError: true,
+                                    );
+                                    return;
+                                  }
+                                  if (e && paymentNeedsUpdate) {
+                                    Utils.showOverlayMessage(
+                                      context,
+                                      message: tr.paymentNeedsUpdate,
+                                      isError: true,
+                                    );
+                                    return;
+                                  }
+                                  setState(() {
+                                    shpStatus = e ? 1 : 0;
+                                  });
+                                },
+                              )
+                            ],
                           ),
                         ),
                       ),
-                      Switch(
-                        value: shpStatus == 1,
-                        onChanged: (e) {
-                          if (e && !canBeDelivered) {
-                            Utils.showOverlayMessage(
-                              context,
-                              message: tr.paymentIsNotComplete,
-                              isError: true,
-                            );
-                            return;
-                          }
-                          if (e && paymentNeedsUpdate) {
-                            Utils.showOverlayMessage(
-                              context,
-                              message: tr.paymentNeedsUpdate,
-                              isError: true,
-                            );
-                            return;
-                          }
-                          setState(() {
-                            shpStatus = e ? 1 : 0;
-                          });
-                        },
-                      )
-                    ],
-                  ),
-                ),
+                  ],
+                  const SizedBox(width: 16),
+                  if (hasShippingDetails)...[
+                    ZOutlineButton(
+                      height: 48,
+                      width: 120,
+                      onPressed: () => _printShippingDetails(shipping),
+                      label: Text(tr.print.toUpperCase()),
+                      iconSize: 25,
+                      icon: Icons.print,
+                      isActive: true,
+                    ),
+                  ]
+                ],
+              ),
 
             if (paymentStatusMessage.isNotEmpty)
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: paymentNeedsUpdate ? Colors.orange.shade50 : Colors.red.shade50,
                   borderRadius: BorderRadius.circular(5),

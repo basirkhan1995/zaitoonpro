@@ -29,12 +29,11 @@ class ShippingBloc extends Bloc<ShippingEvent, ShippingState> {
       LoadShippingEvent event,
       Emitter<ShippingState> emit,
       ) async {
-    // Always emit a "loading" state for refresh
     emit(ShippingListLoadingState(
-      shippingList: state.shippingList, // keep old data
+      shippingList: state.shippingList,
       currentShipping: state.currentShipping,
       loadingShpId: state.loadingShpId,
-      isLoading: true, // this triggers the loader
+      isLoading: true,
     ));
 
     try {

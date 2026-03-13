@@ -17,12 +17,16 @@ import '../../../../../../../../../../Localizations/Bloc/localizations_bloc.dart
 import '../../../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../../Features/Date/z_generic_date.dart';
 import '../../../../../../../Features/Date/z_range_picker.dart';
+import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
+import '../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../Transport/Ui/Shipping/Ui/ShippingView/View/add_edit_shipping.dart';
 import '../../../../Transport/Ui/Shipping/Ui/ShippingView/View/all_shipping.dart';
 import 'package:shamsi_date/shamsi_date.dart';
+import 'PDF/shp_excel.dart';
 import 'PDF/shp_report_print.dart';
 import 'bloc/shipping_report_bloc.dart';
 import 'features/status_drop.dart';
@@ -833,6 +837,7 @@ class _Desktop extends StatefulWidget {
 class _DesktopState extends State<_Desktop> {
   late String fromDate;
   late String toDate;
+  final _personController = TextEditingController();
   final TextEditingController searchController = TextEditingController();
   int? perId;
   int? vehicleId;
@@ -900,7 +905,6 @@ class _DesktopState extends State<_Desktop> {
     final tr = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-
         title: Text(
           tr.allShipping,
           style: Theme.of(
@@ -910,6 +914,7 @@ class _DesktopState extends State<_Desktop> {
         actionsPadding: EdgeInsets.symmetric(horizontal: 15),
         titleSpacing: 0,
         actions: [
+
           if (perId != null || vehicleId != null || driverId !=null)...[
             ZOutlineButton(
               toolTip: "F5",
@@ -926,6 +931,14 @@ class _DesktopState extends State<_Desktop> {
             ),
             SizedBox(width: 8),
           ],
+          ZOutlineButton(
+            toolTip: "F6",
+            icon: FontAwesomeIcons.fileExcel,
+            backgroundHover: Colors.green,
+            onPressed: onExcel,
+            label: Text("EXCEL"),
+          ),
+          SizedBox(width: 8),
           ZOutlineButton(
             toolTip: "F6",
             icon: Icons.print,
@@ -974,16 +987,35 @@ class _DesktopState extends State<_Desktop> {
 
                 Expanded(
                   flex: 2,
-                  child: StakeholdersDropdown(
+                  child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                    controller: _personController,
                     title: tr.customer,
-                    height: 40,
-                    isMulti: false,
-                    onMultiChanged: (e) {},
-                    onSingleChanged: (e) {
+                    hintText: tr.customer,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return tr.required(tr.customer);
+                      }
+                      return null;
+                    },
+                    bloc: context.read<IndividualsBloc>(),
+                    fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                    searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
+                    itemBuilder: (context, ind) => Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                    ),
+                    itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
+                    stateToLoading: (state) => state is IndividualLoadingState,
+                    stateToItems: (state) {
+                      if (state is IndividualLoadedState) return state.individuals;
+                      return [];
+                    },
+                    onSelected: (value) {
                       setState(() {
-                        perId = e!.perId;
+                        perId = value.perId;
                       });
                     },
+                    showClearButton: true,
                   ),
                 ),
                 Expanded(
@@ -1054,6 +1086,96 @@ class _DesktopState extends State<_Desktop> {
         ],
       ),
     );
+  }
+
+
+
+  void onExcel() {
+    final tr = AppLocalizations.of(context)!;
+    final state = context.read<ShippingReportBloc>().state;
+
+    List<ShippingReportModel> shippingList = [];
+
+    if (state is ShippingReportLoadedState) {
+      shippingList = state.shp;
+    }
+
+    if (shippingList.isEmpty) {
+      ToastManager.show(
+          context: context,
+          title: tr.noData,
+          message: "No shipment found to export",
+          type: ToastType.error
+      );
+      return;
+    }
+
+    // Create a safe filename
+    String timestamp = DateTime.now().toIso8601String()
+        .replaceAll(':', '-')
+        .replaceAll('.', '-')
+        .replaceAll('T', '_');
+    String fileName = "Shipping_Report_$timestamp.xlsx";
+
+    // Prepare filter texts
+    String? filterCustomerText;
+    String? filterVehicleText;
+    String? filterStatusText;
+
+    if (perId != null) {
+      filterCustomerText = "Customer ID: $perId";
+    }
+
+    if (vehicleId != null) {
+      filterVehicleText = "Vehicle ID: $vehicleId";
+    }
+
+    if (status != null) {
+      filterStatusText = status == 1 ? tr.delivered : tr.pendingTitle;
+    }
+
+    // Capture the current context before any async operations
+    final currentContext = context;
+
+    // Show loading indicator
+    showDialog(
+      context: currentContext,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      },
+    );
+
+    // Call Excel export service
+    ShippingReportExcelService.exportToExcel(
+      shippingList: shippingList,
+      fromDate: fromDate,
+      toDate: toDate,
+      filterCustomer: filterCustomerText,
+      filterVehicle: filterVehicleText,
+      filterStatus: filterStatusText,
+      baseCurrency: _baseCurrency,
+      fileName: fileName,
+      context: currentContext, // Use captured context
+    ).then((_) {
+      // Check if the captured context is still mounted
+      if (currentContext.mounted) {
+        Navigator.of(currentContext).pop(); // Close loading dialog
+      }
+    }).catchError((error) {
+      // Check if the captured context is still mounted
+      if (currentContext.mounted) {
+        Navigator.of(currentContext).pop(); // Close loading dialog
+        ToastManager.show(
+            context: currentContext,
+            title: "Error",
+            message: "Failed to export: $error",
+            type: ToastType.error
+        );
+      }
+    });
   }
 
   Widget _buildColumnHeaders() {

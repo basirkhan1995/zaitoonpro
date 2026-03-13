@@ -380,10 +380,7 @@ class _DesktopState extends State<_Desktop> {
     _validatePaymentAmounts(shipping);
   }
 
-
-// Add this method to your _DesktopState class
   Future<void> _printShippingDetails(ShippingDetailsModel shippingDetails) async {
-    // Get company info from CompanyProfileBloc
     final companyState = context.read<CompanyProfileBloc>().state;
     ReportModel company = ReportModel();
 

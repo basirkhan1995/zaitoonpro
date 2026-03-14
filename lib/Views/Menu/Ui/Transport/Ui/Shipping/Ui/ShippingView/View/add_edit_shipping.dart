@@ -973,6 +973,91 @@ class _DesktopState extends State<_Desktop> {
       ),
     );
   }
+  void _deleteExpense(Expense expense, int shpId) {
+    setState(() {
+      _isReloadingDueToUpdate = true;
+      // Clear the selected expense if it's the one being deleted
+      if (_selectedExpenseForEdit?.trdReference == expense.trdReference) {
+        _selectedExpenseForEdit = null;
+        _clearExpenseForm();
+      }
+    });
+
+    context.read<ShippingBloc>().add(
+      DeleteShippingExpenseEvent(
+        shpId: shpId,
+        trnReference: expense.trdReference!,
+        usrName: usrName ?? "",
+      ),
+    );
+
+    setState(() {
+      _isReloadingDueToUpdate = false;
+    });
+  }
+
+  void _confirmDeleteExpense(Expense expense, int shpId) {
+    final tr = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        title: Text(tr.delete),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(tr.areYouSure),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error.withValues(alpha: .05),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: .2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${tr.referenceNumber}: ${expense.trdReference}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('${tr.amount}: ${expense.amount?.toAmount()} ${expense.currency}'),
+                  if (expense.narration?.isNotEmpty ?? false)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text('${tr.narration}: ${expense.narration}'),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(tr.cancel),
+          ),
+          ZOutlineButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteExpense(expense, shpId);
+            },
+            label: Text(tr.delete),
+            icon: Icons.delete_outline,
+            backgroundHover: Theme.of(context).colorScheme.error,
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildAccountPaymentSection(double targetAmount, double cashAmount, AppLocalizations tr, bool isEditing) {
     final availableForAccount = isEditing ? _safeMax(targetAmount - cashAmount, 0) : targetAmount - cashAmount;
@@ -2418,6 +2503,7 @@ class _DesktopState extends State<_Desktop> {
                           ],
                         ),
                       ),
+                    // In _buildExpensesView method, find this section:
                     if (shipping.shpStatus != 1)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 3.0, vertical: 12),
@@ -2436,18 +2522,24 @@ class _DesktopState extends State<_Desktop> {
                                   });
                                 },
                               ),
-                            ZOutlineButton(
-                              width: 100,
-                              height: 35,
-                              label: Text(tr.delete),
-                              onPressed: () {
-                                setState(() {
-                                  _selectedExpenseForEdit = null;
-                                  _clearExpenseForm();
-                                });
-                              },
-                            ),
+
+                            // Add Delete button here when an expense is selected
+                            if (_selectedExpenseForEdit != null) ...[
+                              const SizedBox(width: 10),
+                              ZOutlineButton(
+                                width: 100,
+                                height: 35,
+                                label: Text(tr.delete),
+                                icon: Icons.delete_outline,
+                                backgroundHover: Theme.of(context).colorScheme.error,
+                                onPressed: () {
+                                  _confirmDeleteExpense(_selectedExpenseForEdit!, shipping.shpId!);
+                                },
+                              ),
+                            ],
+
                             if (_selectedExpenseForEdit != null) const SizedBox(width: 10),
+
                             ZOutlineButton(
                               width: 100,
                               height: 35,
@@ -3215,6 +3307,91 @@ class _MobileState extends State<_Mobile> {
   String? proDetails;
 
   bool _isReloadingDueToUpdate = false;
+
+  void _deleteExpense(Expense expense, int shpId) {
+    setState(() {
+      _isReloadingDueToUpdate = true;
+      // Clear the selected expense if it's the one being deleted
+      if (_selectedExpenseForEdit?.trdReference == expense.trdReference) {
+        _selectedExpenseForEdit = null;
+        _clearExpenseForm();
+      }
+    });
+
+    context.read<ShippingBloc>().add(
+      DeleteShippingExpenseEvent(
+        shpId: shpId,
+        trnReference: expense.trdReference!,
+        usrName: usrName ?? "",
+      ),
+    );
+
+    setState(() {
+      _isReloadingDueToUpdate = false;
+    });
+  }
+  void _confirmDeleteExpense(Expense expense, int shpId) {
+    final tr = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        title: Text(tr.delete),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(tr.areYouSure),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.error.withValues(alpha: .05),
+                borderRadius: BorderRadius.circular(5),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: .2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${tr.referenceNumber}: ${expense.trdReference}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text('${tr.amount}: ${expense.amount?.toAmount()} ${expense.currency}'),
+                  if (expense.narration?.isNotEmpty ?? false)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text('${tr.narration}: ${expense.narration}'),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(tr.cancel),
+          ),
+          ZOutlineButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _deleteExpense(expense, shpId);
+            },
+            label: Text(tr.delete),
+            icon: Icons.delete_outline,
+            backgroundHover: Theme.of(context).colorScheme.error,
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -5481,6 +5658,7 @@ class _MobileState extends State<_Mobile> {
 
                         const SizedBox(height: 16),
 
+                        // In _buildExpensesView method for mobile, find this section:
                         Row(
                           children: [
                             if (_selectedExpenseForEdit != null)
@@ -5501,7 +5679,25 @@ class _MobileState extends State<_Mobile> {
                                   child: Text(tr.cancel),
                                 ),
                               ),
+
+                            // Add Delete button when an expense is selected
+                            if (_selectedExpenseForEdit != null) ...[
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ZOutlineButton(
+                                  onPressed: () {
+                                    _confirmDeleteExpense(_selectedExpenseForEdit!, shipping.shpId!);
+                                  },
+                                  isActive: true,
+                                  label: Text(tr.delete),
+                                  icon: Icons.delete_outline,
+                                  backgroundHover: Theme.of(context).colorScheme.error,
+                                ),
+                              ),
+                            ],
+
                             if (_selectedExpenseForEdit != null) const SizedBox(width: 12),
+
                             Expanded(
                               child: ZOutlineButton(
                                 onPressed: isLoading

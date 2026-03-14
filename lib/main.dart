@@ -161,7 +161,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => PageOrientationCubit()),
         BlocProvider(create: (context) => PaperSizeCubit()),
         BlocProvider(create: (context) => PrinterCubit()),
-
         /// Data Management ....................................................
         BlocProvider(create: (context) => IndividualsBloc(Repositories(ApiServices()))..add(LoadIndividualsEvent())),
         BlocProvider(create: (context) => EoyBloc(Repositories(ApiServices()))..add(LoadPLEvent())),

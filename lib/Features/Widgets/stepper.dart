@@ -89,7 +89,7 @@ class _CustomStepperState extends State<CustomStepper> {
                 ZOutlineButton(
                   width: 120,
                   height: 40,
-                  isActive: true,
+                  isActive: false,
                   onPressed: currentStep > 0 && !isLoading ? _goPrevious : null,
                   label: Text(tr.previous),
                 ),

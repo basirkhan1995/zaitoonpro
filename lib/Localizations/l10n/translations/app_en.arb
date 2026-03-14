@@ -971,5 +971,6 @@
   "salaryCalculation": "Salary Calculation",
   "employementDetails": "Employement Details",
   "userSettings": "User Settings",
-  "shipmentHint": "Manage shipments, Drivers & Vehicles"
+  "shipmentHint": "Manage shipments, Drivers & Vehicles",
+  "paymentMethodMessage": "Please select a payment method to continue."
 }

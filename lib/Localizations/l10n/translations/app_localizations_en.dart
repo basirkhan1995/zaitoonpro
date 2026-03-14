@@ -2940,4 +2940,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shipmentHint => 'Manage shipments, Drivers & Vehicles';
+
+  @override
+  String get paymentMethodMessage =>
+      'Please select a payment method to continue.';
 }

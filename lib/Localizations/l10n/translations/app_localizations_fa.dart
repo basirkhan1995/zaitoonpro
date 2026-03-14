@@ -2930,4 +2930,8 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get shipmentHint => 'مدیریت محموله ها، راننده ها و وسایط';
+
+  @override
+  String get paymentMethodMessage =>
+      'لطفاً ابتدا روش پرداخت را انتخاب کنید تا ادامه دهید.';
 }

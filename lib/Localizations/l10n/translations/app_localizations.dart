@@ -5811,6 +5811,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage shipments, Drivers & Vehicles'**
   String get shipmentHint;
+
+  /// No description provided for @paymentMethodMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a payment method to continue.'**
+  String get paymentMethodMessage;
 }
 
 class _AppLocalizationsDelegate

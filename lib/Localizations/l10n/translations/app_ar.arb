@@ -971,5 +971,6 @@
   "salaryCalculation": "محاسبه معاش",
   "employementDetails": "معلومات شغلی",
   "userSettings": "معلومات کاربر",
-  "shipmentHint": "مدیریت محموله ها، راننده ها و وسایط"
+  "shipmentHint": "مدیریت محموله ها، راننده ها و وسایط",
+  "paymentMethodMessage": "مهرباني وکړئ د دوام لپاره لومړی د تادیې طریقه وټاکئ."
 }

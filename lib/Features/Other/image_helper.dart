@@ -55,14 +55,14 @@ class ImageHelper {
       mainImage = CachedNetworkImage(
         imageUrl: "$baseUrl$imageName",
         fit: fit,
-        placeholder: (_, __) => Center(
+        placeholder: (_, _) => Center(
           child: SizedBox(
             width: size * 0.35,
             height: size * 0.35,
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
         ),
-        errorWidget: (_, __, ___) => Container(
+        errorWidget: (_, _, _) => Container(
           color: errorColor,
           child: Icon(errorIcon, size: size * 0.5, color: Colors.white),
         ),

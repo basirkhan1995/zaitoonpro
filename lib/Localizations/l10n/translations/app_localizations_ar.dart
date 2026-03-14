@@ -2933,4 +2933,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get shipmentHint => 'مدیریت محموله ها، راننده ها و وسایط';
+
+  @override
+  String get paymentMethodMessage =>
+      'مهرباني وکړئ د دوام لپاره لومړی د تادیې طریقه وټاکئ.';
 }

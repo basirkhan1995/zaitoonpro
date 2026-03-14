@@ -663,19 +663,6 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  ZOutlineButton(
-                    width: 130,
-                    isActive: _paymentFormValid,
-                    onPressed: _paymentFormValid
-                        ? () => _processPayment(shipping, existingPayment != null)
-                        : null,
-                    label: Text(existingPayment != null ? tr.updatePayment : tr.addPayment),
-                  ),
-                ],
-              ),
             ],
 
             if (canEditPayment && existingPayment != null) ...[
@@ -867,14 +854,29 @@ class _DesktopState extends State<_Desktop> {
           ZCover(
             radius: 5,
             padding: const EdgeInsets.all(8),
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: .8),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
             child: Row(
-              spacing: 8,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(Icons.add_card_rounded, color: Theme.of(context).colorScheme.surface),
-                Text(
-                  isEditing ? tr.editPayment : tr.addPayment,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(color: Theme.of(context).colorScheme.surface),
+                Row(
+                  spacing: 8,
+                  children: [
+                    Icon(Icons.add_card_rounded),
+                    Text(
+                      isEditing ? tr.editPayment.toUpperCase() : tr.addPayment.toUpperCase(),
+                    ),
+                  ],
+                ),
+                ZOutlineButton(
+                  icon: existingPayment != null ? Icons.refresh : Icons.add,
+                  onPressed: _paymentFormValid
+                      ? () => _processPayment(shipping, existingPayment != null)
+                      : (){
+                    ToastManager.show(context: context,
+                        title: AppLocalizations.of(context)!.paymentMethod,
+                        message: AppLocalizations.of(context)!.paymentMethodMessage, type: ToastType.info);
+                  },
+                  label: Text(existingPayment != null ? tr.updatePayment.toUpperCase() : tr.addPayment.toUpperCase()),
                 ),
               ],
             ),
@@ -1622,7 +1624,7 @@ class _DesktopState extends State<_Desktop> {
       ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.6,
+        width: MediaQuery.of(context).size.width * 0.7,
         child: Column(
           children: [
             Row(
@@ -1713,7 +1715,7 @@ class _DesktopState extends State<_Desktop> {
       contentPadding: EdgeInsets.zero,
       backgroundColor: Theme.of(context).colorScheme.surface,
       content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.6,
+        width: MediaQuery.of(context).size.width * 0.7,
         child: Column(
           children: [
             Row(
@@ -2481,31 +2483,35 @@ class _DesktopState extends State<_Desktop> {
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
                         child: Row(
                           children: [
                             SizedBox(
                               width: 300,
                               child: Text(
                                 tr.referenceNumber,
-                                style: textTheme.titleSmall,
+                                style: textTheme.titleSmall?.copyWith(color: color.surface),
                               ),
                             ),
                             Expanded(
                               child: Text(
                                 tr.narration,
-                                style: textTheme.titleSmall,
+                                style: textTheme.titleSmall?.copyWith(color: color.surface),
                               ),
                             ),
                             SizedBox(
                               width: 100,
                               child: Text(
                                 tr.amount,
-                                style: textTheme.titleSmall,
+                                style: textTheme.titleSmall?.copyWith(color: color.surface),
                               ),
                             ),
                           ],
                         ),
                       ),
+                      SizedBox(height: 5),
                       Container(
                         decoration: BoxDecoration(
                           border: Border.all(color: color.outline.withValues(alpha: .1)),
@@ -2526,8 +2532,15 @@ class _DesktopState extends State<_Desktop> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: _selectedExpenseForEdit?.trdReference == expense.trdReference
+                                          ? color.primary.withValues(alpha: .5)
+                                          : index.isEven
+                                          ? color.outline.withValues(alpha: .05)
+                                          : Colors.transparent,
+                                    ),
                                     color: _selectedExpenseForEdit?.trdReference == expense.trdReference
-                                        ? color.primary.withValues(alpha: .1)
+                                        ? color.primary.withValues(alpha: .01)
                                         : index.isEven
                                         ? color.outline.withValues(alpha: .05)
                                         : Colors.transparent,
@@ -2556,7 +2569,7 @@ class _DesktopState extends State<_Desktop> {
                                                   ),
                                                 ),
                                                 SizedBox(
-                                                  width: 150,
+                                                  width: 230,
                                                   child: Text(expense.accName ?? ""),
                                                 ),
                                               ],

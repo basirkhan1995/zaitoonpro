@@ -1178,6 +1178,7 @@ class Repositories {
     required String? usrName,
     required int shpId,
     required String amount,
+    required int accNumber,
     required String reference,
     required String narration,
   }) async {
@@ -1185,6 +1186,7 @@ class Repositories {
       endpoint: "/transport/shippingTransaction.php",
       data: {
         "usrName": usrName,
+        "accNumber": accNumber,
         "shpID": shpId,
         "trnReference": reference,
         "amount": amount,
@@ -1213,6 +1215,22 @@ class Repositories {
     );
     return response.data;
   }
+  Future<Map<String, dynamic>> deleteShippingExpense({
+    required String? usrName,
+    required int shpId,
+    required String trnReference,
+  }) async {
+    final response = await api.delete(
+      endpoint: "/transport/shippingTransaction.php",
+      data: {
+        "usrName": usrName,
+        "shpID": shpId,
+        "trnReference": trnReference,
+      },
+    );
+    return response.data;
+  }
+
 
   Future<Map<String, dynamic>> addShippingPayment({
     required String? usrName,

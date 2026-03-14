@@ -21,6 +21,7 @@ class ShippingBloc extends Bloc<ShippingEvent, ShippingState> {
     on<ClearShippingSuccessEvent>(_onClearShippingSuccess);
     on<AddShippingExpenseEvent>(_onAddShippingExpense);
     on<UpdateShippingExpenseEvent>(_onUpdateShippingExpense);
+    on<DeleteShippingExpenseEvent>(_onDeleteShippingExpense);
     on<AddShippingPaymentEvent>(_onAddShippingPayment);
     on<EditShippingPaymentEvent>(_onEditShippingPayment);
   }
@@ -433,10 +434,7 @@ class ShippingBloc extends Bloc<ShippingEvent, ShippingState> {
     }
   }
 
-  Future<void> _onUpdateShippingExpense(
-      UpdateShippingExpenseEvent event,
-      Emitter<ShippingState> emit,
-      ) async {
+  Future<void> _onUpdateShippingExpense(UpdateShippingExpenseEvent event, Emitter<ShippingState> emit) async {
     if (state.currentShipping == null) return;
 
     // Show loading for this specific operation
@@ -447,6 +445,7 @@ class ShippingBloc extends Bloc<ShippingEvent, ShippingState> {
     try {
       final res = await _repo.updateShippingExpense(
         shpId: event.shpId,
+        accNumber: event.accNumber,
         reference: event.trnReference,
         amount: event.amount,
         narration: event.narration,
@@ -483,6 +482,50 @@ class ShippingBloc extends Bloc<ShippingEvent, ShippingState> {
       ));
     }
   }
+  Future<void> _onDeleteShippingExpense(DeleteShippingExpenseEvent event, Emitter<ShippingState> emit) async {
+    if (state.currentShipping == null) return;
 
+    // Show loading for this specific operation
+    emit(state.copyWith(
+      loadingShpId: event.shpId,
+    ));
+
+    try {
+      final res = await _repo.deleteShippingExpense(
+        shpId: event.shpId,
+        trnReference: event.trnReference,
+        usrName: event.usrName,
+      );
+
+      if (res['msg'] == "success") {
+        // Get ONLY the updated expenses
+        final updatedShipping = await _repo.getShippingById(shpId: event.shpId);
+
+        // Update the current state
+        emit(ShippingDetailLoadedState(
+          shippingList: state.shippingList,
+          currentShipping: updatedShipping,
+          loadingShpId: null,
+          shouldOpenDialog: false, // Don't reopen dialog
+        ));
+      } else if (res['msg'] == "delivered") {
+        emit(ShippingErrorState(
+          shippingList: state.shippingList,
+          currentShipping: state.currentShipping,
+          loadingShpId: null,
+          error: 'Cannot update expense of delivered shipping',
+        ));
+      } else {
+        throw Exception(res['msg'] ?? 'Failed to update expense');
+      }
+    } catch (e) {
+      emit(ShippingErrorState(
+        shippingList: state.shippingList,
+        currentShipping: state.currentShipping,
+        loadingShpId: null,
+        error: 'Failed to update expense: $e',
+      ));
+    }
+  }
 
 }

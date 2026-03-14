@@ -124,6 +124,7 @@ class AddShippingExpenseEvent extends ShippingEvent {
 class UpdateShippingExpenseEvent extends ShippingEvent {
   final int shpId;
   final String trnReference;
+  final int accNumber;
   final String amount;
   final String narration;
   final String usrName;
@@ -131,13 +132,14 @@ class UpdateShippingExpenseEvent extends ShippingEvent {
   const UpdateShippingExpenseEvent({
     required this.shpId,
     required this.trnReference,
+    required this.accNumber,
     required this.amount,
     required this.narration,
     required this.usrName,
   });
 
   @override
-  List<Object> get props => [shpId, trnReference, amount, narration, usrName];
+  List<Object> get props => [shpId, trnReference, accNumber, amount, narration, usrName];
 }
 
 class DeleteShippingExpenseEvent extends ShippingEvent {

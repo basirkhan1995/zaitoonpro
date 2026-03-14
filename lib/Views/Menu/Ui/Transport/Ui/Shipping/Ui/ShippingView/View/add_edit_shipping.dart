@@ -103,6 +103,7 @@ class _DesktopState extends State<_Desktop> {
   final GlobalKey<FormState> expenseFormKey = GlobalKey<FormState>();
 
   Expense? _selectedExpenseForEdit;
+
   bool _paymentFormValid = false;
   String? _paymentError;
   int _currentStep = 0;
@@ -2435,6 +2436,17 @@ class _DesktopState extends State<_Desktop> {
                                   });
                                 },
                               ),
+                            ZOutlineButton(
+                              width: 100,
+                              height: 35,
+                              label: Text(tr.delete),
+                              onPressed: () {
+                                setState(() {
+                                  _selectedExpenseForEdit = null;
+                                  _clearExpenseForm();
+                                });
+                              },
+                            ),
                             if (_selectedExpenseForEdit != null) const SizedBox(width: 10),
                             ZOutlineButton(
                               width: 100,
@@ -2450,9 +2462,7 @@ class _DesktopState extends State<_Desktop> {
                                 ),
                               )
                                   : Text(_selectedExpenseForEdit != null ? tr.update : tr.create),
-                              onPressed: isLoading
-                                  ? null
-                                  : () {
+                              onPressed: isLoading ? null : () {
                                 _handleExpenseAction();
                               },
                             ),
@@ -3092,6 +3102,7 @@ class _DesktopState extends State<_Desktop> {
       context.read<ShippingBloc>().add(
         UpdateShippingExpenseEvent(
           shpId: widget.shippingId!,
+          accNumber: expenseAccNumber!,
           trnReference: _selectedExpenseForEdit!.trdReference!,
           amount: expenseAmount.text.cleanAmount,
           narration: expenseNarration.text,
@@ -6128,6 +6139,7 @@ class _MobileState extends State<_Mobile> {
       context.read<ShippingBloc>().add(
         UpdateShippingExpenseEvent(
           shpId: widget.shippingId!,
+          accNumber: expenseAccNumber!,
           trnReference: _selectedExpenseForEdit!.trdReference!,
           amount: expenseAmount.text.cleanAmount,
           narration: expenseNarration.text,

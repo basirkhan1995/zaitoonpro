@@ -44,7 +44,6 @@ class NewSaleView extends StatelessWidget {
     );
   }
 }
-
 class _DesktopNewSaleView extends StatefulWidget {
   const _DesktopNewSaleView();
 

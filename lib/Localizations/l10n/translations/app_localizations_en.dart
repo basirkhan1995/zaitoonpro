@@ -1439,13 +1439,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get yesterday => 'Yesterday';
 
   @override
-  String get lastWeek => 'Last week';
+  String get lastWeek => 'Last Week';
 
   @override
   String get last30Days => 'Last 30 days';
 
   @override
-  String get lastMonth => 'Last month';
+  String get lastMonth => 'Last Month';
 
   @override
   String get dateRange => 'Date range';
@@ -1999,7 +1999,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creditPayment => 'Credit Payment';
 
   @override
-  String get lastYear => 'Prior year';
+  String get lastYear => 'Last Year';
 
   @override
   String get profitAndLoss => 'Profit & Loss';
@@ -2906,7 +2906,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get allTime => 'All Time';
 
   @override
-  String get thisYear => 'This year';
+  String get thisYear => 'This Year';
 
   @override
   String get tripCost => 'Trip Costs';
@@ -2947,4 +2947,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get entries => 'Entries';
+
+  @override
+  String get thisMonth => 'This Month';
+
+  @override
+  String get lastThreeMonth => 'Last 90 Days';
 }

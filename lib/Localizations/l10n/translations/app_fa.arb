@@ -973,5 +973,7 @@
   "userSettings": "معلومات کاربر",
   "shipmentHint": "مدیریت محموله ها، راننده ها و وسایط",
   "paymentMethodMessage": "لطفاً ابتدا روش پرداخت را انتخاب کنید تا ادامه دهید.",
-  "entries": "ردیف"
+  "entries": "ردیف",
+  "thisMonth": "این ماه",
+  "lastThreeMonth": "۹۰ روز گذشته"
 }

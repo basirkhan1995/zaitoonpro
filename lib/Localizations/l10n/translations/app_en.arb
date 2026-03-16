@@ -484,9 +484,9 @@
   "deactive": "Inactive",
   "userLogActivity": "Users Log Activity",
   "yesterday": "Yesterday",
-  "lastWeek": "Last week",
+  "lastWeek": "Last Week",
   "last30Days": "Last 30 days",
-  "lastMonth": "Last month",
+  "lastMonth": "Last Month",
   "dateRange": "Date range",
   "delivered": "Delivered",
   "shippingSummary": "Shipping Summary",
@@ -663,7 +663,7 @@
   "party": "Party",
   "estimate": "Estimate",
   "creditPayment": "Credit Payment",
-  "lastYear": "Prior year",
+  "lastYear": "Last Year",
   "profitAndLoss": "Profit & Loss",
   "loss": "Loss",
   "signatory": "Signatory",
@@ -960,7 +960,7 @@
   "totalIn": "Total IN",
   "totalOut": "Total OUT",
   "allTime": "All Time",
-  "thisYear": "This year",
+  "thisYear": "This Year",
   "tripCost": "Trip Costs",
   "tripCostHint": "Costs during the journey (tolls, meals, parking)",
   "personal": "Personal",
@@ -973,5 +973,7 @@
   "userSettings": "User Settings",
   "shipmentHint": "Manage shipments, Drivers & Vehicles",
   "paymentMethodMessage": "Please select a payment method to continue.",
-  "entries": "Entries"
+  "entries": "Entries",
+  "thisMonth": "This Month",
+  "lastThreeMonth": "Last 90 Days"
 }

@@ -23,6 +23,8 @@ enum QuickOption {
   today,
   yesterday,
   lastWeek,
+  last90Days,
+  thisMonth,
   lastMonth,
   lastYear,
   thisYear,
@@ -109,6 +111,21 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
     final lastWeekStart = todayDate.subtract(const Duration(days: 7));
     if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
       _selectedQuickOption = QuickOption.lastWeek;
+      return;
+    }
+
+    // Check Last 90 Days
+    final last90DaysEnd = todayDate.subtract(const Duration(days: 1));
+    final last90DaysStart = todayDate.subtract(const Duration(days: 90));
+    if (startDateOnly == last90DaysStart && endDateOnly == last90DaysEnd) {
+      _selectedQuickOption = QuickOption.last90Days;
+      return;
+    }
+
+    // Check This Month
+    final thisMonthStart = DateTime(_today.year, _today.month, 1);
+    if (startDateOnly == thisMonthStart && endDateOnly == todayDate) {
+      _selectedQuickOption = QuickOption.thisMonth;
       return;
     }
 
@@ -223,6 +240,30 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
       _endDate = end;
       _currentMonth = DateTime(start.year, start.month, 1);
       _selectedYear = start.year;
+    });
+  }
+
+  void _selectLast90Days() {
+    final end = _today.subtract(const Duration(days: 1));
+    final start = _today.subtract(const Duration(days: 90));
+    setState(() {
+      _selectedQuickOption = QuickOption.last90Days;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = DateTime(start.year, start.month, 1);
+      _selectedYear = start.year;
+    });
+  }
+
+  void _selectThisMonth() {
+    final start = DateTime(_today.year, _today.month, 1);
+    final end = _today;
+    setState(() {
+      _selectedQuickOption = QuickOption.thisMonth;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = DateTime(_today.year, _today.month, 1);
+      _selectedYear = _today.year;
     });
   }
 
@@ -430,9 +471,19 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
                                     option: QuickOption.lastMonth,
                                   ),
                                   _buildQuickOption(
+                                    label: tr.lastThreeMonth,
+                                    onTap: _selectLast90Days,
+                                    option: QuickOption.last90Days,
+                                  ),
+                                  _buildQuickOption(
                                     label: tr.lastYear,
                                     onTap: _selectLastYear,
                                     option: QuickOption.lastYear,
+                                  ),
+                                  _buildQuickOption(
+                                    label: tr.thisMonth,
+                                    onTap: _selectThisMonth,
+                                    option: QuickOption.thisMonth,
                                   ),
                                   _buildQuickOption(
                                     label: tr.thisYear,
@@ -578,7 +629,7 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
                               // Calendar Grid
                               Expanded(
                                 child: GridView.builder(
-                                  physics: NeverScrollableScrollPhysics(),
+                                  physics: const NeverScrollableScrollPhysics(),
                                   padding: EdgeInsets.zero,
                                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: 7,

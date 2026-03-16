@@ -2940,4 +2940,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get entries => 'ردیف';
+
+  @override
+  String get thisMonth => 'دا میاشت';
+
+  @override
+  String get lastThreeMonth => 'تېر ۹۰ ورځې';
 }

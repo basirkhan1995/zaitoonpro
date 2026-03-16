@@ -26,6 +26,8 @@ enum QuickOption {
   today,
   yesterday,
   lastWeek,
+  last90Days,
+  thisMonth,
   lastMonth,
   lastYear,
   thisYear,
@@ -110,6 +112,21 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     final lastWeekStart = _getDaysAgo(todayDate, 7);
     if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
       _selectedQuickOption = QuickOption.lastWeek;
+      return;
+    }
+
+    // Check Last 90 Days
+    final last90DaysEnd = _getYesterday(todayDate);
+    final last90DaysStart = _getDaysAgo(todayDate, 90);
+    if (startDateOnly == last90DaysStart && endDateOnly == last90DaysEnd) {
+      _selectedQuickOption = QuickOption.last90Days;
+      return;
+    }
+
+    // Check This Month
+    final thisMonthStart = Jalali(_today.year, _today.month, 1);
+    if (startDateOnly == thisMonthStart && endDateOnly == todayDate) {
+      _selectedQuickOption = QuickOption.thisMonth;
       return;
     }
 
@@ -291,6 +308,30 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     });
   }
 
+  void _selectLast90Days() {
+    final end = _getYesterday(_today);
+    final start = _getDaysAgo(_today, 90);
+    setState(() {
+      _selectedQuickOption = QuickOption.last90Days;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(start.year, start.month, 1);
+      _selectedYear = start.year;
+    });
+  }
+
+  void _selectThisMonth() {
+    final start = Jalali(_today.year, _today.month, 1);
+    final end = _today;
+    setState(() {
+      _selectedQuickOption = QuickOption.thisMonth;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(_today.year, _today.month, 1);
+      _selectedYear = _today.year;
+    });
+  }
+
   void _selectThisYear() {
     final start = Jalali(_today.year, 1, 1);
     final end = _today;
@@ -461,7 +502,7 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
       backgroundColor: Colors.transparent,
       child: Container(
         width: _showYearSelector ? 650 : (_showQuickOptions ? 500 : 400),
-        height: 460,
+        height: 480, // Slightly increased height to accommodate more options
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: color.surface,
@@ -506,6 +547,16 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                     label: locale.lastMonth,
                                     onTap: _selectLastMonth,
                                     option: QuickOption.lastMonth,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.lastThreeMonth,
+                                    onTap: _selectLast90Days,
+                                    option: QuickOption.last90Days,
+                                  ),
+                                  _buildQuickOption(
+                                    label: locale.thisMonth,
+                                    onTap: _selectThisMonth,
+                                    option: QuickOption.thisMonth,
                                   ),
                                   _buildQuickOption(
                                     label: locale.lastYear,
@@ -614,7 +665,7 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                           _showQuickOptions = !_showQuickOptions;
                                         });
                                       },
-                                      tooltip: 'Toggle quick options',
+                                      tooltip: 'نمایش/مخفی کردن گزینه‌ها',
                                     ),
                                   ],
                                 ),

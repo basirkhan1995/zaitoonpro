@@ -2887,7 +2887,7 @@ abstract class AppLocalizations {
   /// No description provided for @lastWeek.
   ///
   /// In en, this message translates to:
-  /// **'Last week'**
+  /// **'Last Week'**
   String get lastWeek;
 
   /// No description provided for @last30Days.
@@ -2899,7 +2899,7 @@ abstract class AppLocalizations {
   /// No description provided for @lastMonth.
   ///
   /// In en, this message translates to:
-  /// **'Last month'**
+  /// **'Last Month'**
   String get lastMonth;
 
   /// No description provided for @dateRange.
@@ -3961,7 +3961,7 @@ abstract class AppLocalizations {
   /// No description provided for @lastYear.
   ///
   /// In en, this message translates to:
-  /// **'Prior year'**
+  /// **'Last Year'**
   String get lastYear;
 
   /// No description provided for @profitAndLoss.
@@ -5743,7 +5743,7 @@ abstract class AppLocalizations {
   /// No description provided for @thisYear.
   ///
   /// In en, this message translates to:
-  /// **'This year'**
+  /// **'This Year'**
   String get thisYear;
 
   /// No description provided for @tripCost.
@@ -5823,6 +5823,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Entries'**
   String get entries;
+
+  /// No description provided for @thisMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonth;
+
+  /// No description provided for @lastThreeMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Last 90 Days'**
+  String get lastThreeMonth;
 }
 
 class _AppLocalizationsDelegate

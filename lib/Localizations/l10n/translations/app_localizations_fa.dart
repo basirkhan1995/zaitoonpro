@@ -2937,4 +2937,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get entries => 'ردیف';
+
+  @override
+  String get thisMonth => 'این ماه';
+
+  @override
+  String get lastThreeMonth => '۹۰ روز گذشته';
 }

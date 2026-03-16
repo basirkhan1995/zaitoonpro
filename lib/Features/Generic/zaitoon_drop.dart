@@ -144,9 +144,8 @@ class _ZDropdownState<T> extends State<ZDropdown<T>> {
       focusNode: _focusNode,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // Add this to minimize column height
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Only add title section if there's content to show
           if (widget.customTitle != null)
             widget.customTitle!
           else if (widget.title != null && widget.title!.isNotEmpty) ...[
@@ -211,7 +210,7 @@ class _ZDropdownState<T> extends State<ZDropdown<T>> {
     return OverlayEntry(
       builder: (_) => Stack(
         children: [
-          /// 👇 THIS is the outside click detector (VERY IMPORTANT)
+          // Outside click detector
           Positioned.fill(
             child: GestureDetector(
               behavior: HitTestBehavior.translucent,
@@ -219,7 +218,7 @@ class _ZDropdownState<T> extends State<ZDropdown<T>> {
             ),
           ),
 
-          /// 👇 Your dropdown
+          // Dropdown menu
           Positioned(
             left: offset.dx,
             top: offset.dy + renderBox.size.height + 4,
@@ -227,73 +226,134 @@ class _ZDropdownState<T> extends State<ZDropdown<T>> {
             child: Material(
               elevation: 2,
               borderRadius: BorderRadius.circular(widget.radius ?? 4),
-              child: Container(
-                constraints: const BoxConstraints(maxHeight: 300),
-                child: AnimatedSize(
-                  duration: const Duration(milliseconds: 200),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (widget.multiSelect)
-                          InkWell(
-                            onTap: () {
-                              final allSelected =
-                                  _selectedItems.length == widget.items.length;
-                              setState(() {
-                                _selectedItems = allSelected
-                                    ? []
-                                    : List.from(widget.items);
-                              });
-                              widget.onMultiSelectChanged
-                                  ?.call(_selectedItems);
-                              _refreshOverlay();
-                            },
-                            child: Row(
-                              children: [
-                                Checkbox(
-                                  value: _selectedItems.length ==
-                                      widget.items.length &&
-                                      widget.items.isNotEmpty,
-                                  onChanged: (_) {},
-                                ),
-                                Text(AppLocalizations.of(context)!.selectAll),
-                              ],
-                            ),
-                          ),
-                        ...widget.items.map((item) {
-                          final isSelected = widget.multiSelect
-                              ? _selectedItems.contains(item)
-                              : item == _selectedItem;
-
-                          return InkWell(
-                            onTap: () => _onItemTapped(item),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 0, vertical: 4),
-                              color: isSelected
-                                  ? color.primary.withAlpha(15)
-                                  : null,
-                              child: Row(
-                                children: [
-                                  if (widget.multiSelect)
-                                    Checkbox(
-                                      value: isSelected,
-                                      onChanged: (_) => _onItemTapped(item),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: widget.maxDropdownHeight ?? 300,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color.surface,
+                    borderRadius: BorderRadius.circular(widget.radius ?? 4),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(widget.radius ?? 4),
+                    child: SingleChildScrollView(
+                      padding: EdgeInsets.zero,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (widget.multiSelect && widget.items.isNotEmpty)
+                            InkWell(
+                              onTap: () {
+                                final allSelected =
+                                    _selectedItems.length == widget.items.length;
+                                setState(() {
+                                  _selectedItems = allSelected
+                                      ? []
+                                      : List.from(widget.items);
+                                });
+                                widget.onMultiSelectChanged
+                                    ?.call(_selectedItems);
+                                _refreshOverlay();
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: color.outline.withAlpha(30),
                                     ),
-                                  if (widget.leadingBuilder != null)
-                                    widget.leadingBuilder!(item),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                      child: Text(widget.itemLabel(item))),
-                                  if (isSelected && !widget.multiSelect)
-                                    const Icon(Icons.check, size: 16),
-                                ],
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Checkbox(
+                                        value: _selectedItems.length ==
+                                            widget.items.length &&
+                                            widget.items.isNotEmpty,
+                                        onChanged: (_) {},
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      AppLocalizations.of(context)!.selectAll,
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          );
-                        }),
-                      ],
+                          ...widget.items.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final item = entry.value;
+                            final isSelected = widget.multiSelect
+                                ? _selectedItems.contains(item)
+                                : item == _selectedItem;
+
+                            return InkWell(
+                              onTap: () => _onItemTapped(item),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? color.primary.withAlpha(15)
+                                      : null,
+                                  border: index < widget.items.length - 1
+                                      ? Border(
+                                    bottom: BorderSide(
+                                      color: color.outline.withAlpha(20),
+                                    ),
+                                  )
+                                      : null,
+                                ),
+                                child: Row(
+                                  children: [
+                                    if (widget.multiSelect)
+                                      SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: Checkbox(
+                                          value: isSelected,
+                                          onChanged: (_) => _onItemTapped(item),
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                      ),
+                                    if (widget.leadingBuilder != null)
+                                      widget.leadingBuilder!(item),
+                                    if (widget.leadingBuilder != null)
+                                      const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        widget.itemLabel(item),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: isSelected && !widget.multiSelect
+                                              ? FontWeight.w500
+                                              : FontWeight.normal,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected && !widget.multiSelect)
+                                      Icon(
+                                        Icons.check,
+                                        size: 16,
+                                        color: color.primary,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -972,5 +972,6 @@
   "employementDetails": "معلومات شغلی",
   "userSettings": "معلومات کاربر",
   "shipmentHint": "مدیریت محموله ها، راننده ها و وسایط",
-  "paymentMethodMessage": "مهرباني وکړئ د دوام لپاره لومړی د تادیې طریقه وټاکئ."
+  "paymentMethodMessage": "مهرباني وکړئ د دوام لپاره لومړی د تادیې طریقه وټاکئ.",
+  "entries": "ردیف"
 }

@@ -972,5 +972,6 @@
   "employementDetails": "معلومات شغلی",
   "userSettings": "معلومات کاربر",
   "shipmentHint": "مدیریت محموله ها، راننده ها و وسایط",
-  "paymentMethodMessage": "لطفاً ابتدا روش پرداخت را انتخاب کنید تا ادامه دهید."
+  "paymentMethodMessage": "لطفاً ابتدا روش پرداخت را انتخاب کنید تا ادامه دهید.",
+  "entries": "ردیف"
 }

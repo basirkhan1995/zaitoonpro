@@ -2944,4 +2944,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get paymentMethodMessage =>
       'Please select a payment method to continue.';
+
+  @override
+  String get entries => 'Entries';
 }

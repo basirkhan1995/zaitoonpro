@@ -972,5 +972,6 @@
   "employementDetails": "Employement Details",
   "userSettings": "User Settings",
   "shipmentHint": "Manage shipments, Drivers & Vehicles",
-  "paymentMethodMessage": "Please select a payment method to continue."
+  "paymentMethodMessage": "Please select a payment method to continue.",
+  "entries": "Entries"
 }

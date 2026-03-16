@@ -2934,4 +2934,7 @@ class AppLocalizationsFa extends AppLocalizations {
   @override
   String get paymentMethodMessage =>
       'لطفاً ابتدا روش پرداخت را انتخاب کنید تا ادامه دهید.';
+
+  @override
+  String get entries => 'ردیف';
 }

@@ -480,6 +480,152 @@ abstract class PrintServices {
   String tr({required String text, required String tr}) {
     const translation = {
 
+      "debitEntries": {
+        "en": "Debit Entries",
+        "ar": "د بدهکار ننوتل",
+        "fa": "ورودی‌های بدهکار"
+      },
+      "creditEntries": {
+        "en": "Credit Entries",
+        "ar": "د کریډیټ ننوتل",
+        "fa": "ورودی‌های بستانکار"
+      },
+      "noDebitEntries": {
+        "en": "No debit entries",
+        "ar": "د بدهکار ننوتل نشته",
+        "fa": "بدون ورودی بدهکار"
+      },
+      "noCreditEntries": {
+        "en": "No credit entries",
+        "ar": "د کریډیټ ننوتل نشته",
+        "fa": "بدون ورودی بستانکار"
+      },
+      "summaryByCurrency": {
+        "en": "Summary by Currency",
+        "ar": "لنډیز د اسعارو له مخې",
+        "fa": "خلاصه بر اساس ارز"
+      },
+      "netAmount": {
+        "en": "Net Amount",
+        "ar": "خالص مقدار",
+        "fa": "مقدار خالص"
+      },
+      "balanced": {
+        "en": "Balanced",
+        "ar": "متوازن",
+        "fa": "متوازن"
+      },
+      "totalDebit": {
+        "en": "Total Debit",
+        "ar": "ټول بدهکار",
+        "fa": "مجموع بدهکار"
+      },
+      "totalCredit": {
+        "en": "Total Credit",
+        "ar": "ټول کریډیټ",
+        "fa": "مجموع بستانکار"
+      },
+      "grandTotal": {
+        "en": "Grand Total",
+        "ar": "ټول مجموعه",
+        "fa": "مجموع کل"
+      },
+      "authorized": {
+        "en": "Authorized",
+        "ar": "اجازه شوی",
+        "fa": "تایید شده"
+      },
+      "pending": {
+        "en": "Pending",
+        "ar": "په تمه",
+        "fa": "در انتظار"
+      },
+      "accountName": {
+        "en": "Account Name",
+        "ar": "د حساب نوم",
+        "fa": "نام حساب"
+      },
+      "accountNumber": {
+        "en": "Account Number",
+        "ar": "د حساب شمېره",
+        "fa": "شماره حساب"
+      },
+      "amount": {
+        "en": "Amount",
+        "ar": "مقدار",
+        "fa": "مقدار"
+      },
+      "currency": {
+        "en": "Currency",
+        "ar": "اسعار",
+        "fa": "ارز"
+      },
+      "date": {
+        "en": "Date",
+        "ar": "نیټه",
+        "fa": "تاریخ"
+      },
+      "time": {
+        "en": "Time",
+        "ar": "وخت",
+        "fa": "زمان"
+      },
+      "referenceNumber": {
+        "en": "Reference Number",
+        "ar": "د حوالې شمېره",
+        "fa": "شماره مرجع"
+      },
+      "branch": {
+        "en": "Branch",
+        "ar": "څانګه",
+        "fa": "شعبه"
+      },
+      "maker": {
+        "en": "Maker",
+        "ar": "جوړونکی",
+        "fa": "ایجاد کننده"
+      },
+      "checker": {
+        "en": "Checker",
+        "ar": "تاییدونکی",
+        "fa": "بررسی کننده"
+      },
+      "status": {
+        "en": "Status",
+        "ar": "حالت",
+        "fa": "وضعیت"
+      },
+      "type": {
+        "en": "Type",
+        "ar": "ډول",
+        "fa": "نوع"
+      },
+      "postSalary": {
+        "en": "Post Salary",
+        "ar": "معاش پوسټ کړئ",
+        "fa": "ثبت حقوق"
+      },
+      "accountTransfer": {
+        "en": "Account Transfer",
+        "ar": "د حساب لیږد",
+        "fa": "انتقال حساب"
+      },
+      "fxTransaction": {
+        "en": "FX Transaction",
+        "ar": "د اسعارو معامله",
+        "fa": "تراکنش ارزی"
+      },
+      "profitAndLoss": {
+        "en": "Profit and Loss",
+        "ar": "ګټه او تاوان",
+        "fa": "سود و زیان"
+      },
+      "narration": {
+        "en": "Narration",
+        "ar": "تشریح",
+        "fa": "توضیحات"
+      },
+
       'moneyReceipt' : {
         'en':"Money Receipt",
         'fa':"رسید پول",
@@ -820,16 +966,7 @@ abstract class PrintServices {
         'fa': 'بیلانس نهایی',
         'ar': 'تړلو بیلانس',
       },
-      'totalCredit': {
-        'en': 'Credits',
-        'fa': 'بستانکار',
-        'ar': 'بستانکار',
-      },
-      'totalDebit': {
-        'en': 'Debits',
-        'fa': 'بدهکار',
-        'ar': 'بدهکار',
-      },
+
       'page': {
         'en': 'Page',
         'fa': 'صفحه',
@@ -849,16 +986,6 @@ abstract class PrintServices {
         'en': 'Transaction Code',
         'fa': 'کد معامله',
         'ar': 'معامله کد',
-      },
-      'checker': {
-        'en': 'Checker',
-        'fa': 'تایید کننده',
-        'ar': 'تایید کونکی',
-      },
-      'maker': {
-        'en': 'Maker',
-        'fa': 'اجراء کننده',
-        'ar': 'اجراء کونکی',
       },
       'CHDP': {
         'en': 'Cash Deposit',
@@ -905,11 +1032,6 @@ abstract class PrintServices {
         'fa': 'بستانکار',
         'ar': 'بسټانکار',
       },
-      'branch':{
-        'en':'Branch',
-        'fa':'شعبه',
-        'ar':'څانګه',
-      },
       'authorizedBy':{
         'en':'Authorized by: ',
         'fa':'تایید کننده',
@@ -930,16 +1052,6 @@ abstract class PrintServices {
         'fa':'شماره مرجع',
         'ar':'حوالې شمیره',
       },
-      'amount':{
-        'en':'Amount',
-        'fa':'مبلغ',
-        'ar':'مبلغ',
-      },
-      'accountName':{
-        'en':'Account ',
-        'fa':'نام حساب',
-        'ar':'حساب نوم',
-      },
       'debtor':{
         'en':'Debtor ',
         'fa':'بدهکار',
@@ -949,21 +1061,6 @@ abstract class PrintServices {
         'en':'Creditor ',
         'fa':'طلبکار',
         'ar':'طلبکار',
-      },
-      'accountNumber':{
-        'en':'Account No',
-        'fa':'شماره حساب',
-        'ar':'حساب شمیره',
-      },
-      'currency': {
-        'en':'Currency',
-        'fa':'ارز حساب',
-        'ar':'حساب ارز',
-      },
-      'narration':{
-        'en':'Narration',
-        'fa':'شرح',
-        'ar':'شرح',
       },
       'withdrawal':{
         'en':'Withdrawal',
@@ -979,11 +1076,6 @@ abstract class PrintServices {
         'en':'Balance',
         'fa':'بیلانس',
         'ar':'بیلانس',
-      },
-      'date':{
-        'en':'Date',
-        'fa':'تاریخ',
-        'ar':'نیته',
       },
       'accOwner':{
         'en':'Account holder',
@@ -1050,11 +1142,6 @@ abstract class PrintServices {
         'fa':'نام کالا',
         'ar':'توکي نوم',
       },
-      'grandTotal':{
-        'en':'Grand Total',
-        'fa':'جمع کل نهایی',
-        'ar':'ټولیز مجموعه',
-      },
       'previousBalance':{
         'en':'Balance',
         'fa':'مانده حساب',
@@ -1104,11 +1191,6 @@ abstract class PrintServices {
         'en': 'Body Type',
         'fa': 'نوع بدنه',
         'ar': 'د بدن ډول',
-      },
-      'balanced': {
-        'en': 'Balanced',
-        'fa': 'متعادل',
-        'ar': 'متوازن',
       },
       'plateNumber': {
         'en': 'Plate Number',
@@ -1179,11 +1261,6 @@ abstract class PrintServices {
         'en': 'Active',
         'fa': 'فعال',
         'ar': 'فعال',
-      },
-      'pending': {
-        'en': 'Pending',
-        'fa': 'در انتظار',
-        'ar': 'په تمه کې',
       },
       'approved': {
         'en': 'Approved',
@@ -1299,11 +1376,6 @@ abstract class PrintServices {
         'en': 'Supplier',
         'fa': 'تامین کننده',
         'ar': 'المورد',
-      },
-      'referenceNumber': {
-        'en': 'Reference No',
-        'fa': 'شماره مرجع',
-        'ar': 'رقم المرجع',
       },
       'trialBalance': {
         'en': 'Trial Balance',
@@ -1500,11 +1572,6 @@ abstract class PrintServices {
         'fa': 'موجودی جدید',
         'ar': 'نوی بیلانس'
       },
-      'status': {
-        'en': 'Status',
-        'fa': 'وضعیت',
-        'ar': 'حالت'
-      },
       'settled': {
         'en': 'Settled',
         'fa': 'تسویه شده',
@@ -1515,6 +1582,7 @@ abstract class PrintServices {
         "ar": "د پروژې پېژند",
         "fa": "شناسه پروژه"
       },
+
       "projectName": {
         "en": "Project Name",
         "ar": "د پروژې نوم",
@@ -1665,11 +1733,6 @@ abstract class PrintServices {
         'fa': 'همه حساب‌ها',
         'ar': 'جميع الأرصدة',
       },
-      'summaryByCurrency': {
-        'en': 'Summary by Currency',
-        'fa': 'خلاصه بر اساس ارز',
-        'ar': 'ملخص حسب العملة',
-      },
       'summary': {
         'en': 'Summary',
         'fa': 'خلاصه',
@@ -1736,12 +1799,6 @@ abstract class PrintServices {
         'ar': 'تلیفون',
       },
 
-      'time': {
-        'en': 'Time',
-        'fa': 'زمان',
-        'ar': 'وخت',
-      },
-
       'branchWiseDetails': {
         'en': 'Branch-wise Details',
         'fa': 'جزئیات هر شعبه',
@@ -1790,12 +1847,6 @@ abstract class PrintServices {
         'ar': 'لاره',
       },
 
-      'netAmount': {
-        'en': 'Net Amount',
-        'fa': 'مبلغ خالص',
-        'ar': 'خالص مقدار',
-      },
-
       'cardPayment': {
         'en': 'Card Payment',
         'fa': 'پرداخت کریدت',
@@ -1833,6 +1884,8 @@ abstract class PrintServices {
         'fa': 'نقدی',
         'ar': 'نقدی',
       },
+
+
 
     };
 

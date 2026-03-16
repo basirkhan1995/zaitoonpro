@@ -2937,4 +2937,7 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get paymentMethodMessage =>
       'مهرباني وکړئ د دوام لپاره لومړی د تادیې طریقه وټاکئ.';
+
+  @override
+  String get entries => 'ردیف';
 }

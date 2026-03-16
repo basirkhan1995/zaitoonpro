@@ -581,18 +581,37 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
       baseCurrency = comState.company.comLocalCcy;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5,vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: color.outline.withValues(alpha: .1),
+            width: 1,
+          ),
+        ),
       ),
       child: Row(
-        spacing: 5,
+        spacing: 8,
         children: [
-          SizedBox(
-            width: 37,
-            child: Text(
-              '${widget.index + 1}',
-              textAlign: TextAlign.center,
+          // Improved Index with Circle Design
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: color.primary.withValues(alpha: .08),
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '${widget.index + 1}',
+                style: TextStyle(
+                  color: color.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ),
 
@@ -612,40 +631,46 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
                 fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '1,2,3,4,5,6,7,8,9,10,11,12', exclude: "10101010,10101011",ccy: widget.selectedCurrency ?? baseCurrency,)),
                 searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '1,2,3,4,5,6,7,8,9,10,11,12', exclude: "10101010,10101011",ccy: widget.selectedCurrency ?? baseCurrency)),
                 itemBuilder: (context, account) => Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(
-                          "${account.accNumber} | ${account.accName}",
-                          style: Theme.of(context).textTheme.titleSmall,
-                        ),
-                      ),
-                      Row(
-                        children: [
-
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: account.actCurrency == widget.selectedCurrency
-                                  ? Colors.green.shade100
-                                  : Colors.orange.shade100,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              account.actCurrency ?? baseCurrency??"",
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: account.actCurrency == widget.selectedCurrency
-                                    ? Colors.black
-                                    : Colors.black,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              account.accName ?? '',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
+                            Text(
+                              account.accNumber.toString(),
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: color.outline,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: account.actCurrency == widget.selectedCurrency
+                              ? color.primary.withValues(alpha: .1)
+                              : color.error.withValues(alpha: .1),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          account.actCurrency ?? baseCurrency ?? "",
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: account.actCurrency == widget.selectedCurrency
+                                ? color.primary
+                                : color.error,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 11,
                           ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
@@ -675,24 +700,27 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
             ),
           ),
 
-          // Currency
-          SizedBox(
-            width: 50,
-            height: 40,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
-              decoration: BoxDecoration(
-                color: hasCurrencyMismatch ? Colors.orange.shade50 : null,
-                border: Border.all(
-                  color: hasCurrencyMismatch ? Colors.orange : color.outline.withValues(alpha: .5),
-                ),
-                borderRadius: BorderRadius.circular(3),
+          Container(
+            width: 55,
+            height: 38,
+            decoration: BoxDecoration(
+              color: hasCurrencyMismatch
+                  ? color.error.withValues(alpha: .05)
+                  : color.primary.withValues(alpha: .05),
+              border: Border.all(
+                color: hasCurrencyMismatch
+                    ? color.error.withValues(alpha: .3)
+                    : color.outline.withValues(alpha: .3),
               ),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Center(
               child: Text(
-                entryCurrency ?? baseCurrency??"",
+                entryCurrency ?? baseCurrency ?? "",
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: hasCurrencyMismatch ? Colors.orange : Theme.of(context).colorScheme.onSurface,
-                  fontSize: 13
+                  color: hasCurrencyMismatch ? color.error : color.onSurface,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -706,65 +734,51 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
             child: TextField(
               key: ValueKey('debit_${widget.entry.rowId}'),
               controller: widget.debitController,
-              style: TextStyle(fontSize: 15),
+              style: const TextStyle(fontSize: 14),
               focusNode: widget.focusNode,
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[0-9.,]*'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
                 SmartThousandsDecimalFormatter(),
               ],
               decoration: InputDecoration(
                 hintText: '0.00',
-                suffixStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                hintStyle: TextStyle(color: color.outline.withValues(alpha: .4)),
+                prefixIconConstraints: const BoxConstraints(minWidth: 30),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  borderSide: BorderSide(color: color.outline.withValues(alpha: .5)),
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: color.outline.withValues(alpha: .3)),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  borderSide: BorderSide(color: color.outline.withValues(alpha: .5)),
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: color.outline.withValues(alpha: .3)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: color.primary, width: 1.5),
                 ),
               ),
               onChanged: (value) {
                 final debit = value.cleanAmount.toDoubleAmount();
-
                 if (debit > 0) {
-                  // Clear credit if debit is entered
                   widget.creditController.clear();
                 }
-
-                widget.onChanged(
-                  widget.entry.copyWith(debit: debit, credit: 0.0),
-                );
+                widget.onChanged(widget.entry.copyWith(debit: debit, credit: 0.0));
               },
               onEditingComplete: () {
                 final debit = widget.debitController.text.cleanAmount.toDoubleAmount();
-
                 if (debit > 0) {
                   widget.debitController.text = debit.toAmount();
-                  // Clear credit explicitly
                   widget.creditController.clear();
                 }
-
-                widget.onChanged(
-                  widget.entry.copyWith(debit: debit, credit: 0.0),
-                );
+                widget.onChanged(widget.entry.copyWith(debit: debit, credit: 0.0));
               },
             ),
           ),
 
-         // Credit
+          // Credit
           SizedBox(
             width: 150,
             height: 40,
@@ -773,61 +787,46 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
               controller: widget.creditController,
               textInputAction: TextInputAction.next,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
-              style: TextStyle(fontSize: 15),
+              style: const TextStyle(fontSize: 14),
               inputFormatters: [
-                FilteringTextInputFormatter.allow(
-                  RegExp(r'[0-9.,]*'),
-                ),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
                 SmartThousandsDecimalFormatter(),
               ],
               decoration: InputDecoration(
                 hintText: '0.00',
-                suffixStyle: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+                hintStyle: TextStyle(color: color.outline.withValues(alpha: .4)),
+                prefixIconConstraints: const BoxConstraints(minWidth: 30),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  borderSide: BorderSide(color: color.outline.withValues(alpha: .5)),
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: color.outline.withValues(alpha: .3)),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  borderSide: BorderSide(color: color.outline.withValues(alpha: .5)),
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: color.outline.withValues(alpha: .3)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+                  borderRadius: BorderRadius.circular(6),
+                  borderSide: BorderSide(color: color.primary, width: 1.5),
                 ),
               ),
               onChanged: (value) {
                 final credit = value.cleanAmount.toDoubleAmount();
-
                 if (credit > 0) {
-                  // Clear debit if credit is entered
                   widget.debitController.clear();
                 }
-
-                widget.onChanged(
-                  widget.entry.copyWith(credit: credit, debit: 0.0),
-                );
+                widget.onChanged(widget.entry.copyWith(credit: credit, debit: 0.0));
               },
               onEditingComplete: () {
                 final credit = widget.creditController.text.cleanAmount.toDoubleAmount();
-
                 if (credit > 0) {
                   widget.creditController.text = credit.toAmount();
-                  // Clear debit explicitly
                   widget.debitController.clear();
                 }
-
-                widget.onChanged(
-                  widget.entry.copyWith(credit: credit, debit: 0.0),
-                );
+                widget.onChanged(widget.entry.copyWith(credit: credit, debit: 0.0));
               },
             ),
           ),
-
 
           // Narration
           Expanded(
@@ -838,61 +837,57 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
                 key: ValueKey('narration_${widget.entry.rowId}'),
                 controller: widget.narrationController,
                 textInputAction: TextInputAction.done,
-
                 maxLines: 1,
-                style: TextStyle(fontSize: 13),
+                style: const TextStyle(fontSize: 13),
                 decoration: InputDecoration(
                   hintText: AppLocalizations.of(context)!.narration,
-                  suffixStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  hintStyle: TextStyle(color: color.outline.withValues(alpha: .4)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(3),
-                    borderSide: BorderSide(
-                      color: color.outline.withValues(alpha: .5),
-                    ),
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: color.outline.withValues(alpha: .3)),
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(3),
-                    borderSide: BorderSide(
-                      color: color.outline.withValues(alpha: .5),
-                    ),
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: color.outline.withValues(alpha: .3)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(3),
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                      width: 1,
-                    ),
+                    borderRadius: BorderRadius.circular(6),
+                    borderSide: BorderSide(color: color.primary, width: 1.5),
                   ),
                 ),
                 onChanged: (value) {
-                  widget.onChanged(widget.entry.copyWith(
-                    narration: value,
-                  ));
+                  widget.onChanged(widget.entry.copyWith(narration: value));
                 },
               ),
             ),
           ),
 
-          // Delete
+          // Improved Delete Button
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6),
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: color.error.withValues(alpha: .08),
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: IconButton(
               icon: Icon(
-                Icons.delete_outline,
-                size: 20,
-                color: Theme.of(context).colorScheme.error,
+                Icons.delete_outline_rounded,
+                size: 18,
+                color: color.error,
               ),
               onPressed: () => widget.onRemove(widget.entry.rowId),
+              splashRadius: 20,
+              padding: EdgeInsets.zero,
+              tooltip: 'Remove entry',
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
     );
-   }
+  }
 }
 
 class _TransferSummary extends StatelessWidget {

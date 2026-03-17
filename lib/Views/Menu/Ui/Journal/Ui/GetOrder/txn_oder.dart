@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -44,7 +42,6 @@ class _OrderTxnDialogState extends State<_OrderTxnDialog> {
   OrderTxnModel? orderTxn;
   bool isPrint = true;
   final company = ReportModel();
-  Uint8List _companyLogo = Uint8List(0);
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -61,22 +58,22 @@ class _OrderTxnDialogState extends State<_OrderTxnDialog> {
     return BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
       builder: (context, state) {
 
-        if (state is CompanyProfileLoadedState) {
-          company.comName = state.company.comName ?? "";
-          company.comAddress = state.company.addName ?? "";
-          company.compPhone = state.company.comPhone ?? "";
-          company.comEmail = state.company.comEmail ?? "";
-          company.statementDate = DateTime.now().toFullDateTime;
-
-          final base64Logo = state.company.comLogo;
-          if (base64Logo != null && base64Logo.isNotEmpty) {
-            try {
-              _companyLogo = base64Decode(base64Logo);
-            } catch (e) {
-              _companyLogo = Uint8List(0);
-            }
-          }
-        }
+        // if (state is CompanyProfileLoadedState) {
+        //   company.comName = state.company.comName ?? "";
+        //   company.comAddress = state.company.addName ?? "";
+        //   company.compPhone = state.company.comPhone ?? "";
+        //   company.comEmail = state.company.comEmail ?? "";
+        //   company.statementDate = DateTime.now().toFullDateTime;
+        //
+        //   final base64Logo = state.company.comLogo;
+        //   if (base64Logo != null && base64Logo.isNotEmpty) {
+        //     try {
+        //       _companyLogo = base64Decode(base64Logo);
+        //     } catch (e) {
+        //       _companyLogo = Uint8List(0);
+        //     }
+        //   }
+        // }
 
         return ZFormDialog(
           padding: EdgeInsets.all(15),

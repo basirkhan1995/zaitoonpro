@@ -83,7 +83,7 @@ class _ZFormDialogState extends State<ZFormDialog> {
     );
   }
 
-  Widget buildAction(context){
+  Widget buildAction(BuildContext context){
     final locale = AppLocalizations.of(context)!;
     return Padding(
       padding: widget.padding ?? const EdgeInsets.symmetric(

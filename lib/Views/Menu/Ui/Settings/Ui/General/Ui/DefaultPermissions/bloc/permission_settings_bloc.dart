@@ -23,11 +23,7 @@ class PermissionSettingsBloc extends Bloc<PermissionSettingsEvent, PermissionSet
     on<UpdatePermissionsSettingsEvent>((event, emit) async {
       emit(PermissionSettingsLoadingState());
       try {
-        print('Sending permissions: ${event.permissions.toMap()}'); // Debug
-
         final per = await _repo.updatePermissionSettings(permissions: event.permissions);
-        print('Response: $per'); // Debug
-
         final msg = per["msg"];
         if (msg == "success") {
           add(LoadPermissionsSettingsEvent());
@@ -35,7 +31,6 @@ class PermissionSettingsBloc extends Bloc<PermissionSettingsEvent, PermissionSet
           emit(PermissionSettingsErrorState(msg));
         }
       } catch (e) {
-        print('Error: $e'); // Debug
         emit(PermissionSettingsErrorState(e.toString()));
       }
     });

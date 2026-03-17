@@ -91,10 +91,10 @@ class ZAlertDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildAction(context){
+  Widget _buildAction(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0.0,vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 8),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,

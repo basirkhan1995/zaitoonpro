@@ -1021,6 +1021,11 @@ class _DesktopState extends State<_Desktop> {
                 Expanded(
                   child: StatusDropdown(
                     value: status,
+                    items: [
+                      StatusItem(null, tr.all),
+                      StatusItem(0, tr.pending),
+                      StatusItem(1, tr.delivered),
+                    ],
                     onChanged: (v) {
                       setState(() => status = v); // v is 1 or 0
                     },

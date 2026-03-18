@@ -2943,4 +2943,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get lastThreeMonth => '۹۰ روز گذشته';
+
+  @override
+  String get invoiceProfit => 'نمایش سود';
+
+  @override
+  String get invoiceProfitHint => 'نمایش یا پنهان‌ سازی سود در بل فروش';
 }

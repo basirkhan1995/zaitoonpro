@@ -5,7 +5,7 @@ enum DateType {
   gregorian,
 }
 
- class SettingsVisibilityState {
+class SettingsVisibilityState extends Equatable {
   final bool stock;
   final bool attendance;
   final bool exchangeRate;
@@ -22,10 +22,12 @@ enum DateType {
   final bool todayTotalTxnChart;
   final bool transport;
   final bool orders;
+  final bool benefit;
 
-  SettingsVisibilityState({
+  const SettingsVisibilityState({
     this.stock = false,
     this.attendance = false,
+    this.benefit = true,
     this.exchangeRate = true,
     this.isDateExpiry = false,
     this.currencyRates = false,
@@ -45,12 +47,13 @@ enum DateType {
   factory SettingsVisibilityState.fromMap(Map<String, dynamic> map) {
     return SettingsVisibilityState(
       stock: map['stock'] ?? false,
+      benefit: map['benefit'] ?? true,
       attendance: map['attendance'] ?? false,
       exchangeRate: map['exchangeRate'] ?? true,
-      currencyRates: map['currencyUsd'] ?? false,
-      dashboardClock: map['clock'] ?? true,
-      isDateExpiry: map['dateExpiry'],
-      quickAccess: map['quickAccess'] ?? false,
+      currencyRates: map['currencyRates'] ?? false, // Changed from 'currencyUsd' to match toMap
+      dashboardClock: map['dashboardClock'] ?? true, // Changed from 'clock' to match toMap
+      isDateExpiry: map['isDateExpiry'] ?? false, // Added null check
+      quickAccess: map['quickAccess'] ?? true, // Changed default to match constructor
       recentTransactions: map['recentTransactions'] ?? false,
       dateType: _dateTypeFromString(map['dateType'] ?? 'gregorian'),
       dateFormat: map['dateFormat'] ?? 'yyyy-MM-dd',
@@ -63,24 +66,27 @@ enum DateType {
     );
   }
 
-  Map<String, dynamic> toMap() => {
-    'stock': stock,
-    'attendance': attendance,
-    'currencyAfn': exchangeRate,
-    'currencyUsd': currencyRates,
-    'clock': dashboardClock,
-    'dateType': dateType.name,
-    'dateFormat': dateFormat,
-    'dateExpiry':isDateExpiry,
-    'quickAccess' : quickAccess,
-    'recentTransactions':recentTransactions,
-    'profitAndLoss': profitAndLoss,
-    'statsCount': statsCount,
-    'todayTotalTransactions': todayTotalTransactions,
-    'todayTotalTxnChart':todayTotalTxnChart,
-    'transport' : transport,
-    'orders': orders
-  };
+  Map<String, dynamic> toMap() {
+    return {
+      'stock': stock,
+      'attendance': attendance,
+      'exchangeRate': exchangeRate, // Changed from 'currencyAfn' to match fromMap
+      'benefit': benefit,
+      'currencyRates': currencyRates, // Changed from 'currencyUsd' to match fromMap
+      'dashboardClock': dashboardClock, // Changed from 'clock' to match fromMap
+      'dateType': dateType.name,
+      'dateFormat': dateFormat,
+      'isDateExpiry': isDateExpiry, // Changed from 'dateExpiry' to match fromMap
+      'quickAccess': quickAccess,
+      'recentTransactions': recentTransactions,
+      'profitAndLoss': profitAndLoss,
+      'statsCount': statsCount,
+      'todayTotalTransactions': todayTotalTransactions,
+      'todayTotalTxnChart': todayTotalTxnChart,
+      'transport': transport,
+      'orders': orders,
+    };
+  }
 
   static DateType _dateTypeFromString(String value) {
     return DateType.values.firstWhere(
@@ -88,4 +94,25 @@ enum DateType {
       orElse: () => DateType.gregorian,
     );
   }
+
+  @override
+  List<Object?> get props => [
+    stock,
+    attendance,
+    exchangeRate,
+    currencyRates,
+    dashboardClock,
+    recentTransactions,
+    dateType,
+    dateFormat,
+    isDateExpiry,
+    quickAccess,
+    profitAndLoss,
+    todayTotalTransactions,
+    statsCount,
+    todayTotalTxnChart,
+    transport,
+    orders,
+    benefit,
+  ];
 }

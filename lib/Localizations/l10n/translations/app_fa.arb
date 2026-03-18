@@ -975,5 +975,7 @@
   "paymentMethodMessage": "لطفاً ابتدا روش پرداخت را انتخاب کنید تا ادامه دهید.",
   "entries": "ردیف",
   "thisMonth": "این ماه",
-  "lastThreeMonth": "۹۰ روز گذشته"
+  "lastThreeMonth": "۹۰ روز گذشته",
+  "invoiceProfit": "نمایش سود",
+  "invoiceProfitHint": "نمایش یا پنهان‌ سازی سود در بل فروش"
 }

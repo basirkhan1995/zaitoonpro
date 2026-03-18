@@ -76,6 +76,38 @@ class _Desktop extends StatelessWidget {
                   Row(
                     spacing: 5,
                     children: [
+                      Icon(Icons.shopping_bag_outlined),
+                      Text(locale.invoiceTitle,style: Theme.of(context).textTheme.titleMedium,)
+                    ],
+                  ),
+
+                  ZCover(
+                    radius: 5,
+                    padding: EdgeInsets.all(10),
+                    child: Column(
+                      children: [
+                        LabeledCheckbox(
+                          title: locale.invoiceProfit,
+                          value: state.benefit,
+                          onChanged: (e) {
+                            context.read<SettingsVisibleBloc>().add(
+                              UpdateSettingsEvent(benefit: e),
+                            );
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                          child: bulletPoint(locale.invoiceProfitHint),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 2),
+
+                  Row(
+                    spacing: 5,
+                    children: [
                       Icon(Icons.line_axis_rounded),
                       Text(locale.dashboard,style: Theme.of(context).textTheme.titleMedium,)
                     ],

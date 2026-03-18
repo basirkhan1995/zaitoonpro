@@ -5835,6 +5835,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last 90 Days'**
   String get lastThreeMonth;
+
+  /// No description provided for @invoiceProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Profit Visibility'**
+  String get invoiceProfit;
+
+  /// No description provided for @invoiceProfitHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Show or hide profit on sale invoices'**
+  String get invoiceProfitHint;
 }
 
 class _AppLocalizationsDelegate

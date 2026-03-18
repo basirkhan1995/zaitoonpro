@@ -975,5 +975,7 @@
   "paymentMethodMessage": "Please select a payment method to continue.",
   "entries": "Entries",
   "thisMonth": "This Month",
-  "lastThreeMonth": "Last 90 Days"
+  "lastThreeMonth": "Last 90 Days",
+  "invoiceProfit": "Profit Visibility",
+  "invoiceProfitHint": "Show or hide profit on sale invoices"
 }

@@ -2953,4 +2953,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lastThreeMonth => 'Last 90 Days';
+
+  @override
+  String get invoiceProfit => 'Profit Visibility';
+
+  @override
+  String get invoiceProfitHint => 'Show or hide profit on sale invoices';
 }

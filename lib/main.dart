@@ -148,7 +148,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => CurrencyTabBloc()),
         BlocProvider(create: (context) => StakeholderTabBloc()),
         BlocProvider(create: (context) => SettingsTabBloc()),
-        BlocProvider(create: (context) => SettingsVisibleBloc()),
+        BlocProvider(create: (context) => SettingsVisibleBloc()..add(LoadSettingsEvent())),
         BlocProvider(create: (context) => IndividualDetailTabBloc()),
         BlocProvider(create: (context) => CompanySettingsMenuBloc()),
         BlocProvider(create: (context) => UserDetailsTabBloc()),

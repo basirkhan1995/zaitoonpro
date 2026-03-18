@@ -2946,4 +2946,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lastThreeMonth => 'تېر ۹۰ ورځې';
+
+  @override
+  String get invoiceProfit => 'د ګټې ښکاره کول';
+
+  @override
+  String get invoiceProfitHint => 'په فروش بل کې د ګټې ښکاره یا پټول';
 }

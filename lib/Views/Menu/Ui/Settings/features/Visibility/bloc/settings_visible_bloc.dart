@@ -17,9 +17,18 @@ class SettingsVisibleBloc extends Bloc<SettingsVisibleEvent, SettingsVisibilityS
   Future<void> loadSettingsEvent(LoadSettingsEvent event, Emitter<SettingsVisibilityState> emit) async {
     final prefs = await SharedPreferences.getInstance();
     final jsonString = prefs.getString(_key);
+
+
     if (jsonString != null) {
-      final map = json.decode(jsonString) as Map<String, dynamic>;
-      emit(SettingsVisibilityState.fromMap(map));
+      try {
+        final map = json.decode(jsonString) as Map<String, dynamic>;
+        final newState = SettingsVisibilityState.fromMap(map);
+        emit(newState);
+      } catch (e) {
+        emit(const SettingsVisibilityState());
+      }
+    } else {
+      emit(const SettingsVisibilityState());
     }
   }
 
@@ -31,10 +40,13 @@ class SettingsVisibleBloc extends Bloc<SettingsVisibleEvent, SettingsVisibilityS
   }
 
   Future<void> updateSettingsEvent(UpdateSettingsEvent event, Emitter<SettingsVisibilityState> emit) async {
+
     final updated = SettingsVisibilityState(
       stock: event.stock ?? state.stock,
-      currencyRates: event.currencyUsd ?? state.currencyRates,
+      benefit: event.benefit ?? state.benefit,
+      attendance: event.attendance ?? state.attendance,
       exchangeRate: event.exchangeRate ?? state.exchangeRate,
+      currencyRates: event.currencyRates ?? state.currencyRates, // Changed parameter name
       dashboardClock: event.dashboardClock ?? state.dashboardClock,
       quickAccess: event.quickAccess ?? state.quickAccess,
       recentTransactions: event.recentTransactions ?? state.recentTransactions,
@@ -44,11 +56,18 @@ class SettingsVisibleBloc extends Bloc<SettingsVisibleEvent, SettingsVisibilityS
       profitAndLoss: event.profitAndLoss ?? state.profitAndLoss,
       transport: event.transport ?? state.transport,
       orders: event.orders ?? state.orders,
+      todayTotalTransactions: event.todayTotalTransactions ?? state.todayTotalTransactions,
+      statsCount: event.statsCount ?? state.statsCount,
+      todayTotalTxnChart: event.todayTotalTxnChart ?? state.todayTotalTxnChart,
     );
+
 
     final prefs = await SharedPreferences.getInstance();
     final jsonString = json.encode(updated.toMap());
     await prefs.setString(_key, jsonString);
+
+    // Verify what was saved
+    prefs.getString(_key);
 
     emit(updated);
   }

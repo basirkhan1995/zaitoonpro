@@ -27,6 +27,7 @@ import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart';
+import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 import '../Print/print.dart';
@@ -72,15 +73,16 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   void initState() {
     super.initState();
 
-    final companyState = context.read<CompanyProfileBloc>().state;
-    if (companyState is CompanyProfileLoadedState) {
-      baseCurrency = companyState.company.comLocalCcy ?? "";
-      company.comName = companyState.company.comName??"";
-      company.comAddress = companyState.company.addName??"";
-      company.compPhone = companyState.company.comPhone??"";
-      company.comEmail = companyState.company.comEmail??"";
+    final companyState = context.read<AuthBloc>().state;
+    if (companyState is AuthenticatedState) {
+      final auth = companyState.loginData;
+      baseCurrency = auth.company?.comLocalCcy ?? "";
+      company.comName = auth.company?.comName??"";
+      company.comAddress = auth.company?.comAddress??"";
+      company.compPhone = auth.company?.comPhone??"";
+      company.comEmail = auth.company?.comEmail??"";
       company.statementDate = DateTime.now().toFullDateTime;
-      final base64Logo = companyState.company.comLogo;
+      final base64Logo = auth.company?.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
         try {
           _companyLogo = base64Decode(base64Logo);
@@ -450,6 +452,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     required List<FocusNode> nodes,
     required bool isLastRow,
   }) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
 
@@ -655,14 +658,17 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    if (item.purPrice != null && item.purPrice! > 0 && item.salePrice != null && item.salePrice! > 0)
-                      Text(
-                        '${tr.profit}: ${(item.totalSale - item.totalPurchase).toAmount()}',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                    if(visibility.benefit)...[
+                      if (item.purPrice != null && item.purPrice! > 0 && item.salePrice != null && item.salePrice! > 0)
+                        Text(
+                          '${tr.profit}: ${(item.totalSale - item.totalPurchase).toAmount()}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                          ),
                         ),
-                      ),
+                    ]
+
                   ],
                 ),
               ),
@@ -774,7 +780,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   Widget _buildSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
       builder: (context, state) {
         if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
@@ -832,64 +838,66 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                       ),
 
                       // Profit in same row with percentage - Compact
-                      if (current.totalPurchaseCost > 0) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              tr.profit,
-                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: current.totalProfit >= 0
-                                    ? Colors.green.withValues(alpha: .1)
-                                    : Colors.red.withValues(alpha: .1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    current.totalProfit >= 0 ? '+' : '',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: current.totalProfit >= 0
-                                          ? Colors.green
-                                          : Colors.red,
-                                    ),
-                                  ),
-                                  Text(
-                                    current.totalProfit.toAmount(),
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: current.totalProfit >= 0
-                                          ? Colors.green
-                                          : Colors.red,
-                                    ),
-                                  ),
-                                  Text(
-                                    ' (${current.profitPercentage.toStringAsFixed(1)}%)',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: current.totalProfit >= 0
-                                          ? Colors.green.withValues(alpha: .7)
-                                          : Colors.red.withValues(alpha: .7),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                     if(visibility.benefit)...[
+                       if (current.totalPurchaseCost > 0) ...[
+                         const SizedBox(height: 4),
+                         Row(
+                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                           children: [
+                             Text(
+                               tr.profit,
+                               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                             ),
+                             Container(
+                               padding: const EdgeInsets.symmetric(
+                                 horizontal: 6,
+                                 vertical: 2,
+                               ),
+                               decoration: BoxDecoration(
+                                 color: current.totalProfit >= 0
+                                     ? Colors.green.withValues(alpha: .1)
+                                     : Colors.red.withValues(alpha: .1),
+                                 borderRadius: BorderRadius.circular(8),
+                               ),
+                               child: Row(
+                                 mainAxisSize: MainAxisSize.min,
+                                 children: [
+                                   Text(
+                                     current.totalProfit >= 0 ? '+' : '',
+                                     style: TextStyle(
+                                       fontSize: 12,
+                                       fontWeight: FontWeight.bold,
+                                       color: current.totalProfit >= 0
+                                           ? Colors.green
+                                           : Colors.red,
+                                     ),
+                                   ),
+                                   Text(
+                                     current.totalProfit.toAmount(),
+                                     style: TextStyle(
+                                       fontSize: 12,
+                                       fontWeight: FontWeight.bold,
+                                       color: current.totalProfit >= 0
+                                           ? Colors.green
+                                           : Colors.red,
+                                     ),
+                                   ),
+                                   Text(
+                                     ' (${current.profitPercentage.toStringAsFixed(1)}%)',
+                                     style: TextStyle(
+                                       fontSize: 10,
+                                       color: current.totalProfit >= 0
+                                           ? Colors.green.withValues(alpha: .7)
+                                           : Colors.red.withValues(alpha: .7),
+                                     ),
+                                   ),
+                                 ],
+                               ),
+                             ),
+                           ],
+                         ),
+                       ],
+                     ],
 
                       const SizedBox(height: 4),
                       Divider(height: 1, color: color.outline.withValues(alpha: .2)),
@@ -1473,15 +1481,16 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
       context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
     });
 
-    final companyState = context.read<CompanyProfileBloc>().state;
-    if (companyState is CompanyProfileLoadedState) {
-      baseCurrency = companyState.company.comLocalCcy ?? "";
-      company.comName = companyState.company.comName??"";
-      company.comAddress = companyState.company.addName??"";
-      company.compPhone = companyState.company.comPhone??"";
-      company.comEmail = companyState.company.comEmail??"";
+    final companyState = context.read<AuthBloc>().state;
+    if (companyState is AuthenticatedState) {
+      final auth = companyState.loginData;
+      baseCurrency = auth.company?.comLocalCcy ?? "";
+      company.comName = auth.company?.comName??"";
+      company.comAddress = auth.company?.comAddress??"";
+      company.compPhone = auth.company?.comPhone??"";
+      company.comEmail = auth.company?.comEmail??"";
       company.statementDate = DateTime.now().toFullDateTime;
-      final base64Logo = companyState.company.comLogo;
+      final base64Logo = auth.company?.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
         try {
           _companyLogo = base64Decode(base64Logo);
@@ -1825,7 +1834,7 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
   Widget _buildMobileItemCard(SaleInvoiceItem item, BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final productController = TextEditingController(text: item.productName);
     final qtyController = _qtyControllers.putIfAbsent(
       item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
@@ -2046,21 +2055,24 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        tr.profit,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: color.outline,
+                      if(visibility.benefit)...[
+                        Text(
+                          tr.profit,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: color.outline,
+                          ),
                         ),
-                      ),
-                      Text(
-                        (item.totalSale - item.totalPurchase).toAmount(),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                        Text(
+                          (item.totalSale - item.totalPurchase).toAmount(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                          ),
                         ),
-                      ),
+                      ],
+
                     ],
                   ),
 
@@ -2091,7 +2103,7 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
   Widget _buildMobileSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
       builder: (context, state) {
         if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
@@ -2162,37 +2174,26 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 const SizedBox(height: 4),
 
                 // Profit
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(tr.profit),
-                    Text(
-                      "${current.totalProfit.toAmount()} $baseCurrency (${current.profitPercentage.toStringAsFixed(2)}%)",
-                      style: TextStyle(
-                        color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
+                if(visibility.benefit)...[
+                  if(current.totalPurchaseCost > 0)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(tr.profit),
+                      Text(
+                        "${current.totalProfit.toAmount()} $baseCurrency (${current.profitPercentage.toStringAsFixed(2)}%)",
+                        style: TextStyle(
+                          color: current.totalProfit >= 0 ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                // if (current.totalPurchaseCost > 0) ...[
-                //   const SizedBox(height: 4),
-                //   Row(
-                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                //     children: [
-                //       Text('${tr.profit} %'),
-                //       Text(
-                //         '${current.profitPercentage.toStringAsFixed(2)}%',
-                //         style: TextStyle(
-                //           color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                //           fontWeight: FontWeight.w500,
-                //         ),
-                //       ),
-                //     ],
-                //   ),
-                // ],
+                    ],
+                  ),
+                ],
 
-                // Payment breakdown
+
+
+               // Payment breakdown
                 if (current.paymentMode == PaymentMode.cash) ...[
                   const SizedBox(height: 4),
                   Row(

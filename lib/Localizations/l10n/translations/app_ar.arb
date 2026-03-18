@@ -975,5 +975,7 @@
   "paymentMethodMessage": "مهرباني وکړئ د دوام لپاره لومړی د تادیې طریقه وټاکئ.",
   "entries": "ردیف",
   "thisMonth": "دا میاشت",
-  "lastThreeMonth": "تېر ۹۰ ورځې"
+  "lastThreeMonth": "تېر ۹۰ ورځې",
+  "invoiceProfit": "د ګټې ښکاره کول",
+  "invoiceProfitHint": "په فروش بل کې د ګټې ښکاره یا پټول"
 }

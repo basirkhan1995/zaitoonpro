@@ -18,6 +18,7 @@ import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'Print/cash_print.dart';
 import 'Print/feature_model.dart';
+import 'package:flutter/services.dart';
 
 class CashBalancesBranchWiseView extends StatelessWidget {
   const CashBalancesBranchWiseView({super.key});
@@ -63,32 +64,32 @@ class _DesktopState extends State<_Desktop> {
       branchId = null;
     }
   }
+
   Future<void> _printBranchBalance() async {
     final state = context.read<CashBalancesBloc>().state;
 
     if (state is CashBalancesLoadedState) {
       // Get company info from CompanyProfileBloc
-      final companyState = context.read<CompanyProfileBloc>().state;
+      final authState = context.read<AuthBloc>().state;
       ReportModel company = ReportModel();
 
-      if (companyState is CompanyProfileLoadedState) {
-        company = ReportModel(
-          comName: companyState.company.comName ?? '',
-          comAddress: companyState.company.addName ?? '',
-          compPhone: companyState.company.comPhone ?? '',
-          comEmail: companyState.company.comEmail ?? '',
-          statementDate: DateTime.now().toFullDateTime,
-          comLogo: companyState.company.comLogo != null
-              ? base64Decode(companyState.company.comLogo!)
-              : null,
-        );
-      }
-
-      // Get base currency from AuthBloc
-      String? baseCcy;
-      final authState = context.read<AuthBloc>().state;
       if (authState is AuthenticatedState) {
+        final auth = authState.loginData;
+        company.comName = auth.company?.comName ?? "";
+        company.comAddress = auth.company?.comAddress ?? "";
+        company.compPhone = auth.company?.comPhone ?? "";
+        company.comEmail = auth.company?.comEmail ?? "";
+        company.statementDate = DateTime.now().toFullDateTime;
+        company.baseCurrency = auth.company?.comLocalCcy;
         baseCcy = authState.loginData.company?.comLocalCcy;
+        final base64Logo = auth.company?.comLogo;
+        if (base64Logo != null && base64Logo.isNotEmpty) {
+          try {
+            company.comLogo = base64Decode(base64Logo);
+          } catch (e) {
+            company.comLogo = Uint8List(0);
+          }
+        }
       }
 
       // Calculate currency totals for single branch

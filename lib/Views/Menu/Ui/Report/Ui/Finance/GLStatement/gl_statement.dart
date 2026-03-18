@@ -12,6 +12,7 @@ import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
 import 'package:zaitoon_petroleum/Localizations/Bloc/localizations_bloc.dart';
 import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/features/currency_drop.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/GlAccounts/bloc/gl_accounts_bloc.dart';
@@ -19,7 +20,6 @@ import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/GlAccounts/model/gl_m
 import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/GLStatement/bloc/gl_statement_bloc.dart';
 import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Finance/GLStatement/model/gl_statement_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/cover.dart';
@@ -54,7 +54,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   final accountController = TextEditingController();
   int? accNumber;
@@ -129,19 +128,18 @@ class _MobileState extends State<_Mobile> {
           title: Text(tr.glStatement),
           titleSpacing: 0,
         ),
-        body: BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
+        body: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            if (state is CompanyProfileLoadedState) {
-              company.comName = state.company.comName ?? "";
-              company.comAddress = state.company.addName ?? "";
-              company.compPhone = state.company.comPhone ?? "";
-              company.comEmail = state.company.comEmail ?? "";
+            if(state is AuthenticatedState){
+              final auth = state.loginData;
+              company.comName = auth.company?.comName??"";
+              company.comAddress = auth.company?.comAddress??"";
+              company.compPhone = auth.company?.comPhone??"";
+              company.comEmail = auth.company?.comEmail??"";
               company.startDate = fromDate;
-              company.endDate = widget.isSingleDate ? fromDate : toDate;
-              baseCurrency = state.company.comLocalCcy;
+              company.endDate = toDate;
               company.statementDate = DateTime.now().toFullDateTime;
-
-              final base64Logo = state.company.comLogo;
+              final base64Logo = auth.company?.comLogo;
               if (base64Logo != null && base64Logo.isNotEmpty) {
                 try {
                   _companyLogo = base64Decode(base64Logo);
@@ -551,7 +549,6 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
-
 class _DesktopState extends State<_Desktop> {
   final Map<String, bool> _copiedStates = {};
   final accountController = TextEditingController();
@@ -603,18 +600,18 @@ class _DesktopState extends State<_Desktop> {
       shortcuts: shortcuts,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        body: BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
+        body: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
-            if(state is CompanyProfileLoadedState){
-              company.comName = state.company.comName??"";
-              company.comAddress = state.company.addName??"";
-              company.compPhone = state.company.comPhone??"";
-              company.comEmail = state.company.comEmail??"";
+            if(state is AuthenticatedState){
+              final auth = state.loginData;
+              company.comName = auth.company?.comName??"";
+              company.comAddress = auth.company?.comAddress??"";
+              company.compPhone = auth.company?.comPhone??"";
+              company.comEmail = auth.company?.comEmail??"";
               company.startDate = fromDate;
               company.endDate = toDate;
-              baseCurrency = state.company.comLocalCcy;
               company.statementDate = DateTime.now().toFullDateTime;
-              final base64Logo = state.company.comLogo;
+              final base64Logo = auth.company?.comLogo;
               if (base64Logo != null && base64Logo.isNotEmpty) {
                 try {
                   _companyLogo = base64Decode(base64Logo);

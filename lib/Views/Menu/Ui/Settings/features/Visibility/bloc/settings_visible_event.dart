@@ -17,11 +17,13 @@ class LoadSettingsEvent extends SettingsVisibleEvent{
   List<Object?> get props => [];
 }
 
-class UpdateSettingsEvent extends SettingsVisibleEvent{
+class UpdateSettingsEvent extends SettingsVisibleEvent {
   final bool? stock;
+  final bool? attendance; // Added missing field
   final bool? exchangeRate;
-  final bool? currencyUsd;
+  final bool? currencyRates; // Changed from currencyUsd
   final bool? dashboardClock;
+  final bool? benefit;
   final bool? quickAccess;
   final bool? recentTransactions;
   final DateType? dateType;
@@ -30,11 +32,17 @@ class UpdateSettingsEvent extends SettingsVisibleEvent{
   final bool? profitAndLoss;
   final bool? transport;
   final bool? orders;
+  final bool? todayTotalTransactions; // Added missing field
+  final bool? statsCount; // Added missing field
+  final bool? todayTotalTxnChart; // Added missing field
+
   const UpdateSettingsEvent({
     this.stock,
+    this.attendance,
     this.exchangeRate,
+    this.benefit,
     this.isDateExpiry,
-    this.currencyUsd,
+    this.currencyRates, // Changed from currencyUsd
     this.dashboardClock,
     this.quickAccess,
     this.dateType,
@@ -43,13 +51,19 @@ class UpdateSettingsEvent extends SettingsVisibleEvent{
     this.profitAndLoss,
     this.transport,
     this.orders,
+    this.todayTotalTransactions,
+    this.statsCount,
+    this.todayTotalTxnChart,
   });
+
   @override
   List<Object?> get props => [
     stock,
+    attendance,
     exchangeRate,
+    benefit,
     isDateExpiry,
-    currencyUsd,
+    currencyRates, // Changed from currencyUsd
     dashboardClock,
     quickAccess,
     recentTransactions,
@@ -58,5 +72,8 @@ class UpdateSettingsEvent extends SettingsVisibleEvent{
     profitAndLoss,
     transport,
     orders,
+    todayTotalTransactions,
+    statsCount,
+    todayTotalTxnChart,
   ];
 }

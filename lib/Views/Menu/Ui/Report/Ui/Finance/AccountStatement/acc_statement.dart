@@ -20,6 +20,7 @@ import '../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../Features/Widgets/share_helper.dart';
+import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/txn_reference.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/stk_acc_model.dart';
@@ -558,14 +559,11 @@ class _DesktopState extends State<_Desktop> {
     super.initState();
   }
 
-
-
   void showTxnDetails(){
     showDialog(context: context, builder: (context){
       return TransactionByReferenceView();
     });
   }
-
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -582,17 +580,18 @@ class _DesktopState extends State<_Desktop> {
       shortcuts: shortcuts,
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
-        body: BlocBuilder<CompanyProfileBloc, CompanyProfileState>(
+        body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
-          if(state is CompanyProfileLoadedState){
-            company.comName = state.company.comName??"";
-            company.comAddress = state.company.addName??"";
-            company.compPhone = state.company.comPhone??"";
-            company.comEmail = state.company.comEmail??"";
+          if(state is AuthenticatedState){
+            final auth = state.loginData;
+            company.comName = auth.company?.comName??"";
+            company.comAddress = auth.company?.comAddress??"";
+            company.compPhone = auth.company?.comPhone??"";
+            company.comEmail = auth.company?.comEmail??"";
             company.startDate = fromDate;
             company.endDate = toDate;
             company.statementDate = DateTime.now().toFullDateTime;
-            final base64Logo = state.company.comLogo;
+            final base64Logo = auth.company?.comLogo;
             if (base64Logo != null && base64Logo.isNotEmpty) {
               try {
                 _companyLogo = base64Decode(base64Logo);

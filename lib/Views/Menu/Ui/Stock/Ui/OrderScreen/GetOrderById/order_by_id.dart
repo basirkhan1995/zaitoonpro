@@ -29,6 +29,7 @@ import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import 'bloc/order_by_id_bloc.dart';
 import 'model/ord_by_id_model.dart';
 import 'order_by_print.dart';
@@ -945,6 +946,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
   }
 
   List<Widget> _buildMobileItemsList(OrderByIdModel order, OrderByIdLoaded state, bool isEditing) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     if (order.records == null || order.records!.isEmpty) {
       return [
         const Padding(
@@ -1003,19 +1005,22 @@ class _OrderByIdViewState extends State<OrderByIdView> {
               ),
             ),
 
-            if (!isPurchase && record.stkPurPrice != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  'Profit: ${(total - (double.tryParse(record.stkPurPrice!)! * qty)).toAmount()}',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: (total - (double.tryParse(record.stkPurPrice!)! * qty)) >= 0
-                        ? Colors.green
-                        : Colors.red,
+            if (!isPurchase && record.stkPurPrice != null)...[
+              if(visibility.benefit)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'Profit: ${(total - (double.tryParse(record.stkPurPrice!)! * qty)).toAmount()}',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: (total - (double.tryParse(record.stkPurPrice!)! * qty)) >= 0
+                          ? Colors.green
+                          : Colors.red,
+                    ),
                   ),
                 ),
-              ),
+            ],
+
             if (isEditing)
               Align(
                 alignment: Alignment.centerRight,
@@ -1034,7 +1039,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     final isSale = state.order.ordName?.toLowerCase().contains('sale') ?? false;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     double totalCost = 0.0;
     double totalProfit = 0.0;
 
@@ -1050,14 +1055,16 @@ class _OrderByIdViewState extends State<OrderByIdView> {
 
     return Column(
       children: [
-        if (isSale) ...[
-          _buildMobileSummaryRow(tr.profit, totalProfit,
-              color: totalProfit >= 0 ? Colors.green : Colors.red, isBold: true),
-          if (totalCost > 0)
-            _buildMobileSummaryRow('${tr.profit} %',
-                double.parse((totalProfit / totalCost * 100).toStringAsFixed(2)),
-                color: totalProfit >= 0 ? Colors.green : Colors.red),
-          const Divider(),
+        if(visibility.benefit)...[
+          if (isSale) ...[
+            _buildMobileSummaryRow(tr.profit, totalProfit,
+                color: totalProfit >= 0 ? Colors.green : Colors.red, isBold: true),
+            if (totalCost > 0)
+              _buildMobileSummaryRow('${tr.profit} %',
+                  double.parse((totalProfit / totalCost * 100).toStringAsFixed(2)),
+                  color: totalProfit >= 0 ? Colors.green : Colors.red),
+            const Divider(),
+          ],
         ],
         _buildMobileSummaryRow(tr.grandTotal, state.grandTotal, isBold: true),
         if (state.cashPayment > 0)
@@ -1364,7 +1371,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     final isSale = state.order.ordName?.toLowerCase().contains('sale') ?? false;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     double totalCost = 0.0;
     double totalProfit = 0.0;
 
@@ -1380,15 +1387,17 @@ class _OrderByIdViewState extends State<OrderByIdView> {
 
     return Column(
       children: [
-        if (isSale) ...[
-          _buildTabletSummaryRow(tr.totalCost, totalCost),
-          _buildTabletSummaryRow(tr.profit, totalProfit,
-              color: totalProfit >= 0 ? Colors.green : Colors.red, isBold: true),
-          if (totalCost > 0)
-            _buildTabletSummaryRow('${tr.profit} %',
-                double.parse((totalProfit / totalCost * 100).toStringAsFixed(2)),
-                color: totalProfit >= 0 ? Colors.green : Colors.red),
-          const Divider(),
+        if(visibility.benefit)...[
+          if (isSale) ...[
+            _buildTabletSummaryRow(tr.totalCost, totalCost),
+            _buildTabletSummaryRow(tr.profit, totalProfit,
+                color: totalProfit >= 0 ? Colors.green : Colors.red, isBold: true),
+            if (totalCost > 0)
+              _buildTabletSummaryRow('${tr.profit} %',
+                  double.parse((totalProfit / totalCost * 100).toStringAsFixed(2)),
+                  color: totalProfit >= 0 ? Colors.green : Colors.red),
+            const Divider(),
+          ],
         ],
         _buildTabletSummaryRow(tr.grandTotal, state.grandTotal, isBold: true),
         if (state.cashPayment > 0)
@@ -2010,7 +2019,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
     final productName = state.productNames[record.stkProduct] ?? 'Unknown';
     final storageName = state.storageNames[record.stkStorage] ?? 'Unknown';
     final isPurchase = state.order.ordName?.toLowerCase().contains('purchase') ?? true;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final productController = TextEditingController(text: productName);
     final qtyController = _qtyControllers[index] ?? TextEditingController(text: record.stkQuantity);
     final storageController = TextEditingController(text: storageName);
@@ -2418,18 +2427,19 @@ class _OrderByIdViewState extends State<OrderByIdView> {
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
-                if (!isPurchase &&
-                    record.stkPurPrice != null &&
-                    double.tryParse(record.stkPurPrice!)! > 0)
-                  Text(
-                    'Profit: ${(total - (double.tryParse(record.stkPurPrice!)! * qty)).toAmount()}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: (total - (double.tryParse(record.stkPurPrice!)! * qty)) >= 0
-                          ? Colors.green
-                          : Colors.red,
+                if (!isPurchase && record.stkPurPrice != null && double.tryParse(record.stkPurPrice!)! > 0)...[
+                  if(visibility.benefit)
+                    Text(
+                      'Profit: ${(total - (double.tryParse(record.stkPurPrice!)! * qty)).toAmount()}',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: (total - (double.tryParse(record.stkPurPrice!)! * qty)) >= 0
+                            ? Colors.green
+                            : Colors.red,
+                      ),
                     ),
-                  ),
+                ],
+
               ],
             ),
           ),
@@ -2495,7 +2505,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
   Widget _buildOrderSummary(OrderByIdLoaded state) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final isSale = state.order.ordName?.toLowerCase().contains('sale') ?? false;
 
     double totalCost = 0.0;
@@ -2518,29 +2528,32 @@ class _OrderByIdViewState extends State<OrderByIdView> {
       color: color.outline.withAlpha(8),
       child: Column(
         children: [
-          if (isSale) ...[
-            _buildSummaryRow(
-              label: tr.profit,
-              value: totalProfit,
-              color: totalProfit >= 0 ? Colors.green : Colors.red,
-              isBold: true,
-            ),
-            if (totalCost > 0)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('${tr.profit} %', style: const TextStyle(fontSize: 14)),
-                  Text(
-                    '${(totalProfit / totalCost * 100).toStringAsFixed(2)}%',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: totalProfit >= 0 ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+
+          if(visibility.benefit)...[
+            if (isSale) ...[
+              _buildSummaryRow(
+                label: tr.profit,
+                value: totalProfit,
+                color: totalProfit >= 0 ? Colors.green : Colors.red,
+                isBold: true,
               ),
-            Divider(color: color.outline.withAlpha(77)),
+              if (totalCost > 0)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('${tr.profit} %', style: const TextStyle(fontSize: 14)),
+                    Text(
+                      '${(totalProfit / totalCost * 100).toStringAsFixed(2)}%',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: totalProfit >= 0 ? Colors.green : Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              Divider(color: color.outline.withAlpha(77)),
+            ],
           ],
 
           _buildSummaryRow(

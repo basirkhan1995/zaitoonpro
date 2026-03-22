@@ -1349,19 +1349,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shpTo => 'Shipping to';
 
   @override
-  String get loadingDate => 'Loading date';
+  String get loadingDate => 'Loading Date';
 
   @override
-  String get unloadingDate => 'ULD Date';
+  String get unloadingDate => 'Unloading Date';
 
   @override
   String get shippingRent => 'L/U Cost';
 
   @override
-  String get loadingSize => 'LD Weight';
+  String get loadingSize => 'L/W';
 
   @override
-  String get unloadingSize => 'ULD Weight';
+  String get unloadingSize => 'U/W';
 
   @override
   String get unit => 'Unit';

@@ -2707,13 +2707,13 @@ abstract class AppLocalizations {
   /// No description provided for @loadingDate.
   ///
   /// In en, this message translates to:
-  /// **'Loading date'**
+  /// **'Loading Date'**
   String get loadingDate;
 
   /// No description provided for @unloadingDate.
   ///
   /// In en, this message translates to:
-  /// **'ULD Date'**
+  /// **'Unloading Date'**
   String get unloadingDate;
 
   /// No description provided for @shippingRent.
@@ -2725,13 +2725,13 @@ abstract class AppLocalizations {
   /// No description provided for @loadingSize.
   ///
   /// In en, this message translates to:
-  /// **'LD Weight'**
+  /// **'L/W'**
   String get loadingSize;
 
   /// No description provided for @unloadingSize.
   ///
   /// In en, this message translates to:
-  /// **'ULD Weight'**
+  /// **'U/W'**
   String get unloadingSize;
 
   /// No description provided for @unit.

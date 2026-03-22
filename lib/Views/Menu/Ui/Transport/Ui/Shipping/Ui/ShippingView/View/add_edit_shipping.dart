@@ -2312,22 +2312,6 @@ class _DesktopState extends State<_Desktop> {
                   ),
                   const SizedBox(width: 7),
                   Expanded(
-                    child: UnitDropdown(
-                      isActive: isDelivered,
-                      selectedUnit: UnitType.fromDatabaseValue(shipping?.shpUnit ?? ""),
-                      onUnitSelected: (e) {
-                        setState(() {
-                          unit = e.name;
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 13),
-              Row(
-                children: [
-                  Expanded(
                     child: ZTextFieldEntitled(
                       readOnly: isDelivered,
                       isRequired: true,
@@ -2351,8 +2335,21 @@ class _DesktopState extends State<_Desktop> {
                       title: tr.shippingRent,
                     ),
                   ),
+                  const SizedBox(width: 7),
+                  Expanded(
+                    child: UnitDropdown(
+                      isActive: isDelivered,
+                      selectedUnit: UnitType.fromDatabaseValue(shipping?.shpUnit ?? ""),
+                      onUnitSelected: (e) {
+                        setState(() {
+                          unit = e.name;
+                        });
+                      },
+                    ),
+                  ),
                 ],
               ),
+
               const SizedBox(height: 13),
               ZTextFieldEntitled(
                 readOnly: isDelivered,
@@ -3239,7 +3236,6 @@ class _DesktopState extends State<_Desktop> {
   }
 }
 
-// Mobile View Implementation
 class _Mobile extends StatefulWidget {
   final int? shippingId;
   final int? perId;
@@ -3307,6 +3303,52 @@ class _MobileState extends State<_Mobile> {
   String? proDetails;
 
   bool _isReloadingDueToUpdate = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = context.read<CompanyProfileBloc>().state;
+      if (state is CompanyProfileLoadedState) {
+        baseCurrency = state.company.comLocalCcy;
+      }
+      currentLocale = context.read<LocalizationBloc>().state.languageCode;
+      if (widget.shippingId != null) {
+        _currentStep = 0;
+        context.read<ShippingBloc>().add(LoadShippingDetailEvent(widget.shippingId!));
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _Mobile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.shippingId != oldWidget.shippingId) {
+      _currentStep = 0;
+    }
+  }
+
+
+
+  @override
+  void dispose() {
+    productCtrl.dispose();
+    shpFrom.dispose();
+    shpTo.dispose();
+    shippingRent.dispose();
+    loadingSize.dispose();
+    unloadingSize.dispose();
+    customerCtrl.dispose();
+    vehicleCtrl.dispose();
+    remark.dispose();
+    advanceAmount.dispose();
+    accountController.dispose();
+    expenseAmount.dispose();
+    expenseNarration.dispose();
+    cashCtrl.dispose();
+    paymentAccountCtrl.dispose();
+    super.dispose();
+  }
 
   void _deleteExpense(Expense expense, int shpId) {
     setState(() {
@@ -3392,31 +3434,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = context.read<CompanyProfileBloc>().state;
-      if (state is CompanyProfileLoadedState) {
-        baseCurrency = state.company.comLocalCcy;
-      }
-      currentLocale = context.read<LocalizationBloc>().state.languageCode;
-      if (widget.shippingId != null) {
-        _currentStep = 0;
-        context.read<ShippingBloc>().add(LoadShippingDetailEvent(widget.shippingId!));
-      }
-    });
-  }
-
-  @override
-  void didUpdateWidget(covariant _Mobile oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.shippingId != oldWidget.shippingId) {
-      _currentStep = 0;
-    }
-  }
-
   void _prefillForm(ShippingDetailsModel shipping) {
     if (!mounted) return;
 
@@ -3453,7 +3470,6 @@ class _MobileState extends State<_Mobile> {
 
     _prefillPaymentData(shipping);
   }
-
   Future<void> _printShippingDetails(ShippingDetailsModel shippingDetails) async {
     final companyState = context.read<CompanyProfileBloc>().state;
     ReportModel company = ReportModel();
@@ -3535,7 +3551,6 @@ class _MobileState extends State<_Mobile> {
       );
     }
   }
-
   void _prefillPaymentData(ShippingDetailsModel shipping) {
     if (shipping.pyment != null && shipping.pyment!.isNotEmpty) {
       final payment = shipping.pyment!.first;
@@ -3560,11 +3575,9 @@ class _MobileState extends State<_Mobile> {
       _calculatePaymentTotals(shipping);
     }
   }
-
   void _loadAccountDetails(int accountNumber) {
     paymentAccNumber = accountNumber;
   }
-
   void _clearAllControllers() {
     productCtrl.clear();
     shpFrom.clear();
@@ -3597,27 +3610,6 @@ class _MobileState extends State<_Mobile> {
     _paymentFormValid = false;
     _paymentError = null;
   }
-
-  @override
-  void dispose() {
-    productCtrl.dispose();
-    shpFrom.dispose();
-    shpTo.dispose();
-    shippingRent.dispose();
-    loadingSize.dispose();
-    unloadingSize.dispose();
-    customerCtrl.dispose();
-    vehicleCtrl.dispose();
-    remark.dispose();
-    advanceAmount.dispose();
-    accountController.dispose();
-    expenseAmount.dispose();
-    expenseNarration.dispose();
-    cashCtrl.dispose();
-    paymentAccountCtrl.dispose();
-    super.dispose();
-  }
-
   double _parseAmount(String? amountString) {
     if (amountString == null || amountString.isEmpty) return 0.0;
     try {
@@ -3627,13 +3619,10 @@ class _MobileState extends State<_Mobile> {
       return 0.0;
     }
   }
-
   double _getControllerAmount(TextEditingController controller) {
     return _parseAmount(controller.text);
   }
-
   double _safeMax(double value, double minValue) => value > minValue ? value.toDouble() : minValue;
-
   void _validatePaymentAmounts(ShippingDetailsModel shipping) {
     final shippingTotal = _parseAmount(shipping.total);
 
@@ -3693,7 +3682,6 @@ class _MobileState extends State<_Mobile> {
       }
     }
   }
-
   double _calculateCurrentPayment() {
     final cashAmount = _getControllerAmount(cashCtrl);
     double currentPayment = 0;
@@ -3731,7 +3719,6 @@ class _MobileState extends State<_Mobile> {
 
     return currentPayment;
   }
-
   void _calculatePaymentTotals(ShippingDetailsModel shipping) {
     _validatePaymentAmounts(shipping);
   }
@@ -3824,7 +3811,6 @@ class _MobileState extends State<_Mobile> {
       _paymentError = null;
     });
   }
-
   bool _canMarkAsDelivered(ShippingDetailsModel shipping) {
     final totalAmount = _parseAmount(shipping.total);
     double existingPaid = 0.0;
@@ -3836,7 +3822,6 @@ class _MobileState extends State<_Mobile> {
 
     return existingPaid >= totalAmount && existingPaid == totalAmount;
   }
-
   bool _paymentNeedsUpdate(ShippingDetailsModel shipping) {
     final totalAmount = _parseAmount(shipping.total);
     double existingPaid = 0.0;
@@ -3848,7 +3833,6 @@ class _MobileState extends State<_Mobile> {
 
     return existingPaid > 0 && existingPaid != totalAmount;
   }
-
   Widget _buildPaymentView(ShippingDetailsModel shipping) {
     final tr = AppLocalizations.of(context)!;
     final textTheme = Theme.of(context).textTheme;
@@ -4015,7 +3999,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildPaymentHistory(Pyment payment, AppLocalizations tr) {
     final textTheme = Theme.of(context).textTheme;
     final color = Theme.of(context).colorScheme;
@@ -4089,7 +4072,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildPaymentDetailRow(String label, String value, IconData icon, Color color, {bool isBold = false, double iconSize = 18}) {
     final textTheme = Theme.of(context).textTheme;
 
@@ -4118,7 +4100,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildPaymentForm(ShippingDetailsModel shipping, {Pyment? existingPayment}) {
     final tr = AppLocalizations.of(context)!;
     final totalAmount = _parseAmount(shipping.total);
@@ -4387,7 +4368,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildPaymentSummary(double targetAmount, double cashAmount, AppLocalizations tr, {bool isEditing = false}) {
     double accountAmount = 0.0;
 
@@ -4490,7 +4470,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   void _validatePaymentForm() {
     final shippingState = context.read<ShippingBloc>().state;
     ShippingDetailsModel? currentShipping;
@@ -4546,7 +4525,6 @@ class _MobileState extends State<_Mobile> {
       _validatePaymentAmounts(currentShipping);
     }
   }
-
   void _processPayment(ShippingDetailsModel shipping, bool hasExistingPayment) {
     final tr = AppLocalizations.of(context)!;
     final bloc = context.read<ShippingBloc>();
@@ -4792,7 +4770,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _advancePayment() {
     final tr = AppLocalizations.of(context)!;
     return Padding(
@@ -4811,7 +4788,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildStepperWithData(ShippingDetailsModel shipping, AppLocalizations tr) {
     final blocState = context.watch<ShippingBloc>().state;
     final isLoading = blocState is ShippingListLoadingState && blocState.isLoading;
@@ -4925,7 +4901,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildNewShippingStepper(AppLocalizations tr) {
     final blocState = context.watch<ShippingBloc>().state;
     final isLoading = blocState is ShippingListLoadingState && blocState.isLoading;
@@ -5048,7 +5023,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildStepIndicator(int step, String label, bool isActive) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -5092,7 +5066,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildStepConnector(bool isActive) {
     return Container(
       width: 10,
@@ -5105,37 +5078,30 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildOrderStep(ShippingDetailsModel? shipping) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: _order(shipping: shipping),
     );
   }
-
   Widget _buildShippingStep(ShippingDetailsModel? shipping) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: _shipping(shipping: shipping),
     );
   }
-
   Widget _buildExpensesStep(ShippingDetailsModel shipping) {
     return _buildExpensesView(shipping);
   }
-
   Widget _buildAdvancePaymentStep() {
     return _advancePayment();
   }
-
   Widget _buildPaymentStep(ShippingDetailsModel shipping) {
     return _buildPaymentView(shipping);
   }
-
   Widget _buildSummaryStep(ShippingDetailsModel? shipping) {
     return _buildSummaryView(shipping);
   }
-
   bool _validateStepChange(int currentStep, int requestedStep) {
     final tr = AppLocalizations.of(context)!;
     if (requestedStep > currentStep) {
@@ -5166,7 +5132,6 @@ class _MobileState extends State<_Mobile> {
     }
     return true;
   }
-
   Widget _order({ShippingDetailsModel? shipping}) {
     final tr = AppLocalizations.of(context)!;
     bool isDelivered = shipping?.shpStatus == 1;
@@ -5396,7 +5361,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _shipping({ShippingDetailsModel? shipping}) {
     final tr = AppLocalizations.of(context)!;
     bool isDelivered = shipping?.shpStatus == 1;
@@ -5611,7 +5575,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildExpensesView(ShippingDetailsModel shipping) {
     final tr = AppLocalizations.of(context)!;
     final expenses = shipping.expenses ?? [];
@@ -5892,7 +5855,6 @@ class _MobileState extends State<_Mobile> {
       },
     );
   }
-
   Widget _buildSummaryView(ShippingDetailsModel? shipping) {
     final summaryData = _getSummaryData(shipping);
     final hasShippingDetails = shipping != null;
@@ -6131,13 +6093,7 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
-  Widget _buildSummaryCard({
-    required String title,
-    required IconData icon,
-    required Color color,
-    required List<Widget> children,
-  }) {
+  Widget _buildSummaryCard({required String title, required IconData icon, required Color color, required List<Widget> children,}) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -6173,7 +6129,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildSummaryRow(String label, String value, {bool isHighlighted = false, String? subtitle}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -6213,7 +6168,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   Widget _buildLoadingContent() {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -6238,7 +6192,6 @@ class _MobileState extends State<_Mobile> {
       ),
     );
   }
-
   ShippingModel _getFormDataAsShippingModel() {
     return ShippingModel(
       shpLoadSize: loadingSize.text,
@@ -6259,7 +6212,6 @@ class _MobileState extends State<_Mobile> {
       shpStatus: shpStatus ?? 0,
     );
   }
-
   void _clearExpenseForm() {
     expenseAmount.clear();
     expenseNarration.clear();
@@ -6270,7 +6222,6 @@ class _MobileState extends State<_Mobile> {
       expenseFormKey.currentState!.reset();
     }
   }
-
   void onFinish(ShippingDetailsModel? existingShipping) async {
     final tr = AppLocalizations.of(context)!;
     final bloc = context.read<ShippingBloc>();
@@ -6362,7 +6313,6 @@ class _MobileState extends State<_Mobile> {
       bloc.add(AddShippingEvent(data));
     }
   }
-
   Map<String, String> _getSummaryData(ShippingDetailsModel? shipping) {
     if (shipping != null) {
       return {
@@ -6393,7 +6343,6 @@ class _MobileState extends State<_Mobile> {
       };
     }
   }
-
   void _loadExpenseForEdit(Expense expense) {
     setState(() {
       _selectedExpenseForEdit = expense;
@@ -6406,7 +6355,6 @@ class _MobileState extends State<_Mobile> {
       }
     });
   }
-
   void _handleExpenseAction() {
     if (expenseFormKey.currentState == null || !expenseFormKey.currentState!.validate()) {
       Utils.showOverlayMessage(context, message: AppLocalizations.of(context)!.requiredField(''), isError: true);
@@ -6446,7 +6394,6 @@ class _MobileState extends State<_Mobile> {
       }
     });
   }
-
   Widget _datePicker({required String date, required String title, bool? isActive}) {
     return GenericDatePicker(
       isActive: isActive ?? false,
@@ -6465,7 +6412,6 @@ class _MobileState extends State<_Mobile> {
   }
 }
 
-// Tablet View Implementation (could be similar to mobile with adjustments)
 class _Tablet extends StatefulWidget {
   final int? shippingId;
   final int? perId;
@@ -6474,15 +6420,9 @@ class _Tablet extends StatefulWidget {
   @override
   State<_Tablet> createState() => _TabletState();
 }
-
 class _TabletState extends State<_Tablet> {
-  // For tablets, we can use a combination of desktop and mobile approaches
-  // For simplicity, we'll use the mobile implementation with some adjustments
-  // You can customize this further based on your needs
-
   @override
   Widget build(BuildContext context) {
-    // Reuse mobile implementation with maybe a different layout
     return _Mobile(shippingId: widget.shippingId, perId: widget.perId);
   }
 }

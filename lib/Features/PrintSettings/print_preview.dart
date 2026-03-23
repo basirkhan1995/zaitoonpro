@@ -144,12 +144,10 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
     });
 
     try {
-      final language = _cachedLanguage ??
-          context.read<LocalizationBloc>().state.toString();
-      final pageFormat = _cachedPageFormat ??
-          context.read<PaperSizeCubit>().state;
-      final orientation = _cachedOrientation ??
-          context.read<PageOrientationCubit>().state;
+
+      final language = _cachedLanguage ?? context.read<LocalizationBloc>().state.toString();
+      final pageFormat = _cachedPageFormat ?? context.read<PaperSizeCubit>().state;
+      final orientation = _cachedOrientation ?? context.read<PageOrientationCubit>().state;
 
       // Generate PDF
       final pdf = await widget.buildPreview(
@@ -209,6 +207,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -410,6 +409,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
         ],
       ),
       child: Column(
+        spacing: 5,
         children: [
           if (!isMobile)
             Padding(
@@ -545,7 +545,6 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
             border: Border.all(
               color: Theme.of(context).colorScheme.outline.withAlpha(128),
             ),
-            borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
             children: [
@@ -624,12 +623,9 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
   }
 
   Widget _buildPreview() {
-    final String language = _cachedLanguage ??
-        context.read<LocalizationBloc>().state.toString();
-    final pw.PageOrientation orientation = _cachedOrientation ??
-        context.read<PageOrientationCubit>().state;
-    final PdfPageFormat pageFormat = _cachedPageFormat ??
-        context.read<PaperSizeCubit>().state;
+    final String language = _cachedLanguage ?? context.read<LocalizationBloc>().state.toString();
+    final pw.PageOrientation orientation = _cachedOrientation ?? context.read<PageOrientationCubit>().state;
+    final PdfPageFormat pageFormat = _cachedPageFormat ?? context.read<PaperSizeCubit>().state;
 
     return Container(
       decoration: BoxDecoration(

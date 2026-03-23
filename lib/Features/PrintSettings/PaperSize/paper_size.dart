@@ -5,28 +5,26 @@ import '../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../Generic/generic_drop.dart';
 import '../bloc/PageSize/paper_size_cubit.dart';
 
-
 class PdfFormatHelper {
 
-
   static const List<pw.PdfPageFormat> availableFormats = [
+    pw.PdfPageFormat.letter,
     pw.PdfPageFormat.a4,
     pw.PdfPageFormat.a5,
-    pw.PdfPageFormat.letter,
   ];
 
   static String? getDisplayName(pw.PdfPageFormat format) {
+    if (format == pw.PdfPageFormat.letter) return 'Letter (216 × 279 mm)';
     if (format == pw.PdfPageFormat.a4) return 'A4 (210 × 297 mm)';
     if (format == pw.PdfPageFormat.a5) return 'A5 (148 × 210 mm)';
-    if (format == pw.PdfPageFormat.letter) return 'Letter (216 × 279 mm)';
     return null;
   }
 
   static String getFormatKey(pw.PdfPageFormat format) {
+    if (format == pw.PdfPageFormat.letter) return 'letter';
     if (format == pw.PdfPageFormat.a4) return 'a4';
     if (format == pw.PdfPageFormat.a5) return 'a5';
-    if (format == pw.PdfPageFormat.letter) return 'letter';
-    return 'a4';
+    return 'letter';
   }
 
   static pw.PdfPageFormat getFormatFromKey(String key) {
@@ -37,7 +35,7 @@ class PdfFormatHelper {
         return pw.PdfPageFormat.letter;
       case 'a4':
       default:
-        return pw.PdfPageFormat.a4;
+        return pw.PdfPageFormat.letter;
     }
   }
 

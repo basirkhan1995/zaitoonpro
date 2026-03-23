@@ -37,10 +37,10 @@ class PaperSizeCubit extends Cubit<PdfPageFormat> {
   }
 
   String _getStringFromFormat(PdfPageFormat format) {
+    if (format == PdfPageFormat.letter) return 'letter';
     if (format == PdfPageFormat.a4) return 'a4';
     if (format == PdfPageFormat.a5) return 'a5';
-    if (format == PdfPageFormat.letter) return 'letter';
-    return 'a4'; // default
+    return 'letter'; // default
   }
 
   PdfPageFormat _getFormatFromString(String format) {

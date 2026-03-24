@@ -194,8 +194,8 @@ class ApiServices {
     _dio = Dio(
       BaseOptions(
         baseUrl: "http://52.21.3.100/rapi",
-        connectTimeout: const Duration(seconds: 20),
-        receiveTimeout: const Duration(seconds: 20),
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15),
         headers: {
           "Content-Type": "application/json",
           "Cache-Control": "no-cache",
@@ -222,7 +222,7 @@ class ApiServices {
   }
 
   /* -------------------------------------------------------------------------- */
-  /*                              Error Handling                                 */
+  /*                              Error Handling                                */
   /* -------------------------------------------------------------------------- */
 
   String _handleError(DioException e) {

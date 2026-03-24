@@ -12,8 +12,6 @@ import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchATAT/bloc/fetch_atat_bl
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchATAT/fetch_atat.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchGLAT/Ui/glat_view.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchGLAT/bloc/glat_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchTRPT/Ui/trpt_view.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchTRPT/bloc/trpt_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/TxnByReference/txn_reference.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/bloc/transactions_bloc.dart';
@@ -85,7 +83,6 @@ class _MobileState extends State<_Mobile> {
       "ATAT": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "SLRY": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "CRFX": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
-      "TRPT": (ref) => context.read<TrptBloc>().add(LoadTrptEvent(ref)),
       "GLAT": (ref) => context.read<GlatBloc>().add(LoadGlatEvent(ref)),
       "SALE": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
       "PRCH": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
@@ -176,28 +173,6 @@ class _MobileState extends State<_Mobile> {
                 context,
                 title: tr.noData,
                 message: state.message,
-                isError: true,
-              );
-            }
-          },
-        ),
-        BlocListener<TrptBloc, TrptState>(
-          listener: (context, state) {
-            if (state is TrptLoadedState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              ZNavigator.goto(TrptView(reference: state.trpt.shdTrnRef ?? ""),);
-            } else if (state is TrptErrorState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              Utils.showOverlayMessage(
-                context,
-                title: tr.noData,
-                message: state.error,
                 isError: true,
               );
             }
@@ -858,7 +833,6 @@ class _DesktopState extends State<_Desktop> {
       "ATAT": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "SLRY": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "CRFX": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
-      "TRPT": (ref) => context.read<TrptBloc>().add(LoadTrptEvent(ref)),
       "GLAT": (ref) => context.read<GlatBloc>().add(LoadGlatEvent(ref)),
       "SALE": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
       "PRCH": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
@@ -945,31 +919,6 @@ class _DesktopState extends State<_Desktop> {
                 context,
                 title: tr.noData,
                 message: state.message,
-                isError: true,
-              );
-            }
-          },
-        ),
-        BlocListener<TrptBloc, TrptState>(
-          listener: (context, state) {
-            if (state is TrptLoadedState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              showDialog(
-                context: context,
-                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-              );
-            } else if (state is TrptErrorState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              Utils.showOverlayMessage(
-                context,
-                title: tr.noData,
-                message: state.error,
                 isError: true,
               );
             }

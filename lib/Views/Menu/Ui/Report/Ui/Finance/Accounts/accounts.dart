@@ -10,9 +10,9 @@ import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
 import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/features/currency_drop.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Transport/Shipments/features/status_drop.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../Features/Widgets/zcard_mobile.dart';
+import '../../UserReport/status_drop.dart';
 import 'bloc/accounts_report_bloc.dart';
 
 class AccountsReportView extends StatelessWidget {

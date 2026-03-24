@@ -4,10 +4,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'localization_services.dart';
 
 class ApiServices {
+  static const String baseUrl = "http://ec2-18-189-27-53.us-east-2.compute.amazonaws.com/rapi";
+  static const String imageUrl = "http://ec2-18-189-27-53.us-east-2.compute.amazonaws.com/images/personal/";
   ApiServices() {
     _dio = Dio(
       BaseOptions(
-        baseUrl: "http://ec2-18-189-27-53.us-east-2.compute.amazonaws.com/rapi",
+        baseUrl: baseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
         headers: {

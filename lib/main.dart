@@ -31,7 +31,6 @@ import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/bloc/users_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/bloc/hrtab_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchATAT/bloc/fetch_atat_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchGLAT/bloc/glat_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchTRPT/bloc/trpt_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FundTransfer/BulkTransfer/bloc/transfer_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FxTransaction/bloc/fx_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/GetOrder/bloc/order_txn_bloc.dart';
@@ -56,8 +55,6 @@ import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/bloc/cash_ba
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/cash_branch.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/TrialBalance/bloc/trial_balance_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/TrialBalance/trial_balance.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Projects/ProjectList/bloc/projects_report_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Projects/ServicesReport/bloc/services_report_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/Cardx/bloc/stock_record_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/OrdersReport/bloc/order_report_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/bloc/product_report_bloc.dart';
@@ -88,9 +85,6 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/p
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/bloc/orders_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/bloc/stock_tab_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Transport/Ui/Drivers/bloc/driver_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Transport/Ui/Vehicles/bloc/vehicle_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Transport/bloc/transport_tab_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/bloc/menu_bloc.dart';
 import 'Features/PrintSettings/bloc/PageOrientation/page_orientation_cubit.dart';
 import 'Localizations/Bloc/localizations_bloc.dart';
@@ -106,7 +100,6 @@ import 'Views/Menu/Ui/Reminder/bloc/reminder_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/Finance/AllBalances/bloc/all_balances_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/HR/AttendanceReport/bloc/attendance_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/TransactionRef/bloc/txn_ref_report_bloc.dart';
-import 'Views/Menu/Ui/Report/Ui/Transport/Shipments/bloc/shipping_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/TxnReport/bloc/txn_report_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Company/Branches/bloc/branch_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/General/Ui/DefaultPermissions/bloc/permission_settings_bloc.dart';
@@ -115,7 +108,6 @@ import 'Views/Menu/Ui/Settings/Ui/General/bloc/general_tab_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import 'Views/Menu/Ui/Settings/bloc/settings_tab_bloc.dart';
 import 'Views/Menu/Ui/Settings/features/Visibility/bloc/settings_visible_bloc.dart';
-import 'Views/Menu/Ui/Transport/Ui/Shipping/Ui/ShippingView/bloc/shipping_bloc.dart';
 import 'Views/PasswordSettings/bloc/password_bloc.dart';
 import 'package:flutter/services.dart';
 
@@ -152,7 +144,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => IndividualDetailTabBloc()),
         BlocProvider(create: (context) => CompanySettingsMenuBloc()),
         BlocProvider(create: (context) => UserDetailsTabBloc()),
-        BlocProvider(create: (context) => TransportTabBloc()),
         BlocProvider(create: (context) => BranchTabBloc()),
         BlocProvider(create: (context) => StockSettingsTabBloc()),
         BlocProvider(create: (context) => ProjectTabsBloc()),
@@ -184,11 +175,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => TransferBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => FxBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => GlatBloc(Repositories(ApiServices()))),
-        BlocProvider(create: (context) => TrptBloc(Repositories(ApiServices()))),
-        BlocProvider(create: (context) => ShippingBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => StorageBloc(Repositories(ApiServices()))..add(LoadStorageEvent())),
-        BlocProvider(create: (context) => DriverBloc(Repositories(ApiServices()))..add(LoadDriverEvent())),
-        BlocProvider(create: (context) => VehicleBloc(Repositories(ApiServices()))..add(LoadVehicleEvent())),
         BlocProvider(create: (context) => TxnTypesBloc(Repositories(ApiServices()))..add(LoadTxnTypesEvent())),
         BlocProvider(create: (context) => ProductsBloc(Repositories(ApiServices()))..add(LoadProductsEvent())),
         BlocProvider(create: (context) => ProCatBloc(Repositories(ApiServices()))..add(LoadProCatEvent())),
@@ -222,7 +209,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => TrialBalanceBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => BalanceSheetBloc(Repositories(ApiServices()))..add(LoadBalanceSheet())),
         BlocProvider(create: (context) => FxRateReportBloc(Repositories(ApiServices()))..add(LoadFxRateReportEvent())),
-        BlocProvider(create: (context) => ShippingReportBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => CashBalancesBloc(Repositories(ApiServices()))..add(LoadCashBalanceBranchWiseEvent())),
         BlocProvider(create: (context) => TxnReportBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => AllBalancesBloc(Repositories(ApiServices()))),
@@ -231,9 +217,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => StockRecordBloc(Repositories(ApiServices()))..add(ResetStockRecordEvent())),
         BlocProvider(create: (context) => BackupBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => AttendanceReportBloc(Repositories(ApiServices()))),
-        BlocProvider(create: (context) => ProjectsReportBloc(Repositories(ApiServices()))..add(ResetProjectReportEvent())),
         BlocProvider(create: (context) => AccountsReportBloc(Repositories(ApiServices()))..add(ResetAccountsReportEvent())),
-        BlocProvider(create: (context) => ServicesReportBloc(Repositories(ApiServices()))..add(ResetServicesReportEvent())),
         BlocProvider(create: (context) => ProjectsByIdBloc(Repositories(ApiServices()))..add(ResetProjectByIdEvent())),
         BlocProvider(create: (context) => ProjectTxnBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => StakeholdersReportBloc(Repositories(ApiServices()))),

@@ -8,11 +8,8 @@ import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/BalanceSheet/balance_
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/GLStatement/gl_statement.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/cash_branch.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/HR/AttendanceReport/attendance_report.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Projects/ProjectList/projects_report.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/Cardx/Ui/cardx.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/OrdersReport/Ui/order_report.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Transport/Shipments/shipment_report.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Transport/Vehicle/View/vehicle_report.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/UserReport/StakeholdersReport/ind_report.dart';
 import '../../../../Features/Other/utils.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -25,7 +22,6 @@ import 'Ui/Finance/ArApReport/Receivables/receivables.dart';
 import 'Ui/Finance/ExchangeRate/exchange_rate.dart';
 import 'Ui/Finance/Treasury/all_cash.dart';
 import 'Ui/Finance/TrialBalance/trial_balance.dart';
-import 'Ui/Projects/ServicesReport/Ui/services_report.dart';
 import 'Ui/Stock/StockAvailability/product_report.dart';
 import 'Ui/TransactionRef/transaction_ref.dart';
 import 'Ui/TxnReport/txn_report.dart';
@@ -42,11 +38,6 @@ enum ActionKey {
   receivable,
   accountsReport,
   trialBalance,
-
-  //Transport
-  shipping,
-  drivers,
-  vehicles,
 
   //Transactions
   balanceSheet,
@@ -70,8 +61,6 @@ enum ActionKey {
   individualsReport,
   attendance,
 
-  projects,
-  services
 }
 class ReportView extends StatelessWidget {
   const ReportView({super.key});
@@ -157,22 +146,6 @@ class _DesktopState extends State<_Desktop> {
         {"title": tr.attendance, "icon": Icons.timer, "action": ActionKey.attendance},
     ];
 
-    final List<Map<String, dynamic>> transportButtons = [
-      if(login.hasPermission(102) ?? false)
-      {"title": tr.shipping, "icon": Icons.emoji_transportation_rounded, "action": ActionKey.shipping},
-      if(login.hasPermission(103) ?? false)
-      {"title": tr.vehicle, "icon": Icons.car_crash_sharp, "action": ActionKey.vehicles},
-      // if(login.hasPermission(104) ?? false)
-      //   {"title": tr.drivers, "icon": Icons.person, "action": ActionKey.drivers},
-    ];
-
-    // final List<Map<String, dynamic>> projectsButtons = [
-    //   if(login.hasPermission(114) ?? false)
-    //     {"title": tr.projects, "icon": Icons.folder_open_rounded, "action": ActionKey.projects},
-    //   if(login.hasPermission(115) ?? false)
-    //     {"title": tr.services, "icon": Icons.access_time_rounded, "action": ActionKey.services},
-    // ];
-
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -204,16 +177,6 @@ class _DesktopState extends State<_Desktop> {
               SizedBox(height: 8),
               _buildButtonGroup(activitiesButtons, color),
 
-              const SizedBox(height: 15),
-
-              SectionTitle(title: tr.transport),
-              SizedBox(height: 8),
-              _buildButtonGroup(transportButtons, color),
-
-              // const SizedBox(height: 15),
-              // SectionTitle(title: tr.projects),
-              // SizedBox(height: 8),
-              // _buildButtonGroup(projectsButtons, color),
             ],
           ),
         ),
@@ -321,14 +284,6 @@ class _DesktopState extends State<_Desktop> {
       case ActionKey.userLog: Utils.goto(context, UserLogReportView());
       case ActionKey.attendance: Utils.goto(context, AttendanceReportView());
 
-      //Transport
-      case ActionKey.shipping: Utils.goto(context, ShippingReportView());
-      case ActionKey.drivers: Utils.goto(context, ShippingReportView());
-      case ActionKey.vehicles: Utils.goto(context, VehicleReportView());
-
-      //Projects
-      case ActionKey.projects: Utils.goto(context, ProjectsReportView());
-      case ActionKey.services: Utils.goto(context, ServicesReportView());
     }
   }
 }

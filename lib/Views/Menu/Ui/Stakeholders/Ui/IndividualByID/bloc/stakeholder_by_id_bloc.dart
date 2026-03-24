@@ -10,7 +10,6 @@ class StakeholderByIdBloc extends Bloc<StakeholderByIdEvent, StakeholderByIdStat
   StakeholderByIdBloc(this.repo) : super(StakeholderByIdInitial()) {
 
     on<LoadStakeholderByIdEvent>((event, emit) async{
-
        emit(StakeholderByIdLoadingState());
        try{
          final stk = await repo.getPersonProfileById(perId: event.stkId);

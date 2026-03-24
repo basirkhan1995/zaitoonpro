@@ -1,6 +1,6 @@
 part of 'menu_bloc.dart';
 
-enum MenuName {dashboard, finance,journal,transport, projects, hr, stakeholders,stock,settings,report}
+enum MenuName {dashboard, finance,journal, hr, stakeholders,stock,settings,report}
 
 final class MenuState extends Equatable {
   final MenuName tabs;

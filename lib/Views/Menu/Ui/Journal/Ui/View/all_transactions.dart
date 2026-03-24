@@ -21,8 +21,6 @@ import '../../../../../../Features/Widgets/search_field.dart';
 import '../FetchATAT/bloc/fetch_atat_bloc.dart';
 import '../FetchATAT/fetch_atat.dart';
 import '../FetchGLAT/bloc/glat_bloc.dart';
-import '../FetchTRPT/Ui/trpt_view.dart';
-import '../FetchTRPT/bloc/trpt_bloc.dart';
 import '../TxnByReference/bloc/txn_reference_bloc.dart';
 import '../TxnByReference/txn_reference.dart';
 
@@ -80,7 +78,6 @@ class _MobileState extends State<_Mobile> {
       "SLRY": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "PLCL": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "CRFX": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
-      "TRPT": (ref) => context.read<TrptBloc>().add(LoadTrptEvent(ref)),
       "GLAT": (ref) => context.read<GlatBloc>().add(LoadGlatEvent(ref)),
       "SALE": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
       "PRCH": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
@@ -165,31 +162,6 @@ class _MobileState extends State<_Mobile> {
                 context,
                 title: tr.noData,
                 message: state.message,
-                isError: true,
-              );
-            }
-          },
-        ),
-        BlocListener<TrptBloc, TrptState>(
-          listener: (context, state) {
-            if (state is TrptLoadedState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              showDialog(
-                context: context,
-                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-              );
-            } else if (state is TrptErrorState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              Utils.showOverlayMessage(
-                context,
-                title: tr.noData,
-                message: state.error,
                 isError: true,
               );
             }
@@ -846,7 +818,6 @@ class _TabletState extends State<_Tablet> {
       "SLRY": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "PLCL": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "CRFX": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
-      "TRPT": (ref) => context.read<TrptBloc>().add(LoadTrptEvent(ref)),
       "GLAT": (ref) => context.read<GlatBloc>().add(LoadGlatEvent(ref)),
       "SALE": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
       "PRCH": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
@@ -913,31 +884,6 @@ class _TabletState extends State<_Tablet> {
                 context,
                 title: tr.noData,
                 message: state.message,
-                isError: true,
-              );
-            }
-          },
-        ),
-        BlocListener<TrptBloc, TrptState>(
-          listener: (context, state) {
-            if (state is TrptLoadedState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              showDialog(
-                context: context,
-                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-              );
-            } else if (state is TrptErrorState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              Utils.showOverlayMessage(
-                context,
-                title: tr.noData,
-                message: state.error,
                 isError: true,
               );
             }
@@ -1375,7 +1321,6 @@ class _DesktopState extends State<_Desktop> {
       "SLRY": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "PLCL": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
       "CRFX": (ref) => context.read<FetchAtatBloc>().add(FetchAccToAccEvent(ref)),
-      "TRPT": (ref) => context.read<TrptBloc>().add(LoadTrptEvent(ref)),
       "GLAT": (ref) => context.read<GlatBloc>().add(LoadGlatEvent(ref)),
       "SALE": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
       "PRCH": (ref) => context.read<OrderTxnBloc>().add(FetchOrderTxnEvent(reference: ref)),
@@ -1442,31 +1387,6 @@ class _DesktopState extends State<_Desktop> {
                 context,
                 title: tr.noData,
                 message: state.message,
-                isError: true,
-              );
-            }
-          },
-        ),
-        BlocListener<TrptBloc, TrptState>(
-          listener: (context, state) {
-            if (state is TrptLoadedState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              showDialog(
-                context: context,
-                builder: (context) => TrptView(reference: state.trpt.shdTrnRef ?? ""),
-              );
-            } else if (state is TrptErrorState) {
-              setState(() {
-                _isLoadingDialog = false;
-                _loadingRef = null;
-              });
-              Utils.showOverlayMessage(
-                context,
-                title: tr.noData,
-                message: state.error,
                 isError: true,
               );
             }

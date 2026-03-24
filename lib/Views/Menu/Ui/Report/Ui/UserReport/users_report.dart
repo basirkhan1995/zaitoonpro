@@ -5,13 +5,13 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/user_details.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/features/branch_dropdown.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/model/usr_report_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/UserReport/status_drop.dart';
 import '../../../../../../../Features/Widgets/no_data_widget.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../HR/Ui/Users/bloc/users_bloc.dart';
 import '../../../Settings/Ui/General/Ui/UserRole/features/role_drop.dart';
-import '../Transport/Shipments/features/status_drop.dart';
 
 class UsersReportView extends StatelessWidget {
   const UsersReportView({super.key});

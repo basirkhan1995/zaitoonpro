@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:zaitoonpro/Services/api_services.dart';
 
 enum ShapeStyle { circle, roundedRectangle }
 
 class ImageHelper {
-  static const String baseUrl = "http://52.21.3.100/images/personal/";
 
   /// Full widget with optional camera overlay
   static Widget stakeholderProfile({
@@ -53,7 +53,7 @@ class ImageHelper {
       );
     } else {
       mainImage = CachedNetworkImage(
-        imageUrl: "$baseUrl$imageName",
+        imageUrl: "${ApiServices.imageUrl}$imageName",
         fit: fit,
         placeholder: (_, _) => Center(
           child: SizedBox(

@@ -8,11 +8,9 @@ import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Auth/Ui/login.dart';
 import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/hr.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/all_projects.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/bloc/general_tab_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/Ui/individuals.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Transport/transport.dart';
 import '../../Features/Generic/generic_menu.dart';
 import '../../Features/Other/image_helper.dart';
 import '../../Features/Other/responsive.dart';
@@ -31,23 +29,15 @@ import 'bloc/menu_bloc.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => MenuBloc()),
-      ],
-      child: const ResponsiveLayout(
-        mobile: _Mobile(),
-        tablet: _Tablet(),
-        desktop: _Desktop(),
-      ),
+    return const ResponsiveLayout(
+      mobile: _Mobile(),
+      tablet: _Tablet(),
+      desktop: _Desktop(),
     );
   }
 }
-
-// ================== DESKTOP ==================
 
 class _Desktop extends StatefulWidget {
   const _Desktop();
@@ -57,18 +47,11 @@ class _Desktop extends StatefulWidget {
 }
 class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
   Uint8List? _cachedLogo;
-  String? _cachedComName;
 
   @override
   bool get wantKeepAlive => true;
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CompanyProfileBloc>().add(LoadCompanyProfileEvent());
-    });
-  }
+
 
   void _logout() async {
     final authBloc = context.read<AuthBloc>();
@@ -79,6 +62,28 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
     context.read<MenuBloc>().add(MenuOnChangedEvent(MenuName.settings));
     context.read<SettingsTabBloc>().add(SettingsOnChangeEvent(SettingsTabName.general));
     context.read<GeneralTabBloc>().add(GeneralTabOnChangedEvent(GeneralTabName.profileSettings));
+  }
+
+  @override
+  void initState() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthenticatedState) {
+      final base64Logo = authState.loginData.company?.comLogo;
+      if (base64Logo != null && base64Logo.isNotEmpty) {
+        try {
+          final newLogo = base64Decode(base64Logo);
+          // Only update if different
+          if (!_areBytesEqual(_cachedLogo, newLogo)) {
+            _cachedLogo = newLogo;
+          }
+        } catch (_) {
+          _cachedLogo = null;
+        }
+      } else {
+        _cachedLogo = null;
+      }
+    }
+    super.initState();
   }
 
   @override
@@ -147,25 +152,6 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
         icon: Icons.group_rounded,
       ),
     ],
-
-    if(login.hasPermission(42) ?? false)...[
-      if(visibility.transport)...[
-        MenuDefinition(
-          value: MenuName.transport,
-          label: AppLocalizations.of(context)!.transport,
-          screen: const TransportView(),
-          icon: Icons.fire_truck_rounded,
-        ),
-      ],
-    ],
-      // if(login.hasPermission(46) ?? false)...[
-      //     MenuDefinition(
-      //       value: MenuName.projects,
-      //       label: AppLocalizations.of(context)!.projects,
-      //       screen: const AllProjectsView(),
-      //       icon: Icons.folder_open_rounded,
-      //     ),
-      // ],
 
     if(login.hasPermission(51) ?? false)...[
     if(visibility.orders)...[
@@ -238,7 +224,6 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
           margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
           selectedValue: currentTab,
           onChanged: (val) {
-            // Only update if the tab is different
             if (currentTab != val) {
               context.read<MenuBloc>().add(MenuOnChangedEvent(val));
             }
@@ -248,15 +233,10 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
           selectedTextColor: Theme.of(context).colorScheme.primary.withAlpha(230),
           unselectedTextColor: Theme.of(context).colorScheme.secondary,
           menuHeaderBuilder: (isExpanded) {
-            return BlocConsumer<CompanyProfileBloc, CompanyProfileState>(
+            return BlocConsumer<AuthBloc, AuthState>(
               listener: (context, state) {
-                // Cache the logo and company name when loaded
-                if (state is CompanyProfileLoadedState) {
-                  if (_cachedComName != state.company.comName) {
-                    _cachedComName = state.company.comName;
-                  }
-
-                  final base64Logo = state.company.comLogo;
+                if (state is AuthenticatedState) {
+                  final base64Logo = state.loginData.company?.comLogo;
                   if (base64Logo != null && base64Logo.isNotEmpty) {
                     try {
                       final newLogo = base64Decode(base64Logo);
@@ -336,7 +316,6 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
             );
           },
           menuFooterBuilder: (isExpanded) {
-            // Pass the pre-fetched values instead of using context.select here
             return _MenuFooter(
               isExpanded: isExpanded,
               adminName: adminName,
@@ -639,8 +618,6 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-// ================== MOBILE & TABLET DRAWER VERSION ==================
-
 class _Mobile extends StatelessWidget {
   const _Mobile();
 
@@ -668,12 +645,10 @@ class _DrawerHomeView extends StatefulWidget {
 }
 class _DrawerHomeViewState extends State<_DrawerHomeView> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  // Removed: late MenuName _currentTab; - Using bloc state instead
 
   @override
   void initState() {
     super.initState();
-    // Removed: _currentTab = context.read<MenuBloc>().state.tabs;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CompanyProfileBloc>().add(LoadCompanyProfileEvent());
     });
@@ -939,30 +914,6 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
       );
     }
 
-    // Transport - Permission 42 (with visibility check)
-    if ((login.hasPermission(42) ?? false) && visibility.transport) {
-      menuItems.add(
-        _DrawerMenuItem(
-          icon: Icons.fire_truck_rounded,
-          label: AppLocalizations.of(context)!.transport,
-          isSelected: currentTab == MenuName.transport,
-          onTap: () => _onMenuItemTap(MenuName.transport),
-        ),
-      );
-    }
-
-    // Projects - Permission (commented out)
-    // if ((login.hasPermission(46) ?? false)) {
-    //   menuItems.add(
-    //     _DrawerMenuItem(
-    //       icon: Icons.folder_open_rounded,
-    //       label: AppLocalizations.of(context)!.projects,
-    //       isSelected: currentTab == MenuName.projects,
-    //       onTap: () => _onMenuItemTap(MenuName.projects),
-    //     ),
-    //   );
-    // }
-
     // Stock/Inventory - Permission 51 (with visibility check)
     if ((login.hasPermission(51) ?? false) && visibility.orders) {
       menuItems.add(
@@ -1168,8 +1119,6 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
     switch (menuName) {
       case MenuName.dashboard:
         return const DashboardView();
-      case MenuName.projects:
-        return const AllProjectsView();
       case MenuName.finance:
         return const FinanceView();
       case MenuName.journal:
@@ -1178,8 +1127,6 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
         return const IndividualsView();
       case MenuName.hr:
         return const HrTabView();
-      case MenuName.transport:
-        return const TransportView();
       case MenuName.stock:
         return const StockView();
       case MenuName.settings:
@@ -1201,10 +1148,6 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
         return AppLocalizations.of(context)!.stakeholders;
       case MenuName.hr:
         return AppLocalizations.of(context)!.hr;
-      case MenuName.transport:
-        return AppLocalizations.of(context)!.transport;
-      case MenuName.projects:
-        return AppLocalizations.of(context)!.projects;
       case MenuName.stock:
         return AppLocalizations.of(context)!.stock;
       case MenuName.settings:
@@ -1229,7 +1172,6 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
   }
 }
 
-// Drawer Menu Item Widget
 class _DrawerMenuItem extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -1270,7 +1212,6 @@ class _DrawerMenuItem extends StatelessWidget {
     );
   }
 }
-
 class _BottomSheetDetailRow extends StatelessWidget {
   final IconData icon;
   final String text;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/cover.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/details_tab.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/details_tab.dart';
 import '../Users/model/user_model.dart';
 
 class UserDetailsView extends StatelessWidget {

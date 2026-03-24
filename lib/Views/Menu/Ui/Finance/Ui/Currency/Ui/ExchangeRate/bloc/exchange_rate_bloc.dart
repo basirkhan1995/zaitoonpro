@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/model/rate_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/model/rate_model.dart';
 
 part 'exchange_rate_event.dart';
 part 'exchange_rate_state.dart';

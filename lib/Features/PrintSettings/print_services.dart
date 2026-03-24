@@ -4,7 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:zaitoon_petroleum/Features/PrintSettings/report_model.dart';
+import 'package:zaitoonpro/Features/PrintSettings/report_model.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 

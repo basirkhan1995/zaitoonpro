@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:zaitoon_petroleum/Features/Other/alert_dialog.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/TxnTypes/add_edit_type.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/TxnTypes/bloc/txn_types_bloc.dart';
+import 'package:zaitoonpro/Features/Other/alert_dialog.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/TxnTypes/add_edit_type.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/TxnTypes/bloc/txn_types_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../../Features/Widgets/outline_button.dart';

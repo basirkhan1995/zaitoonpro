@@ -4,12 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
-import 'package:zaitoon_petroleum/Features/Other/amount_to_word.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
-import 'package:zaitoon_petroleum/Features/PrintSettings/print_services.dart';
-import 'package:zaitoon_petroleum/Features/PrintSettings/report_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/ProjectTxn/model/project_txn_model.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Other/amount_to_word.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/PrintSettings/print_services.dart';
+import 'package:zaitoonpro/Features/PrintSettings/report_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/ProjectTxn/model/project_txn_model.dart';
 
 class ProjectTxnPrintSettings extends PrintServices {
 

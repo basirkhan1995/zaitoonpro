@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/localization_services.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/usr_report_model.dart';
+import 'package:zaitoonpro/Services/localization_services.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/model/usr_report_model.dart';
 import '../model/user_model.dart';
 
 part 'users_event.dart';

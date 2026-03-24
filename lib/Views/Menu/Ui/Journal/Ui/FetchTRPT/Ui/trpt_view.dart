@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/cover.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchTRPT/bloc/trpt_bloc.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchTRPT/bloc/trpt_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchTRPT/model/trtp_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchTRPT/model/trtp_model.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../bloc/transactions_bloc.dart';
 

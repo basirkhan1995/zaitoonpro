@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchTRPT/model/trtp_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchTRPT/model/trtp_model.dart';
 part 'trpt_event.dart';
 part 'trpt_state.dart';
 

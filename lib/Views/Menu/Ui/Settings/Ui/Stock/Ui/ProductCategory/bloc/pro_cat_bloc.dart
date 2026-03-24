@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductCategory/model/pro_cat_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductCategory/model/pro_cat_model.dart';
 
 part 'pro_cat_event.dart';
 part 'pro_cat_state.dart';

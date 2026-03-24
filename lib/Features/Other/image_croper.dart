@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import 'package:zaitoon_petroleum/Features/Widgets/button.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
+import 'package:zaitoonpro/Features/Widgets/button.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 
 /// Opens a crop dialog, lets the user crop manually,
 /// then compresses the image to max 64 KB.

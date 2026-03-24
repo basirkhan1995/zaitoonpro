@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Auth/Subscription/Ui/subscription.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Storage/storage.dart';
+import 'package:zaitoonpro/Views/Auth/Subscription/Ui/subscription.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/storage.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';

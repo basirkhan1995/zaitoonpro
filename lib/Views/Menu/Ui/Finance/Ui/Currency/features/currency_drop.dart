@@ -1,7 +1,7 @@
 import 'package:flag/flag_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import '../../../../../../../Features/Generic/zaitoon_drop.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../Ui/Currencies/bloc/currencies_bloc.dart';

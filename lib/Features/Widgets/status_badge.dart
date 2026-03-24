@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 class StatusBadge extends StatelessWidget {
   final int status;
   final String? trueValue;

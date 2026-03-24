@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/cover.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/no_data_widget.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../../Auth/bloc/auth_bloc.dart';
 import 'bloc/permission_settings_bloc.dart';
 import 'model/permission_settings_model.dart';

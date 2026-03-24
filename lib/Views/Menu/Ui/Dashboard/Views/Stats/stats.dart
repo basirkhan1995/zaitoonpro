@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'bloc/dashboard_stats_bloc.dart';
 
 class DashboardStatsView extends StatelessWidget {

@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/TxnByReference/model/txn_ref_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/TxnByReference/model/txn_ref_model.dart';
 
 part 'txn_reference_event.dart';
 part 'txn_reference_state.dart';

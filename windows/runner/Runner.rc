@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "zaitoon_petroleum" "\0"
+            VALUE "FileDescription", "zaitoonpro" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "zaitoon_petroleum" "\0"
+            VALUE "InternalName", "zaitoonpro" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "zaitoon_petroleum.exe" "\0"
-            VALUE "ProductName", "zaitoon_petroleum" "\0"
+            VALUE "OriginalFilename", "zaitoonpro.exe" "\0"
+            VALUE "ProductName", "zaitoonpro" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/TotalDailyTxn/model/daily_txn_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TotalDailyTxn/model/daily_txn_model.dart';
 import '../../../../../../../Services/repositories.dart';
 import '../model/total_daily_compare.dart';
 

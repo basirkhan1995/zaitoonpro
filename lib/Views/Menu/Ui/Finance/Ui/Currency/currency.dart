@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/exchange_rate.dart';
+import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/exchange_rate.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Features/Other/responsive.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../../../../Services/repositories.dart';
 import '../../../../../Settings/Ui/Company/Storage/model/storage_model.dart';
 import '../../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';

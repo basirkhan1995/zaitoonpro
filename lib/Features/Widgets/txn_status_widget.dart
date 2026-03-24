@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 
 /// ===============================
 /// 1️⃣ Transaction Status Enum

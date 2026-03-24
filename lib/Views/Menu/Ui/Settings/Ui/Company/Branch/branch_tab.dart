@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/Overview/branch_overview.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Branch/bloc/brc_tab_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/Overview/branch_overview.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Branch/bloc/brc_tab_bloc.dart';
 import '../../../../../../../Features/Generic/tab_bar.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../Branches/model/branch_model.dart';

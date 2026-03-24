@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Backup/backup.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/company_tab.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Stock/stock_settings.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/TxnTypes/txn_types_view.dart';
+import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Backup/backup.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/company_tab.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/stock_settings.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/TxnTypes/txn_types_view.dart';
 import '../../../../Features/Generic/tab_bar.dart';
 import '../../../../Features/Other/responsive.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';

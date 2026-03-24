@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Views/PasswordSettings/change_password.dart';
+import 'package:zaitoonpro/Views/PasswordSettings/change_password.dart';
 import '../../../../../../../../Features/Other/responsive.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Localizations/l10n/translations/app_localizations.dart';

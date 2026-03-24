@@ -1,7 +1,7 @@
 
 import 'dart:convert';
 
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
 
 List<UsersReportModel> usersReportModelFromMap(String str) => List<UsersReportModel>.from(json.decode(str).map((x) => UsersReportModel.fromMap(x)));
 

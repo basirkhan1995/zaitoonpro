@@ -1,4 +1,4 @@
-package com.example.zaitoon_petroleum
+package com.example.zaitoonpro
 
 import io.flutter.embedding.android.FlutterActivity
 

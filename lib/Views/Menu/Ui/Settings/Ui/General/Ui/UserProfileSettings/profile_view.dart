@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/cover.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
-import 'package:zaitoon_petroleum/Views/Auth/bloc/auth_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/bloc/user_profile_settings_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/model/usr_profile_model.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
+import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/bloc/user_profile_settings_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/model/usr_profile_model.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../../../../Features/Other/image_helper.dart';

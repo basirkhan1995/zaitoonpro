@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 
 class NoSubscriptionView extends StatelessWidget {
   final bool isExpired;

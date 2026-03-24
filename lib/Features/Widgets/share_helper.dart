@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:zaitoon_petroleum/Features/Other/toast.dart';
+import 'package:zaitoonpro/Features/Other/toast.dart';
 import '../../Localizations/l10n/translations/app_localizations.dart';
 
 class WhatsAppShareHelper {

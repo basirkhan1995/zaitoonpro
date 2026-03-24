@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Report/Ui/Projects/ProjectList/model/projects_report_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Projects/ProjectList/model/projects_report_model.dart';
 
 part 'projects_report_event.dart';
 part 'projects_report_state.dart';

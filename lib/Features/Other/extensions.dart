@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 
 // Font Scaler based on screen size
 extension FontScaler on BuildContext {

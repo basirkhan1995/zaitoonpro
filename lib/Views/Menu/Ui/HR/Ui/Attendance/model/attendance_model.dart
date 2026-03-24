@@ -1,7 +1,7 @@
 // attendance_model.dart
 import 'dart:convert';
 
-import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 
 AttendanceModel attendanceModelFromMap(String str) => AttendanceModel.fromMap(json.decode(str));
 String attendanceModelToMap(AttendanceModel data) => json.encode(data.toMap());

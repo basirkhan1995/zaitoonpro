@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
 import '../../../../../../../Features/Other/zForm_dialog.dart';
 import '../bloc/txn_ref_report_bloc.dart';
 import '../txn_ref_auto.dart';

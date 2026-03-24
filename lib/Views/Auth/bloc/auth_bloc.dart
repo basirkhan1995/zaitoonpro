@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/model/com_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/model/com_model.dart';
 import '../../../Services/localization_services.dart';
 
 part 'auth_event.dart';

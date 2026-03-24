@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/IncomeExpense/project_inc_exp.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/Overview/project_overview.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/bloc/project_tabs_bloc.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/IncomeExpense/project_inc_exp.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/Overview/project_overview.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/bloc/project_tabs_bloc.dart';
 import '../../../../Features/Generic/tab_bar.dart';
 import '../../../../Features/Other/responsive.dart';
 import '../../../Auth/bloc/auth_bloc.dart';

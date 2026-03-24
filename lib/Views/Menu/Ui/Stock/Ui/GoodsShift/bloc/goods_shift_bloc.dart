@@ -2,8 +2,8 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Stock/Ui/GoodsShift/model/shift_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/GoodsShift/model/shift_model.dart';
 
 part 'goods_shift_event.dart';
 part 'goods_shift_state.dart';

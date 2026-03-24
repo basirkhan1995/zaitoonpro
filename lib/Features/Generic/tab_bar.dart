@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 
 /// ------------------------------------------------------------
 ///  Z TAB STYLE OPTIONS

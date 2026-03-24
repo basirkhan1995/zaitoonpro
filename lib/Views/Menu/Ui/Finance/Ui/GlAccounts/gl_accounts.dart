@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Other/shortcut.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/outline_button.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Finance/Ui/GlAccounts/add_edit_gl.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/shortcut.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/GlAccounts/add_edit_gl.dart';
 import '../../../../../../Features/Other/alert_dialog.dart';
 import '../../../../../../Features/Other/utils.dart';
 import '../../../../../../Features/Widgets/no_data_widget.dart';

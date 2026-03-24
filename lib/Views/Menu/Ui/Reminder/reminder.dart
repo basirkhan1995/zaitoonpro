@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
-import 'package:zaitoon_petroleum/Features/Other/cover.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
 
 import '../../../../Features/Other/extensions.dart';
 import '../../../../Features/Widgets/outline_button.dart';

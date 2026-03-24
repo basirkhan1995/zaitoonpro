@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Other/zForm_dialog.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/project_tabs.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/zForm_dialog.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/project_tabs.dart';
 
 class ProjectView extends StatelessWidget {
   final ProjectsModel project;

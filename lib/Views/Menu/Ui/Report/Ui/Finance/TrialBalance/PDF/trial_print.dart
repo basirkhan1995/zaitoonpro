@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 import '../../../../../../../../Features/PrintSettings/print_services.dart';
 import '../../../../../../../../Features/PrintSettings/report_model.dart';
 import '../model/trial_balance_model.dart';

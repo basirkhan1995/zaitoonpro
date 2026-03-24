@@ -1,4 +1,4 @@
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 
 class ExchangeRateReportModel {
   final DateTime rateDate;

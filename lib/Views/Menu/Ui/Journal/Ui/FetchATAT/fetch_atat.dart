@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Other/zForm_dialog.dart';
-import 'package:zaitoon_petroleum/Localizations/Bloc/localizations_bloc.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchATAT/bloc/fetch_atat_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchATAT/model/fetch_atat_model.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/zForm_dialog.dart';
+import 'package:zaitoonpro/Localizations/Bloc/localizations_bloc.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchATAT/bloc/fetch_atat_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchATAT/model/fetch_atat_model.dart';
 
 import '../../../../../../Features/Other/cover.dart';
 import '../../../../../../Features/PrintSettings/print_preview.dart';

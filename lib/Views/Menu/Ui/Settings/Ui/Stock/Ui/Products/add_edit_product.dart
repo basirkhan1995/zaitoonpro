@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Other/zform_dialog.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/textfield_entitled.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
+import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../ProductCategory/features/pro_cat_drop.dart';
 import '../ProductCategory/model/pro_cat_model.dart';

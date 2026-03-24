@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Log/user_log.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Overview/user_overview.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Permissions/permissions.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/bloc/user_details_tab_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Log/user_log.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Overview/user_overview.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Permissions/permissions.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/bloc/user_details_tab_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/model/user_model.dart';
 import '../../../../../../Features/Generic/rounded_tab.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';

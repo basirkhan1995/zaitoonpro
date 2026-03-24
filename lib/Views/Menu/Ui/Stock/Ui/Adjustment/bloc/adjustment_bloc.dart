@@ -2,7 +2,7 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
 
 import '../../../../../../../Services/localization_services.dart';
 import '../model/adj_items.dart';

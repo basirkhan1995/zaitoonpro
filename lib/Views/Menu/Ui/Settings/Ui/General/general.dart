@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/profile_view.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/user_role_settings.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/profile_view.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/user_role_settings.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Features/Other/responsive.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';

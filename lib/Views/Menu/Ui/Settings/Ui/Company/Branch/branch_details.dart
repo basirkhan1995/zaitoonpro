@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Branch/branch_tab.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Settings/Ui/Company/Branches/model/branch_model.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Branch/branch_tab.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Branches/model/branch_model.dart';
 
 class BranchDetailsView extends StatelessWidget {
   final BranchModel branch;

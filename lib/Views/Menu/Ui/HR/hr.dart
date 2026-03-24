@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Views/Auth/models/login_model.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Attendance/attendance.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/Employees/Ui/employees.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/bloc/hrtab_bloc.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Attendance/attendance.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Employees/Ui/employees.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/bloc/hrtab_bloc.dart';
 import '../../../../Features/Generic/tab_bar.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';

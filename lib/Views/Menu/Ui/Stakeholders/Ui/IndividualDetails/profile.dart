@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/Ui/Accounts/stk_accounts.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/Ui/Users/stk_users.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/bloc/ind_detail_bloc.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/Ui/Accounts/stk_accounts.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/Ui/Users/stk_users.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/bloc/ind_detail_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../../Features/Generic/tab_bar.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';

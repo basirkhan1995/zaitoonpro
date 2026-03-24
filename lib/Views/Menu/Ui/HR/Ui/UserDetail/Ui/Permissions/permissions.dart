@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
-import 'package:zaitoon_petroleum/Features/Widgets/blur_loading.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Permissions/per_model.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Widgets/blur_loading.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Permissions/per_model.dart';
 import '../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Users/model/user_model.dart';
 import 'bloc/permissions_bloc.dart';

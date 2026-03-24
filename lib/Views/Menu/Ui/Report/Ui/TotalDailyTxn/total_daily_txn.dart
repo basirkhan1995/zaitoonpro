@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
-import 'package:zaitoon_petroleum/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'bloc/total_daily_bloc.dart';
 

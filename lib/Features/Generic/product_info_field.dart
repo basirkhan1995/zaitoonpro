@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 
 import '../../Localizations/l10n/translations/app_localizations.dart';
 

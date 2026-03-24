@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:zaitoon_petroleum/Features/Date/shamsi_converter.dart';
-import 'package:zaitoon_petroleum/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
 import '../../../../../Localizations/l10n/translations/app_localizations.dart';
 
 class DigitalClock extends StatefulWidget {

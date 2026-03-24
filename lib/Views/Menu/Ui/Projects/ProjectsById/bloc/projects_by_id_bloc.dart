@@ -1,8 +1,8 @@
 
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Projects/ProjectsById/model/project_by_id_model.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/ProjectsById/model/project_by_id_model.dart';
 
 part 'projects_by_id_event.dart';
 part 'projects_by_id_state.dart';

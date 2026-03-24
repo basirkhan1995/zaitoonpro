@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoon_petroleum/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 
 import '../../../../../../../Features/Generic/zaitoon_drop.dart';
 import '../../../../Settings/Ui/Company/Branches/bloc/branch_bloc.dart';

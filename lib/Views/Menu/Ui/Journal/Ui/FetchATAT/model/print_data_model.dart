@@ -1,5 +1,5 @@
 
-import 'package:zaitoon_petroleum/Views/Menu/Ui/Journal/Ui/FetchATAT/model/fetch_atat_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/FetchATAT/model/fetch_atat_model.dart';
 
 class AtatPrintData {
   final String reportType; // 'single' or 'multiple'

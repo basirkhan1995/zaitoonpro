@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:zaitoon_petroleum/Services/repositories.dart';
+import 'package:zaitoonpro/Services/repositories.dart';
 import '../model/get_order_model.dart';
 part 'order_txn_event.dart';
 part 'order_txn_state.dart';

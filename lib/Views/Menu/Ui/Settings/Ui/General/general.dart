@@ -52,13 +52,6 @@ class _BaseGeneralView extends StatelessWidget {
           icon: Icons.settings,
         ),
 
-      // if (login.hasPermission(65) ?? false)
-      //   MenuDefinition(
-      //     value: GeneralTabName.password,
-      //     label: AppLocalizations.of(context)!.password,
-      //     screen: const PasswordView(),
-      //     icon: Icons.lock,
-      //   ),
       if (login.hasPermission(67) ?? false)
         MenuDefinition(
           value: GeneralTabName.roles,

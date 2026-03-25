@@ -562,7 +562,8 @@ class _DesktopState extends State<_Desktop> {
                 child: BlocBuilder<ArApBloc, ArApState>(
                   builder: (context, state) {
                     if (state is ArApErrorState) {
-                      return NoDataWidget(message: state.error);
+                      return NoDataWidget(
+                          message: state.error);
                     }
                     if (state is ArApLoadingState) {
                       return const Center(child: CircularProgressIndicator());
@@ -577,7 +578,11 @@ class _DesktopState extends State<_Desktop> {
                       receivables = filteredList;
 
                       if (filteredList.isEmpty) {
-                        return NoDataWidget(message: tr.noData);
+                        return NoDataWidget(
+                            title: tr.noData,
+                            message: tr.noDataFound,
+                           enableAction: false,
+                        );
                       }
 
                       return ListView.builder(

@@ -564,6 +564,13 @@ class _DesktopState extends State<_Desktop> {
                       return Center(child: CircularProgressIndicator());
                     }
                     if (state is ArApLoadedState) {
+                      if(state.apAccounts.isEmpty){
+                        return NoDataWidget(
+                          title: tr.noData,
+                          message: tr.noDataFound,
+                          enableAction: false,
+                        );
+                      }
                       final query = searchController.text.toLowerCase().trim();
                       final filteredList = state.apAccounts.where((item) {
                         final name = item.accName?.toLowerCase() ?? '';

@@ -593,103 +593,101 @@ class _DesktopState extends State<_Desktop> {
     double refWidth = 240;
     double amountWidth = 130;
     double balanceWidth =  160;
-    final shortcuts = {
-      const SingleActivator(LogicalKeyboardKey.keyR,control: true, shift: true): () => showTxnDetails(),
-    };
-    return GlobalShortcuts(
-      shortcuts: shortcuts,
-      child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        body: BlocBuilder<AuthBloc, AuthState>(
-          builder: (context, state) {
-            if(state is AuthenticatedState){
-              final auth = state.loginData;
-              company.comName = auth.company?.comName??"";
-              company.comAddress = auth.company?.comAddress??"";
-              company.compPhone = auth.company?.comPhone??"";
-              company.comEmail = auth.company?.comEmail??"";
-              company.startDate = fromDate;
-              company.endDate = toDate;
-              company.statementDate = DateTime.now().toFullDateTime;
-              final base64Logo = auth.company?.comLogo;
-              if (base64Logo != null && base64Logo.isNotEmpty) {
-                try {
-                  _companyLogo = base64Decode(base64Logo);
-                  company.comLogo = _companyLogo;
-                } catch (e) {
-                  _companyLogo = Uint8List(0);
-                }
+
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      body: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, state) {
+          if(state is AuthenticatedState){
+            final auth = state.loginData;
+            company.comName = auth.company?.comName??"";
+            company.comAddress = auth.company?.comAddress??"";
+            company.compPhone = auth.company?.comPhone??"";
+            company.comEmail = auth.company?.comEmail??"";
+            company.startDate = fromDate;
+            company.endDate = toDate;
+            company.statementDate = DateTime.now().toFullDateTime;
+            final base64Logo = auth.company?.comLogo;
+            if (base64Logo != null && base64Logo.isNotEmpty) {
+              try {
+                _companyLogo = base64Decode(base64Logo);
+                company.comLogo = _companyLogo;
+              } catch (e) {
+                _companyLogo = Uint8List(0);
               }
             }
-            return BlocConsumer<TxnReferenceBloc, TxnReferenceState>(
-              listener: (context, state) {
-                if (state is TxnReferenceLoadedState) {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return TxnReferenceView();
-                    },
-                  );
-                }
-              },
-              builder: (context, state) {
-                return Form(
-                  key: formKey,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8.0,
-                            vertical: 5,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                spacing: 8,
-                                children: [
-                                  Utils.zBackButton(context),
-                                  Text(
-                                    tr.glStatement,
-                                    style: Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  ZOutlineButton(
-                                    width: 100,
-                                    icon: Icons.print,
-                                    label: Text(tr.print),
-                                    onPressed: (){
-                                      if(formKey.currentState!.validate()){
-                                          pdf();
-                                      }else{
-                                        Utils.showOverlayMessage(context, message: tr.accountStatementMessage, isError: true);
-                                      }
-                                    },
-                                  ),
-                                  SizedBox(width: 8),
-                                  ZOutlineButton(
-                                    isActive: true,
-                                    icon: Icons.call_to_action_outlined,
-                                    width: 100,
-                                    onPressed: () {
-                                      if (formKey.currentState!.validate()) {
-                                        onSubmit();
-                                      }
-                                    },
-                                    label: Text(tr.apply),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+          }
+          return BlocConsumer<TxnReferenceBloc, TxnReferenceState>(
+            listener: (context, state) {
+              if (state is TxnReferenceLoadedState) {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return TxnReferenceView();
+                  },
+                );
+              }
+            },
+            builder: (context, state) {
+              return Form(
+                key: formKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8.0,
+                          vertical: 5,
                         ),
-                        SizedBox(height: 8),
-                        Row(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              spacing: 8,
+                              children: [
+                                Utils.zBackButton(context),
+                                Text(
+                                  tr.glStatement,
+                                  style: Theme.of(context).textTheme.titleLarge,
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                ZOutlineButton(
+                                  width: 100,
+                                  icon: Icons.print,
+                                  label: Text(tr.print),
+                                  onPressed: (){
+                                    if(formKey.currentState!.validate()){
+                                        pdf();
+                                    }else{
+                                      Utils.showOverlayMessage(context, message: tr.accountStatementMessage, isError: true);
+                                    }
+                                  },
+                                ),
+                                SizedBox(width: 8),
+                                ZOutlineButton(
+                                  isActive: true,
+                                  icon: Icons.call_to_action_outlined,
+                                  width: 100,
+                                  onPressed: () {
+                                    if (formKey.currentState!.validate()) {
+                                      onSubmit();
+                                    }
+                                  },
+                                  label: Text(tr.apply),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
                           spacing: 8,
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -832,269 +830,267 @@ class _DesktopState extends State<_Desktop> {
                             ]
                           ],
                         ),
-                        SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: dateWith,
-                                child: Text(
-                                  tr.txnDate,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
+                      ),
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: dateWith,
+                              child: Text(
+                                tr.txnDate,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              SizedBox(
-                                width: refWidth,
-                                child: Text(
-                                  tr.referenceNumber,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
+                            ),
+                            SizedBox(
+                              width: refWidth,
+                              child: Text(
+                                tr.referenceNumber,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              Expanded(
-                                child: Text(
-                                  tr.narration,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                tr.narration,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              SizedBox(
-                                width: amountWidth,
-                                child: Text(
-                                  textAlign: myLocale == "en"
-                                      ? TextAlign.right
-                                      : TextAlign.left,
-                                  tr.debitTitle,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
+                            ),
+                            SizedBox(
+                              width: amountWidth,
+                              child: Text(
+                                textAlign: myLocale == "en"
+                                    ? TextAlign.right
+                                    : TextAlign.left,
+                                tr.debitTitle,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              SizedBox(
-                                width: amountWidth,
-                                child: Text(
-                                  textAlign: myLocale == "en"
-                                      ? TextAlign.right
-                                      : TextAlign.left,
-                                  tr.creditTitle,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
+                            ),
+                            SizedBox(
+                              width: amountWidth,
+                              child: Text(
+                                textAlign: myLocale == "en"
+                                    ? TextAlign.right
+                                    : TextAlign.left,
+                                tr.creditTitle,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              SizedBox(
-                                width: balanceWidth,
-                                child: Text(
-                                  textAlign: myLocale == "en"
-                                      ? TextAlign.right
-                                      : TextAlign.left,
-                                  tr.balance,
-                                  style: Theme.of(context).textTheme.titleSmall,
-                                ),
+                            ),
+                            SizedBox(
+                              width: balanceWidth,
+                              child: Text(
+                                textAlign: myLocale == "en"
+                                    ? TextAlign.right
+                                    : TextAlign.left,
+                                tr.balance,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
-                              SizedBox(width: 15),
-                            ],
-                          ),
+                            ),
+                            SizedBox(width: 15),
+                          ],
                         ),
-                        Divider(
-                          endIndent: 10,
-                          indent: 10,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                        Expanded(
-                          child: BlocBuilder<GlStatementBloc, GlStatementState>(
-                            builder: (context, state) {
-                              if (state is GlStatementLoadingState) {
-                                return Center(child: CircularProgressIndicator());
+                      ),
+                      Divider(
+                        endIndent: 10,
+                        indent: 10,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      Expanded(
+                        child: BlocBuilder<GlStatementBloc, GlStatementState>(
+                          builder: (context, state) {
+                            if (state is GlStatementLoadingState) {
+                              return Center(child: CircularProgressIndicator());
+                            }
+                            if (state is GlStatementErrorState) {
+                              return Center(child: Text(state.message));
+                            }
+                            if (state is GlStatementLoadedState) {
+                              final records = state.stmt.records;
+                              accountStatementModel = state.stmt;
+                              if (records == null || records.isEmpty) {
+                                return Center(child: Text("No transactions found"));
                               }
-                              if (state is GlStatementErrorState) {
-                                return Center(child: Text(state.message));
-                              }
-                              if (state is GlStatementLoadedState) {
-                                final records = state.stmt.records;
-                                accountStatementModel = state.stmt;
-                                if (records == null || records.isEmpty) {
-                                  return Center(child: Text("No transactions found"));
-                                }
 
-                                return ListView.builder(
-                                  itemCount: records.length,
-                                  itemBuilder: (context, index) {
+                              return ListView.builder(
+                                itemCount: records.length,
+                                itemBuilder: (context, index) {
 
-                                    final stmt = records[index];
-                                    final isCopied = _copiedStates[stmt.trnReference ?? ""] ?? false;
-                                    final reference = stmt.trnReference ?? "";
-                                    Color bg =
-                                    stmt.trdNarration == "Opening Balance" ||
-                                        stmt.trdNarration == "Closing Balance"
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).colorScheme.secondary;
-                                    bool isOp =
-                                        stmt.trdNarration == "Opening Balance" ||
-                                            stmt.trdNarration == "Closing Balance";
-                                    return InkWell(
-                                      hoverColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withValues(alpha: 0.05),
-                                      highlightColor: Theme.of(
-                                        context,
-                                      ).colorScheme.primary.withValues(alpha: 0.05),
-                                      onTap: isOp
-                                          ? null
-                                          : () {
-                                        context.read<TxnReferenceBloc>().add(
-                                          FetchTxnByReferenceEvent(
-                                            stmt.trnReference ?? "",
-                                          ),
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 15,
-                                          vertical: 8,
+                                  final stmt = records[index];
+                                  final isCopied = _copiedStates[stmt.trnReference ?? ""] ?? false;
+                                  final reference = stmt.trnReference ?? "";
+                                  Color bg =
+                                  stmt.trdNarration == "Opening Balance" ||
+                                      stmt.trdNarration == "Closing Balance"
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context).colorScheme.secondary;
+                                  bool isOp =
+                                      stmt.trdNarration == "Opening Balance" ||
+                                          stmt.trdNarration == "Closing Balance";
+                                  return InkWell(
+                                    hoverColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withValues(alpha: 0.05),
+                                    highlightColor: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withValues(alpha: 0.05),
+                                    onTap: isOp
+                                        ? null
+                                        : () {
+                                      context.read<TxnReferenceBloc>().add(
+                                        FetchTxnByReferenceEvent(
+                                          stmt.trnReference ?? "",
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: index.isOdd
-                                              ? Theme.of(context).colorScheme.primary
-                                              .withValues(alpha: 0.05)
-                                              : Colors.transparent,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            SizedBox(
-                                              width: dateWith,
-                                              child: Text(
-                                                stmt.trnEntryDate?.toFormattedDate() ??
-                                                    "",
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.titleSmall,
-                                              ),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 15,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: index.isOdd
+                                            ? Theme.of(context).colorScheme.primary
+                                            .withValues(alpha: 0.05)
+                                            : Colors.transparent,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          SizedBox(
+                                            width: dateWith,
+                                            child: Text(
+                                              stmt.trnEntryDate?.toFormattedDate() ??
+                                                  "",
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.titleSmall,
                                             ),
-                                            SizedBox(
-                                              width: refWidth,
-                                              child: Row(
-                                                children: [
-                                                  if(stmt.trnReference !=null && stmt.trnReference!.isNotEmpty)...[
-                                                    SizedBox(
-                                                      width: 28,
-                                                      height: 28,
-                                                      child: Material(
-                                                        color: Colors.transparent,
-                                                        child: InkWell(
-                                                          onTap: () => _copyToClipboard(reference, context),
-                                                          borderRadius: BorderRadius.circular(4),
-                                                          hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
-                                                          child: AnimatedContainer(
-                                                            duration: const Duration(milliseconds: 100),
-                                                            decoration: BoxDecoration(
+                                          ),
+                                          SizedBox(
+                                            width: refWidth,
+                                            child: Row(
+                                              children: [
+                                                if(stmt.trnReference !=null && stmt.trnReference!.isNotEmpty)...[
+                                                  SizedBox(
+                                                    width: 28,
+                                                    height: 28,
+                                                    child: Material(
+                                                      color: Colors.transparent,
+                                                      child: InkWell(
+                                                        onTap: () => _copyToClipboard(reference, context),
+                                                        borderRadius: BorderRadius.circular(4),
+                                                        hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
+                                                        child: AnimatedContainer(
+                                                          duration: const Duration(milliseconds: 100),
+                                                          decoration: BoxDecoration(
+                                                            color: isCopied
+                                                                ? Theme.of(context).colorScheme.primary.withAlpha(25)
+                                                                : Colors.transparent,
+                                                            border: Border.all(
                                                               color: isCopied
-                                                                  ? Theme.of(context).colorScheme.primary.withAlpha(25)
-                                                                  : Colors.transparent,
-                                                              border: Border.all(
+                                                                  ? Theme.of(context).colorScheme.primary
+                                                                  : Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+                                                              width: 1,
+                                                            ),
+                                                            borderRadius: BorderRadius.circular(4),
+                                                          ),
+                                                          child: Center(
+                                                            child: AnimatedSwitcher(
+                                                              duration: const Duration(milliseconds: 300),
+                                                              child: Icon(
+                                                                isCopied ? Icons.check : Icons.content_copy,
+                                                                key: ValueKey<bool>(isCopied), // Important for AnimatedSwitcher
+                                                                size: 15,
                                                                 color: isCopied
                                                                     ? Theme.of(context).colorScheme.primary
-                                                                    : Theme.of(context).colorScheme.outline.withValues(alpha: .3),
-                                                                width: 1,
-                                                              ),
-                                                              borderRadius: BorderRadius.circular(4),
-                                                            ),
-                                                            child: Center(
-                                                              child: AnimatedSwitcher(
-                                                                duration: const Duration(milliseconds: 300),
-                                                                child: Icon(
-                                                                  isCopied ? Icons.check : Icons.content_copy,
-                                                                  key: ValueKey<bool>(isCopied), // Important for AnimatedSwitcher
-                                                                  size: 15,
-                                                                  color: isCopied
-                                                                      ? Theme.of(context).colorScheme.primary
-                                                                      : Theme.of(context).colorScheme.outline.withValues(alpha: .6),
-                                                                ),
+                                                                    : Theme.of(context).colorScheme.outline.withValues(alpha: .6),
                                                               ),
                                                             ),
                                                           ),
                                                         ),
                                                       ),
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                  ],
-                                                  Expanded(
-                                                      child:
-                                                      Text(stmt.trnReference.toString())),
+                                                  ),
+                                                  const SizedBox(width: 8),
                                                 ],
-                                              ),
+                                                Expanded(
+                                                    child:
+                                                    Text(stmt.trnReference.toString())),
+                                              ],
                                             ),
+                                          ),
 
-                                            Expanded(
-                                              child: Text(stmt.trdNarration ?? ""),
-                                            ),
+                                          Expanded(
+                                            child: Text(stmt.trdNarration ?? ""),
+                                          ),
 
-                                            SizedBox(
-                                              width: amountWidth,
-                                              child: Text(
-                                                textAlign: myLocale == "en"
-                                                    ? TextAlign.right
-                                                    : TextAlign.left,
-                                                "${stmt.debit?.toAmount()}",
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyMedium,
-                                              ),
+                                          SizedBox(
+                                            width: amountWidth,
+                                            child: Text(
+                                              textAlign: myLocale == "en"
+                                                  ? TextAlign.right
+                                                  : TextAlign.left,
+                                              "${stmt.debit?.toAmount()}",
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
                                             ),
+                                          ),
 
-                                            SizedBox(
-                                              width: amountWidth,
-                                              child: Text(
-                                                textAlign: myLocale == "en"
-                                                    ? TextAlign.right
-                                                    : TextAlign.left,
-                                                "${stmt.credit?.toAmount()}",
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyMedium,
-                                              ),
+                                          SizedBox(
+                                            width: amountWidth,
+                                            child: Text(
+                                              textAlign: myLocale == "en"
+                                                  ? TextAlign.right
+                                                  : TextAlign.left,
+                                              "${stmt.credit?.toAmount()}",
+                                              style: Theme.of(
+                                                context,
+                                              ).textTheme.bodyMedium,
                                             ),
-                                            SizedBox(
-                                              width: balanceWidth,
-                                              child: Text(
-                                                textAlign: myLocale == "en"
-                                                    ? TextAlign.right
-                                                    : TextAlign.left,
-                                                "${stmt.total?.toAmount()} ${currency ?? baseCurrency}",
-                                                style: Theme.of(context).textTheme.titleSmall?.copyWith(color: bg),
-                                              ),
+                                          ),
+                                          SizedBox(
+                                            width: balanceWidth,
+                                            child: Text(
+                                              textAlign: myLocale == "en"
+                                                  ? TextAlign.right
+                                                  : TextAlign.left,
+                                              "${stmt.total?.toAmount()} ${currency ?? baseCurrency}",
+                                              style: Theme.of(context).textTheme.titleSmall?.copyWith(color: bg),
                                             ),
-                                            SizedBox(
-                                                width: 15,
-                                                child: Text(stmt.status??"",
-                                                  textAlign: myLocale == "en"? TextAlign.right : TextAlign.left,
-                                                  style: TextStyle(color: Theme.of(context).colorScheme.error),)),
-                                          ],
-                                        ),
+                                          ),
+                                          SizedBox(
+                                              width: 15,
+                                              child: Text(stmt.status??"",
+                                                textAlign: myLocale == "en"? TextAlign.right : TextAlign.left,
+                                                style: TextStyle(color: Theme.of(context).colorScheme.error),)),
+                                        ],
                                       ),
-                                    );
-                                  },
-                                );
-                              }
-                              return Center(
-                                child: NoDataWidget(
-                                  title: tr.glStatement,
-                                  message:
-                                  tr.accountStatementMessage,
-                                  enableAction: false,
-                                ),
+                                    ),
+                                  );
+                                },
                               );
-                            },
-                          ),
+                            }
+                            return Center(
+                              child: NoDataWidget(
+                                title: tr.glStatement,
+                                message:
+                                tr.accountStatementMessage,
+                                enableAction: false,
+                              ),
+                            );
+                          },
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            );
-          },
-        ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
-
-
 
   void onSubmit(){
     if(accNumber !=null){
@@ -1173,7 +1169,7 @@ class _DesktopState extends State<_Desktop> {
       ),
     );
   }
-  // Method to copy reference to clipboard
+
   Future<void> _copyToClipboard(String reference, BuildContext context) async {
     await Utils.copyToClipboard(reference);
 

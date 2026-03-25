@@ -71,7 +71,7 @@ class _Desktop extends StatelessWidget {
   const _Desktop();
   @override
   Widget build(BuildContext context) => const Padding(
-    padding: EdgeInsets.all(3),
+    padding: EdgeInsets.symmetric(vertical: 5,horizontal: 3),
     child: _DailyGrossContent(),
   );
 }
@@ -79,9 +79,9 @@ class _Desktop extends StatelessWidget {
 /// =======================
 /// DAILY GROSS CONTENT
 /// =======================
+
 class _DailyGrossContent extends StatefulWidget {
   const _DailyGrossContent();
-
   @override
   State<_DailyGrossContent> createState() => _DailyGrossContentState();
 }

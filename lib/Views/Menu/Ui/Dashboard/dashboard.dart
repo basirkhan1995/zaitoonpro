@@ -235,7 +235,6 @@ class _Desktop extends StatelessWidget {
                   //Profit & Loss Graph
                   if (login.hasPermission(8) ?? false) ...[
                     if (visibility.profitAndLoss) ...[
-                      SizedBox(height: 3),
                       DailyGrossView(),
                     ],
                   ],
@@ -244,7 +243,6 @@ class _Desktop extends StatelessWidget {
                   if (login.hasPermission(9) ?? false) ...[
                     DashboardAlertReminder(),
                   ],
-                  SizedBox(height: 3),
                 ],
               ),
             ),

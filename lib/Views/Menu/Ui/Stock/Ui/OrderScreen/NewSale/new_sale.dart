@@ -1144,65 +1144,253 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   void _showPaymentModeDialog(SaleInvoiceLoaded current) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
-      builder: (context) => ZFormDialog(
-        isActionTrue: false,
-        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 5),
-        title: tr.selectPaymentMethod,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.money,
-                      color: current.paymentMode == PaymentMode.cash ? color.primary : color.outline)),
-              title: Text(tr.cashPayment),
-              subtitle: Text(tr.cashPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.cash ? Icon(Icons.check, color: color.primary) : null,
-              onTap: () {
-                Navigator.pop(context);
-                // Clear account and set full amount as cash
-                _accountController.clear();
-                // Use the new event to clear only account, not supplier
-                context.read<SaleInvoiceBloc>().add(ClearCustomerAccountEvent());
-              },
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
             ),
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.credit_card,
-                      color: current.paymentMode == PaymentMode.credit ? color.primary : color.outline)),
-              title: Text(tr.accountCredit),
-              subtitle: Text(tr.accountCreditSubtitle),
-              trailing: current.paymentMode == PaymentMode.credit ? Icon(Icons.check, color: color.primary) : null,
-              onTap: () {
-                Navigator.pop(context);
-                // Set payment to 0 (full credit)
-                context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(0));
-                // Show account field as required
-                setState(() {
-                  // This will trigger the validator to show account is required
-                });
-              },
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.5,
+
+              decoration: BoxDecoration(
+                color: color.surface,
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: .1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: color.primary.withValues(alpha: .05),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.payment,
+                          color: color.primary,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            tr.selectPaymentMethod.toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: color.primary,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: Icon(
+                            Icons.close,
+                            color: color.onSurfaceVariant,
+                            size: 24,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Payment Options
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Cash Payment Option
+                        _buildPaymentOptionTile(
+                          context: context,
+                          icon: Icons.money,
+                          title: tr.cashPayment,
+                          subtitle: tr.cashPaymentSubtitle,
+                          isSelected: current.paymentMode == PaymentMode.cash,
+                          selectedColor: Colors.green,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _accountController.clear();
+                            context.read<SaleInvoiceBloc>().add(ClearCustomerAccountEvent());
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Account Credit Option
+                        _buildPaymentOptionTile(
+                          context: context,
+                          icon: Icons.credit_card,
+                          title: tr.accountCredit,
+                          subtitle: tr.accountCreditSubtitle,
+                          isSelected: current.paymentMode == PaymentMode.credit,
+                          selectedColor: Colors.blue,
+                          onTap: () {
+                            Navigator.pop(context);
+                            context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(0));
+                            setState(() {});
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Combined Payment Option
+                        _buildPaymentOptionTile(
+                          context: context,
+                          icon: Icons.payments,
+                          title: tr.combinedPayment,
+                          subtitle: tr.combinedPaymentSubtitle,
+                          isSelected: current.paymentMode == PaymentMode.mixed,
+                          selectedColor: Colors.orange,
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showMixedPaymentDialog(context, current);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.payments,
-                      color: current.paymentMode == PaymentMode.mixed ? color.primary : color.outline)),
-              title: Text(tr.combinedPayment),
-              subtitle: Text(tr.combinedPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.mixed ? Icon(Icons.check, color: color.primary) : null,
-              onTap: () {
-                Navigator.pop(context);
-                _showMixedPaymentDialog(context, current);
-              },
-            ),
-          ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPaymentOptionTile({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required Color selectedColor,
+    required VoidCallback onTap,
+  }) {
+    final themeColor = Theme.of(context).colorScheme;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isSelected ? selectedColor : themeColor.outline.withValues(alpha: .2),
+          width: isSelected ? 1 : 0.5,
         ),
-        onAction: () => Navigator.pop(context),
+        gradient: isSelected
+            ? LinearGradient(
+          colors: [
+            selectedColor.withValues(alpha: .08),
+            selectedColor.withValues(alpha: .02),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
+            : null,
+        boxShadow: isSelected
+            ? [
+          BoxShadow(
+            color: selectedColor.withValues(alpha: .2),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ]
+            : null,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                // Icon Container
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? selectedColor.withValues(alpha: .15)
+                        : themeColor.primary.withValues(alpha: .05),
+                    border: Border.all(
+                      color: isSelected ? selectedColor : themeColor.outline.withValues(alpha: .3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: isSelected ? selectedColor : themeColor.onSurfaceVariant,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Title and Subtitle
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? selectedColor : themeColor.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: themeColor.onSurfaceVariant,
+                          height: 1.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Selected Checkmark
+                if (isSelected)
+                  Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: selectedColor,
+                    ),
+                    child: const Icon(
+                      Icons.check,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -1227,6 +1415,27 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 controller: controller,
                 hint: "Enter amount to add to account as credit",
                 inputFormat: [SmartThousandsDecimalFormatter()],
+                onSubmit: (e){
+                  final cleaned = controller.text.replaceAll(',', '');
+                  final creditPayment = double.tryParse(cleaned) ?? 0;
+
+                  if (creditPayment <= 0) {
+                    ToastManager.show(context: context,title: "Invalid Amount", message: "Account payment must be greater than zero", type: ToastType.warning);
+                    return;
+                  }
+
+                  if (creditPayment >= current.grandTotal) {
+                    ToastManager.show(context: context, title: "Invalid Payment", message: "Account payment must be less than total amount for mixed payment", type: ToastType.warning);
+                    return;
+                  }
+
+                  // Pass credit amount to bloc with isCreditAmount flag
+                  context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(
+                    creditPayment,
+                    isCreditAmount: true,
+                  ));
+                  Navigator.pop(context);
+                },
               ),
               const SizedBox(height: 16),
               Text(
@@ -1252,17 +1461,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             ],
           ),
         ),
+
         onAction: () {
           final cleaned = controller.text.replaceAll(',', '');
           final creditPayment = double.tryParse(cleaned) ?? 0;
 
           if (creditPayment <= 0) {
-            Utils.showOverlayMessage(context, message: 'Account payment must be greater than 0', isError: true);
+            ToastManager.show(context: context,title: "Invalid Amount", message: "Account payment must be greater than zero", type: ToastType.warning);
             return;
           }
 
           if (creditPayment >= current.grandTotal) {
-            Utils.showOverlayMessage(context, message: 'Account payment must be less than total amount for mixed payment', isError: true);
+            ToastManager.show(context: context, title: "Invalid Payment", message: "Account payment must be less than total amount for mixed payment", type: ToastType.warning);
             return;
           }
 

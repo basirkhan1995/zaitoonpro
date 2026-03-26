@@ -268,7 +268,7 @@
   "rate": "اسعارو نرخ",
   "from": "له - اسعار",
   "toCurrency": "په - اسعار",
-  "amountGreaterZero": "اندازه باید له صفر څخه زیاته وي",
+  "amountGreaterZero": "مبلغ باید له صفر څخه زیاته وي",
   "newExchangeRateTitle": "اسعار نرخ ثبتول",
   "drivers": "راننده ها",
   "shipping": "لېږد",
@@ -1028,5 +1028,4 @@
   "stakeholderAccount": "د برخه اخیستونکي حساب",
   "currencies": "اسعار",
   "read": "لوستل"
-
 }

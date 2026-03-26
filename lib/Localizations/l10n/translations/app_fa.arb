@@ -978,7 +978,6 @@
   "lastThreeMonth": "۹۰ روز گذشته",
   "invoiceProfit": "نمایش سود",
   "invoiceProfitHint": "نمایش یا پنهان‌ سازی سود در بل فروش",
-
   "counts": "تعدادها",
   "exchangeRateGraph": "نمودار نرخ ارز",
   "dailyTransactionsGraph": "نمودار معاملات روزانه",
@@ -987,12 +986,10 @@
   "exchangeRates": "نرخ ارز",
   "profitLossGraph": "نمودار سود و زیان",
   "reminderNotifications": "اعلان‌های یادآور",
-
   "currencyTab": "تب ارز",
   "currency": "ارز",
   "payroll": "حقوق و دستمزد",
   "eoyOperation": "عملیات پایان سال",
-
   "pendingTransaction": "معامله در انتظار",
   "cashDeposit": "واریز نقدی",
   "cashWithdraw": "برداشت نقدی",
@@ -1003,9 +1000,7 @@
   "ftSingleAccount": "انتقال وجه - تک حساب",
   "ftMultiAccount": "انتقال وجه - چند حساب",
   "fxTransactions": "معاملات ارزی",
-
   "allUsers": "همه کاربران",
-
   "ordersTab": "تب سفارشات",
   "estimateTab": "تب برآورد",
   "goodsShiftTab": "تب انتقال کالا",
@@ -1013,16 +1008,12 @@
   "purchase": "خرید",
   "sale": "فروش",
   "goodsShift": "انتقال کالا",
-
   "generalTab": "تب عمومی",
-
   "passwordChange": "تغییر رمز عبور",
   "userProfile": "پروفایل کاربر",
-
   "companyTab": "تب شرکت",
   "category": "دسته‌بندی",
   "backup": "پشتیبان‌گیری",
-
   "accountStatementSingleDate": "صورتحساب تک تاریخ",
   "glStatementPeriodicDate": "صورتحساب کل - دوره‌ای",
   "purchaseInvoices": "فاکتورهای خرید",
@@ -1030,13 +1021,11 @@
   "allInvoices": "همه فاکتورها",
   "cashBalanceAllBranch": "موجودی نقدی - همه شعب",
   "cashBalanceSingleBranch": "موجودی نقدی - تک شعبه",
-
   "transactionsReport": "گزارش معاملات",
   "allBalances": "همه موجودی‌ها",
   "userRoleAndPermission": "نقش و دسترسی کاربر",
   "shippings": "حمل و نقل‌ها",
   "stakeholderAccount": "حساب سهمدار",
   "currencies": "ارزها",
-
   "read": "مشاهده"
 }

@@ -978,7 +978,6 @@
   "lastThreeMonth": "Last 90 Days",
   "invoiceProfit": "Profit Visibility",
   "invoiceProfitHint": "Show or hide profit on sale invoices",
-
   "counts": "Counts",
   "exchangeRateGraph": "Exchange Rate Graph",
   "dailyTransactionsGraph": "Daily Transactions Graph",
@@ -987,12 +986,10 @@
   "exchangeRates": "Exchange Rates",
   "profitLossGraph": "Profit Loss Graph",
   "reminderNotifications": "Reminder Notifications",
-
   "currencyTab": "Currency Tab",
   "currency": "Currency",
   "payroll": "Payroll",
   "eoyOperation": "EOY Operation",
-
   "pendingTransaction": "Pending Transaction",
   "cashDeposit": "Cash Deposit",
   "cashWithdraw": "Cash Withdraw",
@@ -1003,9 +1000,7 @@
   "ftSingleAccount": "FT Single Account",
   "ftMultiAccount": "FT Multi Account",
   "fxTransactions": "FX Transactions",
-
   "allUsers": "All Users",
-
   "ordersTab": "Orders Tab",
   "estimateTab": "Estimate Tab",
   "goodsShiftTab": "Goods Shift Tab",
@@ -1013,16 +1008,12 @@
   "purchase": "Purchase",
   "sale": "Sale",
   "goodsShift": "Goods Shift",
-
   "generalTab": "General Tab",
-
   "passwordChange": "Password Change",
   "userProfile": "User Profile",
-
   "companyTab": "Company Tab",
   "category": "Category",
   "backup": "Backup",
-
   "accountStatementSingleDate": "Account Statement Single Date",
   "glStatementPeriodicDate": "GL Statement Periodic Date",
   "purchaseInvoices": "Purchase Invoices",
@@ -1030,13 +1021,11 @@
   "allInvoices": "All Invoices",
   "cashBalanceAllBranch": "Cash Balance All Branch",
   "cashBalanceSingleBranch": "Cash Balance Single Branch",
-
   "transactionsReport": "Transactions Report",
   "allBalances": "All Balances",
   "userRoleAndPermission": "User Role and Permission",
   "shippings": "Shipping",
   "stakeholderAccount": "Stakeholder Account",
   "currencies": "Currencies",
-
   "read": "Read"
 }

@@ -768,7 +768,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get toCurrency => 'په - اسعار';
 
   @override
-  String get amountGreaterZero => 'اندازه باید له صفر څخه زیاته وي';
+  String get amountGreaterZero => 'مبلغ باید له صفر څخه زیاته وي';
 
   @override
   String get newExchangeRateTitle => 'اسعار نرخ ثبتول';

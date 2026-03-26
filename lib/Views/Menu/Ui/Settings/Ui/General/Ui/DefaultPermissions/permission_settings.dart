@@ -6,6 +6,8 @@ import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/DefaultPermissions/per_utility.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/add_edit_role.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/model/role_model.dart';
 import '../../../../../../../Auth/bloc/auth_bloc.dart';
 import 'bloc/permission_settings_bloc.dart';
 import 'model/permission_settings_model.dart';
@@ -16,6 +18,13 @@ class PermissionSettingsView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+          child: Icon(Icons.add),
+          onPressed: (){
+            showDialog(context: context, builder: (context){
+              return AddEditUserRoleSettingsView();
+            });
+          }),
       body: ResponsiveLayout(
         mobile: const _Mobile(),
         tablet: const _Tablet(),
@@ -1031,36 +1040,46 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     final tr = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-      ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(10),
+            topLeft: Radius.circular(10)
+          )
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Row(
-              children: [
-                const Icon(Icons.privacy_tip_rounded),
-                const SizedBox(width: 8),
-                Text(
-                  role.rolName ?? tr.roleActions,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0,vertical: 5),
+              child: Row(
+                children: [
+                  const Icon(Icons.privacy_tip_rounded),
+                  const SizedBox(width: 8),
+                  Text(
+                    role.rolName ?? tr.roleActions,
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            Divider(),
             ListTile(
-              contentPadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.symmetric(horizontal: 5),
               leading: const Icon(Icons.check_circle, color: Colors.green),
               title: Text(tr.grantAll),
+
               onTap: () {
                 Navigator.pop(context);
                 _enableAllForRole(role.rolId!);
               },
             ),
+            Divider(),
             ListTile(
-              contentPadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.symmetric(horizontal: 5),
               leading: const Icon(Icons.cancel, color: Colors.red),
               title: Text(tr.revokeAll),
               onTap: () {
@@ -1068,13 +1087,31 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
                 _disableAllForRole(role.rolId!);
               },
             ),
+            Divider(),
             ListTile(
-              contentPadding: EdgeInsets.zero,
+              contentPadding: EdgeInsets.symmetric(horizontal: 5),
               leading: const Icon(Icons.restore, color: Colors.orange),
               title: Text(tr.restoreDefault),
               onTap: () {
                 Navigator.pop(context);
                 _resetRoleChanges(role.rolId!);
+              },
+            ),
+            Divider(),
+            ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 5),
+              leading: const Icon(Icons.edit_calendar_rounded, color: Colors.green),
+              title: Text(tr.edit),
+              onTap: () {
+                Navigator.pop(context);
+                final model = UserRoleModel(
+                    rolId: role.rolId,
+                    rolName: role.rolName,
+                    rolStatus: role.rolStatus
+                );
+                showDialog(context: context, builder: (context){
+                  return AddEditUserRoleSettingsView(model: model);
+                });
               },
             ),
           ],

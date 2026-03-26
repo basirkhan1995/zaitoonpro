@@ -105,6 +105,11 @@ class _DesktopState extends State<_Desktop> {
                       Row(
                         children: [
                           ImageHelper.stakeholderProfile(
+                              onImageTap: () => ImageHelper.showImageViewer(
+                                context: context,
+                                imageName: individual?.imageProfile,
+                                heroTag: 'profile_image_${individual!.perId}',
+                              ),
                               shapeStyle: ShapeStyle.roundedRectangle,
                               imageName: individual?.imageProfile,
                               border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
@@ -125,22 +130,21 @@ class _DesktopState extends State<_Desktop> {
                                 Row(
                                   spacing: 5,
                                   children: [
-                                    ZCover(child: Text(individual?.perEnidNo ?? "")),
                                     ZCover(child: Text(Utils.genderType(gender: individual?.perGender ?? "",locale: locale))),
                                     ZCover(child: Text(individual?.addCity ?? "")),
                                     ZCover(child: Text(individual?.addProvince ?? "")),
                                     ZCover(child: Text(individual?.addCountry ?? "")),
                                     ZCover(child: Text(individual?.addName ?? "")),
+                                    ZCover(child: Text(individual?.perEnidNo ?? "")),
                                   ],
                                 ),
                                 SizedBox(height: 5),
                                 ZOutlineButton(
                                   icon: Icons.refresh,
-                                  width: 100,
                                   height: 35,
                                   onPressed: (){
                                     showDialog(context: context, builder: (context){
-                                      return IndividualAddEditView(model: widget.ind);
+                                      return IndividualAddEditView(model: individual);
                                     });
                                   },
                                   label: Text(locale.edit),

@@ -39,7 +39,7 @@ class IndividualsBloc extends Bloc<IndividualsEvent, IndividualsState> {
         final response = await _repo.editStakeholder(stk: event.newStk);
         final String result = response["msg"];
         if(result == "success"){
-          add(LoadIndividualsEvent(indId: event.newStk.perId));
+         // add(LoadIndividualsEvent(indId: event.newStk.perId));
           emit(IndividualSuccessState());
         }
       }catch(e){
@@ -67,7 +67,7 @@ class IndividualsBloc extends Bloc<IndividualsEvent, IndividualsState> {
        final res = await _repo.uploadPersonalPhoto(perID: event.perId, image: event.image);
        final msg = res['msg'];
        if(msg == "success"){
-         emit(IndividualSuccessState());
+         emit(IndividualSuccessImageState());
        }else{
          emit(IndividualErrorState(msg));
        }

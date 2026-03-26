@@ -279,6 +279,7 @@ class _DesktopState extends State<_Desktop> {
       return const SizedBox();
     }
     final login = state.loginData;
+    final tr = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: color.surface,
       body: Column(
@@ -326,10 +327,10 @@ class _DesktopState extends State<_Desktop> {
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
-                const SizedBox(width: 150, child: Text('Owner')),
-                const SizedBox(width: 100, child: Text('Branch')),
-                const SizedBox(width: 100, child: Text('Role')),
-                const SizedBox(width: 100, child: Text('Status')),
+                 SizedBox(width: 150, child: Text(tr.owned)),
+                 SizedBox(width: 100, child: Text(tr.branch)),
+                 SizedBox(width: 100, child: Text(tr.usrRole)),
+                 SizedBox(width: 100, child: Text(tr.status)),
               ],
             ),
           ),
@@ -367,6 +368,7 @@ class _DesktopState extends State<_Desktop> {
                   if (filteredList.isEmpty) {
                     return NoDataWidget(
                       message: locale.noDataFound,
+                      enableAction: false,
                     );
                   }
 

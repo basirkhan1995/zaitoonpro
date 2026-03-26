@@ -147,11 +147,13 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => BranchTabBloc()),
         BlocProvider(create: (context) => StockSettingsTabBloc()),
         BlocProvider(create: (context) => ProjectTabsBloc()),
-        ///Services ............................................................
+
+        ///Print Services ............................................................
         BlocProvider(create: (context) => PrintLanguageCubit()),
         BlocProvider(create: (context) => PageOrientationCubit()),
         BlocProvider(create: (context) => PaperSizeCubit()),
         BlocProvider(create: (context) => PrinterCubit()),
+
         /// Data Management ....................................................
         BlocProvider(create: (context) => IndividualsBloc(Repositories(ApiServices()))..add(LoadIndividualsEvent())),
         BlocProvider(create: (context) => EoyBloc(Repositories(ApiServices()))..add(LoadPLEvent())),
@@ -221,6 +223,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ProjectsByIdBloc(Repositories(ApiServices()))..add(ResetProjectByIdEvent())),
         BlocProvider(create: (context) => ProjectTxnBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => StakeholdersReportBloc(Repositories(ApiServices()))),
+
         ///Dashboard
         BlocProvider(create: (context) => DashboardStatsBloc(Repositories(ApiServices()))..add(FetchDashboardStatsEvent())),
         BlocProvider(create: (context) => DailyGrossBloc(Repositories(ApiServices()))),

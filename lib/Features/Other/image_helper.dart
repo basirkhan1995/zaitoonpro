@@ -6,8 +6,7 @@ import 'package:zaitoonpro/Services/api_services.dart';
 enum ShapeStyle { circle, roundedRectangle }
 
 class ImageHelper {
-
-  /// Full widget with optional camera overlay
+  /// Full widget with optional camera overlay and separate tap handlers
   static Widget stakeholderProfile({
     required String? imageName,
     Uint8List? localImageBytes,
@@ -36,6 +35,10 @@ class ImageHelper {
     Color cameraIconBackground = Colors.black54,
     Color cameraIconColor = Colors.white,
     Alignment cameraIconAlignment = Alignment.bottomRight,
+
+    // Tap handlers
+    VoidCallback? onCameraTap,
+    VoidCallback? onImageTap,
   }) {
     /// ---------- Build main image ----------
     Widget mainImage;
@@ -77,46 +80,195 @@ class ImageHelper {
       child: mainImage,
     );
 
-    /// ---------- Final widget with border on top ----------
-    return Stack(
-      children: [
-        /// Outer border container (WILL be visible)
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: shapeStyle == ShapeStyle.circle
-                ? BoxShape.circle
-                : BoxShape.rectangle,
-            borderRadius: shapeStyle == ShapeStyle.circle
-                ? null
-                : BorderRadius.circular(borderRadius),
-            border: border,
+    /// ---------- Final widget with border and tap handling ----------
+    return GestureDetector(
+      onTap: onImageTap,
+      child: Stack(
+        children: [
+          /// Outer border container
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: shapeStyle == ShapeStyle.circle
+                  ? BoxShape.circle
+                  : BoxShape.rectangle,
+              borderRadius: shapeStyle == ShapeStyle.circle
+                  ? null
+                  : BorderRadius.circular(borderRadius),
+              border: border,
+            ),
+            clipBehavior: Clip.none,
+            child: clippedImage,
           ),
-          clipBehavior: Clip.none,
-          child: clippedImage,
-        ),
 
-        /// Camera overlay
-        if (showCameraIcon)
-          Positioned.fill(
-            child: Align(
-              alignment: cameraIconAlignment,
-              child: Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: cameraIconBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  cameraIcon,
-                  size: cameraIconSize,
-                  color: cameraIconColor,
+          /// Camera overlay with separate tap
+          if (showCameraIcon)
+            Positioned.fill(
+              child: Align(
+                alignment: cameraIconAlignment,
+                child: GestureDetector(
+                  onTap: onCameraTap,
+                  child: Container(
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: cameraIconBackground,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      cameraIcon,
+                      size: cameraIconSize,
+                      color: cameraIconColor,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
+  }
+
+  /// Helper method to show full-screen image viewer
+  static Future<void> showImageViewer({
+    required BuildContext context,
+    required String? imageName,
+    Uint8List? localImageBytes,
+    String? heroTag,
+  }) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: EdgeInsets.zero,
+          backgroundColor: Colors.transparent,
+          child: Stack(
+            children: [
+              // Full screen image
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.black87,
+                  child: Center(
+                    child: Hero(
+                      tag: heroTag ?? 'profile_image',
+                      child: InteractiveViewer(
+                        minScale: 0.5,
+                        maxScale: 4.0,
+                        child: _buildFullScreenImage(
+                          imageName: imageName,
+                          localImageBytes: localImageBytes,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Close button
+              Positioned(
+                top: 40,
+                right: 20,
+                child: GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  static Widget _buildFullScreenImage({required String? imageName, Uint8List? localImageBytes}) {
+    if (localImageBytes != null) {
+      return SizedBox(
+        width: double.infinity,
+        height: double.infinity,
+        child: Image.memory(
+          localImageBytes,
+          fit: BoxFit.contain,
+          width: double.infinity,
+          height: double.infinity,
+        ),
+      );
+    } else if (imageName == null || imageName.isEmpty) {
+      return Container(
+        width: double.infinity,
+        height: double.infinity,
+        color: Colors.grey[900],
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.person,
+                size: 100,
+                color: Colors.white54,
+              ),
+              SizedBox(height: 16),
+              Text(
+                'No Image Available',
+                style: TextStyle(
+                  color: Colors.white54,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      return Container(
+        padding: EdgeInsets.all(15),
+        width: double.infinity,
+        height: double.infinity,
+        child: CachedNetworkImage(
+          imageUrl: "${ApiServices.imageUrl}$imageName",
+          fit: BoxFit.contain,
+          width: double.infinity,
+          height: double.infinity,
+          placeholder: (_, _) => Center(
+            child: CircularProgressIndicator(
+              color: Colors.white,
+            ),
+          ),
+          errorWidget: (_, _, _) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error,
+                  size: 100,
+                  color: Colors.white54,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Failed to load image',
+                  style: TextStyle(
+                    color: Colors.white54,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
   }
 }

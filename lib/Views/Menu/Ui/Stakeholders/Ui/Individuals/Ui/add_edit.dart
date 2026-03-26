@@ -1141,7 +1141,7 @@ class _DesktopState extends State<_Desktop> {
     return ZFormDialog(
       icon: Icons.add,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-      width: 550,
+      width: MediaQuery.of(context).size.width * .5,
       title: isEdit ? locale.update : locale.newKeyword,
       actionLabel:
       (context.watch<IndividualsBloc>().state is IndividualLoadingState)
@@ -1174,20 +1174,22 @@ class _DesktopState extends State<_Desktop> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          GestureDetector(
-                            onTap: () => pickAndCropImage(widget.model!.perId!),
-                            child: ImageHelper.stakeholderProfile(
+                          ImageHelper.stakeholderProfile(
+                            imageName: imageName,
+                            localImageBytes: selectedImageBytes,
+                            size: 115,
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+                            ),
+                            shapeStyle: ShapeStyle.roundedRectangle,
+                            showCameraIcon: true,
+
+                            onCameraTap: () => pickAndCropImage(widget.model!.perId!),
+                            onImageTap: () => ImageHelper.showImageViewer(
+                              context: context,
                               imageName: imageName,
                               localImageBytes: selectedImageBytes,
-                              size: 110,
-                              border: Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outline
-                                    .withValues(alpha: .3),
-                              ),
-                              shapeStyle: ShapeStyle.roundedRectangle,
-                              showCameraIcon: true,
+                              heroTag: 'profile_image_${widget.model!.perId}',
                             ),
                           )
                         ],
@@ -1264,6 +1266,7 @@ class _DesktopState extends State<_Desktop> {
                       spacing: 5,
                       children: [
                         Expanded(
+                          flex: 5,
                           child: ZTextFieldEntitled(
                             controller: city,
                             title: locale.city,
@@ -1271,17 +1274,13 @@ class _DesktopState extends State<_Desktop> {
                           ),
                         ),
                         Expanded(
+                          flex: 5,
                           child: ZTextFieldEntitled(
                             controller: province,
                             title: locale.province,
                             onSubmit: (_) => onSubmit(),
                           ),
                         ),
-                      ],
-                    ),
-                    Row(
-                      spacing: 5,
-                      children: [
                         Expanded(
                           flex: 5,
                           child: ZTextFieldEntitled(
@@ -1291,7 +1290,7 @@ class _DesktopState extends State<_Desktop> {
                           ),
                         ),
                         Expanded(
-                          flex: 2,
+                          flex: 3,
                           child: ZTextFieldEntitled(
                             controller: zipCode,
                             title: locale.zipCode,
@@ -1316,15 +1315,15 @@ class _DesktopState extends State<_Desktop> {
                               ),
                               const SizedBox(height: 8),
                               SegmentedButton<String>(
-                                segments: const [
+                                segments: [
                                   ButtonSegment<String>(
                                     value: "Male",
-                                    label: Text("Male"),
+                                    label: Text(AppLocalizations.of(context)!.male),
                                     icon: Icon(Icons.male),
                                   ),
                                   ButtonSegment<String>(
                                     value: "Female",
-                                    label: Text("Female"),
+                                    label: Text(AppLocalizations.of(context)!.female),
                                     icon: Icon(Icons.female),
                                   ),
                                 ],
@@ -1335,7 +1334,13 @@ class _DesktopState extends State<_Desktop> {
                                   });
                                 },
                                 showSelectedIcon: false,
+
                                 style: ButtonStyle(
+                                  shape: WidgetStatePropertyAll(
+                                    RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(2.0),
+                                    ),
+                                  ),
                                   visualDensity: VisualDensity.compact,
                                 ),
                               ),

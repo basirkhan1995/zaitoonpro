@@ -2949,4 +2949,154 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get invoiceProfitHint => 'نمایش یا پنهان‌ سازی سود در بل فروش';
+
+  @override
+  String get counts => 'تعدادها';
+
+  @override
+  String get exchangeRateGraph => 'نمودار نرخ ارز';
+
+  @override
+  String get dailyTransactionsGraph => 'نمودار معاملات روزانه';
+
+  @override
+  String get dailyTransactionTotals => 'مجموع معاملات روزانه';
+
+  @override
+  String get digitalClock => 'ساعت دیجیتال';
+
+  @override
+  String get exchangeRates => 'نرخ ارز';
+
+  @override
+  String get profitLossGraph => 'نمودار سود و زیان';
+
+  @override
+  String get reminderNotifications => 'اعلان‌های یادآور';
+
+  @override
+  String get currencyTab => 'تب ارز';
+
+  @override
+  String get currency => 'ارز';
+
+  @override
+  String get payroll => 'حقوق و دستمزد';
+
+  @override
+  String get eoyOperation => 'عملیات پایان سال';
+
+  @override
+  String get pendingTransaction => 'معامله در انتظار';
+
+  @override
+  String get cashDeposit => 'واریز نقدی';
+
+  @override
+  String get cashWithdraw => 'برداشت نقدی';
+
+  @override
+  String get incomeEntry => 'ثبت عواید';
+
+  @override
+  String get expenseEntry => 'ثبت مصارف';
+
+  @override
+  String get glDebit => 'بدهکار کل';
+
+  @override
+  String get glCredit => 'بستانکار کل';
+
+  @override
+  String get ftSingleAccount => 'انتقال وجه - تک حساب';
+
+  @override
+  String get ftMultiAccount => 'انتقال وجه - چند حساب';
+
+  @override
+  String get fxTransactions => 'معاملات ارزی';
+
+  @override
+  String get allUsers => 'همه کاربران';
+
+  @override
+  String get ordersTab => 'تب سفارشات';
+
+  @override
+  String get estimateTab => 'تب برآورد';
+
+  @override
+  String get goodsShiftTab => 'تب انتقال کالا';
+
+  @override
+  String get adjustmentTab => 'تب تنظیم';
+
+  @override
+  String get purchase => 'خرید';
+
+  @override
+  String get sale => 'فروش';
+
+  @override
+  String get goodsShift => 'انتقال کالا';
+
+  @override
+  String get generalTab => 'تب عمومی';
+
+  @override
+  String get passwordChange => 'تغییر رمز عبور';
+
+  @override
+  String get userProfile => 'پروفایل کاربر';
+
+  @override
+  String get companyTab => 'تب شرکت';
+
+  @override
+  String get category => 'دسته‌بندی';
+
+  @override
+  String get backup => 'پشتیبان‌گیری';
+
+  @override
+  String get accountStatementSingleDate => 'صورتحساب تک تاریخ';
+
+  @override
+  String get glStatementPeriodicDate => 'صورتحساب کل - دوره‌ای';
+
+  @override
+  String get purchaseInvoices => 'فاکتورهای خرید';
+
+  @override
+  String get saleInvoices => 'فاکتورهای فروش';
+
+  @override
+  String get allInvoices => 'همه فاکتورها';
+
+  @override
+  String get cashBalanceAllBranch => 'موجودی نقدی - همه شعب';
+
+  @override
+  String get cashBalanceSingleBranch => 'موجودی نقدی - تک شعبه';
+
+  @override
+  String get transactionsReport => 'گزارش معاملات';
+
+  @override
+  String get allBalances => 'همه موجودی‌ها';
+
+  @override
+  String get userRoleAndPermission => 'نقش و دسترسی کاربر';
+
+  @override
+  String get shippings => 'حمل و نقل‌ها';
+
+  @override
+  String get stakeholderAccount => 'حساب سهمدار';
+
+  @override
+  String get currencies => 'ارزها';
+
+  @override
+  String get read => 'مشاهده';
 }

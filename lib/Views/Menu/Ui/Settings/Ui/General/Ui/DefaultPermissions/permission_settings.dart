@@ -5,6 +5,7 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/DefaultPermissions/per_utility.dart';
 import '../../../../../../../Auth/bloc/auth_bloc.dart';
 import 'bloc/permission_settings_bloc.dart';
 import 'model/permission_settings_model.dart';
@@ -53,7 +54,6 @@ class _Desktop extends StatelessWidget {
 
 enum LayoutType { mobile, tablet, desktop }
 
-// Permission Category Model
 class PermissionCategory {
   final String name;
   final IconData icon;
@@ -92,6 +92,8 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     super.initState();
   }
 
+  String _localize(String apiName) => PermissionMapper.localize(context, apiName);
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<PermissionSettingsBloc, PermissionSettingsState>(
@@ -120,7 +122,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     );
   }
 
-  // Get permission categories
   List<PermissionCategory> _getPermissionCategories(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
 
@@ -147,7 +148,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
           "Finance",
           "Currency Tab",
           "Currency",
-          "Exchange rates",
           "GL Accounts",
           "Payroll",
           "EOY Operation",
@@ -206,17 +206,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
           "Vehicles",
         ],
       ),
-      // PermissionCategory(
-      //   name: locale.projects,
-      //   icon: Icons.assignment,
-      //   permissionNames: [
-      //     "Projects",
-      //     "New Project",
-      //     "Modify Project",
-      //     "Project Services",
-      //     "Project Payments",
-      //   ],
-      // ),
       PermissionCategory(
         name: locale.inventory,
         icon: Icons.inventory,
@@ -296,8 +285,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
           "Reminders",
           "Payroll",
           "Balance Sheet",
-         // "All Projects",
-         // "Project Services Reports",
         ],
       ),
       PermissionCategory(
@@ -313,7 +300,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     ];
   }
 
-  // Check if permission exists in any role
   bool _permissionExists(List<UserRolePermissionSettingModel> roles, String permissionName) {
     for (var role in roles) {
       if (role.permissions?.any((p) => p.rsgName == permissionName) == true) {
@@ -340,10 +326,11 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     }
   }
 
-  // ==================== MOBILE LAYOUT ====================
-  Widget _buildMobileLayout(BuildContext context,
+  Widget _buildMobileLayout(
+      BuildContext context,
       List<UserRolePermissionSettingModel> roles,
-      List<PermissionCategory> categories) {
+      List<PermissionCategory> categories,
+      ) {
     return Column(
       children: [
         _buildRoleCards(roles, isHorizontal: true),
@@ -408,13 +395,15 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 children: permissions.map((permissionName) {
+                  final localizedName = _localize(permissionName);
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
                         padding: const EdgeInsets.only(left: 16, top: 8, bottom: 4),
                         child: Text(
-                          permissionName,
+                          localizedName,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
@@ -464,10 +453,11 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     );
   }
 
-  // ==================== TABLET LAYOUT ====================
-  Widget _buildTabletLayout(BuildContext context,
+  Widget _buildTabletLayout(
+      BuildContext context,
       List<UserRolePermissionSettingModel> roles,
-      List<PermissionCategory> categories) {
+      List<PermissionCategory> categories,
+      ) {
     return Column(
       children: [
         _buildRoleCards(roles, isHorizontal: true),
@@ -482,10 +472,11 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     );
   }
 
-  // ==================== DESKTOP LAYOUT ====================
-  Widget _buildDesktopLayout(BuildContext context,
+  Widget _buildDesktopLayout(
+      BuildContext context,
       List<UserRolePermissionSettingModel> roles,
-      List<PermissionCategory> categories) {
+      List<PermissionCategory> categories,
+      ) {
     return Column(
       children: [
         _buildRoleCards(roles, isHorizontal: true),
@@ -500,9 +491,11 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     );
   }
 
-  Widget _buildDesktopTable(BuildContext context,
+  Widget _buildDesktopTable(
+      BuildContext context,
       List<UserRolePermissionSettingModel> roles,
-      List<PermissionCategory> categories) {
+      List<PermissionCategory> categories,
+      ) {
     final color = Theme.of(context).colorScheme;
 
     return Container(
@@ -511,7 +504,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
       ),
       child: Column(
         children: [
-          // Header
           Container(
             decoration: BoxDecoration(
               color: color.primary,
@@ -578,8 +570,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
               ],
             ),
           ),
-
-          // Body
           Expanded(
             child: ListView.builder(
               itemCount: categories.length,
@@ -595,7 +585,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Category Header
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                       color: color.primary.withValues(alpha: .1),
@@ -630,19 +619,18 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
                         ],
                       ),
                     ),
-
-                    // Permissions
                     ...availablePermissions.map((permissionName) {
+                      final localizedName = _localize(permissionName);
+
                       return Container(
                         color: color.surface,
                         child: Row(
                           children: [
-                            // Permission name cell
                             Container(
                               width: 280,
                               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                               child: Text(
-                                permissionName,
+                                localizedName,
                                 style: const TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
@@ -650,7 +638,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            // Status cells
                             ...roles.map((role) {
                               final hasPermission = _getEffectivePermission(role, permissionName);
                               final hasLocalChange = _localChanges.containsKey(role.rolId) &&
@@ -707,7 +694,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     );
   }
 
-  // ==================== REUSABLE COMPONENTS ====================
   Widget _buildRoleCards(List<UserRolePermissionSettingModel> roles, {required bool isHorizontal}) {
     return Container(
       height: 90,
@@ -811,13 +797,9 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
         height: 25,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: hasPermission
-              ? Colors.green.shade50
-              : Colors.red.shade50,
+          color: hasPermission ? Colors.green.shade50 : Colors.red.shade50,
           border: Border.all(
-            color: hasPermission
-                ? Colors.green.shade200
-                : Colors.red.shade200,
+            color: hasPermission ? Colors.green.shade200 : Colors.red.shade200,
             width: 1,
           ),
         ),
@@ -834,13 +816,9 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
       height: 33,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: hasPermission
-            ? Colors.green.shade50
-            : Colors.red.shade50,
+        color: hasPermission ? Colors.green.shade50 : Colors.red.shade50,
         border: Border.all(
-          color: hasPermission
-              ? Colors.green.shade200
-              : Colors.red.shade200,
+          color: hasPermission ? Colors.green.shade200 : Colors.red.shade200,
           width: 1,
         ),
       ),
@@ -854,21 +832,21 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
 
   Widget _buildErrorState(BuildContext context, PermissionSettingsErrorState state) {
     return Center(
-        child: NoDataWidget(
-          title: "Error",
-          message: "Failed to load permissions, try again later",
-          onRefresh: () => context.read<PermissionSettingsBloc>().add(LoadPermissionsSettingsEvent()),
-        )
+      child: NoDataWidget(
+        title: "Error",
+        message: "Failed to load permissions, try again later",
+        onRefresh: () => context.read<PermissionSettingsBloc>().add(LoadPermissionsSettingsEvent()),
+      ),
     );
   }
 
   Widget _buildEmptyState(BuildContext context) {
     return Center(
-        child: NoDataWidget(
-          title: "No Role found",
-          message: "Failed to load permissions, try again later",
-          onRefresh: () => context.read<PermissionSettingsBloc>().add(LoadPermissionsSettingsEvent()),
-        )
+      child: NoDataWidget(
+        title: "No Role found",
+        message: "Failed to load permissions, try again later",
+        onRefresh: () => context.read<PermissionSettingsBloc>().add(LoadPermissionsSettingsEvent()),
+      ),
     );
   }
 
@@ -883,8 +861,8 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
       child: Center(
         child: Container(
           padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 16 : 20,
-              vertical: isMobile ? 16 : 12
+            horizontal: isMobile ? 16 : 20,
+            vertical: isMobile ? 16 : 12,
           ),
           decoration: BoxDecoration(
             color: color.surface,
@@ -898,9 +876,7 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
             ],
             border: Border.all(color: Colors.grey.shade300),
           ),
-          child: isMobile
-              ? _buildMobileSaveBar(color)
-              : _buildDesktopSaveBar(color),
+          child: isMobile ? _buildMobileSaveBar(color) : _buildDesktopSaveBar(color),
         ),
       ),
     );
@@ -978,7 +954,6 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     );
   }
 
-  // ==================== EXISTING METHODS ====================
   void _onPermissionChanged(int roleId, String permissionName, bool newValue) {
     setState(() {
       _localChanges.putIfAbsent(roleId, () => {});
@@ -1029,7 +1004,7 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
       );
 
       context.read<PermissionSettingsBloc>().add(
-          UpdatePermissionsSettingsEvent(updateModel)
+        UpdatePermissionsSettingsEvent(updateModel),
       );
 
       setState(() {
@@ -1056,7 +1031,9 @@ class _PermissionSettingsContentState extends State<_PermissionSettingsContent> 
     final tr = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
+      ),
       builder: (context) => Container(
         padding: const EdgeInsets.all(15),
         child: Column(

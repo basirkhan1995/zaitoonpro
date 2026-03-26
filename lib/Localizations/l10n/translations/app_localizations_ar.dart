@@ -2952,4 +2952,154 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoiceProfitHint => 'په فروش بل کې د ګټې ښکاره یا پټول';
+
+  @override
+  String get counts => 'شمېرنې';
+
+  @override
+  String get exchangeRateGraph => 'د اسعارو نرخ گراف';
+
+  @override
+  String get dailyTransactionsGraph => 'د ورځنيو معاملو گراف';
+
+  @override
+  String get dailyTransactionTotals => 'د ورځنيو معاملو ټولټال';
+
+  @override
+  String get digitalClock => 'ډیجیټل ساعت';
+
+  @override
+  String get exchangeRates => 'د اسعارو نرخونه';
+
+  @override
+  String get profitLossGraph => 'د ګټې او تاوان گراف';
+
+  @override
+  String get reminderNotifications => 'یادښت خبرتیاوې';
+
+  @override
+  String get currencyTab => 'د اسعارو ټب';
+
+  @override
+  String get currency => 'اسعار';
+
+  @override
+  String get payroll => 'معاشات';
+
+  @override
+  String get eoyOperation => 'د کال پای عملیات';
+
+  @override
+  String get pendingTransaction => 'د انتظار معامله';
+
+  @override
+  String get cashDeposit => 'نقدي زیرمه';
+
+  @override
+  String get cashWithdraw => 'نقدي ایستنه';
+
+  @override
+  String get incomeEntry => 'عاید ثبتول';
+
+  @override
+  String get expenseEntry => 'مصرف ثبتول';
+
+  @override
+  String get glDebit => 'عمومي دبیت';
+
+  @override
+  String get glCredit => 'عمومي کریډیټ';
+
+  @override
+  String get ftSingleAccount => 'فنډ لیږد - یو حساب';
+
+  @override
+  String get ftMultiAccount => 'فنډ لیږد - څو حسابونه';
+
+  @override
+  String get fxTransactions => 'د اسعارو معاملې';
+
+  @override
+  String get allUsers => 'ټول کارونکي';
+
+  @override
+  String get ordersTab => 'د فرمایشونو ټب';
+
+  @override
+  String get estimateTab => 'د اټکل ټب';
+
+  @override
+  String get goodsShiftTab => 'د توکو لیږد ټب';
+
+  @override
+  String get adjustmentTab => 'د تنظیم ټب';
+
+  @override
+  String get purchase => 'پیرود';
+
+  @override
+  String get sale => 'پلور';
+
+  @override
+  String get goodsShift => 'د توکو لیږد';
+
+  @override
+  String get generalTab => 'عمومي ټب';
+
+  @override
+  String get passwordChange => 'د پاسورډ بدلول';
+
+  @override
+  String get userProfile => 'کارونکي پروفایل';
+
+  @override
+  String get companyTab => 'د شرکت ټب';
+
+  @override
+  String get category => 'کټګورۍ';
+
+  @override
+  String get backup => 'بیک اپ';
+
+  @override
+  String get accountStatementSingleDate => 'د حساب راپور - یوه نیټه';
+
+  @override
+  String get glStatementPeriodicDate => 'عمومي راپور - دوره ییز';
+
+  @override
+  String get purchaseInvoices => 'د پیرود فاکتورونه';
+
+  @override
+  String get saleInvoices => 'د پلور فاکتورونه';
+
+  @override
+  String get allInvoices => 'ټول فاکتورونه';
+
+  @override
+  String get cashBalanceAllBranch => 'نقدي موجودي - ټولې څانګې';
+
+  @override
+  String get cashBalanceSingleBranch => 'نقدي موجودي - یوه څانګه';
+
+  @override
+  String get transactionsReport => 'د معاملو راپور';
+
+  @override
+  String get allBalances => 'ټولې موجودۍ';
+
+  @override
+  String get userRoleAndPermission => 'د کارونکي رول او اجازې';
+
+  @override
+  String get shippings => 'لېږدونې';
+
+  @override
+  String get stakeholderAccount => 'د برخه اخیستونکي حساب';
+
+  @override
+  String get currencies => 'اسعار';
+
+  @override
+  String get read => 'لوستل';
 }

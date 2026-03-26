@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/bloc/user_profile_settings_bloc.dart';
@@ -138,7 +139,7 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            ZOutlineButton(
               onPressed: () {
                 final auth = context.read<AuthBloc>().state;
                 if (auth is AuthenticatedState) {
@@ -147,14 +148,7 @@ class _UserProfileViewState extends State<UserProfileView> with SingleTickerProv
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _colors.primary,
-                foregroundColor: _colors.onPrimary,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Try Again'),
+              label: const Text('Try Again'),
             ),
           ],
         ),

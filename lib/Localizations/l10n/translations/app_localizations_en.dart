@@ -195,7 +195,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get blocked => 'Blocked';
 
   @override
-  String get userOwner => 'User onwer';
+  String get userOwner => 'User owner';
 
   @override
   String get id => 'ID';
@@ -210,10 +210,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewer => 'Viewer';
 
   @override
-  String get adminstrator => 'Adminstrator';
+  String get adminstrator => 'Administrator';
 
   @override
-  String get userInformation => 'User Informations';
+  String get userInformation => 'User Information';
 
   @override
   String get systemSettings => 'System';
@@ -2959,4 +2959,154 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceProfitHint => 'Show or hide profit on sale invoices';
+
+  @override
+  String get counts => 'Counts';
+
+  @override
+  String get exchangeRateGraph => 'Exchange Rate Graph';
+
+  @override
+  String get dailyTransactionsGraph => 'Daily Transactions Graph';
+
+  @override
+  String get dailyTransactionTotals => 'Daily Transaction Totals';
+
+  @override
+  String get digitalClock => 'Digital Clock';
+
+  @override
+  String get exchangeRates => 'Exchange Rates';
+
+  @override
+  String get profitLossGraph => 'Profit Loss Graph';
+
+  @override
+  String get reminderNotifications => 'Reminder Notifications';
+
+  @override
+  String get currencyTab => 'Currency Tab';
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String get payroll => 'Payroll';
+
+  @override
+  String get eoyOperation => 'EOY Operation';
+
+  @override
+  String get pendingTransaction => 'Pending Transaction';
+
+  @override
+  String get cashDeposit => 'Cash Deposit';
+
+  @override
+  String get cashWithdraw => 'Cash Withdraw';
+
+  @override
+  String get incomeEntry => 'Income Entry';
+
+  @override
+  String get expenseEntry => 'Expense Entry';
+
+  @override
+  String get glDebit => 'GL Debit';
+
+  @override
+  String get glCredit => 'GL Credit';
+
+  @override
+  String get ftSingleAccount => 'FT Single Account';
+
+  @override
+  String get ftMultiAccount => 'FT Multi Account';
+
+  @override
+  String get fxTransactions => 'FX Transactions';
+
+  @override
+  String get allUsers => 'All Users';
+
+  @override
+  String get ordersTab => 'Orders Tab';
+
+  @override
+  String get estimateTab => 'Estimate Tab';
+
+  @override
+  String get goodsShiftTab => 'Goods Shift Tab';
+
+  @override
+  String get adjustmentTab => 'Adjustment Tab';
+
+  @override
+  String get purchase => 'Purchase';
+
+  @override
+  String get sale => 'Sale';
+
+  @override
+  String get goodsShift => 'Goods Shift';
+
+  @override
+  String get generalTab => 'General Tab';
+
+  @override
+  String get passwordChange => 'Password Change';
+
+  @override
+  String get userProfile => 'User Profile';
+
+  @override
+  String get companyTab => 'Company Tab';
+
+  @override
+  String get category => 'Category';
+
+  @override
+  String get backup => 'Backup';
+
+  @override
+  String get accountStatementSingleDate => 'Account Statement Single Date';
+
+  @override
+  String get glStatementPeriodicDate => 'GL Statement Periodic Date';
+
+  @override
+  String get purchaseInvoices => 'Purchase Invoices';
+
+  @override
+  String get saleInvoices => 'Sale Invoices';
+
+  @override
+  String get allInvoices => 'All Invoices';
+
+  @override
+  String get cashBalanceAllBranch => 'Cash Balance All Branch';
+
+  @override
+  String get cashBalanceSingleBranch => 'Cash Balance Single Branch';
+
+  @override
+  String get transactionsReport => 'Transactions Report';
+
+  @override
+  String get allBalances => 'All Balances';
+
+  @override
+  String get userRoleAndPermission => 'User Role and Permission';
+
+  @override
+  String get shippings => 'Shipping';
+
+  @override
+  String get stakeholderAccount => 'Stakeholder Account';
+
+  @override
+  String get currencies => 'Currencies';
+
+  @override
+  String get read => 'Read';
 }

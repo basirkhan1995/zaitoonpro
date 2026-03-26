@@ -554,6 +554,7 @@ class _DesktopState extends State<_Desktop> {
 
     fromDate = lastMonthStart.toFormattedDate();
     toDate = lastMonthEnd.toFormattedDate();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {});
     context.read<AccStatementBloc>().add(ResetAccStmtEvent());
     super.initState();
@@ -844,7 +845,7 @@ class _DesktopState extends State<_Desktop> {
                                 });
                                 onSubmit();
                               },
-                              disablePastDate: false,
+
                               minYear: 2000,
                               maxYear: 2100,
                             ),

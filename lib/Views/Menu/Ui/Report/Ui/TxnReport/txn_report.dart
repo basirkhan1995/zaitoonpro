@@ -10,6 +10,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/features/currency_d
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/features/users_drop.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../Features/Date/z_generic_date.dart';
+import '../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../Features/Other/utils.dart';
 import '../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../UserReport/status_drop.dart';
@@ -731,11 +732,17 @@ class _DesktopState extends State<_Desktop> {
   late String fromDate;
   late String toDate;
   String? myLocale;
+
+
   @override
   void initState() {
     super.initState();
-    fromDate = DateTime.now().toFormattedDate();
-    toDate   = DateTime.now().toFormattedDate();
+    final now = DateTime.now();
+    final lastMonthEnd = DateTime(now.year, now.month, 0);
+    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+
+    fromDate = lastMonthStart.toFormattedDate();
+    toDate = lastMonthEnd.toFormattedDate();
     myLocale = context.read<LocalizationBloc>().state.languageCode;
     context.read<TxnReportBloc>().add(ResetTxnReportEvent());
   }
@@ -810,26 +817,36 @@ class _DesktopState extends State<_Desktop> {
               crossAxisAlignment: CrossAxisAlignment.end,
               spacing: 8,
               children: [
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.fromDate,
-                    value: fromDate,
-                    onDateChanged: (v) {
+                SizedBox(
+                  width: 220,
+                  child: ZRangeDatePicker(
+                    label: tr.selectDate,
+                    initialStartDate: DateTime.tryParse(fromDate),
+                    initialEndDate: DateTime.tryParse(toDate),
+                    startValue: fromDate,
+                    endValue: toDate,
+                    onStartDateChanged: (startDate) {
                       setState(() {
-                        fromDate = v;
+                        fromDate = startDate;
                       });
                     },
-                  ),
-                ),
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.toDate,
-                    value: toDate,
-                    onDateChanged: (v) {
+                    onEndDateChanged: (endDate) {
                       setState(() {
-                        toDate = v;
+                        toDate = endDate;
                       });
+                      context.read<TxnReportBloc>().add(LoadTxnReportEvent(
+                        fromDate: fromDate,
+                        toDate: toDate,
+                        checker: checker,
+                        maker: maker,
+                        status: status,
+                        txnType: txnType,
+                        currency: currency,
+                      ));
                     },
+                    disablePastDate: false,
+                    minYear: 2000,
+                    maxYear: 2100,
                   ),
                 ),
                 Expanded(
@@ -898,11 +915,12 @@ class _DesktopState extends State<_Desktop> {
           ),
           SizedBox(height: 8),
           Container(
-            height: 40,
+            height: 35,
             decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primary.withValues(alpha: .9)
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 15.0,vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 8),
+            margin:  const EdgeInsets.symmetric(horizontal: 15.0),
             child: Row(
               children: [
                 SizedBox(
@@ -961,35 +979,34 @@ class _DesktopState extends State<_Desktop> {
                       final txn = state.txn[index];
                       return Container(
                         decoration: BoxDecoration(
-                          color: index.isEven? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
+                          color: index.isOdd? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 15.0,vertical: 8),
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                  width: 180,
-                                  child: Text(txn.timing?.toDateTime ?? "")),
-                              Expanded(
-                                  child: Text(txn.reference.toString())),
+                        padding: const EdgeInsets.symmetric(horizontal: 5.0,vertical: 8),
+                        margin:  const EdgeInsets.symmetric(horizontal: 15.0),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                                width: 180,
+                                child: Text(txn.timing?.toDateTime ?? "")),
+                            Expanded(
+                                child: Text(txn.reference.toString())),
 
-                              SizedBox(
-                                  width: 200,
-                                  child: Text(txn.type.toString())),
-                              SizedBox(
-                                  width: 120,
-                                  child: Text(txn.maker.toString())),
-                              SizedBox(
-                                  width: 120,
-                                  child: Text(txn.checker.toString())),
-                              SizedBox(
-                                  width: 120,
-                                  child: Text(txn.statusText??"")),
-                              SizedBox(
-                                  width: 150,
-                                  child: Text("${txn.actualAmount.toAmount()} ${txn.currency}", textAlign: myLocale == "en"? TextAlign.right : TextAlign.left)),
-                            ],
-                          ),
+                            SizedBox(
+                                width: 200,
+                                child: Text(txn.type.toString())),
+                            SizedBox(
+                                width: 120,
+                                child: Text(txn.maker.toString())),
+                            SizedBox(
+                                width: 120,
+                                child: Text(txn.checker.toString())),
+                            SizedBox(
+                                width: 120,
+                                child: Text(txn.statusText??"")),
+                            SizedBox(
+                                width: 150,
+                                child: Text("${txn.actualAmount.toAmount()} ${txn.currency}", textAlign: myLocale == "en"? TextAlign.right : TextAlign.left)),
+                          ],
                         ),
                       );
                   });

@@ -65,7 +65,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   Jalali? _endDate;
   late ScrollController _yearScrollController;
 
-  // Track selected quick option
   QuickOption _selectedQuickOption = QuickOption.none;
 
   @override
@@ -79,7 +78,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     _endDate = _selectedRange.end;
     _yearScrollController = ScrollController();
 
-    // Determine which quick option matches the initial range
     _determineInitialQuickOption();
   }
 
@@ -89,107 +87,132 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
       return;
     }
 
-    // Create Jalali dates without time components for comparison
-    final todayDate = Jalali(_today.year, _today.month, _today.day);
-    final startDateOnly = Jalali(_startDate!.year, _startDate!.month, _startDate!.day);
-    final endDateOnly = Jalali(_endDate!.year, _endDate!.month, _endDate!.day);
+    try {
+      final todayDate = Jalali(_today.year, _today.month, _today.day);
+      final startDateOnly = Jalali(_startDate!.year, _startDate!.month, _startDate!.day);
+      final endDateOnly = Jalali(_endDate!.year, _endDate!.month, _endDate!.day);
 
-    // Check Today
-    if (startDateOnly == todayDate && endDateOnly == todayDate) {
-      _selectedQuickOption = QuickOption.today;
-      return;
+      // Check Today
+      if (startDateOnly == todayDate && endDateOnly == todayDate) {
+        _selectedQuickOption = QuickOption.today;
+        return;
+      }
+
+      // Check Yesterday
+      final yesterday = _getYesterday(todayDate);
+      if (startDateOnly == yesterday && endDateOnly == yesterday) {
+        _selectedQuickOption = QuickOption.yesterday;
+        return;
+      }
+
+      // Check Last Week
+      final lastWeekEnd = _getYesterday(todayDate);
+      final lastWeekStart = _getDaysAgo(todayDate, 7);
+      if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
+        _selectedQuickOption = QuickOption.lastWeek;
+        return;
+      }
+
+      // Check Last 90 Days
+      final last90DaysEnd = _getYesterday(todayDate);
+      final last90DaysStart = _getDaysAgo(todayDate, 90);
+      if (startDateOnly == last90DaysStart && endDateOnly == last90DaysEnd) {
+        _selectedQuickOption = QuickOption.last90Days;
+        return;
+      }
+
+      // Check This Month
+      final thisMonthStart = Jalali(_today.year, _today.month, 1);
+      if (startDateOnly == thisMonthStart && endDateOnly == todayDate) {
+        _selectedQuickOption = QuickOption.thisMonth;
+        return;
+      }
+
+      // Check Last Month - FIXED: Proper month calculation
+      int lastMonthYear = _today.year;
+      int lastMonthMonth = _today.month - 1;
+      if (lastMonthMonth < 1) {
+        lastMonthMonth = 12;
+        lastMonthYear--;
+      }
+
+      if (lastMonthYear >= widget.minYear) {
+        final lastMonthStart = Jalali(lastMonthYear, lastMonthMonth, 1);
+        final lastMonthEnd = Jalali(lastMonthYear, lastMonthMonth, _getMonthLength(lastMonthYear, lastMonthMonth));
+
+        if (startDateOnly == lastMonthStart && endDateOnly == lastMonthEnd) {
+          _selectedQuickOption = QuickOption.lastMonth;
+          return;
+        }
+      }
+
+      // Check Last Year
+      final lastYear = _today.year - 1;
+      if (lastYear >= widget.minYear) {
+        final lastYearStart = Jalali(lastYear, 1, 1);
+        final lastYearEnd = Jalali(lastYear, 12, _getMonthLength(lastYear, 12));
+
+        if (startDateOnly == lastYearStart && endDateOnly == lastYearEnd) {
+          _selectedQuickOption = QuickOption.lastYear;
+          return;
+        }
+      }
+
+      // Check This Year
+      final thisYearStart = Jalali(_today.year, 1, 1);
+      if (startDateOnly == thisYearStart && endDateOnly == todayDate) {
+        _selectedQuickOption = QuickOption.thisYear;
+        return;
+      }
+
+      // Check All Time
+      final allTimeStart = Jalali(widget.minYear, 1, 1);
+      if (startDateOnly == allTimeStart && endDateOnly == todayDate) {
+        _selectedQuickOption = QuickOption.allTime;
+        return;
+      }
+
+      _selectedQuickOption = QuickOption.none;
+    } catch (e) {
+      debugPrint('Error determining quick option: $e');
+      _selectedQuickOption = QuickOption.none;
     }
-
-    // Check Yesterday
-    final yesterday = _getYesterday(todayDate);
-    if (startDateOnly == yesterday && endDateOnly == yesterday) {
-      _selectedQuickOption = QuickOption.yesterday;
-      return;
-    }
-
-    // Check Last Week
-    final lastWeekEnd = _getYesterday(todayDate);
-    final lastWeekStart = _getDaysAgo(todayDate, 7);
-    if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
-      _selectedQuickOption = QuickOption.lastWeek;
-      return;
-    }
-
-    // Check Last 90 Days
-    final last90DaysEnd = _getYesterday(todayDate);
-    final last90DaysStart = _getDaysAgo(todayDate, 90);
-    if (startDateOnly == last90DaysStart && endDateOnly == last90DaysEnd) {
-      _selectedQuickOption = QuickOption.last90Days;
-      return;
-    }
-
-    // Check This Month
-    final thisMonthStart = Jalali(_today.year, _today.month, 1);
-    if (startDateOnly == thisMonthStart && endDateOnly == todayDate) {
-      _selectedQuickOption = QuickOption.thisMonth;
-      return;
-    }
-
-    // Check Last Month
-    final lastMonthEnd = _getLastDayOfPreviousMonth(_currentMonth);
-    final lastMonthStart = Jalali(_today.year, _today.month - 1, 1);
-    if (startDateOnly == lastMonthStart && endDateOnly == lastMonthEnd) {
-      _selectedQuickOption = QuickOption.lastMonth;
-      return;
-    }
-
-    // Check Last Year
-    final lastYearEnd = Jalali(_today.year - 1, 12, _getMonthLength(_today.year - 1, 12));
-    final lastYearStart = Jalali(_today.year - 1, 1, 1);
-    if (startDateOnly == lastYearStart && endDateOnly == lastYearEnd) {
-      _selectedQuickOption = QuickOption.lastYear;
-      return;
-    }
-
-    // Check This Year
-    final thisYearStart = Jalali(_today.year, 1, 1);
-    if (startDateOnly == thisYearStart && endDateOnly == todayDate) {
-      _selectedQuickOption = QuickOption.thisYear;
-      return;
-    }
-
-    // Check All Time
-    final allTimeStart = Jalali(1380, 1, 1); // Corresponds to 2001-2002
-    if (startDateOnly == allTimeStart && endDateOnly == todayDate) {
-      _selectedQuickOption = QuickOption.allTime;
-      return;
-    }
-
-    _selectedQuickOption = QuickOption.none;
   }
 
   Jalali _getYesterday(Jalali date) {
-    final gregorian = date.toGregorian();
-    final yesterdayGreg = gregorian.toDateTime().subtract(const Duration(days: 1));
-    return Jalali.fromGregorian(
-        Gregorian(yesterdayGreg.year, yesterdayGreg.month, yesterdayGreg.day)
-    );
+    try {
+      final gregorian = date.toGregorian();
+      final yesterdayGreg = gregorian.toDateTime().subtract(const Duration(days: 1));
+      return Jalali.fromGregorian(
+          Gregorian(yesterdayGreg.year, yesterdayGreg.month, yesterdayGreg.day)
+      );
+    } catch (e) {
+      debugPrint('Error getting yesterday: $e');
+      return date;
+    }
   }
 
   Jalali _getDaysAgo(Jalali date, int days) {
-    final gregorian = date.toGregorian();
-    final daysAgoGreg = gregorian.toDateTime().subtract(Duration(days: days));
-    return Jalali.fromGregorian(
-        Gregorian(daysAgoGreg.year, daysAgoGreg.month, daysAgoGreg.day)
-    );
-  }
-
-  Jalali _getLastDayOfPreviousMonth(Jalali date) {
-    if (date.month == 1) {
-      return Jalali(date.year - 1, 12, _getMonthLength(date.year - 1, 12));
-    } else {
-      return Jalali(date.year, date.month - 1, _getMonthLength(date.year, date.month - 1));
+    try {
+      final gregorian = date.toGregorian();
+      final daysAgoGreg = gregorian.toDateTime().subtract(Duration(days: days));
+      return Jalali.fromGregorian(
+          Gregorian(daysAgoGreg.year, daysAgoGreg.month, daysAgoGreg.day)
+      );
+    } catch (e) {
+      debugPrint('Error getting days ago: $e');
+      return date;
     }
   }
 
   int _getMonthLength(int year, int month) {
-    final jalali = Jalali(year, month, 1);
-    return jalali.monthLength;
+    try {
+      final jalali = Jalali(year, month, 1);
+      return jalali.monthLength;
+    } catch (e) {
+      debugPrint('Error getting month length for year $year, month $month: $e');
+      return 30; // Default fallback
+    }
   }
 
   @override
@@ -246,7 +269,7 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
 
   void _onDateTapped(Jalali date) {
     setState(() {
-      _selectedQuickOption = QuickOption.none; // Reset quick option when manually selecting
+      _selectedQuickOption = QuickOption.none;
 
       if (_startDate == null || (_startDate != null && _endDate != null)) {
         _startDate = date;
@@ -278,8 +301,8 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   void _selectToday() {
     setState(() {
       _selectedQuickOption = QuickOption.today;
-      _startDate = _today;
-      _endDate = _today;
+      _startDate = Jalali(_today.year, _today.month, _today.day);
+      _endDate = Jalali(_today.year, _today.month, _today.day);
       _currentMonth = Jalali(_today.year, _today.month, 1);
       _selectedYear = _today.year;
     });
@@ -322,7 +345,7 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
 
   void _selectThisMonth() {
     final start = Jalali(_today.year, _today.month, 1);
-    final end = _today;
+    final end = Jalali(_today.year, _today.month, _today.day);
     setState(() {
       _selectedQuickOption = QuickOption.thisMonth;
       _startDate = start;
@@ -332,33 +355,17 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
     });
   }
 
-  void _selectThisYear() {
-    final start = Jalali(_today.year, 1, 1);
-    final end = _today;
-    setState(() {
-      _selectedQuickOption = QuickOption.thisYear;
-      _startDate = start;
-      _endDate = end;
-      _currentMonth = Jalali(_today.year, _today.month, 1);
-      _selectedYear = _today.year;
-    });
-  }
-
-  void _selectAllTime() {
-    final start = Jalali(1380, 1, 1); // Corresponds to 2001-2002
-    final end = _today;
-    setState(() {
-      _selectedQuickOption = QuickOption.allTime;
-      _startDate = start;
-      _endDate = end;
-      _currentMonth = Jalali(_today.year, _today.month, 1);
-      _selectedYear = _today.year;
-    });
-  }
-
   void _selectLastMonth() {
-    final lastMonthEnd = _getLastDayOfPreviousMonth(_currentMonth);
-    final lastMonthStart = Jalali(_today.year, _today.month - 1, 1);
+    int lastMonthYear = _today.year;
+    int lastMonthMonth = _today.month - 1;
+    if (lastMonthMonth < 1) {
+      lastMonthMonth = 12;
+      lastMonthYear--;
+    }
+
+    final lastMonthStart = Jalali(lastMonthYear, lastMonthMonth, 1);
+    final lastMonthEnd = Jalali(lastMonthYear, lastMonthMonth, _getMonthLength(lastMonthYear, lastMonthMonth));
+
     setState(() {
       _selectedQuickOption = QuickOption.lastMonth;
       _startDate = lastMonthStart;
@@ -369,14 +376,40 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   }
 
   void _selectLastYear() {
-    final lastYearEnd = Jalali(_today.year - 1, 12, _getMonthLength(_today.year - 1, 12));
-    final lastYearStart = Jalali(_today.year - 1, 1, 1);
+    final lastYear = _today.year - 1;
+    final lastYearStart = Jalali(lastYear, 1, 1);
+    final lastYearEnd = Jalali(lastYear, 12, _getMonthLength(lastYear, 12));
+
     setState(() {
       _selectedQuickOption = QuickOption.lastYear;
       _startDate = lastYearStart;
       _endDate = lastYearEnd;
       _currentMonth = Jalali(lastYearStart.year, lastYearStart.month, 1);
       _selectedYear = lastYearStart.year;
+    });
+  }
+
+  void _selectThisYear() {
+    final start = Jalali(_today.year, 1, 1);
+    final end = Jalali(_today.year, _today.month, _today.day);
+    setState(() {
+      _selectedQuickOption = QuickOption.thisYear;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(_today.year, _today.month, 1);
+      _selectedYear = _today.year;
+    });
+  }
+
+  void _selectAllTime() {
+    final start = Jalali(widget.minYear, 1, 1);
+    final end = Jalali(_today.year, _today.month, _today.day);
+    setState(() {
+      _selectedQuickOption = QuickOption.allTime;
+      _startDate = start;
+      _endDate = end;
+      _currentMonth = Jalali(_today.year, _today.month, 1);
+      _selectedYear = _today.year;
     });
   }
 
@@ -402,15 +435,19 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
         newYear--;
       }
 
-      _currentMonth = Jalali(newYear, newMonth, 1);
-      _selectedYear = newYear;
+      if (newYear >= widget.minYear && newYear <= widget.maxYear) {
+        _currentMonth = Jalali(newYear, newMonth, 1);
+        _selectedYear = newYear;
+      }
     });
   }
 
   void _changeYear(int year) {
     setState(() {
       _selectedYear = year;
-      _currentMonth = Jalali(year, _currentMonth.month, 1);
+      if (year >= widget.minYear && year <= widget.maxYear) {
+        _currentMonth = Jalali(year, _currentMonth.month, 1);
+      }
       _showYearSelector = false;
     });
   }
@@ -495,14 +532,24 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    final monthLength = _currentMonth.monthLength;
-    final firstWeekdayOfMonth = _currentMonth.weekDay;
+
+    int monthLength;
+    int firstWeekdayOfMonth;
+
+    try {
+      monthLength = _currentMonth.monthLength;
+      firstWeekdayOfMonth = _currentMonth.weekDay;
+    } catch (e) {
+      debugPrint('Error getting month data: $e');
+      monthLength = 30;
+      firstWeekdayOfMonth = 1;
+    }
 
     return Dialog(
       backgroundColor: Colors.transparent,
       child: Container(
         width: _showYearSelector ? 650 : (_showQuickOptions ? 500 : 400),
-        height: 480, // Slightly increased height to accommodate more options
+        height: 480,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: color.surface,
@@ -511,12 +558,10 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Calendar + Year Selector Row
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Quick Options Section (Left Side)
                   if (_showQuickOptions)
                     Container(
                       width: 140,
@@ -590,7 +635,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                     const SizedBox(width: 5),
                   ],
 
-                  // Year selector panel
                   if (_showYearSelector) ...[
                     const SizedBox(width: 10),
                     SizedBox(
@@ -639,14 +683,12 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                     const SizedBox(width: 10),
                   ],
 
-                  // Calendar Panel
                   Expanded(
                     child: Column(
                       children: [
                         Expanded(
                           child: Column(
                             children: [
-                              // Selected Range display with toggle button
                               Padding(
                                 padding: const EdgeInsets.all(3.0),
                                 child: Row(
@@ -670,8 +712,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                   ],
                                 ),
                               ),
-
-                              // Month navigation + weekday names
                               Padding(
                                 padding: const EdgeInsets.all(3.0),
                                 child: Row(
@@ -709,8 +749,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                 ),
                               ),
                               const SizedBox(height: 6),
-
-                              // Weekday headers
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                                 children: _weekdays
@@ -729,8 +767,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                     .toList(),
                               ),
                               const SizedBox(height: 6),
-
-                              // Calendar Grid
                               Expanded(
                                 child: GridView.builder(
                                   physics: const NeverScrollableScrollPhysics(),
@@ -743,7 +779,13 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                   itemBuilder: (context, index) {
                                     if (index < firstWeekdayOfMonth - 1) return const SizedBox.shrink();
                                     final day = index - firstWeekdayOfMonth + 2;
-                                    final date = Jalali(_currentMonth.year, _currentMonth.month, day);
+
+                                    Jalali? date;
+                                    try {
+                                      date = Jalali(_currentMonth.year, _currentMonth.month, day);
+                                    } catch (e) {
+                                      return const SizedBox.shrink();
+                                    }
 
                                     final isStartDate = _startDate != null && _isSameDate(date, _startDate!);
                                     final isEndDate = _endDate != null && _isSameDate(date, _endDate!);
@@ -759,10 +801,16 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                                     } else if (isInRange) {
                                       background = color.primary.withAlpha(20);
                                     }
-                                    final isToday = _isSameDate(date, _today);
+
+                                    bool isToday = false;
+                                    try {
+                                      isToday = _isSameDate(date, _today);
+                                    } catch (e) {
+                                      isToday = false;
+                                    }
 
                                     return GestureDetector(
-                                      onTap: () => _onDateTapped(date),
+                                      onTap: () => _onDateTapped(date ?? _today),
                                       child: Container(
                                         margin: EdgeInsets.zero,
                                         decoration: BoxDecoration(
@@ -792,7 +840,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                             ],
                           ),
                         ),
-                        // Footer buttons - positioned at bottom right
                         Padding(
                           padding: const EdgeInsets.only(right: 8, bottom: 4),
                           child: Row(
@@ -817,7 +864,6 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                 ],
               ),
             ),
-
           ],
         ),
       ),

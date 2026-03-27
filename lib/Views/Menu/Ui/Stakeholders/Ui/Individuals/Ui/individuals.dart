@@ -362,7 +362,7 @@ class _DesktopState extends State<_Desktop> {
                           maxCrossAxisExtent: 200,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 22,
-                          childAspectRatio: 0.85,
+                          childAspectRatio: 0.95,
                         ),
                         itemCount: filteredList.length,
                         itemBuilder: (context, index) {
@@ -395,10 +395,7 @@ class _DesktopState extends State<_Desktop> {
                                 icon: Icons.phone,
                                 text: stk.perPhone ?? "-",
                               ),
-                              InfoItem(
-                                icon: Icons.badge,
-                                text: stk.perEnidNo ?? "-",
-                              ),
+
                             ],
                             onTap: (login.hasPermission(32) ?? false)
                                 ? () {

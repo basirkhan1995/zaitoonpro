@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductCategory/pro_cat_view.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductUnit/pro_unit.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/products.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Features/Other/responsive.dart';
@@ -58,6 +59,12 @@ class _BaseStockSettings extends StatelessWidget {
           screen: const ProCatView(),
           icon: Icons.dialpad_rounded,
         ),
+      MenuDefinition(
+        value: StockSettingsTabName.proUnit,
+        label: locale.unit,
+        screen: const ProductUnitView(),
+        icon: Icons.category_rounded,
+      ),
     ];
 
     if (isMobile) {

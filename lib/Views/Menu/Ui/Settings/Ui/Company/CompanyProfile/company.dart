@@ -275,7 +275,6 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
               children: [
                 if (!isUpdateMode)
                   ZOutlineButton(
-                    width: 100,
                     icon: Icons.edit,
                     label: Text(locale.edit),
                     onPressed: () {
@@ -375,7 +374,6 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
               children: [
                 if (!isUpdateMode)
                   ZOutlineButton(
-                    width: widget.isTablet ? 100 : 110,
                     icon: Icons.edit,
                     label: Text(locale.edit),
                     onPressed: () {

@@ -1,6 +1,6 @@
 part of 'stock_settings_tab_bloc.dart';
 
-enum StockSettingsTabName {products, proCategory}
+enum StockSettingsTabName {products, proCategory, proUnit}
 
 class StockSettingsTabState extends Equatable {
   final StockSettingsTabName tab;

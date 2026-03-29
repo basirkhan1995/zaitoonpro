@@ -362,7 +362,7 @@ class _DesktopState extends State<_Desktop> {
                           maxCrossAxisExtent: 200,
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 22,
-                          childAspectRatio: 0.95,
+                          childAspectRatio: 0.80,
                         ),
                         itemCount: filteredList.length,
                         itemBuilder: (context, index) {
@@ -375,7 +375,7 @@ class _DesktopState extends State<_Desktop> {
                           return ZCard(
                             image: ImageHelper.stakeholderProfile(
                               imageName: stk.imageProfile,
-                              size: 46,
+                              size: 60,
                             ),
                             title: fullName.isNotEmpty ? fullName : "—",
                             subtitle: stk.perEmail,

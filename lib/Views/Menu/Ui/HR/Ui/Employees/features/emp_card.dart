@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// A generic card widget for displaying information with avatar, title, subtitle,
-/// status badge, and multiple info rows.
+/// status badge, and multiple info rows - with centered content layout.
 class ZCard extends StatefulWidget {
   /// The image to display (can be network URL, asset path, or widget)
   final Widget? image;
@@ -52,7 +52,7 @@ class ZCard extends StatefulWidget {
     this.onTap,
     this.hoverable = true,
     this.borderRadius = 8,
-    this.padding = const EdgeInsets.all(10),
+    this.padding = const EdgeInsets.all(12),
     this.showDivider = true,
     this.imageBuilder,
     this.titleBuilder,
@@ -138,10 +138,10 @@ class _ZCardState extends State<ZCard> {
           child: Padding(
             padding: widget.padding,
             child: Column(
-              mainAxisSize: MainAxisSize.max,
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                /// Header (Image + Title + Status)
+                /// Header (Image + Title + Status) - CENTERED
                 _buildHeaderSection(context),
 
                 if (widget.showDivider && widget.infoItems.isNotEmpty) ...[
@@ -150,7 +150,7 @@ class _ZCardState extends State<ZCard> {
                   const SizedBox(height: 8),
                 ],
 
-                /// Info Items
+                /// Info Items - CENTERED
                 if (widget.infoItems.isNotEmpty)
                   _buildInfoItemsSection(context),
               ],
@@ -166,50 +166,69 @@ class _ZCardState extends State<ZCard> {
       return widget.imageBuilder!(context);
     }
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (widget.image != null) ...[
-                widget.image!,
-                const SizedBox(height: 10),
-              ],
-              if (widget.titleBuilder != null)
-                widget.titleBuilder!(context)
-              else
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+        /// Image at TOP (centered)
+        if (widget.image != null) ...[
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: widget.image!,
+            ),
+          ),
+          const SizedBox(height: 10),
+        ],
+
+        /// Title and Status Row
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: widget.titleBuilder != null
+                  ? widget.titleBuilder!(context)
+                  : Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    widget.title,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (widget.subtitle != null &&
+                      widget.subtitle!.isNotEmpty) ...[
+                    const SizedBox(height: 2),
                     Text(
-                      widget.title,
+                      widget.subtitle!,
                       style: Theme.of(context)
                           .textTheme
-                          .titleSmall
-                          ?.copyWith(fontWeight: FontWeight.bold,fontSize: 12),
+                          .bodySmall
+                          ?.copyWith(fontSize: 10),
                       overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
-                    if (widget.subtitle != null &&
-                        widget.subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        widget.subtitle!,
-                        style:
-                        Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
                   ],
-                ),
-            ],
-          ),
+                ],
+              ),
+            ),
+          ],
         ),
 
-        if (widget.status != null)
-          _buildStatusBadge(widget.status!),
+        /// Status Badge below title (centered)
+        if (widget.status != null) ...[
+          const SizedBox(height: 8),
+          Center(
+            child: _buildStatusBadge(widget.status!),
+          ),
+        ],
       ],
     );
   }
@@ -221,11 +240,11 @@ class _ZCardState extends State<ZCard> {
 
     return Column(
       mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: widget.infoItems
           .map((item) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
-        child: _buildInfoRow(item, context),
+        child: _buildCenteredInfoRow(item, context),
       ))
           .toList(),
     );
@@ -235,8 +254,7 @@ class _ZCardState extends State<ZCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: status.backgroundColor ??
-            status.color.withValues(alpha: .12),
+        color: status.backgroundColor ?? status.color.withValues(alpha: .12),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
@@ -251,22 +269,23 @@ class _ZCardState extends State<ZCard> {
     );
   }
 
-  Widget _buildInfoRow(InfoItem item, BuildContext context) {
+  Widget _buildCenteredInfoRow(InfoItem item, BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           item.icon,
           size: 14,
-          color: item.iconColor ??
-              Theme.of(context).hintColor,
+          color: item.iconColor ?? Theme.of(context).hintColor,
         ),
         const SizedBox(width: 6),
-        Expanded(
+        Flexible(
           child: Text(
             item.text,
-            style: item.textStyle ??
-                Theme.of(context).textTheme.bodySmall,
+            style: item.textStyle ?? Theme.of(context).textTheme.bodySmall,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
           ),
         ),
       ],

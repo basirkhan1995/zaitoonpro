@@ -105,12 +105,11 @@ class CashBalancesPrintSettings extends PrintServices {
     required pw.PdfPageFormat pageFormat,
   }) async {
     final document = pw.Document();
-    final prebuiltHeader = await header(report: company);
+    await header(report: company);
 
     // Load logo
     final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
-    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+    imageData.buffer.asUint8List();
 
     document.addPage(
       pw.MultiPage(
@@ -119,13 +118,13 @@ class CashBalancesPrintSettings extends PrintServices {
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
         orientation: orientation,
-        header: (context) => prebuiltHeader,
-        footer: (context) => footer(
-          report: company,
-          context: context,
-          language: language,
-          logoImage: logoImage,
-        ),
+      //  header: (context) => prebuiltHeader,
+      //   footer: (context) => footer(
+      //     report: company,
+      //     context: context,
+      //     language: language,
+      //     logoImage: logoImage,
+      //   ),
         build: (context) => [
           // Report Title
           _buildTitle(printData, language),
@@ -172,15 +171,16 @@ class CashBalancesPrintSettings extends PrintServices {
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            zText(
-              text: '${tr(text: 'date', tr: language)}: ${printData.reportDate.toFormattedDate}',
-              fontSize: 8,
-              color: pw.PdfColors.grey600,
+            pw.Text(
+               printData.reportDate.toFullDateTime,
+               style: pw.TextStyle(
+                 fontSize: 10,
+               )
             ),
             zText(
-              text: '${tr(text: 'time', tr: language)}: ${_formatTime(printData.reportDate)}',
-              fontSize: 8,
-              color: pw.PdfColors.grey600,
+              text: printData.reportDate.shamsiDateString,
+              fontSize: 12,
+              fontWeight: pw.FontWeight.bold,
             ),
           ],
         ),
@@ -193,14 +193,15 @@ class CashBalancesPrintSettings extends PrintServices {
     return pw.Container(
       padding: const pw.EdgeInsets.all(8),
       decoration: pw.BoxDecoration(
-        border: pw.Border.all(color: pw.PdfColors.grey300, width: 0.5),
+        color: pw.PdfColors.grey50,
+        border: pw.Border.all(color: pw.PdfColors.purple200, width: 0.5),
         borderRadius: pw.BorderRadius.circular(4),
       ),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           zText(
-            text: tr(text: 'summaryByCurrency', tr: language),
+            text: tr(text: 'summary', tr: language),
             fontSize: 12,
             fontWeight: pw.FontWeight.bold,
           ),
@@ -210,7 +211,7 @@ class CashBalancesPrintSettings extends PrintServices {
           pw.Container(
             padding: const pw.EdgeInsets.symmetric(vertical: 4),
             decoration: pw.BoxDecoration(
-              color: pw.PdfColors.grey100,
+              color: pw.PdfColors.grey50,
             ),
             child: pw.Row(
               children: [
@@ -228,7 +229,7 @@ class CashBalancesPrintSettings extends PrintServices {
                     text: tr(text: 'openingBalance', tr: language),
                     fontSize: 8,
                     fontWeight: pw.FontWeight.bold,
-                    textAlign: pw.TextAlign.right,
+                    textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                   ),
                 ),
                 pw.Expanded(
@@ -237,7 +238,7 @@ class CashBalancesPrintSettings extends PrintServices {
                     text: tr(text: 'closingBalance', tr: language),
                     fontSize: 8,
                     fontWeight: pw.FontWeight.bold,
-                    textAlign: pw.TextAlign.right,
+                    textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                   ),
                 ),
                 pw.Expanded(
@@ -246,7 +247,7 @@ class CashBalancesPrintSettings extends PrintServices {
                     text: tr(text: 'cashFlow', tr: language),
                     fontSize: 8,
                     fontWeight: pw.FontWeight.bold,
-                    textAlign: pw.TextAlign.right,
+                    textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                   ),
                 ),
               ],
@@ -312,7 +313,7 @@ class CashBalancesPrintSettings extends PrintServices {
                         zText(
                           text: data.totalOpening.toAmount(),
                           fontSize: 9,
-                          textAlign: pw.TextAlign.right,
+                          textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                         ),
                         pw.SizedBox(width: 4),
                         zText(
@@ -357,11 +358,11 @@ class CashBalancesPrintSettings extends PrintServices {
                           fontSize: 9,
                           fontWeight: pw.FontWeight.bold,
                           color: isPositive ? pw.PdfColors.green700 : pw.PdfColors.red700,
-                          textAlign: pw.TextAlign.right,
+                          textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                         ),
                         pw.SizedBox(width: 4),
                         zText(
-                          text: currency, // Changed from data.symbol to currency
+                          text: currency,
                           fontSize: 8,
                           color: isPositive ? pw.PdfColors.green700 : pw.PdfColors.red700,
                         ),
@@ -651,7 +652,7 @@ class CashBalancesPrintSettings extends PrintServices {
                   text: tr(text: 'opening', tr: language),
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
-                  textAlign: pw.TextAlign.right,
+                  textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                 ),
               ),
               pw.Expanded(
@@ -660,7 +661,7 @@ class CashBalancesPrintSettings extends PrintServices {
                   text: '${tr(text: 'opening', tr: language)} (Sys)',
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
-                  textAlign: pw.TextAlign.right,
+                  textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                 ),
               ),
               pw.Expanded(
@@ -669,7 +670,7 @@ class CashBalancesPrintSettings extends PrintServices {
                   text: tr(text: 'closing', tr: language),
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
-                  textAlign: pw.TextAlign.right,
+                  textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                 ),
               ),
               pw.Expanded(
@@ -678,7 +679,7 @@ class CashBalancesPrintSettings extends PrintServices {
                   text: '${tr(text: 'closing', tr: language)} (Sys)',
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
-                  textAlign: pw.TextAlign.right,
+                  textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                 ),
               ),
               pw.Expanded(
@@ -687,7 +688,7 @@ class CashBalancesPrintSettings extends PrintServices {
                   text: tr(text: 'cashFlow', tr: language),
                   fontSize: 8,
                   fontWeight: pw.FontWeight.bold,
-                  textAlign: pw.TextAlign.right,
+                  textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                 ),
               ),
             ],
@@ -937,7 +938,4 @@ class CashBalancesPrintSettings extends PrintServices {
 
 
 
-  String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}:${date.second.toString().padLeft(2, '0')}';
-  }
 }

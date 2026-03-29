@@ -177,9 +177,6 @@ class _MobileState extends State<_Mobile> {
 }
 
 
-
-
-
 class _Desktop extends StatefulWidget {
   const _Desktop();
 
@@ -312,7 +309,7 @@ class _DesktopState extends State<_Desktop> {
                         maxCrossAxisExtent: 200,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: 0.80,
                       ),
                       itemCount: filteredList.length,
                       itemBuilder: (context, index) {
@@ -320,7 +317,7 @@ class _DesktopState extends State<_Desktop> {
                         return ZCard(
                           image: ImageHelper.stakeholderProfile(
                             imageName: emp.empImage,
-                            size: 46,
+                            size: 60,
                           ),
 
                           title: "${emp.perName} ${emp.perLastName}",
@@ -333,10 +330,6 @@ class _DesktopState extends State<_Desktop> {
                             InfoItem(
                               icon: Icons.apartment,
                               text: emp.empDepartment ?? "-",
-                            ),
-                            InfoItem(
-                              icon: Icons.payments,
-                              text: emp.empSalary?.toAmount() ?? "-",
                             ),
                             InfoItem(
                               icon: Icons.date_range,

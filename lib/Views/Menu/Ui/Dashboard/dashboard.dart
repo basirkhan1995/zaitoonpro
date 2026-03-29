@@ -221,7 +221,7 @@ class _Desktop extends StatelessWidget {
                   if (login.hasPermission(6) ?? false) ...[
                     if (visibility.dashboardClock) ...[
                       const DigitalClock(),
-                      SizedBox(),
+                      SizedBox(height: 3),
                     ],
                   ],
 

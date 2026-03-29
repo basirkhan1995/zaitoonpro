@@ -174,18 +174,20 @@ abstract class PrintServices {
                       tightBounds: true,
                       fontWeight: pw.FontWeight.bold
                   ),
-                  pw.SizedBox(height: 5),
+                  pw.Row(
+                    children: [
+                      if (report.slogan != null && report.slogan!.isNotEmpty) ...[
+                        zText(
+                          text: report.slogan ?? "",
+                          fontSize: 10,
+                          color: pw.PdfColors.grey600,
+                        ),
+                      ],
+                    ]
+                  ),
                   pw.Row(
                       children: [
-                        if (report.comAddress != null && report.comAddress!.isNotEmpty) ...[
-                          zText(
-                            text: report.comAddress ?? "",
-                            fontSize: 10,
-                            color: pw.PdfColors.grey600,
-                          ),
-                        ],
                         if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
-                          verticalDivider(height: 10, width: 1),
                           zText(
                             text: report.compPhone ?? "",
                             fontSize: 9,
@@ -214,7 +216,7 @@ abstract class PrintServices {
               ),
           ],
         ),
-        pw.SizedBox(height: 8),
+        pw.SizedBox(height: 4),
         horizontalDivider(),
       ],
     );
@@ -228,22 +230,7 @@ abstract class PrintServices {
   }) {
     return pw.Column(
       children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.start,
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Container(
-              height: 20,
-              child: pw.Image(logoImage),
-            ),
-            verticalDivider(height: 15, width: 0.6),
-            zText(
-              text: tr(text: 'producedBy', tr: language),
-              fontWeight: pw.FontWeight.normal,
-              fontSize: 8,
-            ),
-          ],
-        ),
+
         pw.SizedBox(height: 3),
         horizontalDivider(),
         pw.SizedBox(height: 3),

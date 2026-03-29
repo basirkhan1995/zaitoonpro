@@ -55,7 +55,7 @@ class _DesktopState extends State<_Desktop> {
   final Map<int, FocusNode> _creditFocusNodes = {};
 
   String? userName;
-  String? _baseCurrency;
+  String? baseCurrency;
   final Map<String, double> _exchangeRates = {};
   final Map<String, double> _originalExchangeRates = {};
   bool _isDisposed = false;
@@ -70,11 +70,11 @@ class _DesktopState extends State<_Desktop> {
     context.read<FxBloc>().add(InitializeFxEvent());
 
     // Set default base currency from company profile
-    final comState = context.read<CompanyProfileBloc>().state;
-    if (comState is CompanyProfileLoadedState) {
-      _baseCurrency = comState.company.comLocalCcy;
-      if (_baseCurrency != null) {
-        context.read<FxBloc>().add(UpdateBaseCurrencyEvent(_baseCurrency));
+    final comState = context.read<AuthBloc>().state;
+    if (comState is AuthenticatedState) {
+      baseCurrency = comState.loginData.company?.comLocalCcy;
+      if (baseCurrency != null) {
+        context.read<FxBloc>().add(UpdateBaseCurrencyEvent(baseCurrency));
       }
     }
   }
@@ -87,7 +87,7 @@ class _DesktopState extends State<_Desktop> {
   }
 
   Future<double> _fetchExchangeRate(String fromCcy, String toCcy) async {
-    if (_baseCurrency == null) return 1.0;
+    if (baseCurrency == null) return 1.0;
 
     final key = '$fromCcy:$toCcy';
     // Don't fetch rate if same currency
@@ -170,8 +170,8 @@ class _DesktopState extends State<_Desktop> {
   }
 
   double _convertToBase(double amount, String currency) {
-    if (_baseCurrency == null || currency == _baseCurrency) return amount;
-    final rate = _getExchangeRate(currency, _baseCurrency!);
+    if (baseCurrency == null || currency == baseCurrency) return amount;
+    final rate = _getExchangeRate(currency, baseCurrency!);
     return amount * rate;
   }
 
@@ -480,7 +480,7 @@ class _DesktopState extends State<_Desktop> {
                       onSingleChanged: (e) {
                         final newCurrency = e?.ccyCode;
                         if (newCurrency != baseCurrency) {
-                          _baseCurrency = newCurrency;
+                          this.baseCurrency = newCurrency;
                           context.read<FxBloc>().add(UpdateBaseCurrencyEvent(newCurrency));
 
                           // Clear exchange rates when base currency changes
@@ -1240,6 +1240,7 @@ class __EntryRowState extends State<_EntryRow> {
                   LoadAccountsFilterEvent(
                     include: '1,2,3,4,5,6,7,8,9,10,11,12',
                     exclude: "10101011",
+                    ccy: baseCurrency
                   ),
                 ),
                 searchFunction: (bloc, query) => bloc.add(

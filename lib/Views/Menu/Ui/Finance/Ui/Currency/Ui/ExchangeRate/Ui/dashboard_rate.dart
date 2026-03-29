@@ -5,6 +5,7 @@ import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Localizations/Bloc/localizations_bloc.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/add_rate.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,12 +24,12 @@ class ExchangeRateDashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CompanyProfileBloc, CompanyProfileState>(
+    return BlocListener<AuthBloc, AuthState>(
       listenWhen: (prev, curr) =>
-      curr is CompanyProfileLoadedState,
+      curr is AuthenticatedState,
       listener: (context, state) {
-        final profile = (state as CompanyProfileLoadedState).company;
-        context.read<ExchangeRateBloc>().add(LoadExchangeRateEvent(profile.comLocalCcy ?? ""));
+        final profile = (state as AuthenticatedState).loginData.company;
+        context.read<ExchangeRateBloc>().add(LoadExchangeRateEvent(profile?.comLocalCcy ?? ""));
       },
       child: ResponsiveLayout(
         mobile: _Mobile(
@@ -594,11 +595,11 @@ class _MobileState extends State<_Mobile> {
   }
 
   void onRefresh({bool showAll = false}) {
-    final companyState = context.read<CompanyProfileBloc>().state;
-    if (companyState is CompanyProfileLoadedState) {
+    final companyState = context.read<AuthBloc>().state;
+    if (companyState is AuthenticatedState) {
       context.read<ExchangeRateBloc>().add(
         LoadExchangeRateEvent(
-          companyState.company.comLocalCcy ?? "",
+          companyState.loginData.company?.comLocalCcy ?? "",
         ),
       );
     }

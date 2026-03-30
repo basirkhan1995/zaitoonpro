@@ -6147,6 +6147,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read'**
   String get read;
+
+  /// No description provided for @productModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Models'**
+  String get productModel;
+
+  /// No description provided for @productBrands.
+  ///
+  /// In en, this message translates to:
+  /// **'Brands'**
+  String get productBrands;
 }
 
 class _AppLocalizationsDelegate

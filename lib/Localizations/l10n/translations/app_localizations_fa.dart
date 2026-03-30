@@ -3099,4 +3099,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get read => 'مشاهده';
+
+  @override
+  String get productModel => 'مدل ها';
+
+  @override
+  String get productBrands => 'برند ها';
 }

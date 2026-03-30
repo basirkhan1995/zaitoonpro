@@ -3102,4 +3102,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get read => 'لوستل';
+
+  @override
+  String get productModel => 'مدلونه';
+
+  @override
+  String get productBrands => 'برندونه';
 }

@@ -48,7 +48,7 @@ class _MobileState extends State<_Mobile> {
   final TextEditingController passConfirm = TextEditingController();
   final TextEditingController usrOwner = TextEditingController();
 
-  int? _selectedRole;
+  int? _selectedRole = 2;
   bool isPasswordSecure = true;
   bool fcpValue = true;
   bool fevValue = true;
@@ -498,7 +498,7 @@ class _MobileState extends State<_Mobile> {
             usrEmail: usrEmail.text,
             usrFcp: fcpValue ? 1 : 0,
             usrFev: fevValue,
-            usrOwner: widget.indId ?? usrOwnerId, // This is fine here because it's inside a method
+            usrOwner: widget.indId ?? usrOwnerId,
             loggedInUser: currentUser(),
           ),
         ),
@@ -525,7 +525,7 @@ class _DesktopState extends State<_Desktop> {
   final TextEditingController passConfirm = TextEditingController();
   final TextEditingController usrOwner = TextEditingController();
 
-  int? _selectedRole;
+  int? _selectedRole = 2;
   bool isPasswordSecure = true;
   bool fcpValue = true;
   bool fevValue = true;

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductBrands/brands.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductCategory/pro_cat_view.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductModel/pro_models.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/ProductUnit/pro_unit.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/products.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/VehicleTypes/vehicle_types.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Features/Other/responsive.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -50,20 +53,38 @@ class _BaseStockSettings extends StatelessWidget {
           value: StockSettingsTabName.products,
           label: locale.products,
           screen: const ProductsView(),
-          icon: Icons.production_quantity_limits_rounded,
+          icon: Icons.local_grocery_store_outlined,
         ),
       if (login.hasPermission(75) ?? false)
         MenuDefinition(
           value: StockSettingsTabName.proCategory,
           label: locale.categoryTitle,
           screen: const ProCatView(),
-          icon: Icons.dialpad_rounded,
+          icon: Icons.apps_rounded,
         ),
       MenuDefinition(
         value: StockSettingsTabName.proUnit,
         label: locale.unit,
         screen: const ProductUnitView(),
-        icon: Icons.category_rounded,
+        icon: Icons.speed_rounded,
+      ),
+      MenuDefinition(
+        value: StockSettingsTabName.brands,
+        label: locale.productBrands,
+        screen: const ProductBrandsView(),
+        icon: Icons.star_border_purple500,
+      ),
+      MenuDefinition(
+        value: StockSettingsTabName.vehicleType,
+        label: locale.vehicles,
+        screen: const VehiclesTypeView(),
+        icon: Icons.motorcycle,
+      ),
+      MenuDefinition(
+        value: StockSettingsTabName.proModel,
+        label: locale.productModel,
+        screen: const ProductModelsView(),
+        icon: Icons.checkroom_rounded,
       ),
     ];
 

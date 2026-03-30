@@ -382,7 +382,7 @@ class _DesktopState extends State<_Desktop> {
                         maxCrossAxisExtent: 200,
                         crossAxisSpacing: 12,
                         mainAxisSpacing: 12,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: 0.78,
                       ),
                       itemBuilder: (context, index) {
                         final usr = filteredList[index];

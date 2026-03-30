@@ -3109,4 +3109,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get read => 'Read';
+
+  @override
+  String get productModel => 'Models';
+
+  @override
+  String get productBrands => 'Brands';
 }

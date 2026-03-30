@@ -1027,5 +1027,7 @@
   "shippings": "Shipping",
   "stakeholderAccount": "Stakeholder Account",
   "currencies": "Currencies",
-  "read": "Read"
+  "read": "Read",
+  "productModel": "Models",
+  "productBrands": "Brands"
 }

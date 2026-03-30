@@ -41,6 +41,7 @@ dependencies:
   permission_handler: ^12.0.1
   universal_html: ^2.3.0
   syncfusion_flutter_xlsio: ^32.2.9
+  window_manager: ^0.5.1
 
 dev_dependencies:
   flutter_test:

@@ -11,6 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/UserDetail/Ui/Log/model/user_log_model.dart';
 import '../../../../../../Features/Date/z_generic_date.dart';
+import '../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../HR/Ui/Users/features/date_range_string.dart';
 import '../../../HR/Ui/Users/features/users_drop.dart';
@@ -1170,28 +1171,32 @@ class _DesktopState extends State<_Desktop> {
                 ),
 
                 Expanded(
-                  child: ZDatePicker(
-                    label: tr.fromDate,
-                    value: fromDate,
-                    onDateChanged: (v) {
+                  child: ZRangeDatePicker(
+                    label: tr.selectDate,
+                    initialStartDate: DateTime.tryParse(fromDate),
+                    initialEndDate: DateTime.tryParse(toDate),
+                    startValue: fromDate,
+                    endValue: toDate,
+                    onStartDateChanged: (startDate) {
                       setState(() {
-                        fromDate = v;
-                        shamsiFromDate = v.toAfghanShamsi;
+                        fromDate = startDate;
                       });
                     },
-                  ),
-                ),
+                    onEndDateChanged: (endDate) {
+                      setState(() {
+                        toDate = endDate;
+                      });
+                      context.read<UserLogBloc>().add(
+                        LoadUserLogEvent(
+                          usrName: usrName,
+                          fromDate: fromDate,
+                          toDate: toDate,
+                        ),
+                      );
+                    },
 
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.toDate,
-                    value: toDate,
-                    onDateChanged: (v) {
-                      setState(() {
-                        toDate = v;
-                        shamsiToDate = v.toAfghanShamsi;
-                      });
-                    },
+                    minYear: 2000,
+                    maxYear: 2100,
                   ),
                 ),
 

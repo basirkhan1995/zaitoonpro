@@ -57,33 +57,6 @@ class _UserDropdownState extends State<UserDropdown> {
       builder: (context, state) {
         final bool isLoading = state is UsersLoadingState;
 
-        Widget buildTitle() {
-          if (isLoading) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.title ?? AppLocalizations.of(context)!.users,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(fontSize: 12),
-                ),
-                const SizedBox(width: 8),
-                const SizedBox(
-                  width: 15,
-                  height: 15,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ],
-            );
-          }
-          return Text(
-            widget.title ?? AppLocalizations.of(context)!.users,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12),
-          );
-        }
-
         if (state is UsersErrorState) {
           return Text('Error: ${state.message}');
         }
@@ -93,7 +66,7 @@ class _UserDropdownState extends State<UserDropdown> {
           children: [
             ZDropdown<UsersModel>(
               disableAction: widget.disableAction,
-              title: '',
+              title: AppLocalizations.of(context)!.users,
               height: widget.height,
               items: state is UsersLoadedState ? state.users : [],
               multiSelect: widget.isMulti,
@@ -115,10 +88,8 @@ class _UserDropdownState extends State<UserDropdown> {
                 widget.onSingleChanged?.call(user);
               },
 
-              isLoading: false,
-              customTitle: (widget.title != null && widget.title!.isNotEmpty)
-                  ? buildTitle()
-                  : const SizedBox.shrink(),
+              isLoading: isLoading,
+
             ),
           ],
         );

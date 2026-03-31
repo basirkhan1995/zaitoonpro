@@ -77,7 +77,7 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
             const SizedBox(height: 12),
             ZSearchField(
               controller: searchController,
-              hint: tr.accNameOrNumber,
+              hint: tr.search,
               title: '',
               end: searchController.text.isNotEmpty
                   ? InkWell(
@@ -173,7 +173,7 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
             const SizedBox(height: 8),
             ZSearchField(
               controller: searchController,
-              hint: tr.accNameOrNumber,
+              hint: tr.search,
               title: '',
               end: searchController.text.isNotEmpty
                   ? InkWell(
@@ -200,31 +200,44 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
         ),
       );
     } else {
-      // Desktop header
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
+      // SIMPLIFIED DESKTOP HEADER
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: color.surface,
+          border: Border(
+            bottom: BorderSide(color: color.outline.withValues(alpha: .1)),
+          ),
+        ),
         child: Row(
-          spacing: 8,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Title
             Expanded(
-              flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tr.categoryTitle, style: textTheme.titleLarge),
+                  Text(
+                    tr.categoryTitle,
+                    style: textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   Text(
                     tr.productCategoryTitle,
-                    style: textTheme.bodySmall?.copyWith(color: color.outline),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: color.onSurface.withValues(alpha: .6),
+                    ),
                   ),
                 ],
               ),
             ),
-            Expanded(
-              flex: 2,
+
+            // Search
+            SizedBox(
+              width: 300,
               child: ZSearchField(
                 controller: searchController,
-                hint: tr.accNameOrNumber,
+                hint: tr.search,
                 title: '',
                 end: searchController.text.isNotEmpty
                     ? InkWell(
@@ -248,14 +261,18 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
                 icon: FontAwesomeIcons.magnifyingGlass,
               ),
             ),
+            const SizedBox(width: 12),
+
+            // Buttons
             ZOutlineButton(
-              width: 110,
+              width: 100,
               icon: Icons.refresh,
               onPressed: onRefresh,
               label: Text(tr.refresh),
             ),
+            const SizedBox(width: 8),
             ZOutlineButton(
-              width: 110,
+              width: 100,
               isActive: true,
               icon: Icons.add,
               onPressed: () {
@@ -265,44 +282,6 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
                 );
               },
               label: Text(tr.newKeyword),
-            ),
-          ],
-        ),
-      );
-    }
-  }
-
-  // Build table header for different screen sizes
-  Widget _buildTableHeader(AppLocalizations tr, TextStyle? titleStyle, ColorScheme color) {
-    if (widget.isMobile) {
-      // Mobile card view doesn't need table header
-      return const SizedBox.shrink();
-    } else if (widget.isTablet) {
-      // Tablet table header
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(tr.categoryTitle, style: titleStyle),
-            ),
-            SizedBox(
-              width: 80,
-              child: Text(tr.status, style: titleStyle, textAlign: TextAlign.right),
-            ),
-          ],
-        ),
-      );
-    } else {
-      // Desktop table header
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-        child: Row(
-          children: [
-            Expanded(child: Text(tr.categoryTitle, style: titleStyle)),
-            SizedBox(
-              width: 60,
-              child: Text(tr.status, style: titleStyle, textAlign: TextAlign.right),
             ),
           ],
         ),
@@ -344,7 +323,7 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        "ID: ${cat.pcId}",
+                        "${tr.id}: ${cat.pcId}",
                         style: textTheme.bodySmall?.copyWith(
                           color: color.primary,
                           fontWeight: FontWeight.bold,
@@ -428,22 +407,57 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
         ),
       );
     } else {
-      // Desktop row view
-      return ListTile(
-        onTap: () {
-          showDialog(
-            context: context,
-            builder: (context) => AddEditProCategoryView(model: cat),
-          );
-        },
-        tileColor: index.isEven ? color.primary.withValues(alpha: .05) : Colors.transparent,
-        leading: Text(cat.pcId.toString()),
-        title: Text(cat.pcName ?? ""),
-        subtitle: Text(cat.pcDescription ?? ""),
-        trailing: StatusBadge(
-          status: cat.pcStatus!,
-          trueValue: tr.active,
-          falseValue: tr.inactive,
+      // SIMPLIFIED DESKTOP ROW VIEW - Just Name and Status
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        decoration: BoxDecoration(
+          color: index.isEven ? color.primary.withValues(alpha: .02) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => AddEditProCategoryView(model: cat),
+            );
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                // ID
+                SizedBox(
+                  width: 50,
+                  child: Text(
+                    cat.pcId.toString(),
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: color.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+
+                // Name
+                Expanded(
+                  child: Text(
+                    cat.pcName ?? "",
+                    style: textTheme.titleMedium,
+                  ),
+                ),
+
+                // Status
+                SizedBox(
+                  width: 100,
+                  child: StatusBadge(
+                    status: cat.pcStatus!,
+                    trueValue: tr.active,
+                    falseValue: tr.inactive,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
@@ -454,7 +468,6 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
     final color = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final tr = AppLocalizations.of(context)!;
-    final titleStyle = textTheme.titleMedium;
 
     return Scaffold(
       body: Column(
@@ -462,11 +475,50 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
           // Header Section
           _buildHeader(tr, textTheme, color),
 
-          if (!widget.isMobile) ...[
-            // Table Header
-            _buildTableHeader(tr, titleStyle, color),
-            const SizedBox(height: 4),
-          ],
+          // SIMPLIFIED DESKTOP TABLE HEADER
+          if (!widget.isMobile && !widget.isTablet)
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: color.primary.withValues(alpha: .05),
+                borderRadius: BorderRadius.circular(2),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 50,
+                    child: Text(
+                      tr.id,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color.primary,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      tr.categoryTitle,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color.primary,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      tr.status,
+                      style: textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: color.primary,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
           // Categories List
           Expanded(

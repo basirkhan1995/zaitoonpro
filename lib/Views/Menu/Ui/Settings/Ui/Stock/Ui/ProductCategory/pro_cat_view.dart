@@ -202,7 +202,7 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
     } else {
       // SIMPLIFIED DESKTOP HEADER
       return Container(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: color.surface,
           border: Border(
@@ -409,7 +409,7 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
     } else {
       // SIMPLIFIED DESKTOP ROW VIEW - Just Name and Status
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 2),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
         decoration: BoxDecoration(
           color: index.isEven ? color.primary.withValues(alpha: .02) : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
@@ -478,7 +478,7 @@ class _BaseProCatViewState extends State<_BaseProCatView> {
           // SIMPLIFIED DESKTOP TABLE HEADER
           if (!widget.isMobile && !widget.isTablet)
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: color.primary.withValues(alpha: .05),

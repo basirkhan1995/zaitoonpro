@@ -1029,5 +1029,10 @@
   "currencies": "اسعار",
   "read": "لوستل",
   "productModel": "مدلونه",
-  "productBrands": "برندونه"
+  "productBrands": "برندونه",
+  "nameAndDescription": "نام و جزئیات کالا",
+  "productImages": "تصاویر کالا",
+  "productColor": "رنگ کالا",
+  "minimumStock": "حد اقل تعداد",
+  "gradeTitle": "کیفیت"
 }

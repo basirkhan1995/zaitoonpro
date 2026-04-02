@@ -3115,4 +3115,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productBrands => 'Brands';
+
+  @override
+  String get nameAndDescription => 'Name & Description';
+
+  @override
+  String get productImages => 'Product Images';
+
+  @override
+  String get productColor => 'Product Color';
+
+  @override
+  String get minimumStock => 'Minimum Stock';
+
+  @override
+  String get gradeTitle => 'Grade';
 }

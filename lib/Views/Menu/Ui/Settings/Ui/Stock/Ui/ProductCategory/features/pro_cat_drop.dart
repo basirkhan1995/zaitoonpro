@@ -100,8 +100,6 @@ class _ProductCategoryDropdownState extends State<ProductCategoryDropdown> {
         selectedItem: _selectedCategory,
         itemLabel: (cat) => cat.pcName ?? "",
         onItemSelected: _onSelect,
-        leadingBuilder: (_) =>
-        const Icon(Icons.local_gas_station, size: 20),
       ),
     );
   }

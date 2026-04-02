@@ -3105,4 +3105,19 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get productBrands => 'برند ها';
+
+  @override
+  String get nameAndDescription => 'نام و جزئیات کالا';
+
+  @override
+  String get productImages => 'تصاویر کالا';
+
+  @override
+  String get productColor => 'رنگ کالا';
+
+  @override
+  String get minimumStock => 'حد اقل تعداد';
+
+  @override
+  String get gradeTitle => 'درجه';
 }

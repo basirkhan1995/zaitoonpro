@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../../../../../Features/Generic/zaitoon_drop.dart';
 
 
@@ -52,7 +53,7 @@ class _GradeDropdownState extends State<GradeDropdown> {
   @override
   Widget build(BuildContext context) {
     return ZDropdown<String>(
-      title: "Grade",
+      title: AppLocalizations.of(context)!.gradeTitle,
       items: _grades,
       selectedItem: _selected,
       itemLabel: (g) => g,

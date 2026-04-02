@@ -1029,5 +1029,10 @@
   "currencies": "Currencies",
   "read": "Read",
   "productModel": "Models",
-  "productBrands": "Brands"
+  "productBrands": "Brands",
+  "nameAndDescription": "Name & Description",
+  "productImages": "Product Images",
+  "productColor": "Product Color",
+  "minimumStock": "Minimum Stock",
+  "gradeTitle": "Grade"
 }

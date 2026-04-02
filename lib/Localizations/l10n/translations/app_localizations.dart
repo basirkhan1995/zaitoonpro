@@ -6159,6 +6159,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Brands'**
   String get productBrands;
+
+  /// No description provided for @nameAndDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Name & Description'**
+  String get nameAndDescription;
+
+  /// No description provided for @productImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Images'**
+  String get productImages;
+
+  /// No description provided for @productColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Color'**
+  String get productColor;
+
+  /// No description provided for @minimumStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum Stock'**
+  String get minimumStock;
+
+  /// No description provided for @gradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Grade'**
+  String get gradeTitle;
 }
 
 class _AppLocalizationsDelegate

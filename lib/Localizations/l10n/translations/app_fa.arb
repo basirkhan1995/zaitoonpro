@@ -1029,5 +1029,10 @@
   "currencies": "ارزها",
   "read": "مشاهده",
   "productModel": "مدل ها",
-  "productBrands": "برند ها"
+  "productBrands": "برند ها",
+  "nameAndDescription": "نام و جزئیات کالا",
+  "productImages": "تصاویر کالا",
+  "productColor": "رنگ کالا",
+  "minimumStock": "حد اقل تعداد",
+  "gradeTitle": "درجه"
 }

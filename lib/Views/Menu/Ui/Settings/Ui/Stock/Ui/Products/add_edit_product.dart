@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
@@ -457,6 +458,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
           return ZFormDialog(
             width: MediaQuery.of(context).size.width *.7,
             icon: Icons.production_quantity_limits_rounded,
+
             onAction: onSubmit,
             title: isEdit ? tr.update.toUpperCase() : tr.newKeyword,
             actionLabel: state is ProductsLoadingState
@@ -483,117 +485,132 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                         spacing: 15,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          ZTextFieldEntitled(
-                            title: tr.productCode,
-                            controller: productCode,
-                            maxLength: 13,
-                            isRequired: true,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return tr.required(tr.productCode);
-                              }
-                              return null;
-                            },
-                          ),
-                          ZTextFieldEntitled(
-                            title: tr.productName,
-                            controller: productName,
-                            isRequired: true,
-                            validator: (value) {
-                              if (value.isEmpty) {
-                                return tr.required(tr.productName);
-                              }
-                              return null;
-                            },
-                          ),
+                          ZCover(
+                            padding: EdgeInsets.all(10),
+                            radius: 10,
+                            child: Column(
+                              spacing: 8,
+                              children: [
+                                SectionTitle(title: "Name & Description"),
+                                ZTextFieldEntitled(
+                                  title: tr.productCode,
+                                  controller: productCode,
+                                  maxLength: 13,
+                                  isRequired: true,
+                                  validator: (value) {
+                                    if (value.isEmpty) {
+                                      return tr.required(tr.productCode);
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                ZTextFieldEntitled(
+                                  title: tr.productName,
+                                  controller: productName,
+                                  isRequired: true,
+                                  validator: (value) {
+                                    if (value.isEmpty) {
+                                      return tr.required(tr.productName);
+                                    }
+                                    return null;
+                                  },
+                                ),
 
-                          SectionTitle(title: "Product Information"),
-                          Column(
-                            spacing: 15,
-                            children: [
-                              Row(
-                                spacing: 8,
-                                children: [
-                                  Expanded(
-                                    child: GradeDropdown(
-                                      selectedGrade: grade,
-                                      onGradeSelected: (grade) {
-
-                                      },
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: ZTextFieldEntitled(
-                                      title: tr.unit,
-                                      controller: productUnit,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: ZTextFieldEntitled(
-                                      title: tr.madeIn,
-                                      controller: madeIn,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                spacing: 8,
-                                children: [
-                                  Expanded(
-                                    child: ZTextFieldEntitled(
-                                      title: "Brand",
-                                      hint: "e.g Kaihan, Amar",
-                                      controller: productBrand,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: ZTextFieldEntitled(
-                                      title: "Model",
-                                      hint: "e.g Honda, Yamaha, Shahab",
-                                      controller: productModel,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: ProductCategoryDropdown(
-                                      selectedCategoryId: catId,
-                                      onCategorySelected: (cat) {
-                                        _selectedCategory = cat;
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Row(
-                                spacing: 8,
-                                children: [
-                                  Expanded(
-                                    child: ZTextFieldEntitled(
-                                      title: "Color",
-                                      hint: "e.g Black, White",
-                                      controller: productColor,
-                                    ),
-                                  ),
-                                  Expanded(
-                                    child: ZTextFieldEntitled(
-                                      title: "Low Stock",
-                                      hint: "e.g 5, 10",
-                                      controller: lowStock,
-                                    ),
-                                  ),
-
-                                ],
-                              ),
-                            ],
+                                ZTextFieldEntitled(
+                                  title: tr.details,
+                                  controller: details,
+                                  keyboardInputType: TextInputType.multiline,
+                                  maxLength: 100,
+                                ),
+                                SizedBox()
+                              ],
+                            ),
                           ),
 
+                          ZCover(
+                            padding: EdgeInsets.all(10),
+                            radius: 10,
+                            child: Column(
+                              spacing: 15,
+                              children: [
+                                SectionTitle(title: "Product Information"),
+                                Row(
+                                  spacing: 8,
+                                  children: [
+                                    Expanded(
+                                      child: GradeDropdown(
+                                        selectedGrade: grade,
+                                        onGradeSelected: (grade) {
 
+                                        },
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ZTextFieldEntitled(
+                                        title: tr.unit,
+                                        controller: productUnit,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ZTextFieldEntitled(
+                                        title: tr.madeIn,
+                                        controller: madeIn,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  spacing: 8,
+                                  children: [
+                                    Expanded(
+                                      child: ZTextFieldEntitled(
+                                        title: "Brand",
+                                        hint: "e.g Kaihan, Amar",
+                                        controller: productBrand,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ZTextFieldEntitled(
+                                        title: "Model",
+                                        hint: "e.g Honda, Yamaha, Shahab",
+                                        controller: productModel,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ProductCategoryDropdown(
+                                        selectedCategoryId: catId,
+                                        onCategorySelected: (cat) {
+                                          _selectedCategory = cat;
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  spacing: 8,
+                                  children: [
+                                    Expanded(
+                                      child: ZTextFieldEntitled(
+                                        title: "Color",
+                                        hint: "e.g Black, White",
+                                        controller: productColor,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: ZTextFieldEntitled(
+                                        title: "Minimum Stock",
+                                        hint: "e.g 5, 10",
+                                        controller: lowStock,
+                                      ),
+                                    ),
 
-                          ZTextFieldEntitled(
-                            title: tr.details,
-                            controller: details,
-                            keyboardInputType: TextInputType.multiline,
-                            maxLength: 100,
+                                  ],
+                                ),
+                                SizedBox()
+                              ],
+                            ),
                           ),
+
                         ],
                       ),
                     ),
@@ -601,7 +618,66 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                       flex: 3,
                       child: Column(
                         children: [
-                          SectionTitle(title: "Product Images"),
+                          Expanded(
+                            child: ZCover(
+                              padding: EdgeInsets.all(10),
+
+                              radius: 10,
+                              child: Column(
+                                children: [
+                                  SectionTitle(title: "Product Images"),
+                                  Text("Image"),
+
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          Expanded(
+                            child: ZCover(
+                              padding: EdgeInsets.all(10),
+                              margin: EdgeInsets.all(5),
+                              radius: 10,
+                              child: Column(
+                                spacing: 10,
+                                children: [
+                                  SectionTitle(title: "Shipping Information"),
+                                  ZTextFieldEntitled(
+                                    title: "Weight",
+                                    hint: "e.g 30 Kg",
+                                    controller: productBrand,
+                                  ),
+                                  Row(
+                                    spacing: 8,
+                                    children: [
+                                      Expanded(
+                                        child: ZTextFieldEntitled(
+                                          title: "Length",
+                                          hint: "e.g 14 cm",
+                                          controller: productBrand,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: ZTextFieldEntitled(
+                                          title: "Breadth",
+                                          hint: "e.g 12 cm",
+                                          controller: productModel,
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: ZTextFieldEntitled(
+                                          title: "Width",
+                                          hint: "e.g 12 cm",
+                                          controller: productModel,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                ],
+                              ),
+                            ),
+                          )
                         ],
                       ),
                     )

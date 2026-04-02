@@ -74,7 +74,7 @@ class ZTextFieldEntitled extends StatelessWidget {
                       children: [
                         Text(
                           title,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12),
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12,color: Theme.of(context).colorScheme.outline),
                         ),
                         isRequired
                             ? Text(

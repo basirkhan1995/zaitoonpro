@@ -271,6 +271,7 @@ class MyApp extends StatelessWidget {
                   ): () => ZNavigator.goto(TrialBalanceView()),
                 },
                 child: MaterialApp(
+
                     navigatorKey: ZNavigator.navigatorKey,
                     debugShowCheckedModeBanner: false,
                     title: 'Zaitoon System',

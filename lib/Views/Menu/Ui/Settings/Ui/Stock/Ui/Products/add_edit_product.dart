@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
@@ -53,13 +54,13 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
   final productColor = TextEditingController();
   final productModel = TextEditingController();
   final productBrand = TextEditingController();
-
-  final lowStock = TextEditingController();
+  final minimumStock = TextEditingController();
 
   final l = TextEditingController();
   final w = TextEditingController();
   final b = TextEditingController();
   final weight = TextEditingController();
+  final salePricePercentage = TextEditingController();
 
   final details = TextEditingController();
   String? productGrade = "A";
@@ -76,6 +77,19 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       madeIn.text = widget.model?.proMadeIn ?? "";
       details.text = widget.model?.proDetails ?? "";
       catId = widget.model?.proCategory;
+      minimumStock.text = widget.model?.proLsNqty.toString() ?? "";
+      productUnit.text = widget.model?.proUnit ?? "";
+      productColor.text = widget.model?.proColor ?? "";
+      productBrand.text = widget.model?.proBrand ?? "";
+      productGrade = widget.model?.proGrade ?? "";
+      productModel.text = widget.model?.proModel ?? "";
+
+      w.text = widget.model?.weight?.toStringAsFixed(2) ?? "";
+      l.text = widget.model?.length?.toStringAsFixed(2) ?? "";
+      b.text = widget.model?.breadth?.toStringAsFixed(2) ?? "";
+      weight.text = widget.model?.breadth?.toStringAsFixed(2) ?? "";
+
+      salePricePercentage.text = widget.model?.salePricePercentage?.toStringAsFixed(1) ?? "";
     }
     if (widget.model == null) {
       productCode.text = generateProductCode();
@@ -111,6 +125,17 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       proMadeIn: madeIn.text,
       proCategory: _selectedCategory?.pcId,
       proDetails: details.text,
+      proBrand: productBrand.text,
+      proModel: productModel.text,
+      proColor: productColor.text,
+      proGrade: productGrade,
+      proLsNqty: int.tryParse(minimumStock.text),
+      proUnit: productUnit.text,
+      width: double.tryParse(w.text),
+      length: double.tryParse(l.text),
+      breadth: double.tryParse(b.text),
+      weight: double.tryParse(weight.text),
+      salePricePercentage: double.tryParse(salePricePercentage.text),
       proStatus: 1,
     );
     if (widget.model != null) {
@@ -565,6 +590,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                             child: ZTextFieldEntitled(
                                               title: tr.unit,
                                               hint: "مثال، دانه، جوره، قطی",
+                                              suggestions: ["دانه", "جوره", "حلقه","قطی","سیت"],
+                                              showClearButton: true,
                                               controller: productUnit,
                                             ),
                                           ),
@@ -585,6 +612,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                             child: ZTextFieldEntitled(
                                               title: tr.productBrands,
                                               hint: "مثال، کیهان، امر، کمپنی",
+                                              suggestions: ["کیهان", "امر", "کمپنی"],
+                                              showClearButton: true,
                                               controller: productBrand,
                                             ),
                                           ),
@@ -592,6 +621,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                             child: ZTextFieldEntitled(
                                               title: tr.productModel,
                                               hint: "مثال، هندا، اسکارت، دوپلکه",
+                                              suggestions: ["هندا", "اسکارت", "دوپلکه"],
+                                              showClearButton: true,
                                               controller: productModel,
                                             ),
                                           ),
@@ -599,6 +630,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                             child: ZTextFieldEntitled(
                                               title: tr.madeIn,
                                               hint: "مثال، چین، پاکستان، ایران",
+                                              suggestions: ["چین", "پاکستان", "ایران"],
+                                              showClearButton: true,
                                               controller: madeIn,
                                             ),
                                           ),
@@ -611,6 +644,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                             child: ZTextFieldEntitled(
                                               title: tr.productColor,
                                               hint: "مثال، سفید، سیاه",
+                                              suggestions: ["سیاه", "سفید", "سرخ","جگری","زرد"],
+                                              showClearButton: true,
                                               controller: productColor,
                                             ),
                                           ),
@@ -618,10 +653,34 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                             child: ZTextFieldEntitled(
                                               title: tr.minimumStock,
                                               hint: "مثال، 10 یا 20",
-                                              controller: lowStock,
+                                              controller: minimumStock,
                                             ),
                                           ),
-                                  
+                                          Expanded(
+                                            child: ZTextFieldEntitled(
+                                              title: tr.salePrice,
+                                              hint: "%20, 30%",
+                                              controller: salePricePercentage,
+                                              end: Text("%"),
+                                              inputFormat: [
+                                                FilteringTextInputFormatter.digitsOnly,
+                                                LengthLimitingTextInputFormatter(3),
+                                              ],
+                                              validator: (value) {
+                                                // If empty → it's optional → no validation
+                                                if (value == null || value.isEmpty) {
+                                                  return null;
+                                                }
+
+                                                // If user entered something → validate it
+                                                if (!RegExp(r'^\d{1,3}$').hasMatch(value)) {
+                                                  return 'Only up to 3 digits allowed';
+                                                }
+
+                                                return null;
+                                              },
+                                            ),
+                                          ),
                                         ],
                                       ),
                                       SizedBox()

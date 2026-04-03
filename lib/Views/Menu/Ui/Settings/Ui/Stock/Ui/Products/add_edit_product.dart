@@ -55,6 +55,12 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
   final productBrand = TextEditingController();
 
   final lowStock = TextEditingController();
+
+  final l = TextEditingController();
+  final w = TextEditingController();
+  final b = TextEditingController();
+  final weight = TextEditingController();
+
   final details = TextEditingController();
   String? productGrade = "A";
 
@@ -634,6 +640,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                         spacing: 10,
                         children: [
                           Expanded(
+                            flex: 3,
                             child: ZCover(
                               radius: 8,
                               child: SingleChildScrollView(
@@ -649,7 +656,8 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                             ),
                           ),
 
-                          Expanded(
+                          SizedBox(
+                            height: 205,
                             child: ZCover(
                               radius: 8,
                               child: SingleChildScrollView(
@@ -661,31 +669,31 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                       SectionTitle(title: tr.shippingDetails),
                                       ZTextFieldEntitled(
                                         title: tr.weight,
-                                        hint: "e.g 30 Kg",
-                                        controller: productBrand,
+                                        hint: "30 Kg",
+                                        controller: weight,
                                       ),
                                       Row(
                                         spacing: 8,
                                         children: [
                                           Expanded(
                                             child: ZTextFieldEntitled(
-                                              title: "Length",
-                                              hint: "e.g 14 cm",
-                                              controller: productBrand,
+                                              title: tr.lenghtTitle,
+                                              hint: "12 cm",
+                                              controller: l,
                                             ),
                                           ),
                                           Expanded(
                                             child: ZTextFieldEntitled(
-                                              title: "Breadth",
-                                              hint: "e.g 12 cm",
-                                              controller: productModel,
+                                              title: tr.breadth,
+                                              hint: "12 cm",
+                                              controller: b,
                                             ),
                                           ),
                                           Expanded(
                                             child: ZTextFieldEntitled(
-                                              title: "Width",
-                                              hint: "e.g 12 cm",
-                                              controller: productModel,
+                                              title: tr.widthTitle,
+                                              hint: "12 cm",
+                                              controller: w,
                                             ),
                                           ),
                                         ],

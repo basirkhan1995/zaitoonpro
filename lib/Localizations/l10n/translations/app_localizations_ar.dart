@@ -3123,4 +3123,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gradeTitle => 'کیفیت';
+
+  @override
+  String get widthTitle => 'عرض';
+
+  @override
+  String get lenghtTitle => 'اوږدوالی';
+
+  @override
+  String get breadth => 'ارتفاع';
 }

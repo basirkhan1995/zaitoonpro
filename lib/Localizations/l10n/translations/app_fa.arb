@@ -1034,5 +1034,8 @@
   "productImages": "تصاویر کالا",
   "productColor": "رنگ کالا",
   "minimumStock": "حد اقل تعداد",
-  "gradeTitle": "درجه"
+  "gradeTitle": "درجه",
+  "widthTitle": "عرض",
+  "lenghtTitle": "طول",
+  "breadth": "ارتفاع"
 }

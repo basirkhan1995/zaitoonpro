@@ -3130,4 +3130,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gradeTitle => 'Grade';
+
+  @override
+  String get widthTitle => 'Width';
+
+  @override
+  String get lenghtTitle => 'length';
+
+  @override
+  String get breadth => 'Breadth';
 }

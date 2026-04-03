@@ -6189,6 +6189,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Grade'**
   String get gradeTitle;
+
+  /// No description provided for @widthTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Width'**
+  String get widthTitle;
+
+  /// No description provided for @lenghtTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'length'**
+  String get lenghtTitle;
+
+  /// No description provided for @breadth.
+  ///
+  /// In en, this message translates to:
+  /// **'Breadth'**
+  String get breadth;
 }
 
 class _AppLocalizationsDelegate

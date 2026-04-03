@@ -3120,4 +3120,13 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get gradeTitle => 'درجه';
+
+  @override
+  String get widthTitle => 'عرض';
+
+  @override
+  String get lenghtTitle => 'طول';
+
+  @override
+  String get breadth => 'ارتفاع';
 }

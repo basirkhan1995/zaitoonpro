@@ -1034,5 +1034,8 @@
   "productImages": "Product Images",
   "productColor": "Product Color",
   "minimumStock": "Minimum Stock",
-  "gradeTitle": "Grade"
+  "gradeTitle": "Grade",
+  "widthTitle": "Width",
+  "lenghtTitle": "length",
+  "breadth": "Breadth"
 }

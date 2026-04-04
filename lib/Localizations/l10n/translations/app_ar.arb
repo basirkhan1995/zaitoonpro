@@ -610,7 +610,7 @@
   "supplier": "فروشنده",
   "purchaseEntry": "بل خرید",
   "unitPrice": "قیمت واحد",
-  "qty": "مقدار",
+  "qty": "تعداد",
   "addItem": "توکی اضافه",
   "invoiceNumber": "نمبر بل #",
   "grandTotal": "ټولیزه مجموعه",
@@ -1037,5 +1037,8 @@
   "gradeTitle": "کیفیت",
   "widthTitle": "عرض",
   "lenghtTitle": "اوږدوالی",
-  "breadth": "ارتفاع"
+  "breadth": "ارتفاع",
+  "discountTitle": "تخفیف",
+  "box": "جعبه",
+  "pcs": "مقدار"
 }

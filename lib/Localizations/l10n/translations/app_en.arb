@@ -1037,5 +1037,8 @@
   "gradeTitle": "Grade",
   "widthTitle": "Width",
   "lenghtTitle": "length",
-  "breadth": "Breadth"
+  "breadth": "Breadth",
+  "discountTitle": "Discount",
+  "box": "Box",
+  "pcs": "Pcs"
 }

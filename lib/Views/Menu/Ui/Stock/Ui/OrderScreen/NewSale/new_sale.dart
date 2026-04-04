@@ -67,6 +67,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   // Track controllers for each row
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};
+  final Map<String, TextEditingController> _pcsControllers = {};
+  final Map<String, TextEditingController> _discountControllers = {};
   int? _selectedAccountNumber;
 
   @override
@@ -437,7 +439,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           )),
           Expanded(child: Text(locale.products, style: title)),
           SizedBox(width: 80, child: Text(locale.qty, style: title)),
+          SizedBox(width: 80, child: Text(locale.pcs, style: title)),
           SizedBox(width: 120, child: Text(locale.unitPrice, style: title)),
+          SizedBox(width: 120, child: Text(locale.discountTitle, style: title)),
           SizedBox(width: 120, child: Text(locale.totalTitle, style: title)),
           SizedBox(width: 150, child: Text(locale.storage, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
@@ -463,6 +467,14 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
     final salePriceController = _priceControllers.putIfAbsent(
       "sale_${item.rowId}", () => TextEditingController(text: item.salePrice != null && item.salePrice! > 0 ? item.salePrice!.toAmount() : ''),
+    );
+
+    final discountController = _discountControllers.putIfAbsent(
+      "sale_${item.rowId}", () => TextEditingController(text: item.discount != null && item.discount! > 0 ? item.discount!.toAmount() : ''),
+    );
+
+    final pcsController = _pcsControllers.putIfAbsent(
+      "sale_${item.rowId}", () => TextEditingController(text: item.pcs != null && item.pcs! > 0 ? item.pcs!.toAmount() : ''),
     );
 
     final storageController = TextEditingController(text: item.storageName);
@@ -499,11 +511,14 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           productName: '',
           storageId: null,
           storageName: '',
+          discount: 0,
           purPrice: 0,
           salePrice: 0,
         ));
 
         salePriceController.clear();
+        pcsController.clear();
+        discountController.clear();
         storageController.clear();
       }
     }
@@ -600,6 +615,45 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
               ),
 
+              // numbers Per Qty
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  controller: pcsController,
+                  //focusNode: nodes[2],
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  decoration: InputDecoration(
+                    hintText: tr.pcs,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    if (value.isEmpty) {
+                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
+                        rowId: item.rowId,
+                        qty: 0,
+                      ));
+                      return;
+                    }
+                    final qty = int.tryParse(value) ?? 0;
+                    if (qty > 0) {
+                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
+                        rowId: item.rowId,
+                        qty: qty,
+                      ));
+                    }
+                  },
+                  onSubmitted: (_) {
+                    // On Enter, move to sale price field
+                    nodes[2].requestFocus();
+                  },
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+
               // Sale Price (Editable)
               SizedBox(
                 width: 120,
@@ -629,6 +683,50 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         UpdateSaleItemEvent(
                           rowId: item.rowId,
                           salePrice: parsed,
+                        ),
+                      );
+                    }
+                  },
+                  onSubmitted: (_) {
+                    // On Enter, create new row
+                    context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
+
+                    // Focus will be handled by _focusNewRowIfNeeded after state update
+                    // No need to request focus here
+                  },
+                  textInputAction: TextInputAction.done,
+                ),
+              ),
+
+              //Discount Row
+              SizedBox(
+                width: 120,
+                child: TextField(
+                  controller: discountController,
+                  focusNode: nodes[3],
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: tr.discountTitle,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    if (value.isEmpty) {
+                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
+                        rowId: item.rowId,
+                        discount: 0,
+                      ));
+                      return;
+                    }
+                    final parsed = double.tryParse(value);
+                    if (parsed != null && parsed > 0) {
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(
+                          rowId: item.rowId,
+                          discount: parsed,
                         ),
                       );
                     }
@@ -678,7 +776,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 width: 150,
                 child: TextField(
                   controller: storageController,
-                  focusNode: nodes[3],
+                  focusNode: nodes[4],
                   readOnly: true,
                   decoration: InputDecoration(
                     hintText: tr.storage,
@@ -740,7 +838,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         FocusNode(), // Product (index 0)
         FocusNode(), // Quantity (index 1)
         FocusNode(), // Sale Price (index 2)
-        FocusNode(), // Storage (index 3)
+        FocusNode(), // discount (index 3)
+        FocusNode(), // Storage (index 4)
       ]);
     }
 

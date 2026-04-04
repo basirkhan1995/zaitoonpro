@@ -3139,4 +3139,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get breadth => 'Breadth';
+
+  @override
+  String get discountTitle => 'Discount';
+
+  @override
+  String get box => 'Box';
+
+  @override
+  String get pcs => 'Pcs';
 }

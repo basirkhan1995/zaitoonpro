@@ -4,6 +4,8 @@ class SaleInvoiceItem {
   String productId;
   String productName;
   int qty;
+  int? pcs;
+  double? discount;
   double? purPrice;
   double? salePrice;
   int storageId;
@@ -13,6 +15,8 @@ class SaleInvoiceItem {
     required this.productId,
     required this.productName,
     required this.qty,
+    this.pcs,
+    this.discount,
     this.purPrice,
     this.salePrice,
     required this.storageName,
@@ -26,6 +30,8 @@ class SaleInvoiceRecord {
   final int proID;
   final int stgID;
   final double quantity;
+  final double? pcs;
+  final double? discount;
   final double? pPrice;
   final double? sPrice;
 
@@ -33,6 +39,8 @@ class SaleInvoiceRecord {
     required this.proID,
     required this.stgID,
     required this.quantity,
+    this.pcs,
+    this.discount,
     this.pPrice,
     this.sPrice,
   });
@@ -41,6 +49,8 @@ class SaleInvoiceRecord {
     'stkProduct': proID,
     'stkStorage': stgID,
     'stkQuantity': quantity,
+    'pcs':pcs,
+    'discount':discount,
     'stkPurPrice': pPrice,
     'stkSalePrice': sPrice,
   };

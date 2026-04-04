@@ -1831,7 +1831,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unitPrice => 'قیمت واحد';
 
   @override
-  String get qty => 'مقدار';
+  String get qty => 'تعداد';
 
   @override
   String get addItem => 'توکی اضافه';
@@ -3132,4 +3132,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get breadth => 'ارتفاع';
+
+  @override
+  String get discountTitle => 'تخفیف';
+
+  @override
+  String get box => 'جعبه';
+
+  @override
+  String get pcs => 'مقدار';
 }

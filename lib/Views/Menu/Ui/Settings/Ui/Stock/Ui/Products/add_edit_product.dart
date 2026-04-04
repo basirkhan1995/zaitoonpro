@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
@@ -84,12 +85,12 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       productGrade = widget.model?.proGrade ?? "";
       productModel.text = widget.model?.proModel ?? "";
 
-      w.text = widget.model?.weight?.toStringAsFixed(2) ?? "";
-      l.text = widget.model?.length?.toStringAsFixed(2) ?? "";
-      b.text = widget.model?.breadth?.toStringAsFixed(2) ?? "";
-      weight.text = widget.model?.breadth?.toStringAsFixed(2) ?? "";
+      w.text = widget.model?.proWeight?.toAmount() ?? "";
+      l.text = widget.model?.proLength?.toAmount() ?? "";
+      b.text = widget.model?.proBreadth?.toAmount() ?? "";
+      weight.text = widget.model?.proWeight?.toAmount() ?? "";
 
-      salePricePercentage.text = widget.model?.salePricePercentage?.toStringAsFixed(1) ?? "";
+      salePricePercentage.text = widget.model?.proSpp?.toAmount() ?? "";
     }
     if (widget.model == null) {
       productCode.text = generateProductCode();
@@ -131,11 +132,11 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       proGrade: productGrade,
       proLsNqty: int.tryParse(minimumStock.text),
       proUnit: productUnit.text,
-      width: double.tryParse(w.text),
-      length: double.tryParse(l.text),
-      breadth: double.tryParse(b.text),
-      weight: double.tryParse(weight.text),
-      salePricePercentage: double.tryParse(salePricePercentage.text),
+      proWidth: w.text,
+      proLength: l.text,
+      proBreadth: b.text,
+      proWeight: weight.text,
+      proSpp: weight.text,
       proStatus: 1,
     );
     if (widget.model != null) {

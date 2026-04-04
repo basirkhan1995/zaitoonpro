@@ -610,7 +610,7 @@
   "supplier": "فروشنده",
   "purchaseEntry": "بل خرید",
   "unitPrice": "قیمت واحد",
-  "qty": "مقدار",
+  "qty": "تعداد",
   "addItem": "افزودن قلم",
   "invoiceNumber": "نمبر بل #",
   "grandTotal": "جمع کل",
@@ -1037,5 +1037,8 @@
   "gradeTitle": "درجه",
   "widthTitle": "عرض",
   "lenghtTitle": "طول",
-  "breadth": "ارتفاع"
+  "breadth": "ارتفاع",
+  "discountTitle": "تخفیف",
+  "box": "جعبه",
+  "pcs": "مقدار"
 }

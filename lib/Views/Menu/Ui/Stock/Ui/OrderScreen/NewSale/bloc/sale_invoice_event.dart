@@ -42,6 +42,8 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
   final String? productId;
   final String? productName;
   final int? qty;
+  final int? pcs;
+  final double? discount;
   final double? purPrice;
   final double? salePrice;
   final int? storageId;
@@ -52,6 +54,8 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     this.productId,
     this.productName,
     this.qty,
+    this.discount,
+    this.pcs,
     this.purPrice,
     this.salePrice,
     this.storageId,
@@ -64,6 +68,8 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     productId,
     productName,
     qty,
+    discount,
+    pcs,
     purPrice,
     salePrice,
     storageId,

@@ -94,29 +94,32 @@ class ZTextFieldEntitled extends StatelessWidget {
             keyboardInputType == TextInputType.multiline ? 3 : 1,
             decoration: InputDecoration(
               filled: !isEnabled,
-              suffixIcon: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (showClearButton && value.text.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          ctrl.clear();
-                          if (onChanged != null) onChanged!('');
-                        },
-                        child: const Icon(Icons.close, size: 18),
+              suffixIcon: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (showClearButton && value.text.isNotEmpty)
+                    GestureDetector(
+                      onTap: () {
+                        ctrl.clear();
+                        if (onChanged != null) onChanged!('');
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        child: Icon(Icons.close, size: 18),
                       ),
+                    ),
 
-                    // ✅ FIXED LINE
-                    ?trailing,
-                  ],
-                ),
+                  if (trailing != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 4),
+                      child: trailing!,
+                    ),
+                ],
               ),
               suffix: end,
               counterText: '',
               suffixIconConstraints:
-              const BoxConstraints(maxWidth: 35, maxHeight: 35),
+              const BoxConstraints(maxWidth: 80, maxHeight: 40),
 
               disabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(3),

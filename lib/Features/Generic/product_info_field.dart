@@ -46,7 +46,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final EdgeInsetsGeometry? padding;
   final bool showClearButton;
   final bool showAllOnFocus;
-  final bool openOverlayOnFocus; // Add this parameter
+  final bool openOverlayOnFocus;
 
   const ProductSearchField({
     super.key,
@@ -76,7 +76,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     this.padding,
     this.showClearButton = true,
     this.showAllOnFocus = true,
-    this.openOverlayOnFocus = false, // Add this with default value
+    this.openOverlayOnFocus = false,
   });
 
   @override
@@ -124,6 +124,22 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     super.dispose();
   }
 
+  void _closeOverlayAndReset() {
+    _removeOverlay();
+    setState(() {
+      _highlightedIndex = -1;
+      _currentHighlightedItem = null;
+    });
+    // Unfocus the text field to ensure proper cleanup
+    _focusNode.unfocus();
+    // Refocus keyboard listener for future interactions
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _keyboardListenerFocusNode.requestFocus();
+      }
+    });
+  }
+
   void _onFocusChange() {
     if (!mounted) return;
 
@@ -167,7 +183,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       // Don't remove overlay if mouse is hovering over it
       if (!_isOverlayHovered) {
         Future.delayed(const Duration(milliseconds: 200), () {
-          if (mounted && !_focusNode.hasFocus && !_isOverlayHovered) {
+          if (mounted && !_focusNode.hasFocus && !_isOverlayHovered && _overlayEntry != null) {
             _removeOverlay();
           }
         });
@@ -221,305 +237,351 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     // Make overlay full screen
     final overlayWidth = overlay.size.width;
     final overlayHeight = overlay.size.height;
-    const detailsPanelWidth = 400.0;
+
+    // Get screen dimensions using MediaQuery
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Define panel dimensions as percentage of screen
+    const double panelWidthPercentage = 0.85;  // 85% of screen width
+    const double panelHeightPercentage = 0.75; // 75% of screen height
+
+    // Calculate panel dimensions
+    double panelWidth = screenWidth * panelWidthPercentage;
+    double panelHeight = screenHeight * panelHeightPercentage;
+
+    // Optional: Set maximum limits
+    const double maxPanelWidth = 1400;
+    const double maxPanelHeight = 900;
+    const double minPanelWidth = 800;
+    const double minPanelHeight = 500;
+
+    panelWidth = panelWidth.clamp(minPanelWidth, maxPanelWidth);
+    panelHeight = panelHeight.clamp(minPanelHeight, maxPanelHeight);
+
+    // Calculate details panel width (30% of main panel or fixed)
+    const double detailsPanelWidthPercentage = 0.35; // 35% of main panel
+    final double detailsPanelWidth = panelWidth * detailsPanelWidthPercentage;
+    final double mainPanelWidth = panelWidth - detailsPanelWidth;
 
     _overlayEntry = OverlayEntry(
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => Positioned(
-          left: 0,
-          top: 0,
-          width: overlayWidth,
-          height: overlayHeight,
-          child: MouseRegion(
-            onEnter: (_) {
-              _isOverlayHovered = true;
-            },
-            onExit: (_) {
-              _isOverlayHovered = false;
-              // Refocus keyboard listener when mouse leaves
-              _keyboardListenerFocusNode.requestFocus();
-            },
-            child: Material(
-              elevation: 8,
-              color: Colors.black.withValues(alpha: .5),
-              child: Center(
-                child: Container(
-                  width: 1005,
-                  height: 600,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withValues(alpha: .5)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: .2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
+        builder: (context, setState) => Material(
+          color: Colors.transparent,
+          child: Stack(
+            children: [
+              // Background click to close
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {
+                    _closeOverlayAndReset();
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    color: Colors.black.withValues(alpha: .5),
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Row(
-                      children: [
-                        // Left side - Search Results
-                        Container(
-                          width: 1000 - detailsPanelWidth,
-                          decoration: BoxDecoration(
-                            border: Border(
-                              right: BorderSide(
-                                color: Theme.of(context).colorScheme.outline.withValues(alpha: .2),
-                                width: 1,
-                              ),
-                            ),
+                ),
+              ),
+              // Modal content
+              Positioned(
+                left: 0,
+                top: 0,
+                width: overlayWidth,
+                height: overlayHeight,
+                child: Center(
+                  child: MouseRegion(
+                    onEnter: (_) {
+                      _isOverlayHovered = true;
+                    },
+                    onExit: (_) {
+                      _isOverlayHovered = false;
+                      _keyboardListenerFocusNode.requestFocus();
+                    },
+                    child: Container(
+                      width: panelWidth,    // Use MediaQuery-based width
+                      height: panelHeight,  // Use MediaQuery-based height
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: .5)),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: .2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
                           ),
-                          child: Column(
-                            children: [
-                              // Header with search query
-                              Container(
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
-                                    ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Row(
+                          children: [
+                            // Left side - Search Results
+                            Container(
+                              width: mainPanelWidth,  // Use calculated width
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  right: BorderSide(
+                                    color: Theme.of(context).colorScheme.outline.withValues(alpha: .2),
+                                    width: 1,
                                   ),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      Icons.search,
-                                      size: 20,
-                                      color: Theme.of(context).colorScheme.primary,
+                              ),
+                              child: Column(
+                                children: [
+                                  // Header with search query
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
+                                        ),
+                                      ),
                                     ),
-                                    const SizedBox(width: 8),
-                                    Expanded(
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          children: [
-                                            TextSpan(
-                                              text: '${AppLocalizations.of(context)!.searchResultTitle} ',
-                                              style: TextStyle(
-                                                color: Theme.of(context).colorScheme.primary,
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.search,
+                                          size: 20,
+                                          color: Theme.of(context).colorScheme.primary,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Expanded(
+                                          child: RichText(
+                                            text: TextSpan(
+                                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
                                               ),
-                                            ),
-                                            TextSpan(
-                                              text: '${AppLocalizations.of(context)!.forTitle} ',
-                                              style: TextStyle(
-                                                color: Theme.of(context).colorScheme.outline,
-                                                fontWeight: FontWeight.normal,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '"${widget.controller.text}"',
-                                              style: TextStyle(
-                                                color: Theme.of(context).colorScheme.primary,
-                                                fontStyle: FontStyle.italic,
-                                              ),
-                                            ),
-                                            if (!_isLoading && _currentSuggestions.isNotEmpty)
-                                              TextSpan(
-                                                text: ' (${_currentSuggestions.length})',
-                                                style: TextStyle(
-                                                  color: Theme.of(context).colorScheme.outline,
-                                                  fontWeight: FontWeight.normal,
+                                              children: [
+                                                TextSpan(
+                                                  text: '${AppLocalizations.of(context)!.searchResultTitle} ',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.primary,
+                                                  ),
                                                 ),
-                                              ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                    if (_isLoading)
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 8),
-                                        child: SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Theme.of(context).colorScheme.primary,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
+                                                TextSpan(
+                                                  text: '${AppLocalizations.of(context)!.forTitle} ',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.outline,
+                                                    fontWeight: FontWeight.normal,
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '"${widget.controller.text}"',
+                                                  style: TextStyle(
+                                                    color: Theme.of(context).colorScheme.primary,
 
-                              // Search results list or loading/empty state
-                              Expanded(
-                                child: _isLoading
-                                    ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      CircularProgressIndicator(
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        'Searching...',
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.outline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                    : _currentSuggestions.isEmpty
-                                    ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.search_off,
-                                        size: 48,
-                                        color: Theme.of(context).colorScheme.outline.withValues(alpha: .5),
-                                      ),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        widget.noResultsText,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.outline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                    : ListView.builder(
-                                  controller: _scrollController,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  itemCount: _currentSuggestions.length,
-                                  itemBuilder: (context, index) {
-                                    final item = _currentSuggestions[index];
-                                    final isHighlighted = index == _highlightedIndex;
-
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: isHighlighted
-                                            ? Theme.of(context).colorScheme.primary.withValues(alpha: .1)
-                                            : Colors.transparent,
-                                        border: isHighlighted
-                                            ? Border(
-                                          left: BorderSide(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            width: 3,
-                                          ),
-                                        )
-                                            : null,
-                                      ),
-                                      child: InkWell(
-                                        onTap: () => _handleItemSelection(item),
-                                        onHover: (hovered) {
-                                          if (hovered && mounted) {
-                                            setState(() {
-                                              _highlightedIndex = index;
-                                              _currentHighlightedItem = item;
-                                            });
-                                            _refreshOverlay();
-                                          }
-                                        },
-                                        child: widget.customListItemBuilder != null
-                                            ? widget.customListItemBuilder!(context, item)
-                                            : _buildDefaultListItem(item),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-
-                              // Keyboard navigation footer
-                              if (!_isLoading && _currentSuggestions.isNotEmpty)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
-                                    border: Border(
-                                      top: BorderSide(
-                                        color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      _buildKeyHint(context, '↑↓', 'Navigate'),
-                                      const SizedBox(width: 16),
-                                      _buildKeyHint(context, '⏎', AppLocalizations.of(context)!.selectTitle),
-                                      const SizedBox(width: 16),
-                                      _buildKeyHint(context, 'ESC', AppLocalizations.of(context)!.closeTitle),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-
-                        // Right side - Details Panel (only show when an item is highlighted)
-                        if (_currentHighlightedItem != null && !_isLoading && _currentSuggestions.isNotEmpty)
-                          Container(
-                            width: detailsPanelWidth,
-                            padding: const EdgeInsets.all(20),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Icon(
-                                        Icons.inventory_2_rounded,
-                                        size: 20,
-                                        color: Theme.of(context).colorScheme.primary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            AppLocalizations.of(context)!.productDetails,
-                                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                              fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                if (!_isLoading && _currentSuggestions.isNotEmpty)
+                                                  TextSpan(
+                                                    text: ' (${_currentSuggestions.length})',
+                                                    style: TextStyle(
+                                                      color: Theme.of(context).colorScheme.outline,
+                                                      fontWeight: FontWeight.normal,
+                                                    ),
+                                                  ),
+                                              ],
                                             ),
                                           ),
+                                        ),
+                                        if (_isLoading)
+                                          Padding(
+                                            padding: const EdgeInsets.only(left: 8),
+                                            child: SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Theme.of(context).colorScheme.primary,
+                                              ),
+                                            ),
+                                          ),
+                                        // Close button in header
+                                        IconButton(
+                                          icon: Icon(Icons.close, color: Theme.of(context).colorScheme.outline),
+                                          onPressed: _closeOverlayAndReset,
+                                          tooltip: 'Close (ESC)',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  // Search results list or loading/empty state
+                                  Expanded(
+                                    child: _isLoading
+                                        ? Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          CircularProgressIndicator(
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                          const SizedBox(height: 16),
                                           Text(
-                                            AppLocalizations.of(context)!.completeInformation,
-                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            'Searching...',
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                               color: Theme.of(context).colorScheme.outline,
                                             ),
                                           ),
                                         ],
                                       ),
+                                    )
+                                        : _currentSuggestions.isEmpty
+                                        ? Center(
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.search_off,
+                                            size: 48,
+                                            color: Theme.of(context).colorScheme.outline.withValues(alpha: .5),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            widget.noResultsText,
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Theme.of(context).colorScheme.outline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                        : ListView.builder(
+                                      controller: _scrollController,
+                                      padding: const EdgeInsets.symmetric(vertical: 8),
+                                      itemCount: _currentSuggestions.length,
+                                      itemBuilder: (context, index) {
+                                        final item = _currentSuggestions[index];
+                                        final isHighlighted = index == _highlightedIndex;
+
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: isHighlighted
+                                                ? Theme.of(context).colorScheme.primary.withValues(alpha: .1)
+                                                : Colors.transparent,
+                                            border: isHighlighted
+                                                ? Border(
+                                              left: BorderSide(
+                                                color: Theme.of(context).colorScheme.primary,
+                                                width: 3,
+                                              ),
+                                            )
+                                                : null,
+                                          ),
+                                          child: InkWell(
+                                            onTap: () => _handleItemSelection(item),
+                                            onHover: (hovered) {
+                                              if (hovered && mounted) {
+                                                setState(() {
+                                                  _highlightedIndex = index;
+                                                  _currentHighlightedItem = item;
+                                                });
+                                                _refreshOverlay();
+                                              }
+                                            },
+                                            child: widget.customListItemBuilder != null
+                                                ? widget.customListItemBuilder!(context, item)
+                                                : _buildDefaultListItem(item),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  // Keyboard navigation footer
+                                  if (!_isLoading && _currentSuggestions.isNotEmpty)
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
+                                        border: Border(
+                                          top: BorderSide(
+                                            color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
+                                          ),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          _buildKeyHint(context, '↑↓', 'Navigate'),
+                                          const SizedBox(width: 16),
+                                          _buildKeyHint(context, '⏎', AppLocalizations.of(context)!.selectTitle),
+                                          const SizedBox(width: 16),
+                                          _buildKeyHint(context, 'ESC', AppLocalizations.of(context)!.closeTitle),
+                                        ],
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+
+                            // Right side - Details Panel
+                            if (_currentHighlightedItem != null && !_isLoading && _currentSuggestions.isNotEmpty)
+                              Container(
+                                width: detailsPanelWidth,  // Use calculated width
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Icon(
+                                            Icons.inventory_2_rounded,
+                                            size: 20,
+                                            color: Theme.of(context).colorScheme.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                AppLocalizations.of(context)!.productDetails,
+                                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Text(
+                                                AppLocalizations.of(context)!.completeInformation,
+                                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                  color: Theme.of(context).colorScheme.outline,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 20),
+                                    Expanded(
+                                      child: SingleChildScrollView(
+                                        child: widget.customDetailsBuilder != null
+                                            ? widget.customDetailsBuilder!(context, _currentHighlightedItem as T)
+                                            : _buildDefaultDetails(_currentHighlightedItem as T),
+                                      ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 20),
-                                Expanded(
-                                  child: SingleChildScrollView(
-                                    child: widget.customDetailsBuilder != null
-                                        ? widget.customDetailsBuilder!(context, _currentHighlightedItem as T)
-                                        : _buildDefaultDetails(_currentHighlightedItem as T),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
@@ -684,8 +746,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     });
 
     widget.onProductSelected?.call(item);
-    _removeOverlay();
-    _focusNode.unfocus();
+    _closeOverlayAndReset();
   }
 
   Widget? _buildSuffixIcon() {
@@ -707,7 +768,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
           });
         }
         widget.onProductSelected?.call(null);
-        _removeOverlay();
+        _closeOverlayAndReset();
       },
     )
         : null;
@@ -716,15 +777,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    // Handle ESC key first
+    // Handle ESC key first - this is the most important part
     if (event.logicalKey == LogicalKeyboardKey.escape) {
       if (_overlayEntry != null) {
-        _removeOverlay();
-        setState(() {
-          _highlightedIndex = -1;
-        });
+        _closeOverlayAndReset();
         return KeyEventResult.handled;
       }
+      return KeyEventResult.handled;
     }
 
     // Only handle other keys if overlay is showing
@@ -888,7 +947,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                   final hasText = widget.controller.text.isNotEmpty;
                   if (_focusNode.hasFocus && (hasText || isLoading || widget.openOverlayOnFocus)) {
                     _showOverlay();
-                  } else {
+                  } else if (!_focusNode.hasFocus && !_isOverlayHovered) {
                     _removeOverlay();
                   }
                 },
@@ -900,4 +959,3 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     );
   }
 }
-

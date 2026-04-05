@@ -501,7 +501,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
         // Move focus to quantity field after product selection
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          nodes[1].requestFocus(); // Quantity field
+          nodes[1].requestFocus();
         });
       } else {
         // Handle clear

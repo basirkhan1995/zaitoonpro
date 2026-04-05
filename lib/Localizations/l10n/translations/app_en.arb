@@ -1037,5 +1037,12 @@
   "gradeTitle": "Grade",
   "widthTitle": "Width",
   "lenghtTitle": "length",
-  "breadth": "Breadth"
+  "breadth": "Breadth",
+  "addImage": "Add Image",
+  "removeLastImage": "Are you sure you want to remove the last image?",
+  "noImages": "No images added",
+  "tapToEdit": "Tap to edit",
+  "imageLoadError": "Failed to load image",
+  "imagesAdded": "images added",
+  "confirm": "Confirm"
 }

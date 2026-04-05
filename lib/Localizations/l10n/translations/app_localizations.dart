@@ -6207,6 +6207,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Breadth'**
   String get breadth;
+
+  /// No description provided for @addImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Image'**
+  String get addImage;
+
+  /// No description provided for @removeLastImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to remove the last image?'**
+  String get removeLastImage;
+
+  /// No description provided for @noImages.
+  ///
+  /// In en, this message translates to:
+  /// **'No images added'**
+  String get noImages;
+
+  /// No description provided for @tapToEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to edit'**
+  String get tapToEdit;
+
+  /// No description provided for @imageLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load image'**
+  String get imageLoadError;
+
+  /// No description provided for @imagesAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'images added'**
+  String get imagesAdded;
+
+  /// No description provided for @confirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirm;
 }
 
 class _AppLocalizationsDelegate

@@ -3132,4 +3132,26 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get breadth => 'ارتفاع';
+
+  @override
+  String get addImage => 'اضافه عکس';
+
+  @override
+  String get removeLastImage =>
+      'آیا تاسو ډاډه یاست چې غواړئ وروستی انځور لرې کړئ؟';
+
+  @override
+  String get noImages => 'هیڅ انځور نشته';
+
+  @override
+  String get tapToEdit => 'د سمولو لپاره یې لمس کړئ';
+
+  @override
+  String get imageLoadError => 'د انځور په بارولو کې تېروتنه';
+
+  @override
+  String get imagesAdded => 'انځورونه اضافه شول';
+
+  @override
+  String get confirm => 'تایید';
 }

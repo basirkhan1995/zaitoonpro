@@ -3139,4 +3139,26 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get breadth => 'Breadth';
+
+  @override
+  String get addImage => 'Add Image';
+
+  @override
+  String get removeLastImage =>
+      'Are you sure you want to remove the last image?';
+
+  @override
+  String get noImages => 'No images added';
+
+  @override
+  String get tapToEdit => 'Tap to edit';
+
+  @override
+  String get imageLoadError => 'Failed to load image';
+
+  @override
+  String get imagesAdded => 'images added';
+
+  @override
+  String get confirm => 'Confirm';
 }

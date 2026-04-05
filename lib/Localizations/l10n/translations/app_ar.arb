@@ -1037,5 +1037,12 @@
   "gradeTitle": "کیفیت",
   "widthTitle": "عرض",
   "lenghtTitle": "اوږدوالی",
-  "breadth": "ارتفاع"
+  "breadth": "ارتفاع",
+  "removeLastImage": "آیا تاسو ډاډه یاست چې غواړئ وروستی انځور لرې کړئ؟",
+  "noImages": "هیڅ انځور نشته",
+  "tapToEdit": "د سمولو لپاره یې لمس کړئ",
+  "imageLoadError": "د انځور په بارولو کې تېروتنه",
+  "imagesAdded": "انځورونه اضافه شول",
+  "confirm": "تایید",
+  "addImage": "اضافه عکس"
 }

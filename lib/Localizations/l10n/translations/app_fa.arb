@@ -1037,5 +1037,12 @@
   "gradeTitle": "درجه",
   "widthTitle": "عرض",
   "lenghtTitle": "طول",
-  "breadth": "ارتفاع"
+  "breadth": "ارتفاع",
+  "addImage": "اضافه عکس",
+  "removeLastImage": "آیا مطمئن هستید که می‌خواهید آخرین تصویر را حذف کنید؟",
+  "noImages": "تصویری اضافه نشده است",
+  "tapToEdit": "برای ویرایش ضربه بزنید",
+  "imageLoadError": "خطا در بارگذاری تصویر",
+  "imagesAdded": "تصویر اضافه شد",
+  "confirm": "تأیید"
 }

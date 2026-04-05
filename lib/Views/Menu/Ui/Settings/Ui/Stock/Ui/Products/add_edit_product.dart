@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../ProductCategory/features/pro_cat_drop.dart';
 import '../ProductCategory/model/pro_cat_model.dart';
 import 'Features/GradeDrop/grade_drop.dart';
+import 'Features/product_image.dart';
 import 'bloc/products_bloc.dart';
 import 'model/product_model.dart';
 import 'dart:math';
@@ -55,7 +56,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
   final productModel = TextEditingController();
   final productBrand = TextEditingController();
   final minimumStock = TextEditingController();
-
+  final List<Uint8List> productImages = [];
   final l = TextEditingController();
   final w = TextEditingController();
   final b = TextEditingController();
@@ -487,7 +488,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       return BlocBuilder<ProductsBloc, ProductsState>(
         builder: (context, state) {
           return ZFormDialog(
-            width: MediaQuery.of(context).size.width *.7,
+            width: MediaQuery.of(context).size.width *.75,
             icon: Icons.production_quantity_limits_rounded,
 
             onAction: onSubmit,
@@ -703,13 +704,23 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                             child: ZCover(
                               radius: 8,
                               child: SingleChildScrollView(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10.0),
-                                  child: Column(
-                                    children: [
-                                      SectionTitle(title: tr.productImages),
-                                    ],
-                                  ),
+                                padding: const EdgeInsets.all(5),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ProductImageCarousel(
+                                      images: productImages,
+                                      maxImages: 5,
+                                      onImagesChanged: (images) {
+                                        setState(() {
+                                          productImages.clear();
+                                          productImages.addAll(images);
+                                        });
+                                        // You can dispatch to bloc here if needed
+                                        // context.read<ProductsBloc>().add(UpdateProductImagesEvent(images));
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

@@ -3129,4 +3129,26 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get breadth => 'ارتفاع';
+
+  @override
+  String get addImage => 'اضافه عکس';
+
+  @override
+  String get removeLastImage =>
+      'آیا مطمئن هستید که می‌خواهید آخرین تصویر را حذف کنید؟';
+
+  @override
+  String get noImages => 'تصویری اضافه نشده است';
+
+  @override
+  String get tapToEdit => 'برای ویرایش ضربه بزنید';
+
+  @override
+  String get imageLoadError => 'خطا در بارگذاری تصویر';
+
+  @override
+  String get imagesAdded => 'تصویر اضافه شد';
+
+  @override
+  String get confirm => 'تأیید';
 }

@@ -3161,4 +3161,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirm => 'Confirm';
+
+  @override
+  String get discountTitle => 'Discount';
+
+  @override
+  String get pcs => 'Pcs';
 }

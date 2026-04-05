@@ -1044,5 +1044,7 @@
   "tapToEdit": "برای ویرایش ضربه بزنید",
   "imageLoadError": "خطا در بارگذاری تصویر",
   "imagesAdded": "تصویر اضافه شد",
-  "confirm": "تأیید"
+  "confirm": "تأیید",
+  "discountTitle": "تخفیف",
+  "pcs": "مقدار"
 }

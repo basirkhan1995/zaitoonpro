@@ -6249,6 +6249,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Confirm'**
   String get confirm;
+
+  /// No description provided for @discountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount'**
+  String get discountTitle;
+
+  /// No description provided for @pcs.
+  ///
+  /// In en, this message translates to:
+  /// **'Pcs'**
+  String get pcs;
 }
 
 class _AppLocalizationsDelegate

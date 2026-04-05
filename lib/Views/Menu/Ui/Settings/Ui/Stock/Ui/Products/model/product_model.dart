@@ -22,11 +22,11 @@ class ProductsModel {
   final int? proLsNqty;
   final String? proColor;
   final int? proStatus;
-  final double? width;
-  final double? length;
-  final double? breadth;
-  final double? weight;
-  final double? salePricePercentage;
+  final String? proWidth;
+  final String? proWeight;
+  final String? proBreadth;
+  final String? proSpp;
+  final String? proLength;
 
   ProductsModel({
     this.proId,
@@ -42,11 +42,11 @@ class ProductsModel {
     this.proLsNqty,
     this.proColor,
     this.proStatus,
-    this.width,
-    this.length,
-    this.breadth,
-    this.weight,
-    this.salePricePercentage,
+    this.proWidth,
+    this.proWeight,
+    this.proBreadth,
+    this.proSpp,
+    this.proLength,
   });
 
   ProductsModel copyWith({
@@ -63,11 +63,11 @@ class ProductsModel {
     int? proLsNqty,
     String? proColor,
     int? proStatus,
-    double? width,
-    double? length,
-    double? breadth,
-    double? weight,
-    double? salePricePercentage,
+    String? proWidth,
+    String? proWeight,
+    String? proBreadth,
+    String? proSpp,
+    String? proLength,
   }) =>
       ProductsModel(
         proId: proId ?? this.proId,
@@ -83,11 +83,11 @@ class ProductsModel {
         proLsNqty: proLsNqty ?? this.proLsNqty,
         proColor: proColor ?? this.proColor,
         proStatus: proStatus ?? this.proStatus,
-        width: width ?? this.width,
-        length: length ?? this.length,
-        breadth: breadth ?? this.breadth,
-        weight: weight ?? this.weight,
-        salePricePercentage: salePricePercentage ?? this.salePricePercentage,
+        proWidth: proWidth ?? this.proWidth,
+        proWeight: proWeight ?? this.proWeight,
+        proBreadth: proBreadth ?? this.proBreadth,
+        proSpp: proSpp ?? this.proSpp,
+        proLength: proLength ?? this.proLength,
       );
 
   factory ProductsModel.fromMap(Map<String, dynamic> json) => ProductsModel(
@@ -104,11 +104,11 @@ class ProductsModel {
     proLsNqty: json["proLSNqty"],
     proColor: json["proColor"],
     proStatus: json["proStatus"],
-    width: json["width"]?.toDouble(),
-    length: json["length"]?.toDouble(),
-    breadth: json["breadth"]?.toDouble(),
-    weight: json["weight"]?.toDouble(),
-    salePricePercentage: json["salePricePercentage"]?.toDouble(),
+    proWidth: json["proWidth"],
+    proWeight: json["proWeight"],
+    proBreadth: json["proBreadth"],
+    proSpp: json["proSPP"],
+    proLength: json["proLength"],
   );
 
   Map<String, dynamic> toMap() => {
@@ -122,13 +122,13 @@ class ProductsModel {
     "proGrade": proGrade,
     "proCategory": proCategory,
     "proDetails": proDetails,
-    "proLSNQty": proLsNqty,
+    "proLSNqty": proLsNqty,
     "proColor": proColor,
     "proStatus": proStatus,
-    "width": width,
-    "length": length,
-    "breadth": breadth,
-    "weight": weight,
-    "salePricePercentage": salePricePercentage,
+    "proWidth": proWidth,
+    "proWeight": proWeight,
+    "proBreadth": proBreadth,
+    "proSPP": proSpp,
+    "proLength": proLength,
   };
 }

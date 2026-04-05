@@ -1044,5 +1044,7 @@
   "imageLoadError": "د انځور په بارولو کې تېروتنه",
   "imagesAdded": "انځورونه اضافه شول",
   "confirm": "تایید",
-  "addImage": "اضافه عکس"
+  "addImage": "اضافه عکس",
+  "discountTitle": "تخفیف",
+  "pcs": "مقدار"
 }

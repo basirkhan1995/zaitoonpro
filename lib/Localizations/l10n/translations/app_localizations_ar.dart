@@ -3154,4 +3154,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get confirm => 'تایید';
+
+  @override
+  String get discountTitle => 'تخفیف';
+
+  @override
+  String get pcs => 'مقدار';
 }

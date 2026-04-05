@@ -1044,5 +1044,7 @@
   "tapToEdit": "Tap to edit",
   "imageLoadError": "Failed to load image",
   "imagesAdded": "images added",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+  "discountTitle": "Discount",
+  "pcs": "Pcs"
 }

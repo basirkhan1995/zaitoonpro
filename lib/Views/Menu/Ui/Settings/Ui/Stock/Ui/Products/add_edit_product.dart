@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
@@ -85,12 +86,12 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       productGrade = widget.model?.proGrade ?? "";
       productModel.text = widget.model?.proModel ?? "";
 
-      w.text = widget.model?.weight?.toStringAsFixed(2) ?? "";
-      l.text = widget.model?.length?.toStringAsFixed(2) ?? "";
-      b.text = widget.model?.breadth?.toStringAsFixed(2) ?? "";
-      weight.text = widget.model?.breadth?.toStringAsFixed(2) ?? "";
+      w.text = widget.model?.proWeight?.toAmount() ?? "";
+      l.text = widget.model?.proLength?.toAmount() ?? "";
+      b.text = widget.model?.proBreadth?.toAmount() ?? "";
+      weight.text = widget.model?.proWeight?.toAmount() ?? "";
 
-      salePricePercentage.text = widget.model?.salePricePercentage?.toStringAsFixed(1) ?? "";
+      salePricePercentage.text = widget.model?.proSpp ?? "";
     }
     if (widget.model == null) {
       productCode.text = generateProductCode();
@@ -132,11 +133,11 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       proGrade: productGrade,
       proLsNqty: int.tryParse(minimumStock.text),
       proUnit: productUnit.text,
-      width: double.tryParse(w.text),
-      length: double.tryParse(l.text),
-      breadth: double.tryParse(b.text),
-      weight: double.tryParse(weight.text),
-      salePricePercentage: double.tryParse(salePricePercentage.text),
+      proWidth: w.text,
+      proLength: l.text,
+      proBreadth: b.text,
+      proWeight: weight.text,
+      proSpp: salePricePercentage.text,
       proStatus: 1,
     );
     if (widget.model != null) {
@@ -663,20 +664,21 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                               hint: "%20, 30%",
                                               controller: salePricePercentage,
                                               end: Text("%"),
+                                              keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
                                               inputFormat: [
-                                                FilteringTextInputFormatter.digitsOnly,
-                                                LengthLimitingTextInputFormatter(3),
+                                                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')), // Allows decimals up to 2 places
                                               ],
                                               validator: (value) {
-                                                // If empty → it's optional → no validation
-                                                if (value == null || value.isEmpty) {
-                                                  return null;
-                                                }
+                                                if (value == null || value.isEmpty) return null;
 
-                                                // If user entered something → validate it
-                                                if (!RegExp(r'^\d{1,3}$').hasMatch(value)) {
-                                                  return 'Only up to 3 digits allowed';
-                                                }
+                                                final cleanValue = value.replaceAll('%', '').replaceAll(' ', '').trim();
+                                                if (cleanValue.isEmpty) return null;
+
+                                                // Parse as double to handle decimal values
+                                                final number = double.tryParse(cleanValue);
+                                                if (number == null) return 'Please enter a valid number';
+                                                if (number < 0) return 'Cannot be negative';
+                                                if (number > 100) return 'Maximum 100%';
 
                                                 return null;
                                               },

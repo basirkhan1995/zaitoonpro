@@ -3151,4 +3151,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get confirm => 'تأیید';
+
+  @override
+  String get discountTitle => 'تخفیف';
+
+  @override
+  String get pcs => 'مقدار';
 }

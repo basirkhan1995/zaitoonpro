@@ -285,7 +285,6 @@ class _CustomCropperState extends State<CustomCropper> {
     if (compressedBytes.lengthInBytes > maxSizeKB * 1024) {
       compressedBytes = await _encodeToJPEGWithQuality(compressedBytes, 70);
     }
-
     return compressedBytes;
   }
 

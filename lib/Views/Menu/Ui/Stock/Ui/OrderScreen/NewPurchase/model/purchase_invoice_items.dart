@@ -3,6 +3,7 @@ class PurchaseInvoiceItem {
   String productId;
   String productName;
   int qty;
+  int stkQtyPerUnit;
   double? purPrice;
   int storageId;
   String storageName;
@@ -12,6 +13,7 @@ class PurchaseInvoiceItem {
     required this.productId,
     required this.productName,
     required this.qty,
+    required this.stkQtyPerUnit,
     this.purPrice,
     required this.storageName,
     required this.storageId,
@@ -24,11 +26,13 @@ class PurchaseInvoiceRecord {
   final int proID;
   final int stgID;
   final double quantity;
+  final int stkQtyPerUnit;
   final double? pPrice;
 
   PurchaseInvoiceRecord({
     required this.proID,
     required this.stgID,
+    required this.stkQtyPerUnit,
     required this.quantity,
     this.pPrice,
   });
@@ -37,6 +41,7 @@ class PurchaseInvoiceRecord {
     'stkProduct': proID,
     'stkStorage': stgID,
     'stkQuantity': quantity.toString(),
+    'stkQtyPerUnit': stkQtyPerUnit,
     'stkPurPrice': (pPrice ?? 0.0).toString(),
     'stkSalePrice': "0.0000",
   };

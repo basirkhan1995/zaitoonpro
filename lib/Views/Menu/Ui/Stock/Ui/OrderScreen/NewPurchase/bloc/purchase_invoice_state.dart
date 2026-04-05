@@ -23,7 +23,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final List<PurchaseInvoiceItem> items;
   final AccountsModel? supplierAccount;
   final IndividualsModel? supplier;
-  final double payment; // Cash payment
+  final double payment;
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
 

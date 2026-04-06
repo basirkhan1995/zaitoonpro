@@ -1046,5 +1046,6 @@
   "confirm": "تایید",
   "addImage": "اضافه عکس",
   "discountTitle": "تخفیف",
-  "pcs": "مقدار"
+  "pcs": "مقدار",
+  "batchTitle": "مقدار"
 }

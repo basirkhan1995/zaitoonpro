@@ -42,6 +42,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
   final String? productId;
   final String? productName;
   final int? qty;
+  final double? batch;
   final double? purPrice;
   final int? storageId;
   final String? storageName;
@@ -51,6 +52,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
     this.productId,
     this.productName,
     this.qty,
+    this.batch,
     this.purPrice,
     this.storageId,
     this.storageName,
@@ -62,6 +64,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
     productId,
     productName,
     qty,
+    batch,
     purPrice,
     storageId,
     storageName,

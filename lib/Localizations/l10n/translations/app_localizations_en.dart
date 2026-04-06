@@ -1133,7 +1133,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fundTransferMultiTitle => 'Fund Transfer MA';
 
   @override
-  String get storage => 'Storage';
+  String get storage => 'Stock';
 
   @override
   String get storages => 'Storages';
@@ -3167,4 +3167,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pcs => 'Pcs';
+
+  @override
+  String get batchTitle => 'Batch';
 }

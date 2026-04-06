@@ -3,7 +3,7 @@ class PurchaseInvoiceItem {
   String productId;
   String productName;
   int qty;
-  int stkQtyPerUnit;
+  int stkBatch;
   double? purPrice;
   int storageId;
   String storageName;
@@ -13,7 +13,7 @@ class PurchaseInvoiceItem {
     required this.productId,
     required this.productName,
     required this.qty,
-    required this.stkQtyPerUnit,
+    required this.stkBatch,
     this.purPrice,
     required this.storageName,
     required this.storageId,

@@ -2281,7 +2281,7 @@ abstract class AppLocalizations {
   /// No description provided for @storage.
   ///
   /// In en, this message translates to:
-  /// **'Storage'**
+  /// **'Stock'**
   String get storage;
 
   /// No description provided for @storages.
@@ -6261,6 +6261,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pcs'**
   String get pcs;
+
+  /// No description provided for @batchTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Batch'**
+  String get batchTitle;
 }
 
 class _AppLocalizationsDelegate

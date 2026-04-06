@@ -66,7 +66,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   int? signatory;
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};
-
+  final Map<String, TextEditingController> _batchControllers = {};
   @override
   void initState() {
     super.initState();
@@ -393,6 +393,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           )),
           Expanded(child: Text(locale.products, style: title)),
           SizedBox(width: 100, child: Text(locale.qty, style: title)),
+          SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
           SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
           SizedBox(width: 100, child: Text(locale.totalTitle, style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
@@ -407,11 +408,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
     // Get or create controllers for this row
     final productController = TextEditingController(text: item.productName);
-    final qtyController = _qtyControllers.putIfAbsent(
-      item.rowId,
-          () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
-    );
-
+    final qtyController = _qtyControllers.putIfAbsent(item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),);
+    final batchController = _batchControllers.putIfAbsent(item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),);
     final priceController = _priceControllers.putIfAbsent(
       item.rowId,
           () => TextEditingController(text: item.purPrice != null && item.purPrice! > 0 ? item.purPrice!.toAmount() : ''),
@@ -510,12 +508,54 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 ),
               ),
 
+              //Batch
+              SizedBox(
+                width: 100,
+                child: TextField(
+                  controller: batchController,
+                  focusNode: nodes[2],
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    // Prevent leading zeros
+                    TextInputFormatter.withFunction((oldValue, newValue) {
+                      if (newValue.text.isEmpty) return newValue;
+                      final parsed = int.tryParse(newValue.text);
+                      if (parsed == null || parsed <= 0) {
+                        return TextEditingValue.empty;
+                      }
+                      return newValue;
+                    }),
+                  ],
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.batchTitle,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    if (value.isEmpty) {
+                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
+                        rowId: item.rowId,
+                        batch: 0,
+                      ));
+                      return;
+                    }
+                    final batch = double.tryParse(value) ?? 0;
+                    context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
+                      rowId: item.rowId,
+                      batch: batch,
+                    ));
+                  },
+                  onSubmitted: (_) => nodes[3].requestFocus(),
+                ),
+              ),
+
               // Unit Price
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: priceController,
-                  focusNode: nodes[2],
+                  focusNode: nodes[3],
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
@@ -670,9 +710,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
           return Container(
             padding: const EdgeInsets.all(16),
+            width: 500,
             decoration: BoxDecoration(
               color: color.surface,
-              border: Border.all(color: color.outline.withValues(alpha: .3)),
+              border: Border.all(color: color.outline.withValues(alpha: .2)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -680,29 +721,22 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(tr.paymentMethod, style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(tr.paymentMethod, style: TextStyle(fontWeight: FontWeight.bold,fontSize: 17)),
                     InkWell(
                       onTap: () => _showPaymentModeDialog(current),
                       child: Row(
                         children: [
-                          Text(_getPaymentModeLabel(current.paymentMode),
-                              style: TextStyle(color: color.primary)),
+                          Text(_getPaymentModeLabel(current.paymentMode), style: TextStyle(color: color.primary)),
                           const SizedBox(width: 4),
-                          Icon(Icons.edit, size: 16, color: color.primary),
+                          Icon(Icons.more_vert_rounded, size: 20, color: color.primary),
                         ],
                       ),
                     ),
                   ],
                 ),
+                SizedBox(height: 4),
                 Divider(color: color.outline.withValues(alpha: .2)),
-
-                // Grand Total
-                _buildSummaryRow(
-                  label: tr.grandTotal,
-                  value: current.grandTotal,
-                  isBold: true,
-                ),
-                Divider(color: color.outline.withValues(alpha: .2)),
+                SizedBox(height: 4),
 
                 // Payment Breakdown
                 if (current.paymentMode == PaymentMode.cash) ...[
@@ -731,8 +765,22 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                 ],
 
+                SizedBox(height: 4),
+                Divider(color: color.outline.withValues(alpha: .2)),
+                SizedBox(height: 4),
+
+                // Grand Total
+                _buildSummaryRow(
+                  label: tr.grandTotal,
+                  value: current.grandTotal,
+                  isBold: true,
+                ),
+
+
+
                 // Account Information - FIXED FOR PURCHASE
                 if (current.supplierAccount != null) ...[
+                  SizedBox(height: 4),
                   Divider(color: color.outline.withValues(alpha: .2)),
 
                   // Account details
@@ -760,7 +808,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     const SizedBox(height: 4),
                     // Transaction amount (credit) - For PURCHASE, this increases what we owe
                     _buildSummaryRow(
-                      label: tr.invoiceAmount, // Add this translation
+                      label: tr.invoiceAmount,
                       value: current.creditAmount,
                       color: Colors.orange,
                     ),
@@ -773,6 +821,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       isBold: true,
                       color: _getBalanceColor(current.currentBalance + current.creditAmount),
                     ),
+
                     // Status
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
@@ -832,14 +881,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           label,
           style: TextStyle(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 16 : 14,
+            fontSize: isBold ? 18 : 16,
           ),
         ),
         Text(
           "${value.toAmount()} $baseCurrency",
           style: TextStyle(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 16 : 14,
+            fontSize: isBold ? 18 : 16,
             color: color ?? Theme.of(context).colorScheme.primary,
           ),
         ),

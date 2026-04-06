@@ -43,7 +43,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         productId: '',
         productName: '',
         qty: 1,
-        stkQtyPerUnit: 0,
+        stkBatch: 0,
         purPrice: 0,
         storageName: '',
         storageId: 0,
@@ -104,7 +104,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       productName: '',
       qty: 1,
       purPrice: 0,
-      stkQtyPerUnit: 0,
+      stkBatch: 0,
       storageName: '',
       storageId: 0,
     );
@@ -122,7 +122,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         updatedItems.add(PurchaseInvoiceItem(
           productId: '',
           productName: '',
-          stkQtyPerUnit: 0,
+          stkBatch: 0,
           qty: 1,
           purPrice: 0,
           storageName: '',
@@ -141,7 +141,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         if (item.rowId == event.rowId) {
           return PurchaseInvoiceItem(
             itemId: item.rowId,
-            stkQtyPerUnit: item.stkQtyPerUnit,
+            stkBatch: item.stkBatch,
             productId: event.productId ?? item.productId,
             productName: event.productName ?? item.productName,
             qty: event.qty ?? item.qty,
@@ -216,7 +216,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         productId: '',
         productName: '',
         qty: 1,
-        stkQtyPerUnit: 0,
+        stkBatch: 0,
         purPrice: 0,
         storageName: '',
         storageId: 0,
@@ -338,7 +338,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
-          stkQtyPerUnit: item.stkQtyPerUnit,
+          stkQtyPerUnit: item.stkBatch,
           pPrice: item.purPrice,
         );
       }).toList();

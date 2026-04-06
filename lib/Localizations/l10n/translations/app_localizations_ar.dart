@@ -3160,4 +3160,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pcs => 'مقدار';
+
+  @override
+  String get batchTitle => 'مقدار';
 }

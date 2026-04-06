@@ -3157,4 +3157,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get pcs => 'مقدار';
+
+  @override
+  String get batchTitle => 'مقدار';
 }

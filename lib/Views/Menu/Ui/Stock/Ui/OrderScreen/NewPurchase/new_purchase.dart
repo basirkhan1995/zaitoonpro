@@ -295,6 +295,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       ),
                       const SizedBox(width: 8),
                       ZOutlineButton(
+                        width: 150,
+                        icon: Icons.outbond_outlined,
+                        onPressed: null,
+                        label: Text("Add Expenses"),
+                      ),
+                      const SizedBox(width: 8),
+                      ZOutlineButton(
                         width: 100,
                         icon: Icons.print,
                         onPressed: _onPrint,

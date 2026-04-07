@@ -21,6 +21,7 @@ class PurchaseInvoiceError extends PurchaseInvoiceState {
 
 class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final List<PurchaseInvoiceItem> items;
+  final List<PurExpenseRecord> expenses;
   final AccountsModel? supplierAccount;
   final IndividualsModel? supplier;
   final double payment;
@@ -29,6 +30,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
 
   const PurchaseInvoiceLoaded({
     required this.items,
+    required this.expenses,
     this.supplier,
     this.supplierAccount,
     required this.payment,
@@ -97,6 +99,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
 
   PurchaseInvoiceLoaded copyWith({
     List<PurchaseInvoiceItem>? items,
+    List<PurExpenseRecord>? expenses,
     AccountsModel? supplierAccount,
     IndividualsModel? supplier,
     double? payment,
@@ -105,6 +108,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
+      expenses: expenses ?? this.expenses,
       supplier: supplier ?? this.supplier,
       supplierAccount: supplierAccount ?? this.supplierAccount,
       payment: payment ?? this.payment,
@@ -114,12 +118,13 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   }
 
   @override
-  List<Object?> get props => [items, supplier, supplierAccount, payment, paymentMode, storages];
+  List<Object?> get props => [items, expenses, supplier, supplierAccount, payment, paymentMode, storages];
 }
 
 class PurchaseInvoiceSaving extends PurchaseInvoiceLoaded {
   const PurchaseInvoiceSaving({
     required super.items,
+    required super.expenses,
     super.supplier,
     super.supplierAccount,
     required super.payment,

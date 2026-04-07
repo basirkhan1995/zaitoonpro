@@ -1817,15 +1817,18 @@ class Repositories {
     int? account,
     double? amount,
     required List<PurchaseInvoiceRecord> records,
+    required List<PurExpenseRecord> expRecord,
   }) async {
     final data = {
       "usrName": usrName,
       "ordName": orderName,
       "ordPersonal": perID,
       "ordxRef": xRef ?? "",
+      "oRemark": "",
       "account": account ?? 0,
       "amount": amount ?? 0.0,
       "records": records.map((r) => r.toJson()).toList(),
+      "expenses": expRecord.map((r) => r.toJson()).toList(),
     };
 
     final response = await api.post(

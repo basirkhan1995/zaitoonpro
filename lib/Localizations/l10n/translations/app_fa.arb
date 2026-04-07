@@ -383,7 +383,7 @@
   "transactionFailedTitle": "عملیات ناموفق",
   "fundTransferTitle": "انتقال وجه",
   "fundTransferMultiTitle": "انتقال وجه - چندگانه",
-  "storage": "مخزن",
+  "storage": "انبار",
   "storages": "ذخایر",
   "location": "موقعیت",
   "unlimited": "نامحدود",
@@ -1047,5 +1047,7 @@
   "confirm": "تأیید",
   "discountTitle": "تخفیف",
   "pcs": "مقدار",
-  "batchTitle": "مقدار"
+  "batchTitle": "مقدار",
+  "landedPrice": "قیمت تمام‌شده",
+  "warehouse": "انبار"
 }

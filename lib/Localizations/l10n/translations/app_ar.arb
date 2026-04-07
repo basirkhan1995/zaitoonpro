@@ -383,7 +383,7 @@
   "transactionFailedTitle": "عملیات ناموفق",
   "fundTransferTitle": "انتقال وجه ",
   "fundTransferMultiTitle": "انتقال وجه - چندگانه",
-  "storage": "مخزن",
+  "storage": "گدام",
   "storages": "ذخایر",
   "location": "ځای",
   "unlimited": "نامحدود",
@@ -1047,5 +1047,7 @@
   "addImage": "اضافه عکس",
   "discountTitle": "تخفیف",
   "pcs": "مقدار",
-  "batchTitle": "مقدار"
+  "batchTitle": "مقدار",
+  "landedPrice": "تمام شوی قیمت",
+  "warehouse": "گدام"
 }

@@ -64,9 +64,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   String? _userName;
   String? baseCurrency;
   int? signatory;
-  final Map<String, TextEditingController> _priceControllers = {};
+  final Map<String, TextEditingController> _purchasePriceControllers = {};
+  final Map<String, TextEditingController> _costPriceControllers = {};
+  final Map<String, TextEditingController> _sellPriceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};
   final Map<String, TextEditingController> _batchControllers = {};
+
   @override
   void initState() {
     super.initState();
@@ -91,8 +94,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _personController.dispose();
     _xRefController.dispose();
 
+
     // Dispose all price and qty controllers
-    for (final controller in _priceControllers.values) {
+    for (final controller in _purchasePriceControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _costPriceControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _sellPriceControllers.values) {
       controller.dispose();
     }
     for (final controller in _qtyControllers.values) {
@@ -297,7 +307,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       ZOutlineButton(
                         width: 150,
                         icon: Icons.outbond_outlined,
-                        onPressed: null,
+                        onPressed: (){
+
+                        },
                         label: Text("Add Expenses"),
                       ),
                       const SizedBox(width: 8),
@@ -327,7 +339,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     color: Theme.of(context).colorScheme.surface,
                                   ),
                                 )
-                                    : Text(tr.create),
+                                    : Text(tr.saveTitle),
                               );
                             }
                             return const SizedBox();
@@ -387,7 +399,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
         color: color.primary,
         borderRadius: BorderRadius.circular(3),
@@ -395,14 +407,16 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       child: Row(
         children: [
           SizedBox(width: 40, child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text('#', style: title),
           )),
           Expanded(child: Text(locale.products, style: title)),
           SizedBox(width: 100, child: Text(locale.qty, style: title)),
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
-          SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
           SizedBox(width: 100, child: Text(locale.totalTitle, style: title)),
+          SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
+          SizedBox(width: 150, child: Text(locale.sellPrice, style: title)),
+          SizedBox(width: 150, child: Text(locale.landedPrice, style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
         ],
@@ -413,294 +427,368 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   Widget _buildItemRow({required BuildContext context, required PurchaseInvoiceItem item, required List<FocusNode> nodes, required bool isLastRow,}) {
     final locale = AppLocalizations.of(context)!;
 
-    // Get or create controllers for this row
-    final productController = TextEditingController(text: item.productName);
-    final qtyController = _qtyControllers.putIfAbsent(item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),);
-    final batchController = _batchControllers.putIfAbsent(item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),);
-    final priceController = _priceControllers.putIfAbsent(
+    void focusNext(int index) {
+      if (index + 1 < nodes.length) {
+        nodes[index + 1].requestFocus();
+      }
+    }
+
+    /// ✅ SAFE INDEX ACCESS (FIX FOR RANGE ERROR)
+    FocusNode? safeNode(int index) {
+      return (index >= 0 && index < nodes.length) ? nodes[index] : null;
+    }
+
+    final rowIndex = _rowFocusNodes.indexOf(nodes);
+
+    final productController =
+    TextEditingController(text: item.productName);
+
+    final qtyController = _qtyControllers.putIfAbsent(
       item.rowId,
-          () => TextEditingController(text: item.purPrice != null && item.purPrice! > 0 ? item.purPrice!.toAmount() : ''),
+          () => TextEditingController(
+        text: item.qty > 0 ? item.qty.toString() : '',
+      ),
     );
 
-    final storageController = TextEditingController(text: item.storageName);
+    final batchController = _batchControllers.putIfAbsent(
+      item.rowId,
+          () => TextEditingController(
+        text: item.stkBatch > 0 ? item.stkBatch.toString() : '',
+      ),
+    );
 
+    final sellPriceController = _sellPriceControllers.putIfAbsent(
+      item.rowId,
+          () => TextEditingController(
+        text: item.sellPriceAmount > 0
+            ? item.sellPriceAmount.toString()
+            : '',
+      ),
+    );
+
+    final priceController = _purchasePriceControllers.putIfAbsent(
+      item.rowId,
+          () => TextEditingController(
+        text: item.purPrice != null && item.purPrice! > 0
+            ? item.purPrice!.toAmount()
+            : '',
+      ),
+    );
+
+    final landedPriceController = _costPriceControllers.putIfAbsent(
+      item.rowId,
+          () => TextEditingController(
+        text: item.landedPrice != null && item.landedPrice! > 0
+            ? item.landedPrice!.toAmount()
+            : '',
+      ),
+    );
+
+    final storageController =
+    TextEditingController(text: item.storageName);
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 0),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade300),
+            ),
           ),
           child: Row(
             children: [
+              /// Row number
               SizedBox(
                 width: 40,
                 child: Text(
-                  (_rowFocusNodes.indexOf(nodes) + 1).toString(),
+                  rowIndex >= 0 ? (rowIndex + 1).toString() : '',
                   textAlign: TextAlign.center,
                 ),
               ),
 
-              // Product Selection
+              /// Product
               Expanded(
-                child: GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                child: GenericUnderlineTextfield<
+                    ProductsModel,
+                    ProductsBloc,
+                    ProductsState>(
                   title: "",
                   controller: productController,
                   hintText: locale.products,
                   bloc: context.read<ProductsBloc>(),
-                  fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
-                  searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
+                  fetchAllFunction: (bloc) =>
+                      bloc.add(LoadProductsEvent()),
+                  searchFunction: (bloc, query) =>
+                      bloc.add(LoadProductsEvent()),
                   itemBuilder: (context, product) => Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text("${product.proCode} | ${product.proName}"),
                   ),
                   itemToString: (product) => product.proName ?? '',
-                  stateToLoading: (state) => state is ProductsLoadingState,
+                  stateToLoading: (state) =>
+                  state is ProductsLoadingState,
                   stateToItems: (state) {
-                    if (state is ProductsLoadedState) return state.products;
+                    if (state is ProductsLoadedState) {
+                      return state.products;
+                    }
                     return [];
                   },
                   onSelected: (product) {
-                    context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                      rowId: item.rowId,
-                      productId: product.proId.toString(),
-                      productName: product.proName ?? '',
-                    ));
+                    context.read<PurchaseInvoiceBloc>().add(
+                      UpdatePurchaseItemEvent(
+                        rowId: item.rowId,
+                        productId: product.proId.toString(),
+                        productName: product.proName ?? '',
+                      ),
+                    );
+
                     _autoSelectFirstStorage(context, item.rowId);
-                    nodes[1].requestFocus();
+
+                    focusNext(0);
                   },
                 ),
               ),
 
-              // Quantity
+              /// Qty
               SizedBox(
                 width: 100,
                 child: TextField(
                   controller: qtyController,
-                  focusNode: nodes[1],
+                  focusNode: safeNode(1),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
-                    // Prevent leading zeros
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      if (newValue.text.isEmpty) return newValue;
-                      final parsed = int.tryParse(newValue.text);
-                      if (parsed == null || parsed <= 0) {
-                        return TextEditingValue.empty;
-                      }
-                      return newValue;
-                    }),
                   ],
                   decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.qty,
+                    hintText: locale.qty,
                     border: InputBorder.none,
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    if (value.isEmpty) {
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                        rowId: item.rowId,
-                        qty: 0,
-                      ));
-                      return;
-                    }
                     final qty = int.tryParse(value) ?? 0;
-                    context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                      rowId: item.rowId,
-                      qty: qty,
-                    ));
+
+                    context.read<PurchaseInvoiceBloc>().add(
+                      UpdatePurchaseItemEvent(
+                        rowId: item.rowId,
+                        qty: qty,
+                      ),
+                    );
                   },
-                  onSubmitted: (_) => nodes[2].requestFocus(),
+                  onSubmitted: (_) => focusNext(1),
                 ),
               ),
 
-              //Batch
+              /// Batch
               SizedBox(
                 width: 100,
                 child: TextField(
                   controller: batchController,
-                  focusNode: nodes[2],
+                  focusNode: safeNode(2),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    // Prevent leading zeros
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      if (newValue.text.isEmpty) return newValue;
-                      final parsed = int.tryParse(newValue.text);
-                      if (parsed == null || parsed <= 0) {
-                        return TextEditingValue.empty;
-                      }
-                      return newValue;
-                    }),
-                  ],
                   decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.batchTitle,
+                    hintText: locale.batchTitle,
                     border: InputBorder.none,
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    if (value.isEmpty) {
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                        rowId: item.rowId,
-                        batch: 0,
-                      ));
-                      return;
-                    }
                     final batch = double.tryParse(value) ?? 0;
-                    context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                      rowId: item.rowId,
-                      batch: batch,
-                    ));
-                  },
-                  onSubmitted: (_) => nodes[3].requestFocus(),
-                ),
-              ),
 
-              // Unit Price
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: priceController,
-                  focusNode: nodes[3],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-                    SmartThousandsDecimalFormatter(),
-                    // Prevent invalid prices
-                    TextInputFormatter.withFunction((oldValue, newValue) {
-                      if (newValue.text.isEmpty) return newValue;
-                      final parsed = double.tryParse(newValue.text.replaceAll(',', ''));
-                      if (parsed == null || parsed <= 0) {
-                        return TextEditingValue.empty;
-                      }
-                      return newValue;
-                    }),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.unitPrice,
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  onChanged: (value) {
-                    if (value.isEmpty) {
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
+                    context.read<PurchaseInvoiceBloc>().add(
+                      UpdatePurchaseItemEvent(
                         rowId: item.rowId,
-                        purPrice: 0,
-                      ));
-                      return;
-                    }
-                    final parsed = double.tryParse(value.replaceAll(',', ''));
-                    if (parsed != null && parsed > 0) {
-                      context.read<PurchaseInvoiceBloc>().add(
-                        UpdatePurchaseItemEvent(
-                          rowId: item.rowId,
-                          purPrice: parsed,
-                        ),
-                      );
-                    }
+                        batch: batch,
+                      ),
+                    );
                   },
+                  onSubmitted: (_) => focusNext(2),
                 ),
               ),
 
-              // Total
+              /// Total (qty * batch)
               SizedBox(
                 width: 100,
                 child: Text(
-                  item.totalPurchase.toAmount(),
+                  item.totalQty.toStringAsFixed(2),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
+              /// Price
+              SizedBox(
+                width: 150,
+                child: TextField(
+                  controller: priceController,
+                  focusNode: safeNode(3),
+                  keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: locale.unitPrice,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    final parsed =
+                        double.tryParse(value.replaceAll(',', '')) ?? 0;
 
-              // Storage Selection
+                    context.read<PurchaseInvoiceBloc>().add(
+                      UpdatePurchaseItemEvent(
+                        rowId: item.rowId,
+                        purPrice: parsed,
+                      ),
+                    );
+                  },
+                  onSubmitted: (_) => focusNext(3),
+                ),
+              ),
+
+              /// Sell Price
+              SizedBox(
+                width: 150,
+                child: TextField(
+                  controller: sellPriceController,
+                  focusNode: safeNode(4),
+                  keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: locale.sellPrice,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  onChanged: (value) {
+                    final parsed =
+                        double.tryParse(value.replaceAll(',', '')) ?? 0;
+
+                    context.read<PurchaseInvoiceBloc>().add(
+                      UpdatePurchaseItemEvent(
+                        rowId: item.rowId,
+                        sellPriceAmount: parsed,
+                      ),
+                    );
+                  },
+                  onSubmitted: (_) => focusNext(4),
+                ),
+              ),
+
+              /// Landed Price
+              SizedBox(
+                width: 150,
+                child: TextField(
+                  controller: landedPriceController,
+                  keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: locale.landedPrice,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                ),
+              ),
+
+              /// Storage (🔥 FIXED)
               SizedBox(
                 width: 180,
                 child: BlocBuilder<StorageBloc, StorageState>(
-                  builder: (context, storageState) {
-                    if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
-                      if (item.storageId == 0) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          final firstStorage = storageState.storage.first;
-                          context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
+                  builder: (context, state) {
+                    final storageFocus = safeNode(4);
+
+                    if (state is StorageLoadedState &&
+                        state.storage.isNotEmpty &&
+                        item.storageId == 0) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        final first = state.storage.first;
+
+                        context.read<PurchaseInvoiceBloc>().add(
+                          UpdatePurchaseItemEvent(
                             rowId: item.rowId,
-                            storageId: firstStorage.stgId!,
-                            storageName: firstStorage.stgName ?? '',
-                          ));
-                          storageController.text = firstStorage.stgName ?? '';
-                        });
-                      }
+                            storageId: first.stgId!,
+                            storageName: first.stgName ?? '',
+                          ),
+                        );
+
+                        storageController.text = first.stgName ?? '';
+                      });
                     }
 
-                    return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
+                    return GenericUnderlineTextfield<
+                        StorageModel,
+                        StorageBloc,
+                        StorageState>(
                       title: "",
-                      focusNode: nodes[3],
+                      focusNode: storageFocus,
                       controller: storageController,
                       hintText: locale.storage,
                       bloc: context.read<StorageBloc>(),
-                      fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
-                      searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
+                      fetchAllFunction: (bloc) =>
+                          bloc.add(LoadStorageEvent()),
+                      searchFunction: (bloc, query) =>
+                          bloc.add(LoadStorageEvent()),
                       itemBuilder: (context, stg) => Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(stg.stgName ?? ''),
                       ),
                       itemToString: (stg) => stg.stgName ?? '',
-                      stateToLoading: (state) => state is StorageLoadingState,
+                      stateToLoading: (state) =>
+                      state is StorageLoadingState,
                       stateToItems: (state) {
-                        if (state is StorageLoadedState) return state.storage;
+                        if (state is StorageLoadedState) {
+                          return state.storage;
+                        }
                         return [];
                       },
                       onSelected: (storage) {
-                        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                          rowId: item.rowId,
-                          storageId: storage.stgId!,
-                          storageName: storage.stgName ?? '',
-                        ));
+                        context.read<PurchaseInvoiceBloc>().add(
+                          UpdatePurchaseItemEvent(
+                            rowId: item.rowId,
+                            storageId: storage.stgId!,
+                            storageName: storage.stgName ?? '',
+                          ),
+                        );
                       },
                     );
                   },
                 ),
               ),
 
-              // Actions
+              /// Delete
               SizedBox(
                 width: 60,
-                child: Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18),
-                      onPressed: () {
-                        // Clean up controllers before removing
-                        _priceControllers.remove(item.rowId);
-                        _qtyControllers.remove(item.rowId);
-                        context.read<PurchaseInvoiceBloc>().add(RemovePurchaseItemEvent(item.rowId));
-                      },
-                    ),
-                  ],
+                child: IconButton(
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  onPressed: () {
+                    _purchasePriceControllers.remove(item.rowId);
+                    _qtyControllers.remove(item.rowId);
+
+                    context.read<PurchaseInvoiceBloc>().add(
+                      RemovePurchaseItemEvent(item.rowId),
+                    );
+                  },
                 ),
               ),
             ],
           ),
         ),
+
+        /// Add button
         if (isLastRow)
           Padding(
-            padding: const EdgeInsets.only(top: 8.0),
+            padding: const EdgeInsets.only(top: 8),
             child: Row(
               children: [
                 ZOutlineButton(
                   width: 120,
                   icon: Icons.add,
-                  label: Text(AppLocalizations.of(context)!.addItem),
+                  label: Text(locale.addItem),
                   onPressed: () {
-                    context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
+                    context
+                        .read<PurchaseInvoiceBloc>()
+                        .add(AddNewPurchaseItemEvent());
                   },
-                )
+                ),
               ],
             ),
-          )
+          ),
       ],
     );
   }
@@ -1091,6 +1179,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
     context.read<PurchaseInvoiceBloc>().add(SavePurchaseInvoiceEvent(
       usrName: _userName ?? '',
+      expenses: state.expenses,
       orderName: "Purchase",
       ordPersonal: state.supplier!.perId!,
       xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
@@ -2166,6 +2255,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
     context.read<PurchaseInvoiceBloc>().add(SavePurchaseInvoiceEvent(
       usrName: _userName ?? '',
       orderName: "Purchase",
+      expenses: state.expenses,
       ordPersonal: state.supplier!.perId!,
       xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
       items: state.items,
@@ -2546,14 +2636,11 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                               hintText: tr.selectAccount,
                               isRequired: false,
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) =>
-                                  bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(
-                                  input: query, include: '8', exclude: '')),
+                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
+                              searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
                               itemBuilder: (context, account) => ListTile(
                                 title: Text(account.accName ?? ''),
-                                subtitle: Text(
-                                    '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
                                 trailing: Text(account.actCurrency ?? ""),
                               ),
                               itemToString: (account) => '${account.accName} (${account.accNumber})',
@@ -2593,7 +2680,6 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                           final current = state is PurchaseInvoiceSaving
                               ? state
                               : (state as PurchaseInvoiceLoaded);
-
                           if (current.items.isEmpty) {
                             return Center(
                               child: Column(
@@ -3218,6 +3304,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     context.read<PurchaseInvoiceBloc>().add(SavePurchaseInvoiceEvent(
       usrName: _userName ?? '',
       orderName: "Purchase",
+      expenses: state.expenses,
       ordPersonal: state.supplier!.perId!,
       xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
       items: state.items,

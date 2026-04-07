@@ -383,7 +383,7 @@
   "transactionFailedTitle": "Transaction Failed",
   "fundTransferTitle": "Fund Transfer",
   "fundTransferMultiTitle": "Fund Transfer MA",
-  "storage": "Stock",
+  "storage": "Warehouse",
   "storages": "Storages",
   "location": "Location",
   "unlimited": "Unlimited",
@@ -1047,5 +1047,7 @@
   "confirm": "Confirm",
   "discountTitle": "Discount",
   "pcs": "Pcs",
-  "batchTitle": "Batch"
+  "batchTitle": "Batch",
+  "landedPrice": "Cost Price",
+  "warehouse": "Warehouse"
 }

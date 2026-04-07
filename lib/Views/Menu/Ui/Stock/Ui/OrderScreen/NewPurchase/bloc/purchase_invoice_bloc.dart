@@ -39,11 +39,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
   }
   void _onInitialize(InitializePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
     emit(PurchaseInvoiceLoaded(
+      expenses: [
+        PurExpenseRecord(narration: '', account: 0, amount: 0)
+      ],
       items: [PurchaseInvoiceItem(
         productId: '',
         productName: '',
         qty: 1,
         stkBatch: 0,
+        sellPriceAmount: 0,
         purPrice: 0,
         storageName: '',
         storageId: 0,
@@ -103,6 +107,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       productId: '',
       productName: '',
       qty: 1,
+      sellPriceAmount: 0,
       purPrice: 0,
       stkBatch: 0,
       storageName: '',
@@ -123,6 +128,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           productId: '',
           productName: '',
           stkBatch: 0,
+          sellPriceAmount: 0,
           qty: 1,
           purPrice: 0,
           storageName: '',
@@ -142,6 +148,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           return PurchaseInvoiceItem(
             itemId: item.rowId,
             stkBatch: item.stkBatch,
+            sellPriceAmount: event.sellPriceAmount ?? item.sellPriceAmount,
             productId: event.productId ?? item.productId,
             productName: event.productName ?? item.productName,
             qty: event.qty ?? item.qty,
@@ -212,6 +219,10 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
   }
   void _onReset(ResetPurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
     emit(PurchaseInvoiceLoaded(
+      expenses: [
+        PurExpenseRecord(
+            narration: '', account: 0, amount: 0)
+      ],
       items: [PurchaseInvoiceItem(
         productId: '',
         productName: '',
@@ -219,6 +230,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         stkBatch: 0,
         purPrice: 0,
         storageName: '',
+        sellPriceAmount: 0,
         storageId: 0,
       )],
       payment: 0.0,
@@ -306,6 +318,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     emit(PurchaseInvoiceSaving(
       items: current.items,
       supplier: current.supplier,
+      expenses: current.expenses,
       supplierAccount: current.supplierAccount,
       payment: current.payment,
       paymentMode: current.paymentMode,
@@ -338,8 +351,16 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
-          stkQtyPerUnit: item.stkBatch,
+          stkQtyInBatch: item.stkBatch,
           pPrice: item.purPrice,
+        );
+      }).toList();
+
+      final expRecords = current.expenses.map((item){
+        return PurExpenseRecord(
+            narration: item.narration,
+            account: item.account,
+            amount: item.amount
         );
       }).toList();
 
@@ -353,6 +374,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         account: accountNumber,
         amount: amountToSend,
         records: records,
+        expRecord: expRecords,
       );
 
       final message = response['msg']?.toString() ?? 'No response message';

@@ -1124,7 +1124,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get fundTransferMultiTitle => 'انتقال وجه - چندگانه';
 
   @override
-  String get storage => 'مخزن';
+  String get storage => 'انبار';
 
   @override
   String get storages => 'ذخایر';
@@ -3160,4 +3160,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get batchTitle => 'مقدار';
+
+  @override
+  String get landedPrice => 'قیمت تمام‌شده';
+
+  @override
+  String get warehouse => 'انبار';
 }

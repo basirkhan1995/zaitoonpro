@@ -44,6 +44,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
   final int? qty;
   final double? batch;
   final double? purPrice;
+  final double? sellPriceAmount;
   final int? storageId;
   final String? storageName;
 
@@ -54,6 +55,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
     this.qty,
     this.batch,
     this.purPrice,
+    this.sellPriceAmount,
     this.storageId,
     this.storageName,
   });
@@ -66,6 +68,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
     qty,
     batch,
     purPrice,
+    sellPriceAmount,
     storageId,
     storageName,
   ];
@@ -89,6 +92,7 @@ class SavePurchaseInvoiceEvent extends PurchaseInvoiceEvent {
   final int ordPersonal;
   final String? xRef;
   final List<PurchaseInvoiceItem> items;
+  final List<PurExpenseRecord> expenses;
   final Completer<String> completer;
 
   const SavePurchaseInvoiceEvent({
@@ -97,6 +101,7 @@ class SavePurchaseInvoiceEvent extends PurchaseInvoiceEvent {
     required this.orderName,
     this.xRef,
     required this.items,
+    required this.expenses,
     required this.completer,
   });
 

@@ -3166,4 +3166,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get warehouse => 'انبار';
+
+  @override
+  String get manageExpenses => 'مصارف بل';
 }

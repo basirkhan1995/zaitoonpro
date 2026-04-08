@@ -26,6 +26,143 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<SavePurchaseInvoiceEvent>(_onSaveInvoice);
     on<LoadPurchaseStoragesEvent>(_onLoadStorages);
     on<ClearSupplierAccountEvent>(_onClearSupplierAccount);
+
+    // New expense handlers
+    on<AddExpenseEvent>(_onAddExpense);
+    on<RemoveExpenseEvent>(_onRemoveExpense);
+    on<UpdateExpenseEvent>(_onUpdateExpense);
+    on<UpdateAllLandedPricesEvent>(_onUpdateAllLandedPrices);
+  }
+
+  void _onAddExpense(AddExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+      final newExpense = PurExpenseRecord(
+        narration: '',
+        account: 0,
+        amount: 0.0,
+        accountName: '',
+      );
+
+      final updatedExpenses = List<PurExpenseRecord>.from(current.expenses)..add(newExpense);
+      emit(current.copyWith(expenses: updatedExpenses));
+
+      // Recalculate landed prices
+      add(UpdateAllLandedPricesEvent());
+    }
+  }
+
+  void _onRemoveExpense(RemoveExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+      final updatedExpenses = current.expenses
+          .where((expense) => expense.rowId != event.rowId)
+          .toList();
+
+      // ✅ Allow empty list - no minimum rows
+      emit(current.copyWith(expenses: updatedExpenses));
+
+      // Recalculate landed prices
+      add(UpdateAllLandedPricesEvent());
+    }
+  }
+
+  void _onUpdateExpense(UpdateExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+      final updatedExpenses = current.expenses.map((expense) {
+        if (expense.rowId == event.rowId) {
+          return expense.copyWith(
+            narration: event.narration,
+            account: event.account,
+            amount: event.amount,
+            accountName: event.accountName,
+          );
+        }
+        return expense;
+      }).toList();
+
+      emit(current.copyWith(expenses: updatedExpenses));
+
+      // Recalculate landed prices when expense changes
+      add(UpdateAllLandedPricesEvent());
+    }
+  }
+
+  void _onUpdateAllLandedPrices(UpdateAllLandedPricesEvent event, Emitter<PurchaseInvoiceState> emit) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+
+      // Calculate total expenses
+      final totalExpenses = current.expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+
+      // Calculate grand total purchase value
+      final grandTotal = current.items.fold(0.0, (sum, item) => sum + item.totalPurchase);
+
+      // Update each item's landed price for DISPLAY only
+      final updatedItems = current.items.map((item) {
+        double landedPriceForDisplay = item.purPrice ?? 0.0;
+
+        if (grandTotal > 0 && totalExpenses > 0) {
+          // Allocate expense proportionally based on purchase value
+          final allocationRatio = item.totalPurchase / grandTotal;
+          final allocatedExpense = totalExpenses * allocationRatio;
+          landedPriceForDisplay = (item.purPrice ?? 0.0) + (allocatedExpense / item.qty);
+        }
+
+        return PurchaseInvoiceItem(
+          itemId: item.rowId,
+          productId: item.productId,
+          productName: item.productName,
+          qty: item.qty,
+          stkBatch: item.stkBatch,
+          purPrice: item.purPrice,  // Keep original price
+          landedPrice: landedPriceForDisplay,  // Update display price
+          sellPriceAmount: item.sellPriceAmount,
+          storageName: item.storageName,
+          storageId: item.storageId,
+        );
+      }).toList();
+
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+  void _onInitialize(InitializePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
+    emit(PurchaseInvoiceLoaded(
+      expenses: [],  // ← Start with empty list instead of one empty row
+      items: [PurchaseInvoiceItem(
+        productId: '',
+        productName: '',
+        qty: 1,
+        stkBatch: 0,
+        sellPriceAmount: 0,
+        purPrice: 0,
+        landedPrice: 0,
+        storageName: '',
+        storageId: 0,
+      )],
+      payment: 0.0,
+      paymentMode: PaymentMode.cash,
+    ));
+  }
+
+  void _onReset(ResetPurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
+    emit(PurchaseInvoiceLoaded(
+      expenses: [],  // ← Start with empty list
+      items: [PurchaseInvoiceItem(
+        productId: '',
+        productName: '',
+        qty: 1,
+        stkBatch: 0,
+        purPrice: 0,
+        landedPrice: 0,
+        storageName: '',
+        sellPriceAmount: 0,
+        storageId: 0,
+      )],
+      payment: 0.0,
+      paymentMode: PaymentMode.cash,
+    ));
   }
   void _onClearSupplierAccount(ClearSupplierAccountEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
@@ -36,25 +173,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         paymentMode: PaymentMode.cash,
       ));
     }
-  }
-  void _onInitialize(InitializePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
-    emit(PurchaseInvoiceLoaded(
-      expenses: [
-        PurExpenseRecord(narration: '', account: 0, amount: 0)
-      ],
-      items: [PurchaseInvoiceItem(
-        productId: '',
-        productName: '',
-        qty: 1,
-        stkBatch: 0,
-        sellPriceAmount: 0,
-        purPrice: 0,
-        storageName: '',
-        storageId: 0,
-      )],
-      payment: 0.0,
-      paymentMode: PaymentMode.cash,
-    ));
   }
 
   void _onSelectSupplierAccount(SelectSupplierAccountEvent event, Emitter<PurchaseInvoiceState> emit) {
@@ -217,26 +335,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       ));
     }
   }
-  void _onReset(ResetPurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
-    emit(PurchaseInvoiceLoaded(
-      expenses: [
-        PurExpenseRecord(
-            narration: '', account: 0, amount: 0)
-      ],
-      items: [PurchaseInvoiceItem(
-        productId: '',
-        productName: '',
-        qty: 1,
-        stkBatch: 0,
-        purPrice: 0,
-        storageName: '',
-        sellPriceAmount: 0,
-        storageId: 0,
-      )],
-      payment: 0.0,
-      paymentMode: PaymentMode.cash,
-    ));
-  }
+
 
   Future<void> _onSaveInvoice(SavePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) async {
     if (state is! PurchaseInvoiceLoaded) {

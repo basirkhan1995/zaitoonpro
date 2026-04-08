@@ -1049,5 +1049,6 @@
   "pcs": "Pcs",
   "batchTitle": "Batch",
   "landedPrice": "Cost Price",
-  "warehouse": "Warehouse"
+  "warehouse": "Warehouse",
+  "manageExpenses": "Manage Expenses"
 }

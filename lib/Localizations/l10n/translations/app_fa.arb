@@ -1049,5 +1049,6 @@
   "pcs": "مقدار",
   "batchTitle": "مقدار",
   "landedPrice": "قیمت تمام‌شده",
-  "warehouse": "انبار"
+  "warehouse": "انبار",
+  "manageExpenses": "مصارف بل"
 }

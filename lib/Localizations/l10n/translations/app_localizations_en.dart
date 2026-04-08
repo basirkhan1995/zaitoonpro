@@ -3176,4 +3176,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get warehouse => 'Warehouse';
+
+  @override
+  String get manageExpenses => 'Manage Expenses';
 }

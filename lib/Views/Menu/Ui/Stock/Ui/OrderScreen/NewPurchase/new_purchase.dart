@@ -30,6 +30,7 @@ import '../../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 import '../Print/print.dart';
 import 'bloc/purchase_invoice_bloc.dart';
+import 'expense_section.dart';
 import 'model/purchase_invoice_items.dart';
 
 class NewPurchaseOrderView extends StatelessWidget {
@@ -60,7 +61,21 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
   final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  void _showExpensesDialog(BuildContext context) {
+    final state = context.read<PurchaseInvoiceBloc>().state;
+    if (state is PurchaseInvoiceLoaded) {
+      showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context,setState) {
+            return ExpensesDialog(
 
+            );
+          }
+        ),
+      );
+    }
+  }
   String? _userName;
   String? baseCurrency;
   int? signatory;
@@ -185,6 +200,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
+                        flex: 2,
                         child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
                           key: const ValueKey('person_field'),
                           controller: _personController,
@@ -223,6 +239,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
+                        flex:2,
                         child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                           builder: (context, state) {
                             if (state is PurchaseInvoiceLoaded) {
@@ -305,12 +322,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       ),
                       const SizedBox(width: 8),
                       ZOutlineButton(
-                        width: 150,
+                        width: 170,
                         icon: Icons.outbond_outlined,
-                        onPressed: (){
-
-                        },
-                        label: Text("Add Expenses"),
+                        onPressed: ()=> _showExpensesDialog(context),
+                        label: Text(tr.manageExpenses),
                       ),
                       const SizedBox(width: 8),
                       ZOutlineButton(
@@ -347,34 +362,54 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       )
                     ],
                   ),
-                  const SizedBox(height: 16),
 
+                  const SizedBox(height: 8),
                   // Items Header
                   _buildItemsHeader(context),
                   const SizedBox(height: 8),
-
-                  // Items List
+                  // In your build method, replace the Expanded child that contains the ListView
                   Expanded(
                     child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                       builder: (context, state) {
                         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-                          final current = state is PurchaseInvoiceSaving ?
-                          state : (state as PurchaseInvoiceLoaded);
+                          final current = state is PurchaseInvoiceSaving
+                              ? state
+                              : (state as PurchaseInvoiceLoaded);
                           _synchronizeFocusNodes(current.items.length);
-                          return ListView.builder(
-                            itemCount: current.items.length,
-                            itemBuilder: (context, index) {
-                              final item = current.items[index];
-                              final isLastRow = index == current.items.length - 1;
-                              final nodes = _rowFocusNodes[index];
 
-                              return _buildItemRow(
-                                item: item,
-                                nodes: nodes,
-                                isLastRow: isLastRow,
-                                context: context,
-                              );
-                            },
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+
+                                // Items List
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: current.items.length,
+                                  itemBuilder: (context, index) {
+                                    final item = current.items[index];
+                                    final isLastRow = index == current.items.length - 1;
+                                    final nodes = _rowFocusNodes[index];
+
+                                    return _buildItemRow(
+                                      item: item,
+                                      nodes: nodes,
+                                      isLastRow: isLastRow,
+                                      context: context,
+                                    );
+                                  },
+                                ),
+
+                                const SizedBox(height: 16),
+
+                                // Payment Summary Section
+                                Row(
+                                  children: [
+                                    _buildSummarySection(context),
+                                  ],
+                                ),
+                              ],
+                            ),
                           );
                         }
                         return const Center(child: CircularProgressIndicator());
@@ -383,7 +418,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
 
                   // Summary Section
-                  _buildSummarySection(context),
+                  //_buildSummarySection(context),
                 ],
               ),
             ),
@@ -399,7 +434,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: color.primary,
         borderRadius: BorderRadius.circular(3),
@@ -666,18 +701,27 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 ),
               ),
 
-              /// Landed Price
+              /// Landed Price (Display Only - Calculated from expenses)
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: landedPriceController,
-                  keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     hintText: locale.landedPrice,
                     border: InputBorder.none,
                     isDense: true,
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
                   ),
+                  readOnly: true,  // ← Make read-only
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  onChanged: (value) {
+                    // No onChanged handler - it's read-only
+                  },
                 ),
               ),
 

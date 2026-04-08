@@ -122,3 +122,40 @@ class LoadPurchaseStoragesEvent extends PurchaseInvoiceEvent {
   @override
   List<Object?> get props => [productId];
 }
+
+
+///
+class AddExpenseEvent extends PurchaseInvoiceEvent {
+  const AddExpenseEvent();
+}
+
+class RemoveExpenseEvent extends PurchaseInvoiceEvent {
+  final String rowId;
+  const RemoveExpenseEvent(this.rowId);
+
+  @override
+  List<Object?> get props => [rowId];
+}
+
+class UpdateExpenseEvent extends PurchaseInvoiceEvent {
+  final String rowId;
+  final String? narration;
+  final int? account;
+  final double? amount;
+  final String? accountName;
+
+  const UpdateExpenseEvent({
+    required this.rowId,
+    this.narration,
+    this.account,
+    this.amount,
+    this.accountName,
+  });
+
+  @override
+  List<Object?> get props => [rowId, narration, account, amount, accountName];
+}
+
+class UpdateAllLandedPricesEvent extends PurchaseInvoiceEvent {
+  const UpdateAllLandedPricesEvent();
+}

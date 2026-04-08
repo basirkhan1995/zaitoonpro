@@ -3169,4 +3169,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get warehouse => 'گدام';
+
+  @override
+  String get manageExpenses => 'بل مصرفونه';
 }

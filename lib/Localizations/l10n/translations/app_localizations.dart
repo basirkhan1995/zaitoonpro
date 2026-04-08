@@ -6279,6 +6279,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Warehouse'**
   String get warehouse;
+
+  /// No description provided for @manageExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Expenses'**
+  String get manageExpenses;
 }
 
 class _AppLocalizationsDelegate

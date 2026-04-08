@@ -5,7 +5,7 @@ class PurchaseInvoiceItem {
   int qty;
   int stkBatch;
   double? purPrice;
-  double? landedPrice;
+  double? landedPrice;  // ← Add this field for display only
   double sellPriceAmount;
   int storageId;
   String storageName;
@@ -17,7 +17,7 @@ class PurchaseInvoiceItem {
     required this.qty,
     required this.stkBatch,
     this.purPrice,
-    this.landedPrice,
+    this.landedPrice,  // ← Add here
     required this.sellPriceAmount,
     required this.storageName,
     required this.storageId,
@@ -57,19 +57,39 @@ class PurchaseInvoiceRecord {
 }
 
 class PurExpenseRecord {
+  final String rowId;
   final String narration;
   final int account;
   final double amount;
+  final String accountName;
 
   PurExpenseRecord({
+    String? rowId,
     required this.narration,
     required this.account,
     required this.amount,
-  });
+    this.accountName = '',
+  }) : rowId = rowId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   Map<String, dynamic> toJson() => {
     'narration': narration,
     'account': account,
     'amount': amount,
   };
+
+  PurExpenseRecord copyWith({
+    String? rowId,
+    String? narration,
+    int? account,
+    double? amount,
+    String? accountName,
+  }) {
+    return PurExpenseRecord(
+      rowId: rowId ?? this.rowId,
+      narration: narration ?? this.narration,
+      account: account ?? this.account,
+      amount: amount ?? this.amount,
+      accountName: accountName ?? this.accountName,
+    );
+  }
 }

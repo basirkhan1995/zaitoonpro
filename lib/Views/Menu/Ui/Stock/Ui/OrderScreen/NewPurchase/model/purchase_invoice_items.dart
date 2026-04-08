@@ -9,7 +9,6 @@ class PurchaseInvoiceItem {
   double sellPriceAmount;
   int storageId;
   String storageName;
-  double allocatedExpense; // New field for per-item expense allocation
 
   PurchaseInvoiceItem({
     String? itemId,
@@ -22,24 +21,10 @@ class PurchaseInvoiceItem {
     required this.sellPriceAmount,
     required this.storageName,
     required this.storageId,
-    this.allocatedExpense = 0.0, // Default to 0
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   double get totalPurchase => qty * (purPrice ?? 0);
-  double get totalLandedCost => qty * (landedPrice ?? 0);
   double get totalQty => qty.toDouble() * stkBatch;
-
-  // Calculate landed price per unit
-  void calculateLandedPrice(double totalExpenses, double grandTotal) {
-    if (grandTotal > 0 && totalExpenses > 0) {
-      // Allocate expense proportionally based on purchase value
-      final allocationRatio = totalPurchase / grandTotal;
-      allocatedExpense = totalExpenses * allocationRatio;
-      landedPrice = (purPrice ?? 0) + (allocatedExpense / qty);
-    } else {
-      landedPrice = purPrice;
-    }
-  }
 }
 
 class PurchaseInvoiceRecord {

@@ -1051,5 +1051,6 @@
   "landedPrice": "Cost Price",
   "warehouse": "Warehouse",
   "manageExpenses": "Manage Expenses",
-  "salePercentage": "Percentange"
+  "salePercentage": "Percentange",
+  "recalculate": "Recalculate"
 }

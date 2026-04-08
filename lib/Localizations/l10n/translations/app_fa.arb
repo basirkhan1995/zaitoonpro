@@ -1051,5 +1051,6 @@
   "landedPrice": "قیمت تمام‌شده",
   "warehouse": "انبار",
   "manageExpenses": "مصارف بل",
-  "salePercentage": "فیصدی"
+  "salePercentage": "فیصدی",
+  "recalculate": "محاسبه مجدد"
 }

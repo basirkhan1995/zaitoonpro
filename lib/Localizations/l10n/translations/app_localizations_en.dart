@@ -3182,4 +3182,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get salePercentage => 'Percentange';
+
+  @override
+  String get recalculate => 'Recalculate';
 }

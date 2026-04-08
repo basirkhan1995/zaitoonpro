@@ -1051,5 +1051,6 @@
   "landedPrice": "تمام شوی قیمت",
   "warehouse": "گدام",
   "manageExpenses": "بل مصرفونه",
-  "salePercentage": "فیصدی"
+  "salePercentage": "فیصدی",
+  "recalculate": "محاسبه مجدد"
 }

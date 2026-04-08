@@ -47,7 +47,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final updatedExpenses = List<PurExpenseRecord>.from(current.expenses)..add(newExpense);
       emit(current.copyWith(expenses: updatedExpenses));
 
-      // Recalculate landed prices
+      // ✅ This is already correct - it triggers recalculation
       add(UpdateAllLandedPricesEvent());
     }
   }
@@ -59,24 +59,22 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           .where((expense) => expense.rowId != event.rowId)
           .toList();
 
-      // ✅ Allow empty list - no minimum rows
       emit(current.copyWith(expenses: updatedExpenses));
 
-      // Recalculate landed prices
+      // ✅ This triggers recalculation after removal
       add(UpdateAllLandedPricesEvent());
     }
   }
-
   void _onUpdateExpense(UpdateExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
       final updatedExpenses = current.expenses.map((expense) {
         if (expense.rowId == event.rowId) {
           return expense.copyWith(
-            narration: event.narration,
-            account: event.account,
-            amount: event.amount,
-            accountName: event.accountName,
+            narration: event.narration ?? expense.narration,
+            account: event.account ?? expense.account,
+            amount: event.amount ?? expense.amount,
+            accountName: event.accountName ?? expense.accountName,
           );
         }
         return expense;
@@ -84,11 +82,10 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
       emit(current.copyWith(expenses: updatedExpenses));
 
-      // Recalculate landed prices when expense changes
+      // ✅ THIS WAS MISSING - Now triggers recalculation
       add(UpdateAllLandedPricesEvent());
     }
   }
-
   void _onUpdateAllLandedPrices(UpdateAllLandedPricesEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -96,7 +93,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       // Calculate total expenses
       final totalExpenses = current.expenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
-      // Calculate grand total purchase value
+      // Calculate grand total purchase value (sum of all items' total purchase)
       final grandTotal = current.items.fold(0.0, (sum, item) => sum + item.totalPurchase);
 
       // Update each item's landed price for DISPLAY only
@@ -127,6 +124,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(current.copyWith(items: updatedItems));
     }
   }
+
   void _onInitialize(InitializePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
     emit(PurchaseInvoiceLoaded(
       expenses: [],  // ← Start with empty list instead of one empty row

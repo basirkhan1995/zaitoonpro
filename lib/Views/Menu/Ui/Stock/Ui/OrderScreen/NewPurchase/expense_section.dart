@@ -36,9 +36,9 @@ class _ExpensesDialogContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalExpenses = expenses.fold(0.0, (sum, e) => sum + e.amount);
-
+    final tr = AppLocalizations.of(context)!;
     return ZFormDialog(
-      title: 'Manage Expenses',
+      title: tr.manageExpenses,
       icon: Icons.outbond_outlined,
       isActionTrue: false,
       padding: EdgeInsets.all(10),
@@ -50,22 +50,36 @@ class _ExpensesDialogContent extends StatelessWidget {
           // Header with Add Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Expense Items',
+                tr.expenses,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              ZOutlineButton(
-                onPressed: () {
-                  context.read<PurchaseInvoiceBloc>().add(AddExpenseEvent());
-                },
-                icon: Icons.add,
-                isActive: true,
-                label: const Text('Add Expense'),
-              ),
+              Row(
+                spacing: 8,
+                children: [
+                  if(totalExpenses > 0)
+                  ZOutlineButton(
+                    onPressed: () {
+                      context.read<PurchaseInvoiceBloc>().add(UpdateAllLandedPricesEvent());
+                    },
+                    icon: Icons.calculate,
+                    label: Text(tr.recalculate),
+                  ),
+                  ZOutlineButton(
+                    onPressed: () {
+                      context.read<PurchaseInvoiceBloc>().add(AddExpenseEvent());
+                    },
+                    icon: Icons.add,
+                    isActive: true,
+                    label: Text(tr.addItem),
+                  ),
+                ],
+              )
             ],
           ),
           const SizedBox(height: 16),
@@ -257,9 +271,9 @@ class _ExpenseRowState extends State<_ExpenseRow> {
   @override
   Widget build(BuildContext context) {
     return ZCover(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 4),
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(2.0),
         child: Row(
           children: [
             /// Account

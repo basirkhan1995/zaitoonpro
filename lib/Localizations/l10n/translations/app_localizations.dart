@@ -6291,6 +6291,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Percentange'**
   String get salePercentage;
+
+  /// No description provided for @recalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recalculate'**
+  String get recalculate;
 }
 
 class _AppLocalizationsDelegate

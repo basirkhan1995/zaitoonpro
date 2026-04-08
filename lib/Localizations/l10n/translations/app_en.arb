@@ -1050,5 +1050,6 @@
   "batchTitle": "Batch",
   "landedPrice": "Cost Price",
   "warehouse": "Warehouse",
-  "manageExpenses": "Manage Expenses"
+  "manageExpenses": "Manage Expenses",
+  "salePercentage": "Percentange"
 }

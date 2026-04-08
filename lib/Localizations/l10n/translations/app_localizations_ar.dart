@@ -3172,4 +3172,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get manageExpenses => 'بل مصرفونه';
+
+  @override
+  String get salePercentage => 'فیصدی';
 }

@@ -53,7 +53,6 @@ class _DesktopPurchaseOrderView extends StatefulWidget {
   @override
   State<_DesktopPurchaseOrderView> createState() => _DesktopPurchaseOrderViewState();
 }
-
 class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
@@ -450,7 +449,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
           SizedBox(width: 100, child: Text(locale.totalTitle, style: title)),
           SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
-          SizedBox(width: 150, child: Text(locale.sellPrice, style: title)),
+          SizedBox(width: 150, child: Text(locale.salePercentage, style: title)),
           SizedBox(width: 150, child: Text(locale.landedPrice, style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
@@ -517,8 +516,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
     );
 
-    final storageController =
-    TextEditingController(text: item.storageName);
+    final storageController = TextEditingController(text: item.storageName);
     return Column(
       children: [
         Container(
@@ -541,18 +539,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
               /// Product
               Expanded(
-                child: GenericUnderlineTextfield<
-                    ProductsModel,
-                    ProductsBloc,
-                    ProductsState>(
+                child: GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
                   title: "",
                   controller: productController,
                   hintText: locale.products,
                   bloc: context.read<ProductsBloc>(),
-                  fetchAllFunction: (bloc) =>
-                      bloc.add(LoadProductsEvent()),
-                  searchFunction: (bloc, query) =>
-                      bloc.add(LoadProductsEvent()),
+                  fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
+                  searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
                   itemBuilder: (context, product) => Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Text("${product.proCode} | ${product.proName}"),
@@ -641,10 +634,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   item.totalQty.toStringAsFixed(2),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
+                    fontSize: 16,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ),
+
               /// Price
               SizedBox(
                 width: 150,
@@ -682,14 +677,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
-                    hintText: locale.sellPrice,
+                    hintText: locale.salePercentage,
                     border: InputBorder.none,
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    final parsed =
-                        double.tryParse(value.replaceAll(',', '')) ?? 0;
-
+                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     context.read<PurchaseInvoiceBloc>().add(
                       UpdatePurchaseItemEvent(
                         rowId: item.rowId,
@@ -711,8 +704,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     hintText: locale.landedPrice,
                     border: InputBorder.none,
                     isDense: true,
-                    filled: true,
-                    fillColor: Colors.grey.shade50,
                   ),
                   readOnly: true,  // ← Make read-only
                   style: TextStyle(
@@ -798,7 +789,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   onPressed: () {
                     _purchasePriceControllers.remove(item.rowId);
                     _qtyControllers.remove(item.rowId);
-
                     context.read<PurchaseInvoiceBloc>().add(
                       RemovePurchaseItemEvent(item.rowId),
                     );

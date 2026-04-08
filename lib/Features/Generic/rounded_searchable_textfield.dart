@@ -12,6 +12,12 @@ typedef BlocSearchFunction<B> = void Function(B bloc, String query);
 typedef BlocFetchAllFunction<B> = void Function(B bloc);
 typedef OnFieldSubmitFunction = void Function({required String name});
 
+enum TextFieldStyle {
+  roundedBorder,
+  underline,
+  noBorder,
+}
+
 class GenericTextfield<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final LoadingBuilder? loadingBuilder;
   final bool Function(S state)? stateToLoading;
@@ -45,6 +51,7 @@ class GenericTextfield<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final T? allOption;
   final bool showAllOption;
   final String allOptionText;
+  final TextFieldStyle textFieldStyle;
 
   const GenericTextfield({
     super.key,
@@ -80,6 +87,7 @@ class GenericTextfield<T, B extends BlocBase<S>, S> extends StatefulWidget {
     this.allOption,
     this.showAllOption = false,
     this.allOptionText = 'All',
+    this.textFieldStyle = TextFieldStyle.roundedBorder,
   }) : assert(bloc != null || searchFunction == null, 'If searchFunction is provided, bloc must also be provided');
 
   @override
@@ -295,6 +303,110 @@ class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericT
     );
   }
 
+  InputBorder _getEnabledBorder() {
+    switch (widget.textFieldStyle) {
+      case TextFieldStyle.roundedBorder:
+        return OutlineInputBorder(
+          borderRadius: BorderRadius.circular(3),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.secondary.withValues(alpha: .3),
+          ),
+        );
+      case TextFieldStyle.underline:
+        return const UnderlineInputBorder();
+      case TextFieldStyle.noBorder:
+        return const OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide.none,
+        );
+    }
+  }
+
+  InputBorder _getFocusedBorder() {
+    switch (widget.textFieldStyle) {
+      case TextFieldStyle.roundedBorder:
+        return OutlineInputBorder(
+          borderRadius: BorderRadius.circular(3),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        );
+      case TextFieldStyle.underline:
+        return const UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.blue,
+            width: 2,
+          ),
+        );
+      case TextFieldStyle.noBorder:
+        return const OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide.none,
+        );
+    }
+  }
+
+  InputBorder _getErrorBorder() {
+    switch (widget.textFieldStyle) {
+      case TextFieldStyle.roundedBorder:
+        return OutlineInputBorder(
+          borderRadius: BorderRadius.circular(3),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 1.5,
+          ),
+        );
+      case TextFieldStyle.underline:
+        return const UnderlineInputBorder(
+          borderSide: BorderSide(
+            color: Colors.red,
+            width: 1.5,
+          ),
+        );
+      case TextFieldStyle.noBorder:
+        return OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.error,
+            width: 1.5,
+          ),
+        );
+    }
+  }
+
+  InputBorder _getDisabledBorder() {
+    switch (widget.textFieldStyle) {
+      case TextFieldStyle.roundedBorder:
+        return OutlineInputBorder(
+          borderRadius: BorderRadius.circular(3),
+          borderSide: BorderSide(
+            color: Theme.of(context).colorScheme.secondary.withValues(alpha: .2),
+          ),
+        );
+      case TextFieldStyle.underline:
+        return const UnderlineInputBorder();
+      case TextFieldStyle.noBorder:
+        return const OutlineInputBorder(
+          borderRadius: BorderRadius.zero,
+          borderSide: BorderSide.none,
+        );
+    }
+  }
+
+  EdgeInsets _getContentPadding() {
+    // Different padding based on text field style
+    switch (widget.textFieldStyle) {
+      case TextFieldStyle.roundedBorder:
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
+      case TextFieldStyle.underline:
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 8);
+      case TextFieldStyle.noBorder:
+      // Slightly more vertical padding for noBorder to give visual space
+        return const EdgeInsets.symmetric(horizontal: 12, vertical: 10);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -308,13 +420,14 @@ class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericT
             children: [
               if (widget.title.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 3),
+                  padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     children: [
                       Text(
                         widget.title,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontSize: 12,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       if (widget.isRequired)
@@ -328,102 +441,103 @@ class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericT
                     ],
                   ),
                 ),
-              CompositedTransformTarget(
-                link: _layerLink,
-                child: TextFormField(
-                  focusNode: _focusNode,
-                  key: _fieldKey,
-                  controller: widget.controller,
-                  onChanged: (value) {
-                    if (widget.readOnly) return;
+              Container(
+                decoration: widget.textFieldStyle == TextFieldStyle.noBorder
+                    ? BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: .08),
+                  borderRadius: BorderRadius.circular(4),
+                )
+                    : null,
+                child: CompositedTransformTarget(
+                  link: _layerLink,
+                  child: TextFormField(
+                    focusNode: _focusNode,
+                    key: _fieldKey,
+                    controller: widget.controller,
+                    enabled: widget.isEnabled,
+                    onChanged: (value) {
+                      if (widget.readOnly) return;
 
-                    setState(() {
-                      _showClear = value.isNotEmpty;
-                    });
-                    if (_debounce?.isActive ?? false) _debounce!.cancel();
-                    _debounce = Timer(const Duration(milliseconds: 500), () {
-                      if (value.isNotEmpty && widget.bloc != null && widget.searchFunction != null) {
-                        widget.searchFunction!(widget.bloc!, value);
-                      } else if (value.isEmpty && widget.bloc != null && widget.fetchAllFunction != null) {
-                        widget.fetchAllFunction!(widget.bloc!);
-                      } else {
-                        _currentSuggestions = [];
+                      setState(() {
+                        _showClear = value.isNotEmpty;
+                      });
+                      if (_debounce?.isActive ?? false) _debounce!.cancel();
+                      _debounce = Timer(const Duration(milliseconds: 500), () {
+                        if (value.isNotEmpty && widget.bloc != null && widget.searchFunction != null) {
+                          widget.searchFunction!(widget.bloc!, value);
+                        } else if (value.isEmpty && widget.bloc != null && widget.fetchAllFunction != null) {
+                          widget.fetchAllFunction!(widget.bloc!);
+                        } else {
+                          _currentSuggestions = [];
+                          _removeOverlay();
+                        }
+                      });
+                    },
+                    readOnly: widget.readOnly,
+                    validator: widget.validator ?? _customValidator,
+                    onFieldSubmitted: (value) {
+                      final input = value.trim();
+                      // Call the optional external submit handler
+                      widget.onSubmitted?.call(name: input);
+
+                      // Try to match item by product code (proCode)
+                      final match = _currentSuggestions.firstWhere(
+                            (item) {
+                          String? code;
+                          try {
+                            final dynamic dyn = item;
+                            code = dyn.proCode?.toLowerCase();
+                          } catch (_) {}
+                          return code == input.toLowerCase();
+                        },
+                        orElse: () => null as T,
+                      );
+                      if (match != null) {
+                        widget.controller?.text = widget.itemToString(match); // show proName
+                        widget.onChanged?.call(widget.itemToString(match));
+                        widget.onSelected?.call(match);
+                        _focusNode.unfocus();
                         _removeOverlay();
                       }
-                    });
-                  },
-                  readOnly: widget.readOnly,
-                  validator: widget.validator ?? _customValidator,
-                  onFieldSubmitted: (value) {
-                    final input = value.trim();
-                    // Call the optional external submit handler
-                    widget.onSubmitted?.call(name: input);
-
-                    // Try to match item by product code (proCode)
-                    final match = _currentSuggestions.firstWhere(
-                          (item) {
-                        String? code;
-                        try {
-                          final dynamic dyn = item;
-                          code = dyn.proCode?.toLowerCase();
-                        } catch (_) {}
-                        return code == input.toLowerCase();
-                      },
-                      orElse: () => null as T,
-                    );
-                    if (match != null) {
-                      widget.controller?.text = widget.itemToString(match); // show proName
-                      widget.onChanged?.call(widget.itemToString(match));
-                      widget.onSelected?.call(match);
-                      _focusNode.unfocus();
-                      _removeOverlay();
-                    }
-                  },
-                  style: TextStyle(fontSize: 13),
-                  decoration: InputDecoration(
-                    isDense: true,
-                    prefixIcon: widget.icon != null ? Icon(widget.icon, size: 18) : null,
-                    suffixIcon: _buildSuffixIcon(),
-                    hintText: widget.hintText,
-                    hintStyle: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.secondary.withValues(alpha: .5),
+                    },
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                    disabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(3),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: .3),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      prefixIcon: widget.icon != null
+                          ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: Icon(widget.icon, size: 18),
+                      )
+                          : null,
+                      suffixIcon: _buildSuffixIcon(),
+                      hintText: widget.hintText,
+                      hintStyle: TextStyle(
+                        fontSize: 13,
+                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: .5),
                       ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(3),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: .3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(3),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(3),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(3),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                      contentPadding: _getContentPadding(),
+                      disabledBorder: _getDisabledBorder(),
+                      enabledBorder: _getEnabledBorder(),
+                      focusedBorder: _getFocusedBorder(),
+                      focusedErrorBorder: _getErrorBorder(),
+                      errorBorder: _getErrorBorder(),
+                      errorStyle: const TextStyle(fontSize: 11),
+                      fillColor: widget.textFieldStyle == TextFieldStyle.noBorder
+                          ? Colors.transparent
+                          : null,
+                      filled: widget.textFieldStyle == TextFieldStyle.noBorder,
                     ),
                   ),
                 ),
               ),
-              if (widget.end != null) widget.end!,
+              if (widget.end != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: widget.end,
+                ),
               if (widget.bloc != null)
                 BlocListener<B, S>(
                   bloc: widget.bloc,

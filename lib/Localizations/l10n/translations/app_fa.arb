@@ -1050,5 +1050,6 @@
   "batchTitle": "مقدار",
   "landedPrice": "قیمت تمام‌شده",
   "warehouse": "انبار",
-  "manageExpenses": "مصارف بل"
+  "manageExpenses": "مصارف بل",
+  "salePercentage": "فیصدی"
 }

@@ -6285,6 +6285,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage Expenses'**
   String get manageExpenses;
+
+  /// No description provided for @salePercentage.
+  ///
+  /// In en, this message translates to:
+  /// **'Percentange'**
+  String get salePercentage;
 }
 
 class _AppLocalizationsDelegate

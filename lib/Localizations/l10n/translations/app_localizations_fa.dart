@@ -3169,4 +3169,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get manageExpenses => 'مصارف بل';
+
+  @override
+  String get salePercentage => 'فیصدی';
 }

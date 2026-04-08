@@ -1050,5 +1050,6 @@
   "batchTitle": "مقدار",
   "landedPrice": "تمام شوی قیمت",
   "warehouse": "گدام",
-  "manageExpenses": "بل مصرفونه"
+  "manageExpenses": "بل مصرفونه",
+  "salePercentage": "فیصدی"
 }

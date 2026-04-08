@@ -3179,4 +3179,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageExpenses => 'Manage Expenses';
+
+  @override
+  String get salePercentage => 'Percentange';
 }

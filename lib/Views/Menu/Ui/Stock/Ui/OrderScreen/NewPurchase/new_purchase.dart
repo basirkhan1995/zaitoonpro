@@ -440,12 +440,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
     final rowIndex = _rowFocusNodes.indexOf(nodes);
 
-    final productController =
-    TextEditingController(text: item.productName);
+    final productController = TextEditingController(text: item.productName);
 
     final qtyController = _qtyControllers.putIfAbsent(
-      item.rowId,
-          () => TextEditingController(
+      item.rowId, () => TextEditingController(
         text: item.qty > 0 ? item.qty.toString() : '',
       ),
     );
@@ -541,9 +539,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         productName: product.proName ?? '',
                       ),
                     );
-
                     _autoSelectFirstStorage(context, item.rowId);
-
                     focusNext(0);
                   },
                 ),
@@ -591,8 +587,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    final batch = double.tryParse(value) ?? 0;
-
+                    final batch = int.tryParse(value) ?? 0;
                     context.read<PurchaseInvoiceBloc>().add(
                       UpdatePurchaseItemEvent(
                         rowId: item.rowId,

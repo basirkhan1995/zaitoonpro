@@ -147,7 +147,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         if (item.rowId == event.rowId) {
           return PurchaseInvoiceItem(
             itemId: item.rowId,
-            stkBatch: item.stkBatch,
+            stkBatch: event.batch?.toInt() ?? item.stkBatch,
             sellPriceAmount: event.sellPriceAmount ?? item.sellPriceAmount,
             productId: event.productId ?? item.productId,
             productName: event.productName ?? item.productName,
@@ -327,7 +327,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
     try {
       int? accountNumber;
-      double amountToSend; // This is CREDIT amount for API
+      double amountToSend;
 
       switch (current.paymentMode) {
         case PaymentMode.cash:
@@ -345,13 +345,13 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           amountToSend = current.creditAmount; // Credit portion to account
           break;
       }
-
       final records = current.items.map((item) {
         return PurchaseInvoiceRecord(
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           stkQtyInBatch: item.stkBatch,
+          sellPercentage: item.sellPriceAmount,
           pPrice: item.purPrice,
         );
       }).toList();

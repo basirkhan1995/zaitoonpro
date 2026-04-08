@@ -42,7 +42,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
   final String? productId;
   final String? productName;
   final int? qty;
-  final double? batch;
+  final int? batch;
   final double? purPrice;
   final double? sellPriceAmount;
   final int? storageId;

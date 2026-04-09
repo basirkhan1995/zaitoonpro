@@ -12,7 +12,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Reminder/add_edit_reminders.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
-import '../../../../../../../Features/Generic/product_info_field.dart';
+import '../../../../../../../Features/Generic/stock_product_field.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/thousand_separator.dart';
 import '../../../../../../../Features/Other/utils.dart';

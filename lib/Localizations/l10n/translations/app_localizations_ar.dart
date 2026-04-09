@@ -3184,4 +3184,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get localeAmount => 'قیمت محلی';
+
+  @override
+  String get brandTitle => 'برند';
+
+  @override
+  String get modelTitle => 'مدل';
 }

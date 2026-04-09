@@ -1296,9 +1296,10 @@ class Repositories {
 
   Future<List<ProductsModel>> getProduct({
     int? proId,
+    String? input,
     CancelToken? cancelToken,
   }) async {
-    final queryParams = {'proID': proId};
+    final queryParams = {'proID': proId, 'input':input};
     final response = await api.get(
       endpoint: "/inventory/product.php",
       queryParams: queryParams,

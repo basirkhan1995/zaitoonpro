@@ -478,7 +478,7 @@
   "accountExist": "Account already exists.",
   "glDependentMsg": "This account is not deleted.",
   "glTypes": "TXN Types",
-  "productName": "Product name",
+  "productName": "Name",
   "productCode": "Product code",
   "transactionType": "Transaction Types",
   "deactive": "Inactive",
@@ -1054,5 +1054,7 @@
   "salePercentage": "Percentange",
   "recalculate": "Recalculate",
   "invoiceCurrency": "Invoice Currency",
-  "localeAmount": "Local Amount"
+  "localeAmount": "Local Amount",
+  "brandTitle": "Brand",
+  "modelTitle": "Model"
 }

@@ -1054,5 +1054,7 @@
   "salePercentage": "فیصدی",
   "recalculate": "محاسبه مجدد",
   "invoiceCurrency": "د بل ارز",
-  "localeAmount": "قیمت محلی"
+  "localeAmount": "قیمت محلی",
+  "brandTitle": "برند",
+  "modelTitle": "مدل"
 }

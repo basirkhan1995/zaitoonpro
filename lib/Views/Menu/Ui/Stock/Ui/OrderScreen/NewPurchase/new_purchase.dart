@@ -13,6 +13,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/bloc/storag
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/model/storage_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
+import '../../../../../../../Features/Generic/purchase_product_field.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Generic/underline_searchable_textfield.dart';
 import '../../../../../../../Features/Other/thousand_separator.dart';
@@ -52,7 +53,8 @@ class _DesktopPurchaseOrderView extends StatefulWidget {
   const _DesktopPurchaseOrderView();
 
   @override
-  State<_DesktopPurchaseOrderView> createState() => _DesktopPurchaseOrderViewState();
+  State<_DesktopPurchaseOrderView> createState() =>
+      _DesktopPurchaseOrderViewState();
 }
 class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _accountController = TextEditingController();
@@ -67,15 +69,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       showDialog(
         context: context,
         builder: (context) => StatefulBuilder(
-          builder: (context,setState) {
-            return ExpensesDialog(
-
-            );
-          }
+          builder: (context, setState) {
+            return ExpensesDialog();
+          },
         ),
       );
     }
   }
+
   String? _userName;
   String? baseCurrency;
   int? signatory;
@@ -109,7 +110,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _personController.dispose();
     _xRefController.dispose();
 
-
     // Dispose all price and qty controllers
     for (final controller in _purchasePriceControllers.values) {
       controller.dispose();
@@ -129,7 +129,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -140,7 +139,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     }
 
     final login = state.loginData;
-    _userName = login.usrName??"";
+    _userName = login.usrName ?? "";
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -151,7 +150,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       child: BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceError) {
-            Utils.showOverlayMessage(context, message: state.message, isError: true);
+            Utils.showOverlayMessage(
+              context,
+              message: state.message,
+              isError: true,
+            );
           }
           if (state is PurchaseInvoiceSaved) {
             Navigator.of(context).pop();
@@ -169,13 +172,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               _xRefController.clear();
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
-
             } else {
-              Utils.showOverlayMessage(context, message: "Failed to create invoice", isError: true);
+              Utils.showOverlayMessage(
+                context,
+                message: "Failed to create invoice",
+                isError: true,
+              );
             }
           }
         },
@@ -187,7 +194,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             actions: [
               ZOutlineButton(
                 icon: Icons.outbond_outlined,
-                onPressed: ()=> _showExpensesDialog(context),
+                onPressed: () => _showExpensesDialog(context),
                 label: Text(tr.manageExpenses),
               ),
               const SizedBox(width: 8),
@@ -199,30 +206,34 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               const SizedBox(width: 8),
               //Save Button
               BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                  builder: (context, state) {
-                    if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-                      final current = state is PurchaseInvoiceSaving ?
-                      state : (state as PurchaseInvoiceLoaded);
-                      final isSaving = state is PurchaseInvoiceSaving;
+                builder: (context, state) {
+                  if (state is PurchaseInvoiceLoaded ||
+                      state is PurchaseInvoiceSaving) {
+                    final current = state is PurchaseInvoiceSaving
+                        ? state
+                        : (state as PurchaseInvoiceLoaded);
+                    final isSaving = state is PurchaseInvoiceSaving;
 
-                      return ZOutlineButton(
-                        isActive: true,
-                        icon: Icons.save_rounded,
-                        onPressed: (isSaving || !current.isFormValid) ? null : () => _saveInvoice(context, current),
-                        label: isSaving
-                            ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.surface,
-                          ),
-                        )
-                            : Text(tr.saveTitle),
-                      );
-                    }
-                    return const SizedBox();
+                    return ZOutlineButton(
+                      isActive: true,
+                      icon: Icons.save_rounded,
+                      onPressed: (isSaving || !current.isFormValid)
+                          ? null
+                          : () => _saveInvoice(context, current),
+                      label: isSaving
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.surface,
+                              ),
+                            )
+                          : Text(tr.saveTitle),
+                    );
                   }
+                  return const SizedBox();
+                },
               ),
             ],
           ),
@@ -234,8 +245,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-
                   // Supplier and Account Selection
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -243,111 +252,173 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     children: [
                       Expanded(
                         flex: 2,
-                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
-                          key: const ValueKey('person_field'),
-                          controller: _personController,
-                          title: tr.supplier,
-                          hintText: tr.supplier,
-                          isRequired: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return tr.required(tr.supplier);
-                            }
-                            return null;
-                          },
-                          bloc: context.read<IndividualsBloc>(),
-                          fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
-                          itemBuilder: (context, ind) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
-                          ),
-                          itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                          stateToLoading: (state) => state is IndividualLoadingState,
-                          stateToItems: (state) {
-                            if (state is IndividualLoadedState) return state.individuals;
-                            return [];
-                          },
-                          onSelected: (value) {
-                            _personController.text = "${value.perName} ${value.perLastName}";
-                            context.read<PurchaseInvoiceBloc>().add(SelectSupplierEvent(value));
-                            context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
-                            setState(() {
-                              signatory = value.perId;
-                            });
-                          },
-                          showClearButton: true,
-                        ),
+                        child:
+                            GenericTextfield<
+                              IndividualsModel,
+                              IndividualsBloc,
+                              IndividualsState
+                            >(
+                              key: const ValueKey('person_field'),
+                              controller: _personController,
+                              title: tr.supplier,
+                              hintText: tr.supplier,
+                              isRequired: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return tr.required(tr.supplier);
+                                }
+                                return null;
+                              },
+                              bloc: context.read<IndividualsBloc>(),
+                              fetchAllFunction: (bloc) =>
+                                  bloc.add(LoadIndividualsEvent()),
+                              searchFunction: (bloc, query) =>
+                                  bloc.add(LoadIndividualsEvent()),
+                              itemBuilder: (context, ind) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                                ),
+                              ),
+                              itemToString: (individual) =>
+                                  "${individual.perName} ${individual.perLastName}",
+                              stateToLoading: (state) =>
+                                  state is IndividualLoadingState,
+                              stateToItems: (state) {
+                                if (state is IndividualLoadedState) {
+                                  return state.individuals;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                _personController.text =
+                                    "${value.perName} ${value.perLastName}";
+                                context.read<PurchaseInvoiceBloc>().add(
+                                  SelectSupplierEvent(value),
+                                );
+                                context.read<AccountsBloc>().add(
+                                  LoadAccountsEvent(ownerId: value.perId),
+                                );
+                                setState(() {
+                                  signatory = value.perId;
+                                });
+                              },
+                              showClearButton: true,
+                            ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        flex:2,
+                        flex: 2,
                         child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                           builder: (context, state) {
                             if (state is PurchaseInvoiceLoaded) {
                               final current = state;
-                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              return GenericTextfield<
+                                AccountsModel,
+                                AccountsBloc,
+                                AccountsState
+                              >(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
                                 hintText: tr.selectAccount,
-                                isRequired: current.paymentMode != PaymentMode.cash,
+                                isRequired:
+                                    current.paymentMode != PaymentMode.cash,
                                 validator: (value) {
-                                  if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                  if (current.paymentMode != PaymentMode.cash &&
+                                      (value == null || value.isEmpty)) {
                                     return tr.selectCreditAccountMsg;
                                   }
                                   return null;
                                 },
                                 bloc: context.read<AccountsBloc>(),
-                                fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                fetchAllFunction: (bloc) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
+                                searchFunction: (bloc, query) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
                                 itemBuilder: (context, account) => ListTile(
-                                  visualDensity: VisualDensity(vertical: -4,horizontal: -4),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 5),
+                                  visualDensity: VisualDensity(
+                                    vertical: -4,
+                                    horizontal: -4,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                  ),
                                   title: Text(account.accName ?? ''),
                                   subtitle: Text('${account.accNumber}'),
-                                  trailing: Text("${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}"),
+                                  trailing: Text(
+                                    "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                  ),
                                 ),
-                                itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                stateToLoading: (state) => state is AccountLoadingState,
+                                itemToString: (account) =>
+                                    '${account.accName} (${account.accNumber})',
+                                stateToLoading: (state) =>
+                                    state is AccountLoadingState,
                                 stateToItems: (state) {
-                                  if (state is AccountLoadedState) return state.accounts;
+                                  if (state is AccountLoadedState) {
+                                    return state.accounts;
+                                  }
                                   return [];
                                 },
                                 onSelected: (value) {
-                                  _accountController.text = '${value.accName} (${value.accNumber})';
-                                  context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                  _accountController.text =
+                                      '${value.accName} (${value.accNumber})';
+                                  context.read<PurchaseInvoiceBloc>().add(
+                                    SelectSupplierAccountEvent(value),
+                                  );
                                 },
                                 showClearButton: true,
                               );
                             }
-                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            return GenericTextfield<
+                              AccountsModel,
+                              AccountsBloc,
+                              AccountsState
+                            >(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
                               hintText: tr.selectAccount,
                               isRequired: false,
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  include: '8',
+                                  exclude: '',
+                                ),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
                                   input: query,
                                   include: '8',
-                                  exclude: ''
-                              )),
+                                  exclude: '',
+                                ),
+                              ),
                               itemBuilder: (context, account) => ListTile(
                                 title: Text(account.accName ?? ''),
-                                subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                subtitle: Text(
+                                  '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                                ),
                                 trailing: Text(account.actCurrency ?? ""),
                               ),
-                              itemToString: (account) => '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) => state is AccountLoadingState,
+                              itemToString: (account) =>
+                                  '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) =>
+                                  state is AccountLoadingState,
                               stateToItems: (state) {
-                                if (state is AccountLoadedState) return state.accounts;
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
                                 return [];
                               },
                               onSelected: (value) {
-                                _accountController.text = '${value.accName} (${value.accNumber})';
-                                context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                _accountController.text =
+                                    '${value.accName} (${value.accNumber})';
+                                context.read<PurchaseInvoiceBloc>().add(
+                                  SelectSupplierAccountEvent(value),
+                                );
                               },
                               showClearButton: true,
                             );
@@ -358,24 +429,24 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       Expanded(
                         child: CurrencyDropdown(
                           title: tr.invoiceCurrency,
-                            onSingleChanged: (e){},
+                          onSingleChanged: (e) {},
                         ),
                       ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: ZTextFieldEntitled(
-                            controller: _xRefController,
-                            title: tr.invoiceNumber
+                          controller: _xRefController,
+                          title: tr.invoiceNumber,
                         ),
                       ),
                       const SizedBox(width: 4),
                       Expanded(
                         flex: 2,
                         child: ZTextFieldEntitled(
-                            controller: _remark,
-                            title: tr.remark,
+                          controller: _remark,
+                          title: tr.remark,
                         ),
-                      )
+                      ),
                     ],
                   ),
 
@@ -385,52 +456,55 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   const SizedBox(height: 8),
                   // In your build method, replace the Expanded child that contains the ListView
                   Expanded(
-                    child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                      builder: (context, state) {
-                        if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-                          final current = state is PurchaseInvoiceSaving
-                              ? state
-                              : (state as PurchaseInvoiceLoaded);
-                          _synchronizeFocusNodes(current.items.length);
+                    child:
+                        BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                          builder: (context, state) {
+                            if (state is PurchaseInvoiceLoaded ||
+                                state is PurchaseInvoiceSaving) {
+                              final current = state is PurchaseInvoiceSaving
+                                  ? state
+                                  : (state as PurchaseInvoiceLoaded);
+                              _synchronizeFocusNodes(current.items.length);
 
-                          return SingleChildScrollView(
-                            child: Column(
-                              children: [
-
-                                // Items List
-                                ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemCount: current.items.length,
-                                  itemBuilder: (context, index) {
-                                    final item = current.items[index];
-                                    final isLastRow = index == current.items.length - 1;
-                                    final nodes = _rowFocusNodes[index];
-
-                                    return _buildItemRow(
-                                      item: item,
-                                      nodes: nodes,
-                                      isLastRow: isLastRow,
-                                      context: context,
-                                    );
-                                  },
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                // Payment Summary Section
-                                Row(
+                              return SingleChildScrollView(
+                                child: Column(
                                   children: [
-                                    _buildSummarySection(context),
+                                    // Items List
+                                    ListView.builder(
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: current.items.length,
+                                      itemBuilder: (context, index) {
+                                        final item = current.items[index];
+                                        final isLastRow =
+                                            index == current.items.length - 1;
+                                        final nodes = _rowFocusNodes[index];
+
+                                        return _buildItemRow(
+                                          item: item,
+                                          nodes: nodes,
+                                          isLastRow: isLastRow,
+                                          context: context,
+                                        );
+                                      },
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    // Payment Summary Section
+                                    Row(
+                                      children: [_buildSummarySection(context)],
+                                    ),
                                   ],
                                 ),
-                              ],
-                            ),
-                          );
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                    ),
+                              );
+                            }
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        ),
                   ),
 
                   // Summary Section
@@ -447,7 +521,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
+    TextStyle? title = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -457,17 +533,23 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
       child: Row(
         children: [
-          SizedBox(width: 40, child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Text('#', style: title),
-          )),
+          SizedBox(
+            width: 40,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('#', style: title),
+            ),
+          ),
           Expanded(child: Text(locale.products, style: title)),
           SizedBox(width: 100, child: Text(locale.qty, style: title)),
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
           SizedBox(width: 100, child: Text(locale.totalTitle, style: title)),
           SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
           SizedBox(width: 150, child: Text(locale.localeAmount, style: title)),
-          SizedBox(width: 150, child: Text(locale.salePercentage, style: title)),
+          SizedBox(
+            width: 150,
+            child: Text(locale.salePercentage, style: title),
+          ),
           SizedBox(width: 150, child: Text(locale.landedPrice, style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
@@ -475,7 +557,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
     );
   }
-  Widget _buildItemRow({required BuildContext context, required PurchaseInvoiceItem item, required List<FocusNode> nodes, required bool isLastRow,}) {
+  void _setupRowFocus(int rowIndex) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (rowIndex < _rowFocusNodes.length && _rowFocusNodes[rowIndex].isNotEmpty) {
+        _rowFocusNodes[rowIndex][0].requestFocus(); // Focus product field
+      }
+    });
+  }
+  Widget _buildItemRow({
+    required BuildContext context,
+    required PurchaseInvoiceItem item,
+    required List<FocusNode> nodes,
+    required bool isLastRow,
+  }) {
     final rowIndex = _rowFocusNodes.indexOf(nodes);
 
     return _PurchaseItemRow(
@@ -483,6 +577,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       nodes: nodes,
       isLastRow: isLastRow,
       rowIndex: rowIndex,
+      onFocusNewRow: (rowIndex) {
+        _setupRowFocus(rowIndex);
+      },
       qtyControllers: _qtyControllers,
       batchControllers: _batchControllers,
       sellPriceControllers: _sellPriceControllers,
@@ -534,6 +631,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       },
     );
   }
+
   Widget _buildSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
@@ -541,11 +639,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-          final current = state is PurchaseInvoiceSaving ?
-          state : (state as PurchaseInvoiceLoaded);
+          final current = state is PurchaseInvoiceSaving
+              ? state
+              : (state as PurchaseInvoiceLoaded);
 
           // Calculate total expenses
-          final totalExpenses = current.expenses.fold(0.0, (sum, expense) => sum + expense.amount);
+          final totalExpenses = current.expenses.fold(
+            0.0,
+            (sum, expense) => sum + expense.amount,
+          );
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -560,14 +662,27 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(tr.paymentMethod, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
+                    Text(
+                      tr.paymentMethod,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                      ),
+                    ),
                     InkWell(
                       onTap: () => _showPaymentModeDialog(current),
                       child: Row(
                         children: [
-                          Text(_getPaymentModeLabel(current.paymentMode), style: TextStyle(color: color.primary)),
+                          Text(
+                            _getPaymentModeLabel(current.paymentMode),
+                            style: TextStyle(color: color.primary),
+                          ),
                           const SizedBox(width: 4),
-                          Icon(Icons.more_vert_rounded, size: 20, color: color.primary),
+                          Icon(
+                            Icons.more_vert_rounded,
+                            size: 20,
+                            color: color.primary,
+                          ),
                         ],
                       ),
                     ),
@@ -649,7 +764,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       children: [
                         Text(
                           '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -674,7 +792,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       label: AppLocalizations.of(context)!.newBalance,
                       value: current.currentBalance + current.creditAmount,
                       isBold: true,
-                      color: _getBalanceColor(current.currentBalance + current.creditAmount),
+                      color: _getBalanceColor(
+                        current.currentBalance + current.creditAmount,
+                      ),
                     ),
 
                     // Status
@@ -683,16 +803,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
+                          Text(tr.status, style: const TextStyle(fontSize: 12)),
                           Text(
-                            tr.status,
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                          Text(
-                            _getBalanceStatus(current.currentBalance + current.creditAmount),
+                            _getBalanceStatus(
+                              current.currentBalance + current.creditAmount,
+                            ),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: _getBalanceColor(current.currentBalance + current.creditAmount),
+                              color: _getBalanceColor(
+                                current.currentBalance + current.creditAmount,
+                              ),
                             ),
                           ),
                         ],
@@ -708,6 +829,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       },
     );
   }
+
   Color _getBalanceColor(double balance) {
     if (balance < 0) {
       return Colors.red; // Negative = Debtor (supplier owes us)
@@ -717,6 +839,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return Colors.grey; // Zero balance
     }
   }
+
   String _getBalanceStatus(double balance) {
     if (balance < 0) {
       return AppLocalizations.of(context)!.debtor; // Supplier owes us
@@ -726,7 +849,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return AppLocalizations.of(context)!.noAccountsFound;
     }
   }
-  Widget _buildSummaryRow({required String label, required double value, bool isBold = false, Color? color}) {
+
+  Widget _buildSummaryRow({
+    required String label,
+    required double value,
+    bool isBold = false,
+    Color? color,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -748,13 +877,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ],
     );
   }
+
   void _synchronizeFocusNodes(int itemCount) {
+    // Each row needs 6 focus nodes (Product, Qty, Batch, UnitPrice, SellPrice, Storage)
     while (_rowFocusNodes.length < itemCount) {
       _rowFocusNodes.add([
-        FocusNode(),
-        FocusNode(),
-        FocusNode(),
-        FocusNode(),
+        FocusNode(), // 0: Product
+        FocusNode(), // 1: Qty
+        FocusNode(), // 2: Batch
+        FocusNode(), // 3: Unit Price
+        FocusNode(), // 4: Sell Price
+        FocusNode(), // 5: Storage
       ]);
     }
     while (_rowFocusNodes.length > itemCount) {
@@ -778,7 +911,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-
             _paymentCard(
               title: tr.cashPayment,
               subtitle: tr.cashPaymentSubtitle,
@@ -788,7 +920,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               onTap: () {
                 Navigator.pop(context);
                 _accountController.clear();
-                context.read<PurchaseInvoiceBloc>().add(ClearSupplierAccountEvent());
+                context.read<PurchaseInvoiceBloc>().add(
+                  ClearSupplierAccountEvent(),
+                );
               },
             ),
 
@@ -800,7 +934,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               color: color,
               onTap: () {
                 Navigator.pop(context);
-                context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(0));
+                context.read<PurchaseInvoiceBloc>().add(
+                  UpdatePurchasePaymentEvent(0),
+                );
                 setState(() {});
               },
             ),
@@ -822,7 +958,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
     );
   }
-  void _showMixedPaymentDialog(BuildContext context, PurchaseInvoiceLoaded current) {
+
+  void _showMixedPaymentDialog(
+    BuildContext context,
+    PurchaseInvoiceLoaded current,
+  ) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
 
@@ -831,10 +971,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-
-            double credit = double.tryParse(
-                controller.text.replaceAll(',', '')) ??
-                0;
+            double credit =
+                double.tryParse(controller.text.replaceAll(',', '')) ?? 0;
 
             double cash = current.grandTotal - credit;
 
@@ -846,7 +984,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-
                   ZTextFieldEntitled(
                     title: "Credit Amount",
                     controller: controller,
@@ -862,7 +999,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     radius: 8,
                     child: Column(
                       children: [
-
                         _amountRow(tr.grandTotal, current.grandTotal),
 
                         const Divider(height: 20),
@@ -880,24 +1016,25 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
               onAction: () {
                 if (credit <= 0) {
-                  Utils.showOverlayMessage(context,
-                      message: 'Enter valid credit amount',
-                      isError: true);
+                  Utils.showOverlayMessage(
+                    context,
+                    message: 'Enter valid credit amount',
+                    isError: true,
+                  );
                   return;
                 }
 
                 if (credit >= current.grandTotal) {
-                  Utils.showOverlayMessage(context,
-                      message: 'Credit must be less than total',
-                      isError: true);
+                  Utils.showOverlayMessage(
+                    context,
+                    message: 'Credit must be less than total',
+                    isError: true,
+                  );
                   return;
                 }
 
                 context.read<PurchaseInvoiceBloc>().add(
-                  UpdatePurchasePaymentEvent(
-                    credit,
-                    isCreditAmount: true,
-                  ),
+                  UpdatePurchasePaymentEvent(credit, isCreditAmount: true),
                 );
 
                 Navigator.pop(context);
@@ -908,7 +1045,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       },
     );
   }
-  Widget _paymentCard({required String title, required String subtitle, required IconData icon, required bool selected, required ColorScheme color, required VoidCallback onTap,}) {
+
+  Widget _paymentCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required bool selected,
+    required ColorScheme color,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       borderRadius: BorderRadius.circular(16),
       onTap: onTap,
@@ -919,14 +1064,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: selected ? color.primary : color.outline.withValues(alpha: .3),
+            color: selected
+                ? color.primary
+                : color.outline.withValues(alpha: .3),
             width: selected ? 1.5 : 1,
           ),
-          color: selected ? color.primary.withValues(alpha: .06) : color.surface,
+          color: selected
+              ? color.primary.withValues(alpha: .06)
+              : color.surface,
         ),
         child: Row(
           children: [
-
             CircleAvatar(
               radius: 22,
               backgroundColor: color.primary.withValues(alpha: .1),
@@ -943,17 +1091,21 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      )),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: color.onSurface.withValues(alpha: .6),
-                      )),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: color.onSurface.withValues(alpha: .6),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -961,14 +1113,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               child: selected
-                  ? Icon(Icons.check_circle, color: color.primary, key: const ValueKey(1))
+                  ? Icon(
+                      Icons.check_circle,
+                      color: color.primary,
+                      key: const ValueKey(1),
+                    )
                   : const SizedBox(key: ValueKey(2)),
-            )
+            ),
           ],
         ),
       ),
     );
   }
+
   Widget _amountRow(String label, double value, {Color? color}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -997,39 +1154,50 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         return AppLocalizations.of(context)!.combinedPayment;
     }
   }
+
   void _autoSelectFirstStorage(BuildContext context, String rowId) {
     final storageState = context.read<StorageBloc>().state;
     if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
       final firstStorage = storageState.storage.first;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-          rowId: rowId,
-          storageId: firstStorage.stgId!,
-          storageName: firstStorage.stgName ?? '',
-        ));
+        context.read<PurchaseInvoiceBloc>().add(
+          UpdatePurchaseItemEvent(
+            rowId: rowId,
+            storageId: firstStorage.stgId!,
+            storageName: firstStorage.stgName ?? '',
+          ),
+        );
       });
     }
   }
+
   void _saveInvoice(BuildContext context, PurchaseInvoiceLoaded state) {
     // Additional validation
     if (!state.isFormValid) {
-      Utils.showOverlayMessage(context, message: 'Please fill all required fields correctly', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
       return;
     }
 
     final completer = Completer<String>();
 
-    context.read<PurchaseInvoiceBloc>().add(SavePurchaseInvoiceEvent(
-      usrName: _userName ?? '',
-      expenses: state.expenses,
-      orderName: "Purchase",
-      remark: _remark.text,
-      ordPersonal: state.supplier!.perId!,
-      xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-      items: state.items,
-      completer: completer,
-    ));
+    context.read<PurchaseInvoiceBloc>().add(
+      SavePurchaseInvoiceEvent(
+        usrName: _userName ?? '',
+        expenses: state.expenses,
+        orderName: "Purchase",
+        remark: _remark.text,
+        ordPersonal: state.supplier!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        items: state.items,
+        completer: completer,
+      ),
+    );
   }
+
   void _onPrint({String? invoiceNumber}) {
     final state = context.read<PurchaseInvoiceBloc>().state;
 
@@ -1044,16 +1212,22 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(context,
-          message: 'Cannot print: No invoice data available',
-          isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Cannot print: No invoice data available',
+        isError: true,
+      );
       return;
     }
 
     // Get company info
     final companyState = context.read<CompanyProfileBloc>().state;
     if (companyState is! CompanyProfileLoadedState) {
-      Utils.showOverlayMessage(context, message: 'Company information not available', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Company information not available',
+        isError: true,
+      );
       return;
     }
 
@@ -1092,94 +1266,97 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: false
-          );
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              selectedPrinter: selectedPrinter,
-              pageFormat: pageFormat,
-              copies: copies,
-              currency: baseCurrency,
-              isSale: false
-          );
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: false
-          );
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
       ),
     );
   }
 }
-
 class _PurchaseItemRow extends StatefulWidget {
   final PurchaseInvoiceItem item;
   final List<FocusNode> nodes;
+  final Function(int)? onFocusNewRow;
   final bool isLastRow;
   final int rowIndex;
   final Map<String, TextEditingController> qtyControllers;
@@ -1206,6 +1383,7 @@ class _PurchaseItemRow extends StatefulWidget {
     required this.purchasePriceControllers,
     required this.costPriceControllers,
     required this.onDelete,
+    this.onFocusNewRow,
     required this.onQtyChanged,
     required this.onBatchChanged,
     required this.onPurchasePriceChanged,
@@ -1219,7 +1397,6 @@ class _PurchaseItemRow extends StatefulWidget {
 }
 class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _landedPriceController;
-
   late TextEditingController _storageController;
 
   @override
@@ -1230,7 +1407,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           ? widget.item.landedPrice!.toAmount()
           : '',
     );
-
     _storageController = TextEditingController(text: widget.item.storageName);
   }
 
@@ -1238,18 +1414,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   void didUpdateWidget(_PurchaseItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Update landed price controller when item's landed price changes
     if (widget.item.landedPrice != oldWidget.item.landedPrice) {
       final newValue = widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
           : '';
-
       if (_landedPriceController.text != newValue) {
         _landedPriceController.text = newValue;
       }
     }
 
-    // Update storage controller when storage name changes
     if (widget.item.storageName != oldWidget.item.storageName) {
       if (_storageController.text != widget.item.storageName) {
         _storageController.text = widget.item.storageName;
@@ -1265,8 +1438,13 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 
   void focusNext(int index) {
-    if (index + 1 < widget.nodes.length) {
-      widget.nodes[index + 1].requestFocus();
+    if (index < widget.nodes.length) {
+      final nextNode = widget.nodes[index];
+      Future.delayed(const Duration(milliseconds: 50), () {
+        if (nextNode.canRequestFocus) {
+          nextNode.requestFocus();
+        }
+      });
     }
   }
 
@@ -1274,26 +1452,54 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     return (index >= 0 && index < widget.nodes.length) ? widget.nodes[index] : null;
   }
 
+  void _addNewRowAndFocus() {
+    // Add new row
+    context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
+
+    // After adding, focus the new row's product field
+    Future.delayed(const Duration(milliseconds: 150), () {
+      if (mounted) {
+        final state = context.read<PurchaseInvoiceBloc>().state;
+        if (state is PurchaseInvoiceLoaded) {
+          final newRowIndex = state.items.length - 1;
+          widget.onFocusNewRow?.call(newRowIndex);
+        }
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
 
-    final productController = TextEditingController(text: widget.item.productName);
+    final productController = TextEditingController(
+      text: widget.item.productName,
+    );
     final qtyController = widget.qtyControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(text: widget.item.qty > 0 ? widget.item.qty.toString() : ''),
+          () => TextEditingController(
+        text: widget.item.qty > 0 ? widget.item.qty.toString() : '',
+      ),
     );
     final batchController = widget.batchControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(text: widget.item.stkBatch > 0 ? widget.item.stkBatch.toString() : ''),
+          () => TextEditingController(
+        text: widget.item.stkBatch > 0 ? widget.item.stkBatch.toString() : '',
+      ),
     );
     final sellPriceController = widget.sellPriceControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(text: widget.item.sellPriceAmount > 0 ? widget.item.sellPriceAmount.toString() : ''),
+          () => TextEditingController(
+        text: widget.item.sellPriceAmount > 0 ? widget.item.sellPriceAmount.toString() : '',
+      ),
     );
     final priceController = widget.purchasePriceControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(text: widget.item.purPrice != null && widget.item.purPrice! > 0 ? widget.item.purPrice!.toAmount() : ''),
+          () => TextEditingController(
+        text: widget.item.purPrice != null && widget.item.purPrice! > 0
+            ? widget.item.purPrice!.toAmount()
+            : '',
+      ),
     );
 
     return Column(
@@ -1301,9 +1507,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         Container(
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.surface,
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
           ),
           child: Row(
             children: [
@@ -1316,39 +1520,41 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Product
+              /// Product Search Field - Index 0
               Expanded(
-                child: GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
-                  title: "",
+                child: PurchaseProductSearchField(
                   controller: productController,
-                  hintText: locale.products,
+                  focusNode: safeNode(0),
                   bloc: context.read<ProductsBloc>(),
-                  fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
-                  searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
-                  itemBuilder: (context, product) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text("${product.proCode} | ${product.proName}"),
-                  ),
-                  itemToString: (product) => product.proName ?? '',
-                  stateToLoading: (state) => state is ProductsLoadingState,
-                  stateToItems: (state) {
-                    if (state is ProductsLoadedState) {
-                      return state.products;
+                  onProductSelected: (product) {
+                    if (product != null) {
+                      widget.onProductSelected(
+                        widget.item.rowId,
+                        product.proId.toString(),
+                        product.proName ?? '',
+                      );
+                      // After product is selected, move to Qty field
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        if (mounted) {
+                          focusNext(1);
+                        }
+                      });
                     }
-                    return [];
                   },
-                  onSelected: (product) {
-                    widget.onProductSelected(
-                      widget.item.rowId,
-                      product.proId.toString(),
-                      product.proName ?? '',
-                    );
-                    focusNext(0);
+                  onSubmitted: () {
+                    // When Enter is pressed without selection
+                    Future.delayed(const Duration(milliseconds: 50), () {
+                      if (mounted && widget.item.productId.isNotEmpty) {
+                        focusNext(1);
+                      }
+                    });
                   },
+                  hintText: 'Search products',
+                  showAllOnFocus: true,
                 ),
               ),
 
-              /// Qty
+              /// Qty - Index 1
               SizedBox(
                 width: 100,
                 child: TextField(
@@ -1365,11 +1571,11 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final qty = int.tryParse(value) ?? 0;
                     widget.onQtyChanged(widget.item.rowId, qty);
                   },
-                  onSubmitted: (_) => focusNext(1),
+                  onSubmitted: (_) => focusNext(2), // Move to Batch
                 ),
               ),
 
-              /// Batch
+              /// Batch - Index 2
               SizedBox(
                 width: 100,
                 child: TextField(
@@ -1385,11 +1591,11 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final batch = int.tryParse(value) ?? 0;
                     widget.onBatchChanged(widget.item.rowId, batch);
                   },
-                  onSubmitted: (_) => focusNext(2),
+                  onSubmitted: (_) => focusNext(3), // Move to Unit Price
                 ),
               ),
 
-              /// Total (qty * batch)
+              /// Total (read-only) - No focus
               SizedBox(
                 width: 100,
                 child: Text(
@@ -1402,13 +1608,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Unit Price
+              /// Unit Price - Index 3
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: priceController,
                   focusNode: safeNode(3),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                  ],
                   decoration: InputDecoration(
                     hintText: locale.unitPrice,
                     border: InputBorder.none,
@@ -1418,17 +1627,23 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
-                  onSubmitted: (_) => focusNext(3),
+                  onSubmitted: (_) {
+                    if (widget.isLastRow) {
+                      // Add new row and focus its product field
+                      _addNewRowAndFocus();
+                    } else {
+                      // Move to next row's product field (index 0 of next row)
+                      focusNext(0);
+                    }
+                  },
                 ),
               ),
 
-
-              /// Local Amount
+              /// Local Amount (read-only)
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: _landedPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     hintText: locale.localeAmount,
                     border: InputBorder.none,
@@ -1442,7 +1657,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Sell Price
+              /// Sell Price - Index 4
               SizedBox(
                 width: 150,
                 child: TextField(
@@ -1458,16 +1673,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onSellPriceChanged(widget.item.rowId, parsed);
                   },
-                  onSubmitted: (_) => focusNext(4),
+                  onSubmitted: (_) => focusNext(5), // Move to Storage
                 ),
               ),
 
-              /// Landed Price (Read-only)
+              /// Landed Price (read-only)
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: _landedPriceController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     hintText: locale.landedPrice,
                     border: InputBorder.none,
@@ -1481,14 +1695,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Storage
+              /// Storage - Index 5
               SizedBox(
                 width: 180,
                 child: BlocBuilder<StorageBloc, StorageState>(
                   builder: (context, state) {
                     final storageFocus = safeNode(5);
 
-                    if (state is StorageLoadedState && state.storage.isNotEmpty && widget.item.storageId == 0) {
+                    if (state is StorageLoadedState &&
+                        state.storage.isNotEmpty &&
+                        widget.item.storageId == 0) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         final first = state.storage.first;
                         widget.onStorageSelected(
@@ -1526,13 +1742,20 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                           storage.stgId!,
                           storage.stgName ?? '',
                         );
+                        _storageController.text = storage.stgName ?? '';
+                        // After selecting storage, move to next row's product or add new row
+                        if (widget.isLastRow) {
+                          _addNewRowAndFocus();
+                        } else {
+                          focusNext(0); // Move to next row's product
+                        }
                       },
                     );
                   },
                 ),
               ),
 
-              /// Delete
+              /// Delete button
               SizedBox(
                 width: 60,
                 child: IconButton(
@@ -1544,7 +1767,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           ),
         ),
 
-        /// Add button
+        /// Add button (only for last row)
         if (widget.isLastRow)
           Padding(
             padding: const EdgeInsets.only(top: 8),
@@ -1555,7 +1778,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   icon: Icons.add,
                   label: Text(locale.addItem),
                   onPressed: () {
-                    context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
+                    _addNewRowAndFocus();
                   },
                 ),
               ],
@@ -1571,9 +1794,9 @@ class _MobilePurchaseOrderView extends StatefulWidget {
   const _MobilePurchaseOrderView();
 
   @override
-  State<_MobilePurchaseOrderView> createState() => _MobilePurchaseOrderViewState();
+  State<_MobilePurchaseOrderView> createState() =>
+      _MobilePurchaseOrderViewState();
 }
-
 class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
@@ -1639,7 +1862,11 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
       child: BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceError) {
-            Utils.showOverlayMessage(context, message: state.message, isError: true);
+            Utils.showOverlayMessage(
+              context,
+              message: state.message,
+              isError: true,
+            );
           }
           if (state is PurchaseInvoiceSaved) {
             Navigator.of(context).pop();
@@ -1657,12 +1884,17 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
               _xRefController.clear();
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
-              Utils.showOverlayMessage(context, message: "Failed to create invoice", isError: true);
+              Utils.showOverlayMessage(
+                context,
+                message: "Failed to create invoice",
+                isError: true,
+              );
             }
           }
         },
@@ -1672,13 +1904,11 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             titleSpacing: 0,
             title: Text(tr.purchaseEntry),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.print),
-                onPressed: _onPrint,
-              ),
+              IconButton(icon: const Icon(Icons.print), onPressed: _onPrint),
               BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                 builder: (context, state) {
-                  if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
+                  if (state is PurchaseInvoiceLoaded ||
+                      state is PurchaseInvoiceSaving) {
                     final current = state is PurchaseInvoiceSaving
                         ? state
                         : (state as PurchaseInvoiceLoaded);
@@ -1687,13 +1917,13 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                     return IconButton(
                       icon: isSaving
                           ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            )
                           : const Icon(Icons.save),
                       onPressed: (isSaving || !current.isFormValid)
                           ? null
@@ -1714,7 +1944,11 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
                     children: [
-                      GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                      GenericTextfield<
+                        IndividualsModel,
+                        IndividualsBloc,
+                        IndividualsState
+                      >(
                         key: const ValueKey('person_field'),
                         controller: _personController,
                         title: tr.supplier,
@@ -1727,22 +1961,35 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                           return null;
                         },
                         bloc: context.read<IndividualsBloc>(),
-                        fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                        searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
+                        fetchAllFunction: (bloc) =>
+                            bloc.add(LoadIndividualsEvent()),
+                        searchFunction: (bloc, query) =>
+                            bloc.add(LoadIndividualsEvent()),
                         itemBuilder: (context, ind) => Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                          child: Text(
+                            "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                          ),
                         ),
-                        itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                        stateToLoading: (state) => state is IndividualLoadingState,
+                        itemToString: (individual) =>
+                            "${individual.perName} ${individual.perLastName}",
+                        stateToLoading: (state) =>
+                            state is IndividualLoadingState,
                         stateToItems: (state) {
-                          if (state is IndividualLoadedState) return state.individuals;
+                          if (state is IndividualLoadedState) {
+                            return state.individuals;
+                          }
                           return [];
                         },
                         onSelected: (value) {
-                          _personController.text = "${value.perName} ${value.perLastName}";
-                          context.read<PurchaseInvoiceBloc>().add(SelectSupplierEvent(value));
-                          context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
+                          _personController.text =
+                              "${value.perName} ${value.perLastName}";
+                          context.read<PurchaseInvoiceBloc>().add(
+                            SelectSupplierEvent(value),
+                          );
+                          context.read<AccountsBloc>().add(
+                            LoadAccountsEvent(ownerId: value.perId),
+                          );
                           setState(() {
                             signatory = value.perId;
                           });
@@ -1754,12 +2001,17 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                         builder: (context, state) {
                           if (state is PurchaseInvoiceLoaded) {
                             final current = state;
-                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            return GenericTextfield<
+                              AccountsModel,
+                              AccountsBloc,
+                              AccountsState
+                            >(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
                               hintText: tr.selectAccount,
-                              isRequired: current.paymentMode != PaymentMode.cash,
+                              isRequired:
+                                  current.paymentMode != PaymentMode.cash,
                               validator: (value) {
                                 if (current.paymentMode != PaymentMode.cash &&
                                     (value == null || value.isEmpty)) {
@@ -1768,55 +2020,93 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                                 return null;
                               },
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsEvent(ownerId: signatory),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsEvent(ownerId: signatory),
+                              ),
                               itemBuilder: (context, account) => ListTile(
-                                visualDensity: VisualDensity(vertical: -4, horizontal: -4),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 5),
+                                visualDensity: VisualDensity(
+                                  vertical: -4,
+                                  horizontal: -4,
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                ),
                                 title: Text(account.accName ?? ''),
                                 subtitle: Text('${account.accNumber}'),
                                 trailing: Text(
-                                    "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}"),
+                                  "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                ),
                               ),
-                              itemToString: (account) => '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) => state is AccountLoadingState,
+                              itemToString: (account) =>
+                                  '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) =>
+                                  state is AccountLoadingState,
                               stateToItems: (state) {
-                                if (state is AccountLoadedState) return state.accounts;
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
                                 return [];
                               },
                               onSelected: (value) {
-                                _accountController.text = '${value.accName} (${value.accNumber})';
-                                context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                _accountController.text =
+                                    '${value.accName} (${value.accNumber})';
+                                context.read<PurchaseInvoiceBloc>().add(
+                                  SelectSupplierAccountEvent(value),
+                                );
                               },
                               showClearButton: true,
                             );
                           }
-                          return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                          return GenericTextfield<
+                            AccountsModel,
+                            AccountsBloc,
+                            AccountsState
+                          >(
                             key: const ValueKey('account_field'),
                             controller: _accountController,
                             title: tr.accounts,
                             hintText: tr.selectAccount,
                             isRequired: false,
                             bloc: context.read<AccountsBloc>(),
-                            fetchAllFunction: (bloc) =>
-                                bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                            searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(
-                                input: query, include: '8', exclude: '')),
+                            fetchAllFunction: (bloc) => bloc.add(
+                              LoadAccountsFilterEvent(
+                                include: '8',
+                                exclude: '',
+                              ),
+                            ),
+                            searchFunction: (bloc, query) => bloc.add(
+                              LoadAccountsFilterEvent(
+                                input: query,
+                                include: '8',
+                                exclude: '',
+                              ),
+                            ),
                             itemBuilder: (context, account) => ListTile(
                               title: Text(account.accName ?? ''),
                               subtitle: Text(
-                                  '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                              ),
                               trailing: Text(account.actCurrency ?? ""),
                             ),
-                            itemToString: (account) => '${account.accName} (${account.accNumber})',
-                            stateToLoading: (state) => state is AccountLoadingState,
+                            itemToString: (account) =>
+                                '${account.accName} (${account.accNumber})',
+                            stateToLoading: (state) =>
+                                state is AccountLoadingState,
                             stateToItems: (state) {
-                              if (state is AccountLoadedState) return state.accounts;
+                              if (state is AccountLoadedState) {
+                                return state.accounts;
+                              }
                               return [];
                             },
                             onSelected: (value) {
-                              _accountController.text = '${value.accName} (${value.accNumber})';
-                              context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                              _accountController.text =
+                                  '${value.accName} (${value.accNumber})';
+                              context.read<PurchaseInvoiceBloc>().add(
+                                SelectSupplierAccountEvent(value),
+                              );
                             },
                             showClearButton: true,
                           );
@@ -1836,7 +2126,8 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 Expanded(
                   child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                     builder: (context, state) {
-                      if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
+                      if (state is PurchaseInvoiceLoaded ||
+                          state is PurchaseInvoiceSaving) {
                         final current = state is PurchaseInvoiceSaving
                             ? state
                             : (state as PurchaseInvoiceLoaded);
@@ -1854,12 +2145,16 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                                 const SizedBox(height: 16),
                                 Text(
                                   tr.noItems,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 const SizedBox(height: 8),
                                 ElevatedButton.icon(
                                   onPressed: () {
-                                    context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
+                                    context.read<PurchaseInvoiceBloc>().add(
+                                      AddNewPurchaseItemEvent(),
+                                    );
                                   },
                                   icon: const Icon(Icons.add),
                                   label: Text(tr.addItem),
@@ -1893,11 +2188,15 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   child: ZOutlineButton(
                     width: double.infinity,
                     height: 45,
-                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: .08),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .08),
                     icon: Icons.add,
                     label: Text(AppLocalizations.of(context)!.addItem),
                     onPressed: () {
-                      context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
+                      context.read<PurchaseInvoiceBloc>().add(
+                        AddNewPurchaseItemEvent(),
+                      );
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         _scrollController.animateTo(
                           _scrollController.position.maxScrollExtent,
@@ -1923,13 +2222,17 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
     final productController = TextEditingController(text: item.productName);
     final qtyController = _qtyControllers.putIfAbsent(
       item.rowId,
-          () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
+      () =>
+          TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
     );
 
     final priceController = _priceControllers.putIfAbsent(
       item.rowId,
-          () => TextEditingController(
-          text: item.purPrice != null && item.purPrice! > 0 ? item.purPrice!.toAmount() : ''),
+      () => TextEditingController(
+        text: item.purPrice != null && item.purPrice! > 0
+            ? item.purPrice!.toAmount()
+            : '',
+      ),
     );
 
     final storageController = TextEditingController(text: item.storageName);
@@ -1956,7 +2259,9 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   onPressed: () {
                     _priceControllers.remove(item.rowId);
                     _qtyControllers.remove(item.rowId);
-                    context.read<PurchaseInvoiceBloc>().add(RemovePurchaseItemEvent(item.rowId));
+                    context.read<PurchaseInvoiceBloc>().add(
+                      RemovePurchaseItemEvent(item.rowId),
+                    );
                   },
                 ),
               ],
@@ -1983,11 +2288,13 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 return [];
               },
               onSelected: (product) {
-                context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                  rowId: item.rowId,
-                  productId: product.proId.toString(),
-                  productName: product.proName ?? '',
-                ));
+                context.read<PurchaseInvoiceBloc>().add(
+                  UpdatePurchaseItemEvent(
+                    rowId: item.rowId,
+                    productId: product.proId.toString(),
+                    productName: product.proName ?? '',
+                  ),
+                );
                 _autoSelectFirstStorage(item.rowId);
               },
             ),
@@ -2002,28 +2309,27 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   child: TextFormField(
                     controller: qtyController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       labelText: tr.qty,
                       border: const OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                          rowId: item.rowId,
-                          qty: 0,
-                        ));
+                        context.read<PurchaseInvoiceBloc>().add(
+                          UpdatePurchaseItemEvent(rowId: item.rowId, qty: 0),
+                        );
                         return;
                       }
                       final qty = int.tryParse(value) ?? 0;
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                        rowId: item.rowId,
-                        qty: qty,
-                      ));
+                      context.read<PurchaseInvoiceBloc>().add(
+                        UpdatePurchaseItemEvent(rowId: item.rowId, qty: qty),
+                      );
                     },
                   ),
                 ),
@@ -2033,7 +2339,9 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 Expanded(
                   child: TextFormField(
                     controller: priceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                       SmartThousandsDecimalFormatter(),
@@ -2042,14 +2350,19 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                       labelText: tr.unitPrice,
                       border: const OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                          rowId: item.rowId,
-                          purPrice: 0,
-                        ));
+                        context.read<PurchaseInvoiceBloc>().add(
+                          UpdatePurchaseItemEvent(
+                            rowId: item.rowId,
+                            purPrice: 0,
+                          ),
+                        );
                         return;
                       }
                       final parsed = double.tryParse(value.replaceAll(',', ''));
@@ -2072,21 +2385,28 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             // Storage Selection
             BlocBuilder<StorageBloc, StorageState>(
               builder: (context, storageState) {
-                if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
+                if (storageState is StorageLoadedState &&
+                    storageState.storage.isNotEmpty) {
                   if (item.storageId == 0) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       final firstStorage = storageState.storage.first;
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                        rowId: item.rowId,
-                        storageId: firstStorage.stgId!,
-                        storageName: firstStorage.stgName ?? '',
-                      ));
+                      context.read<PurchaseInvoiceBloc>().add(
+                        UpdatePurchaseItemEvent(
+                          rowId: item.rowId,
+                          storageId: firstStorage.stgId!,
+                          storageName: firstStorage.stgName ?? '',
+                        ),
+                      );
                       storageController.text = firstStorage.stgName ?? '';
                     });
                   }
                 }
 
-                return GenericTextfield<StorageModel, StorageBloc, StorageState>(
+                return GenericTextfield<
+                  StorageModel,
+                  StorageBloc,
+                  StorageState
+                >(
                   title: tr.storage,
                   controller: storageController,
                   hintText: tr.storage,
@@ -2105,11 +2425,13 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                     return [];
                   },
                   onSelected: (storage) {
-                    context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                      rowId: item.rowId,
-                      storageId: storage.stgId!,
-                      storageName: storage.stgName ?? '',
-                    ));
+                    context.read<PurchaseInvoiceBloc>().add(
+                      UpdatePurchaseItemEvent(
+                        rowId: item.rowId,
+                        storageId: storage.stgId!,
+                        storageName: storage.stgName ?? '',
+                      ),
+                    );
                   },
                 );
               },
@@ -2123,10 +2445,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
               children: [
                 Text(
                   tr.totalTitle,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: color.outline,
-                  ),
+                  style: TextStyle(fontSize: 14, color: color.outline),
                 ),
                 Text(
                   item.totalPurchase.toAmount(),
@@ -2151,7 +2470,9 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-          final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
+          final current = state is PurchaseInvoiceSaving
+              ? state
+              : (state as PurchaseInvoiceLoaded);
 
           return Container(
             padding: const EdgeInsets.all(12),
@@ -2171,7 +2492,10 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 InkWell(
                   onTap: () => _showPaymentModeDialog(current),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: color.primary.withValues(alpha: .05),
                       borderRadius: BorderRadius.circular(2),
@@ -2263,7 +2587,8 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 ],
 
                 // Account Information
-                if (current.supplierAccount != null && current.creditAmount > 0) ...[
+                if (current.supplierAccount != null &&
+                    current.creditAmount > 0) ...[
                   const Divider(height: 16),
                   Text(
                     '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
@@ -2297,10 +2622,13 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                     children: [
                       Text(tr.newBalance),
                       Text(
-                        (current.currentBalance + current.creditAmount).toAmount(),
+                        (current.currentBalance + current.creditAmount)
+                            .toAmount(),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: _getBalanceColor(current.currentBalance + current.creditAmount),
+                          color: _getBalanceColor(
+                            current.currentBalance + current.creditAmount,
+                          ),
                         ),
                       ),
                     ],
@@ -2335,40 +2663,65 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             const SizedBox(height: 16),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.money,
-                      color: current.paymentMode == PaymentMode.cash ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.money,
+                  color: current.paymentMode == PaymentMode.cash
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.cashPayment),
               subtitle: Text(tr.cashPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.cash ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.cash
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _accountController.clear();
-                context.read<PurchaseInvoiceBloc>().add(ClearSupplierAccountEvent());
+                context.read<PurchaseInvoiceBloc>().add(
+                  ClearSupplierAccountEvent(),
+                );
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.credit_card,
-                      color: current.paymentMode == PaymentMode.credit ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.credit_card,
+                  color: current.paymentMode == PaymentMode.credit
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.accountCredit),
               subtitle: Text(tr.accountCreditSubtitle),
-              trailing: current.paymentMode == PaymentMode.credit ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.credit
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
-                context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(0));
+                context.read<PurchaseInvoiceBloc>().add(
+                  UpdatePurchasePaymentEvent(0),
+                );
                 setState(() {});
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.payments,
-                      color: current.paymentMode == PaymentMode.mixed ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.payments,
+                  color: current.paymentMode == PaymentMode.mixed
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.combinedPayment),
               subtitle: Text(tr.combinedPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.mixed ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.mixed
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _showMixedPaymentDialog(context, current);
@@ -2380,7 +2733,10 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
     );
   }
 
-  void _showMixedPaymentDialog(BuildContext context, PurchaseInvoiceLoaded current) {
+  void _showMixedPaymentDialog(
+    BuildContext context,
+    PurchaseInvoiceLoaded current,
+  ) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
 
@@ -2419,19 +2775,27 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
               final creditPayment = double.tryParse(cleaned) ?? 0;
 
               if (creditPayment <= 0) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be greater than 0', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message: 'Account payment must be greater than 0',
+                  isError: true,
+                );
                 return;
               }
 
               if (creditPayment >= current.grandTotal) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be less than total amount for mixed payment', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message:
+                      'Account payment must be less than total amount for mixed payment',
+                  isError: true,
+                );
                 return;
               }
 
-              context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(
-                creditPayment,
-                isCreditAmount: true,
-              ));
+              context.read<PurchaseInvoiceBloc>().add(
+                UpdatePurchasePaymentEvent(creditPayment, isCreditAmount: true),
+              );
               Navigator.pop(context);
             },
             child: Text(tr.submit),
@@ -2467,32 +2831,40 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
     if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
       final firstStorage = storageState.storage.first;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-          rowId: rowId,
-          storageId: firstStorage.stgId!,
-          storageName: firstStorage.stgName ?? '',
-        ));
+        context.read<PurchaseInvoiceBloc>().add(
+          UpdatePurchaseItemEvent(
+            rowId: rowId,
+            storageId: firstStorage.stgId!,
+            storageName: firstStorage.stgName ?? '',
+          ),
+        );
       });
     }
   }
 
   void _saveInvoice(BuildContext context, PurchaseInvoiceLoaded state) {
     if (!state.isFormValid) {
-      Utils.showOverlayMessage(context, message: 'Please fill all required fields correctly', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
       return;
     }
 
     final completer = Completer<String>();
 
-    context.read<PurchaseInvoiceBloc>().add(SavePurchaseInvoiceEvent(
-      usrName: _userName ?? '',
-      orderName: "Purchase",
-      expenses: state.expenses,
-      ordPersonal: state.supplier!.perId!,
-      xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-      items: state.items,
-      completer: completer,
-    ));
+    context.read<PurchaseInvoiceBloc>().add(
+      SavePurchaseInvoiceEvent(
+        usrName: _userName ?? '',
+        orderName: "Purchase",
+        expenses: state.expenses,
+        ordPersonal: state.supplier!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        items: state.items,
+        completer: completer,
+      ),
+    );
   }
 
   void _onPrint({String? invoiceNumber}) {
@@ -2507,15 +2879,21 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(context,
-          message: 'Cannot print: No invoice data available',
-          isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Cannot print: No invoice data available',
+        isError: true,
+      );
       return;
     }
 
     final companyState = context.read<CompanyProfileBloc>().state;
     if (companyState is! CompanyProfileLoadedState) {
-      Utils.showOverlayMessage(context, message: 'Company information not available', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Company information not available',
+        isError: true,
+      );
       return;
     }
 
@@ -2552,83 +2930,89 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: false);
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              selectedPrinter: selectedPrinter,
-              pageFormat: pageFormat,
-              copies: copies,
-              currency: baseCurrency,
-              isSale: false);
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: false);
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
       ),
     );
   }
@@ -2639,9 +3023,9 @@ class _TabletPurchaseOrderView extends StatefulWidget {
   const _TabletPurchaseOrderView();
 
   @override
-  State<_TabletPurchaseOrderView> createState() => _TabletPurchaseOrderViewState();
+  State<_TabletPurchaseOrderView> createState() =>
+      _TabletPurchaseOrderViewState();
 }
-
 class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
@@ -2707,7 +3091,11 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
       child: BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceError) {
-            Utils.showOverlayMessage(context, message: state.message, isError: true);
+            Utils.showOverlayMessage(
+              context,
+              message: state.message,
+              isError: true,
+            );
           }
           if (state is PurchaseInvoiceSaved) {
             Navigator.of(context).pop();
@@ -2725,12 +3113,17 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
               _xRefController.clear();
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
-              Utils.showOverlayMessage(context, message: "Failed to create invoice", isError: true);
+              Utils.showOverlayMessage(
+                context,
+                message: "Failed to create invoice",
+                isError: true,
+              );
             }
           }
         },
@@ -2739,13 +3132,11 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
           appBar: AppBar(
             title: Text(tr.purchaseEntry),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.print),
-                onPressed: _onPrint,
-              ),
+              IconButton(icon: const Icon(Icons.print), onPressed: _onPrint),
               BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                 builder: (context, state) {
-                  if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
+                  if (state is PurchaseInvoiceLoaded ||
+                      state is PurchaseInvoiceSaving) {
                     final current = state is PurchaseInvoiceSaving
                         ? state
                         : (state as PurchaseInvoiceLoaded);
@@ -2754,13 +3145,13 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     return IconButton(
                       icon: isSaving
                           ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            )
                           : const Icon(Icons.save),
                       onPressed: (isSaving || !current.isFormValid)
                           ? null
@@ -2783,41 +3174,59 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
-                          key: const ValueKey('person_field'),
-                          controller: _personController,
-                          title: tr.supplier,
-                          hintText: tr.supplier,
-                          isRequired: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return tr.required(tr.supplier);
-                            }
-                            return null;
-                          },
-                          bloc: context.read<IndividualsBloc>(),
-                          fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
-                          itemBuilder: (context, ind) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
-                          ),
-                          itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                          stateToLoading: (state) => state is IndividualLoadingState,
-                          stateToItems: (state) {
-                            if (state is IndividualLoadedState) return state.individuals;
-                            return [];
-                          },
-                          onSelected: (value) {
-                            _personController.text = "${value.perName} ${value.perLastName}";
-                            context.read<PurchaseInvoiceBloc>().add(SelectSupplierEvent(value));
-                            context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
-                            setState(() {
-                              signatory = value.perId;
-                            });
-                          },
-                          showClearButton: true,
-                        ),
+                        child:
+                            GenericTextfield<
+                              IndividualsModel,
+                              IndividualsBloc,
+                              IndividualsState
+                            >(
+                              key: const ValueKey('person_field'),
+                              controller: _personController,
+                              title: tr.supplier,
+                              hintText: tr.supplier,
+                              isRequired: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return tr.required(tr.supplier);
+                                }
+                                return null;
+                              },
+                              bloc: context.read<IndividualsBloc>(),
+                              fetchAllFunction: (bloc) =>
+                                  bloc.add(LoadIndividualsEvent()),
+                              searchFunction: (bloc, query) =>
+                                  bloc.add(LoadIndividualsEvent()),
+                              itemBuilder: (context, ind) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                                ),
+                              ),
+                              itemToString: (individual) =>
+                                  "${individual.perName} ${individual.perLastName}",
+                              stateToLoading: (state) =>
+                                  state is IndividualLoadingState,
+                              stateToItems: (state) {
+                                if (state is IndividualLoadedState) {
+                                  return state.individuals;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                _personController.text =
+                                    "${value.perName} ${value.perLastName}";
+                                context.read<PurchaseInvoiceBloc>().add(
+                                  SelectSupplierEvent(value),
+                                );
+                                context.read<AccountsBloc>().add(
+                                  LoadAccountsEvent(ownerId: value.perId),
+                                );
+                                setState(() {
+                                  signatory = value.perId;
+                                });
+                              },
+                              showClearButton: true,
+                            ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -2825,12 +3234,17 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                           builder: (context, state) {
                             if (state is PurchaseInvoiceLoaded) {
                               final current = state;
-                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              return GenericTextfield<
+                                AccountsModel,
+                                AccountsBloc,
+                                AccountsState
+                              >(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
                                 hintText: tr.selectAccount,
-                                isRequired: current.paymentMode != PaymentMode.cash,
+                                isRequired:
+                                    current.paymentMode != PaymentMode.cash,
                                 validator: (value) {
                                   if (current.paymentMode != PaymentMode.cash &&
                                       (value == null || value.isEmpty)) {
@@ -2839,52 +3253,93 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                                   return null;
                                 },
                                 bloc: context.read<AccountsBloc>(),
-                                fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                fetchAllFunction: (bloc) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
+                                searchFunction: (bloc, query) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
                                 itemBuilder: (context, account) => ListTile(
-                                  visualDensity: VisualDensity(vertical: -4, horizontal: -4),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 5),
+                                  visualDensity: VisualDensity(
+                                    vertical: -4,
+                                    horizontal: -4,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                  ),
                                   title: Text(account.accName ?? ''),
                                   subtitle: Text('${account.accNumber}'),
                                   trailing: Text(
-                                      "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}"),
+                                    "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                  ),
                                 ),
-                                itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                stateToLoading: (state) => state is AccountLoadingState,
+                                itemToString: (account) =>
+                                    '${account.accName} (${account.accNumber})',
+                                stateToLoading: (state) =>
+                                    state is AccountLoadingState,
                                 stateToItems: (state) {
-                                  if (state is AccountLoadedState) return state.accounts;
+                                  if (state is AccountLoadedState) {
+                                    return state.accounts;
+                                  }
                                   return [];
                                 },
                                 onSelected: (value) {
-                                  _accountController.text = '${value.accName} (${value.accNumber})';
-                                  context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                  _accountController.text =
+                                      '${value.accName} (${value.accNumber})';
+                                  context.read<PurchaseInvoiceBloc>().add(
+                                    SelectSupplierAccountEvent(value),
+                                  );
                                 },
                                 showClearButton: true,
                               );
                             }
-                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            return GenericTextfield<
+                              AccountsModel,
+                              AccountsBloc,
+                              AccountsState
+                            >(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
                               hintText: tr.selectAccount,
                               isRequired: false,
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  include: '8',
+                                  exclude: '',
+                                ),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  input: query,
+                                  include: '8',
+                                  exclude: '',
+                                ),
+                              ),
                               itemBuilder: (context, account) => ListTile(
                                 title: Text(account.accName ?? ''),
-                                subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                subtitle: Text(
+                                  '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                                ),
                                 trailing: Text(account.actCurrency ?? ""),
                               ),
-                              itemToString: (account) => '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) => state is AccountLoadingState,
+                              itemToString: (account) =>
+                                  '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) =>
+                                  state is AccountLoadingState,
                               stateToItems: (state) {
-                                if (state is AccountLoadedState) return state.accounts;
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
                                 return [];
                               },
                               onSelected: (value) {
-                                _accountController.text = '${value.accName} (${value.accNumber})';
-                                context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                _accountController.text =
+                                    '${value.accName} (${value.accNumber})';
+                                context.read<PurchaseInvoiceBloc>().add(
+                                  SelectSupplierAccountEvent(value),
+                                );
                               },
                               showClearButton: true,
                             );
@@ -2907,52 +3362,62 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
 
                   // Items List
                   Expanded(
-                    child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                      builder: (context, state) {
-                        if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-                          final current = state is PurchaseInvoiceSaving
-                              ? state
-                              : (state as PurchaseInvoiceLoaded);
-                          if (current.items.isEmpty) {
-                            return Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.shopping_cart_outlined,
-                                    size: 64,
-                                    color: Theme.of(context).colorScheme.outline,
+                    child:
+                        BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                          builder: (context, state) {
+                            if (state is PurchaseInvoiceLoaded ||
+                                state is PurchaseInvoiceSaving) {
+                              final current = state is PurchaseInvoiceSaving
+                                  ? state
+                                  : (state as PurchaseInvoiceLoaded);
+                              if (current.items.isEmpty) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.shopping_cart_outlined,
+                                        size: 64,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.outline,
+                                      ),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        tr.noItems,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      ElevatedButton.icon(
+                                        onPressed: () {
+                                          context
+                                              .read<PurchaseInvoiceBloc>()
+                                              .add(AddNewPurchaseItemEvent());
+                                        },
+                                        icon: const Icon(Icons.add),
+                                        label: Text(tr.addItem),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    tr.noItems,
-                                    style: Theme.of(context).textTheme.titleMedium,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ElevatedButton.icon(
-                                    onPressed: () {
-                                      context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
-                                    },
-                                    icon: const Icon(Icons.add),
-                                    label: Text(tr.addItem),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
+                                );
+                              }
 
-                          return ListView.builder(
-                            controller: _scrollController,
-                            itemCount: current.items.length,
-                            itemBuilder: (context, index) {
-                              final item = current.items[index];
-                              return _buildTabletItemCard(item, context);
-                            },
-                          );
-                        }
-                        return const Center(child: CircularProgressIndicator());
-                      },
-                    ),
+                              return ListView.builder(
+                                controller: _scrollController,
+                                itemCount: current.items.length,
+                                itemBuilder: (context, index) {
+                                  final item = current.items[index];
+                                  return _buildTabletItemCard(item, context);
+                                },
+                              );
+                            }
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          },
+                        ),
                   ),
 
                   // Summary Section
@@ -2967,11 +3432,15 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     child: ZOutlineButton(
                       width: 200,
                       height: 45,
-                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: .08),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: .08),
                       icon: Icons.add,
                       label: Text(AppLocalizations.of(context)!.addItem),
                       onPressed: () {
-                        context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
+                        context.read<PurchaseInvoiceBloc>().add(
+                          AddNewPurchaseItemEvent(),
+                        );
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           _scrollController.animateTo(
                             _scrollController.position.maxScrollExtent,
@@ -2994,7 +3463,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
+    TextStyle? title = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -3023,13 +3494,17 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     final productController = TextEditingController(text: item.productName);
     final qtyController = _qtyControllers.putIfAbsent(
       item.rowId,
-          () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
+      () =>
+          TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
     );
 
     final priceController = _priceControllers.putIfAbsent(
       item.rowId,
-          () => TextEditingController(
-          text: item.purPrice != null && item.purPrice! > 0 ? item.purPrice!.toAmount() : ''),
+      () => TextEditingController(
+        text: item.purPrice != null && item.purPrice! > 0
+            ? item.purPrice!.toAmount()
+            : '',
+      ),
     );
 
     final storageController = TextEditingController(text: item.storageName);
@@ -3056,32 +3531,42 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 // Product Selection
                 Expanded(
                   flex: 3,
-                  child: GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
-                    title: "",
-                    controller: productController,
-                    hintText: tr.products,
-                    bloc: context.read<ProductsBloc>(),
-                    fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
-                    searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
-                    itemBuilder: (context, product) => Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text("${product.proCode} | ${product.proName}"),
-                    ),
-                    itemToString: (product) => product.proName ?? '',
-                    stateToLoading: (state) => state is ProductsLoadingState,
-                    stateToItems: (state) {
-                      if (state is ProductsLoadedState) return state.products;
-                      return [];
-                    },
-                    onSelected: (product) {
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                        rowId: item.rowId,
-                        productId: product.proId.toString(),
-                        productName: product.proName ?? '',
-                      ));
-                      _autoSelectFirstStorage(item.rowId);
-                    },
-                  ),
+                  child:
+                      GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                        title: "",
+                        controller: productController,
+                        hintText: tr.products,
+                        bloc: context.read<ProductsBloc>(),
+                        fetchAllFunction: (bloc) =>
+                            bloc.add(LoadProductsEvent()),
+                        searchFunction: (bloc, query) =>
+                            bloc.add(LoadProductsEvent()),
+                        itemBuilder: (context, product) => Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            "${product.proCode} | ${product.proName}",
+                          ),
+                        ),
+                        itemToString: (product) => product.proName ?? '',
+                        stateToLoading: (state) =>
+                            state is ProductsLoadingState,
+                        stateToItems: (state) {
+                          if (state is ProductsLoadedState) {
+                            return state.products;
+                          }
+                          return [];
+                        },
+                        onSelected: (product) {
+                          context.read<PurchaseInvoiceBloc>().add(
+                            UpdatePurchaseItemEvent(
+                              rowId: item.rowId,
+                              productId: product.proId.toString(),
+                              productName: product.proName ?? '',
+                            ),
+                          );
+                          _autoSelectFirstStorage(item.rowId);
+                        },
+                      ),
                 ),
 
                 // Quantity
@@ -3090,26 +3575,22 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                   child: TextFormField(
                     controller: qtyController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                          rowId: item.rowId,
-                          qty: 0,
-                        ));
+                        context.read<PurchaseInvoiceBloc>().add(
+                          UpdatePurchaseItemEvent(rowId: item.rowId, qty: 0),
+                        );
                         return;
                       }
                       final qty = int.tryParse(value) ?? 0;
-                      context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                        rowId: item.rowId,
-                        qty: qty,
-                      ));
+                      context.read<PurchaseInvoiceBloc>().add(
+                        UpdatePurchaseItemEvent(rowId: item.rowId, qty: qty),
+                      );
                     },
                   ),
                 ),
@@ -3119,7 +3600,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                   width: 120,
                   child: TextFormField(
                     controller: priceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                       SmartThousandsDecimalFormatter(),
@@ -3130,10 +3613,12 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                          rowId: item.rowId,
-                          purPrice: 0,
-                        ));
+                        context.read<PurchaseInvoiceBloc>().add(
+                          UpdatePurchaseItemEvent(
+                            rowId: item.rowId,
+                            purPrice: 0,
+                          ),
+                        );
                         return;
                       }
                       final parsed = double.tryParse(value.replaceAll(',', ''));
@@ -3166,27 +3651,36 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                   width: 150,
                   child: BlocBuilder<StorageBloc, StorageState>(
                     builder: (context, storageState) {
-                      if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
+                      if (storageState is StorageLoadedState &&
+                          storageState.storage.isNotEmpty) {
                         if (item.storageId == 0) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             final firstStorage = storageState.storage.first;
-                            context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                              rowId: item.rowId,
-                              storageId: firstStorage.stgId!,
-                              storageName: firstStorage.stgName ?? '',
-                            ));
+                            context.read<PurchaseInvoiceBloc>().add(
+                              UpdatePurchaseItemEvent(
+                                rowId: item.rowId,
+                                storageId: firstStorage.stgId!,
+                                storageName: firstStorage.stgName ?? '',
+                              ),
+                            );
                             storageController.text = firstStorage.stgName ?? '';
                           });
                         }
                       }
 
-                      return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
+                      return GenericUnderlineTextfield<
+                        StorageModel,
+                        StorageBloc,
+                        StorageState
+                      >(
                         title: "",
                         controller: storageController,
                         hintText: tr.storage,
                         bloc: context.read<StorageBloc>(),
-                        fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
-                        searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
+                        fetchAllFunction: (bloc) =>
+                            bloc.add(LoadStorageEvent()),
+                        searchFunction: (bloc, query) =>
+                            bloc.add(LoadStorageEvent()),
                         itemBuilder: (context, stg) => Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(stg.stgName ?? ''),
@@ -3198,11 +3692,13 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                           return [];
                         },
                         onSelected: (storage) {
-                          context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-                            rowId: item.rowId,
-                            storageId: storage.stgId!,
-                            storageName: storage.stgName ?? '',
-                          ));
+                          context.read<PurchaseInvoiceBloc>().add(
+                            UpdatePurchaseItemEvent(
+                              rowId: item.rowId,
+                              storageId: storage.stgId!,
+                              storageName: storage.stgName ?? '',
+                            ),
+                          );
                         },
                       );
                     },
@@ -3217,7 +3713,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     onPressed: () {
                       _priceControllers.remove(item.rowId);
                       _qtyControllers.remove(item.rowId);
-                      context.read<PurchaseInvoiceBloc>().add(RemovePurchaseItemEvent(item.rowId));
+                      context.read<PurchaseInvoiceBloc>().add(
+                        RemovePurchaseItemEvent(item.rowId),
+                      );
                     },
                   ),
                 ),
@@ -3236,7 +3734,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-          final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
+          final current = state is PurchaseInvoiceSaving
+              ? state
+              : (state as PurchaseInvoiceLoaded);
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -3250,13 +3750,18 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(tr.paymentMethod, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      tr.paymentMethod,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     InkWell(
                       onTap: () => _showPaymentModeDialog(current),
                       child: Row(
                         children: [
-                          Text(_getPaymentModeLabel(current.paymentMode),
-                              style: TextStyle(color: color.primary)),
+                          Text(
+                            _getPaymentModeLabel(current.paymentMode),
+                            style: TextStyle(color: color.primary),
+                          ),
                           const SizedBox(width: 4),
                           Icon(Icons.edit, size: 16, color: color.primary),
                         ],
@@ -3302,13 +3807,17 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 ],
 
                 // Account Information
-                if (current.supplierAccount != null && current.creditAmount > 0) ...[
+                if (current.supplierAccount != null &&
+                    current.creditAmount > 0) ...[
                   Divider(color: color.outline.withValues(alpha: .2)),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Text(
                       '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   _buildSummaryRow(
@@ -3327,7 +3836,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     label: tr.newBalance,
                     value: current.currentBalance + current.creditAmount,
                     isBold: true,
-                    color: _getBalanceColor(current.currentBalance + current.creditAmount),
+                    color: _getBalanceColor(
+                      current.currentBalance + current.creditAmount,
+                    ),
                   ),
                 ],
               ],
@@ -3379,40 +3890,65 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
           children: [
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.money,
-                      color: current.paymentMode == PaymentMode.cash ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.money,
+                  color: current.paymentMode == PaymentMode.cash
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.cashPayment),
               subtitle: Text(tr.cashPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.cash ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.cash
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _accountController.clear();
-                context.read<PurchaseInvoiceBloc>().add(ClearSupplierAccountEvent());
+                context.read<PurchaseInvoiceBloc>().add(
+                  ClearSupplierAccountEvent(),
+                );
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.credit_card,
-                      color: current.paymentMode == PaymentMode.credit ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.credit_card,
+                  color: current.paymentMode == PaymentMode.credit
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.accountCredit),
               subtitle: Text(tr.accountCreditSubtitle),
-              trailing: current.paymentMode == PaymentMode.credit ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.credit
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
-                context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(0));
+                context.read<PurchaseInvoiceBloc>().add(
+                  UpdatePurchasePaymentEvent(0),
+                );
                 setState(() {});
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.payments,
-                      color: current.paymentMode == PaymentMode.mixed ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.payments,
+                  color: current.paymentMode == PaymentMode.mixed
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.combinedPayment),
               subtitle: Text(tr.combinedPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.mixed ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.mixed
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _showMixedPaymentDialog(context, current);
@@ -3430,7 +3966,10 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     );
   }
 
-  void _showMixedPaymentDialog(BuildContext context, PurchaseInvoiceLoaded current) {
+  void _showMixedPaymentDialog(
+    BuildContext context,
+    PurchaseInvoiceLoaded current,
+  ) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
 
@@ -3469,19 +4008,27 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
               final creditPayment = double.tryParse(cleaned) ?? 0;
 
               if (creditPayment <= 0) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be greater than 0', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message: 'Account payment must be greater than 0',
+                  isError: true,
+                );
                 return;
               }
 
               if (creditPayment >= current.grandTotal) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be less than total amount for mixed payment', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message:
+                      'Account payment must be less than total amount for mixed payment',
+                  isError: true,
+                );
                 return;
               }
 
-              context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(
-                creditPayment,
-                isCreditAmount: true,
-              ));
+              context.read<PurchaseInvoiceBloc>().add(
+                UpdatePurchasePaymentEvent(creditPayment, isCreditAmount: true),
+              );
               Navigator.pop(context);
             },
             child: Text(tr.submit),
@@ -3517,32 +4064,40 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
       final firstStorage = storageState.storage.first;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<PurchaseInvoiceBloc>().add(UpdatePurchaseItemEvent(
-          rowId: rowId,
-          storageId: firstStorage.stgId!,
-          storageName: firstStorage.stgName ?? '',
-        ));
+        context.read<PurchaseInvoiceBloc>().add(
+          UpdatePurchaseItemEvent(
+            rowId: rowId,
+            storageId: firstStorage.stgId!,
+            storageName: firstStorage.stgName ?? '',
+          ),
+        );
       });
     }
   }
 
   void _saveInvoice(BuildContext context, PurchaseInvoiceLoaded state) {
     if (!state.isFormValid) {
-      Utils.showOverlayMessage(context, message: 'Please fill all required fields correctly', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
       return;
     }
 
     final completer = Completer<String>();
 
-    context.read<PurchaseInvoiceBloc>().add(SavePurchaseInvoiceEvent(
-      usrName: _userName ?? '',
-      orderName: "Purchase",
-      expenses: state.expenses,
-      ordPersonal: state.supplier!.perId!,
-      xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-      items: state.items,
-      completer: completer,
-    ));
+    context.read<PurchaseInvoiceBloc>().add(
+      SavePurchaseInvoiceEvent(
+        usrName: _userName ?? '',
+        orderName: "Purchase",
+        expenses: state.expenses,
+        ordPersonal: state.supplier!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        items: state.items,
+        completer: completer,
+      ),
+    );
   }
 
   void _onPrint({String? invoiceNumber}) {
@@ -3557,15 +4112,21 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(context,
-          message: 'Cannot print: No invoice data available',
-          isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Cannot print: No invoice data available',
+        isError: true,
+      );
       return;
     }
 
     final companyState = context.read<CompanyProfileBloc>().state;
     if (companyState is! CompanyProfileLoadedState) {
-      Utils.showOverlayMessage(context, message: 'Company information not available', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Company information not available',
+        isError: true,
+      );
       return;
     }
 
@@ -3602,83 +4163,89 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: false);
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              selectedPrinter: selectedPrinter,
-              pageFormat: pageFormat,
-              copies: copies,
-              currency: baseCurrency,
-              isSale: false);
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-              invoiceType: "Purchase",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.supplier?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.supplierAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: false);
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+              );
+            },
       ),
     );
   }

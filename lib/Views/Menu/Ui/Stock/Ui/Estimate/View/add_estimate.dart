@@ -15,7 +15,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/prod
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
-import '../../../../../../../Features/Generic/product_info_field.dart';
+import '../../../../../../../Features/Generic/stock_product_field.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';

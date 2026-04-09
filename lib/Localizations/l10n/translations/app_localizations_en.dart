@@ -1421,7 +1421,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get glTypes => 'TXN Types';
 
   @override
-  String get productName => 'Product name';
+  String get productName => 'Name';
 
   @override
   String get productCode => 'Product code';
@@ -3191,4 +3191,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get localeAmount => 'Local Amount';
+
+  @override
+  String get brandTitle => 'Brand';
+
+  @override
+  String get modelTitle => 'Model';
 }

@@ -2851,7 +2851,7 @@ abstract class AppLocalizations {
   /// No description provided for @productName.
   ///
   /// In en, this message translates to:
-  /// **'Product name'**
+  /// **'Name'**
   String get productName;
 
   /// No description provided for @productCode.
@@ -6309,6 +6309,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Local Amount'**
   String get localeAmount;
+
+  /// No description provided for @brandTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get brandTitle;
+
+  /// No description provided for @modelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get modelTitle;
 }
 
 class _AppLocalizationsDelegate

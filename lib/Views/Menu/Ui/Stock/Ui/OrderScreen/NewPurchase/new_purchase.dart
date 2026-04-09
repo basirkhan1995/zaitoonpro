@@ -123,7 +123,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     for (final controller in _qtyControllers.values) {
       controller.dispose();
     }
-
+    for (final controller in _batchControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -359,15 +361,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             onSingleChanged: (e){},
                         ),
                       ),
-                      const SizedBox(width: 5),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: ZTextFieldEntitled(
-                            hint: tr.optional,
                             controller: _xRefController,
                             title: tr.invoiceNumber
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 4),
                       Expanded(
                         flex: 2,
                         child: ZTextFieldEntitled(
@@ -465,6 +466,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
           SizedBox(width: 100, child: Text(locale.totalTitle, style: title)),
           SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
+          SizedBox(width: 150, child: Text(locale.localeAmount, style: title)),
           SizedBox(width: 150, child: Text(locale.salePercentage, style: title)),
           SizedBox(width: 150, child: Text(locale.landedPrice, style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
@@ -473,13 +475,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
     );
   }
-
-  Widget _buildItemRow({
-    required BuildContext context,
-    required PurchaseInvoiceItem item,
-    required List<FocusNode> nodes,
-    required bool isLastRow,
-  }) {
+  Widget _buildItemRow({required BuildContext context, required PurchaseInvoiceItem item, required List<FocusNode> nodes, required bool isLastRow,}) {
     final rowIndex = _rowFocusNodes.indexOf(nodes);
 
     return _PurchaseItemRow(
@@ -584,7 +580,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 // ✅ Add Total Expenses Section (if there are any expenses)
                 if (totalExpenses > 0) ...[
                   _buildSummaryRow(
-                    label: "Total Expenses",
+                    label: tr.totalExpense,
                     value: totalExpenses,
                     color: Colors.red,
                   ),
@@ -712,7 +708,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       },
     );
   }
-
   Color _getBalanceColor(double balance) {
     if (balance < 0) {
       return Colors.red; // Negative = Debtor (supplier owes us)
@@ -722,7 +717,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return Colors.grey; // Zero balance
     }
   }
-
   String _getBalanceStatus(double balance) {
     if (balance < 0) {
       return AppLocalizations.of(context)!.debtor; // Supplier owes us
@@ -754,7 +748,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ],
     );
   }
-
   void _synchronizeFocusNodes(int itemCount) {
     while (_rowFocusNodes.length < itemCount) {
       _rowFocusNodes.add([
@@ -775,57 +768,49 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   void _showPaymentModeDialog(PurchaseInvoiceLoaded current) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
+
     showDialog(
       context: context,
       builder: (context) => ZFormDialog(
         isActionTrue: false,
-        padding: EdgeInsets.symmetric(vertical: 18, horizontal: 5),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
         title: tr.selectPaymentMethod,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.money,
-                      color: current.paymentMode == PaymentMode.cash ? color.primary : color.outline)),
-              title: Text(tr.cashPayment),
-              subtitle: Text(tr.cashPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.cash ? Icon(Icons.check, color: color.primary) : null,
+
+            _paymentCard(
+              title: tr.cashPayment,
+              subtitle: tr.cashPaymentSubtitle,
+              icon: Icons.payments_rounded,
+              selected: current.paymentMode == PaymentMode.cash,
+              color: color,
               onTap: () {
                 Navigator.pop(context);
-                // Clear account and set full amount as cash
                 _accountController.clear();
-                // Use the new event to clear only account, not supplier
                 context.read<PurchaseInvoiceBloc>().add(ClearSupplierAccountEvent());
               },
             ),
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.credit_card,
-                      color: current.paymentMode == PaymentMode.credit ? color.primary : color.outline)),
-              title: Text(tr.accountCredit),
-              subtitle: Text(tr.accountCreditSubtitle),
-              trailing: current.paymentMode == PaymentMode.credit ? Icon(Icons.check, color: color.primary) : null,
+
+            _paymentCard(
+              title: tr.accountCredit,
+              subtitle: tr.accountCreditSubtitle,
+              icon: Icons.account_balance_wallet_rounded,
+              selected: current.paymentMode == PaymentMode.credit,
+              color: color,
               onTap: () {
                 Navigator.pop(context);
-                // Set payment to 0 (full credit)
                 context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(0));
-                // Show account field as required
-                setState(() {
-                  // This will trigger the validator to show account is required
-                });
+                setState(() {});
               },
             ),
-            ListTile(
-              leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.payments,
-                      color: current.paymentMode == PaymentMode.mixed ? color.primary : color.outline)),
-              title: Text(tr.combinedPayment),
-              subtitle: Text(tr.combinedPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.mixed ? Icon(Icons.check, color: color.primary) : null,
+
+            _paymentCard(
+              title: tr.combinedPayment,
+              subtitle: tr.combinedPaymentSubtitle,
+              icon: Icons.sync_alt_rounded,
+              selected: current.paymentMode == PaymentMode.mixed,
+              color: color,
               onTap: () {
                 Navigator.pop(context);
                 _showMixedPaymentDialog(context, current);
@@ -843,69 +828,165 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
     showDialog(
       context: context,
-      builder: (context) => ZFormDialog(
-        title: tr.combinedPayment,
-        actionLabel: Text(tr.submit),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ZTextFieldEntitled(
-                title: "Account (Credit) Payment Amount",
-                controller: controller,
-                hint: "Enter amount to add to account as credit",
-                inputFormat: [SmartThousandsDecimalFormatter()],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "${tr.grandTotal}: ${current.grandTotal.toAmount()}",
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              if (controller.text.isNotEmpty)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Account (Credit) Payment: ${double.tryParse(controller.text.replaceAll(',', ''))?.toAmount() ?? '0.0'}",
-                      style: const TextStyle(color: Colors.orange),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+
+            double credit = double.tryParse(
+                controller.text.replaceAll(',', '')) ??
+                0;
+
+            double cash = current.grandTotal - credit;
+
+            return ZFormDialog(
+              title: tr.combinedPayment,
+              padding: EdgeInsets.all(12),
+              actionLabel: Text(tr.submit),
+
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+
+                  ZTextFieldEntitled(
+                    title: "Credit Amount",
+                    controller: controller,
+                    hint: "Enter credit amount",
+                    inputFormat: [SmartThousandsDecimalFormatter()],
+                    onChanged: (_) => setState(() {}),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  ZCover(
+                    padding: const EdgeInsets.all(14),
+                    radius: 8,
+                    child: Column(
+                      children: [
+
+                        _amountRow(tr.grandTotal, current.grandTotal),
+
+                        const Divider(height: 20),
+
+                        _amountRow("Credit", credit, color: Colors.orange),
+
+                        const SizedBox(height: 6),
+
+                        _amountRow(tr.cashPayment, cash, color: Colors.green),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "${tr.cashPayment}: ${(current.grandTotal - (double.tryParse(controller.text.replaceAll(',', '')) ?? 0)).toAmount()}",
-                      style: const TextStyle(color: Colors.green),
-                    ),
-                  ],
-                ),
-            ],
+                  ),
+                ],
+              ),
+
+              onAction: () {
+                if (credit <= 0) {
+                  Utils.showOverlayMessage(context,
+                      message: 'Enter valid credit amount',
+                      isError: true);
+                  return;
+                }
+
+                if (credit >= current.grandTotal) {
+                  Utils.showOverlayMessage(context,
+                      message: 'Credit must be less than total',
+                      isError: true);
+                  return;
+                }
+
+                context.read<PurchaseInvoiceBloc>().add(
+                  UpdatePurchasePaymentEvent(
+                    credit,
+                    isCreditAmount: true,
+                  ),
+                );
+
+                Navigator.pop(context);
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _paymentCard({required String title, required String subtitle, required IconData icon, required bool selected, required ColorScheme color, required VoidCallback onTap,}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: selected ? color.primary : color.outline.withValues(alpha: .3),
+            width: selected ? 1.5 : 1,
           ),
+          color: selected ? color.primary.withValues(alpha: .06) : color.surface,
         ),
-        onAction: () {
-          final cleaned = controller.text.replaceAll(',', '');
-          final creditPayment = double.tryParse(cleaned) ?? 0;
+        child: Row(
+          children: [
 
-          if (creditPayment <= 0) {
-            Utils.showOverlayMessage(context, message: 'Account payment must be greater than 0', isError: true);
-            return;
-          }
+            CircleAvatar(
+              radius: 22,
+              backgroundColor: color.primary.withValues(alpha: .1),
+              child: Icon(
+                icon,
+                size: 22,
+                color: selected ? color.primary : color.outline,
+              ),
+            ),
 
-          if (creditPayment >= current.grandTotal) {
-            Utils.showOverlayMessage(context, message: 'Account payment must be less than total amount for mixed payment', isError: true);
-            return;
-          }
+            const SizedBox(width: 14),
 
-          // Pass credit amount to bloc with isCreditAmount flag
-          context.read<PurchaseInvoiceBloc>().add(UpdatePurchasePaymentEvent(
-            creditPayment,  // This is a POSITIONAL parameter
-            isCreditAmount: true,  // This is a NAMED parameter
-          ));
-          Navigator.pop(context);
-        },
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      )),
+                  const SizedBox(height: 4),
+                  Text(subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: color.onSurface.withValues(alpha: .6),
+                      )),
+                ],
+              ),
+            ),
+
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: selected
+                  ? Icon(Icons.check_circle, color: color.primary, key: const ValueKey(1))
+                  : const SizedBox(key: ValueKey(2)),
+            )
+          ],
+        ),
       ),
     );
   }
+  Widget _amountRow(String label, double value, {Color? color}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 16)),
+
+        Text(
+          value.toAmount(),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
   String _getPaymentModeLabel(PaymentMode mode) {
     switch (mode) {
       case PaymentMode.cash:
@@ -916,7 +997,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         return AppLocalizations.of(context)!.combinedPayment;
     }
   }
-
   void _autoSelectFirstStorage(BuildContext context, String rowId) {
     final storageState = context.read<StorageBloc>().state;
     if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
@@ -930,7 +1010,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       });
     }
   }
-
   void _saveInvoice(BuildContext context, PurchaseInvoiceLoaded state) {
     // Additional validation
     if (!state.isFormValid) {
@@ -951,7 +1030,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       completer: completer,
     ));
   }
-
   void _onPrint({String? invoiceNumber}) {
     final state = context.read<PurchaseInvoiceBloc>().state;
 
@@ -1003,6 +1081,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         productName: item.productName,
         quantity: item.qty.toDouble(),
         unitPrice: item.purPrice ?? 0.0,
+        batch: item.stkBatch,
         total: item.totalPurchase,
         storageName: item.storageName,
       );
@@ -1140,6 +1219,7 @@ class _PurchaseItemRow extends StatefulWidget {
 }
 class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _landedPriceController;
+
   late TextEditingController _storageController;
 
   @override
@@ -1150,6 +1230,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           ? widget.item.landedPrice!.toAmount()
           : '',
     );
+
     _storageController = TextEditingController(text: widget.item.storageName);
   }
 
@@ -1312,7 +1393,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               SizedBox(
                 width: 100,
                 child: Text(
-                  widget.item.totalQty.toStringAsFixed(2),
+                  widget.item.totalQty.toStringAsFixed(1),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -1321,7 +1402,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Price
+              /// Unit Price
               SizedBox(
                 width: 150,
                 child: TextField(
@@ -1338,6 +1419,26 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
                   onSubmitted: (_) => focusNext(3),
+                ),
+              ),
+
+
+              /// Local Amount
+              SizedBox(
+                width: 150,
+                child: TextField(
+                  controller: _landedPriceController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    hintText: locale.localeAmount,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
+                  readOnly: true,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
 
@@ -2440,6 +2541,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
         productName: item.productName,
         quantity: item.qty.toDouble(),
         unitPrice: item.purPrice ?? 0.0,
+        batch: item.stkBatch,
         total: item.totalPurchase,
         storageName: item.storageName,
       );
@@ -3488,6 +3590,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
       return PurchaseInvoiceItemForPrint(
         productName: item.productName,
         quantity: item.qty.toDouble(),
+        batch: item.stkBatch,
         unitPrice: item.purPrice ?? 0.0,
         total: item.totalPurchase,
         storageName: item.storageName,

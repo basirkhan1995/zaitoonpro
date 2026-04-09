@@ -1053,5 +1053,6 @@
   "manageExpenses": "Manage Expenses",
   "salePercentage": "Percentange",
   "recalculate": "Recalculate",
-  "invoiceCurrency": "Invoice Currency"
+  "invoiceCurrency": "Invoice Currency",
+  "localeAmount": "Local Amount"
 }

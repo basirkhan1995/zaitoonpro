@@ -1204,6 +1204,11 @@ abstract class PrintServices {
         'fa': 'مبلغ خرید',
         'ar': 'د پیرود مقدار',
       },
+      'dueAmount': {
+        'en': 'Total Invoice Due',
+        'fa': 'الباقی بل',
+        'ar': 'ټول پاتې پیسې',
+      },
       'driver': {
         'en': 'Driver',
         'fa': 'راننده',
@@ -1361,8 +1366,8 @@ abstract class PrintServices {
       },
       'supplier': {
         'en': 'Supplier',
-        'fa': 'تامین کننده',
-        'ar': 'المورد',
+        'fa': 'فروشنده',
+        'ar': 'فروشنده',
       },
       'trialBalance': {
         'en': 'Trial Balance',
@@ -1388,6 +1393,11 @@ abstract class PrintServices {
         'en': 'Qty',
         'fa': 'تعداد',
         'ar': 'الكمية',
+      },
+      'batch': {
+        'en': 'Batch',
+        'fa': 'مقدار',
+        'ar': 'مقدار',
       },
       'actualBalance': {
         'en': 'Actual Balance',
@@ -1509,6 +1519,11 @@ abstract class PrintServices {
         'fa': 'متوسط تفاوت',
         'ar': 'متوسط تفاوت'
       },
+      'totalQty': {
+        'en': 'Total QTY',
+        'fa': 'تعداد کارتن',
+        'ar': 'کارتن تعداد',
+      },
       'avgRentPerUnit': {
         'en': 'Avg Rent Per Unit',
         'fa': 'متوسط کرایه فی واحد',
@@ -1556,8 +1571,8 @@ abstract class PrintServices {
       },
       'newBalance': {
         'en': 'New Balance',
-        'fa': 'موجودی جدید',
-        'ar': 'نوی بیلانس'
+        'fa': 'بیلانس فعلی',
+        'ar': 'قعلی بیلانس'
       },
       'settled': {
         'en': 'Settled',

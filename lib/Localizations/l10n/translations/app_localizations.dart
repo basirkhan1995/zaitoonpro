@@ -6303,6 +6303,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invoice Currency'**
   String get invoiceCurrency;
+
+  /// No description provided for @localeAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Amount'**
+  String get localeAmount;
 }
 
 class _AppLocalizationsDelegate

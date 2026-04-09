@@ -1828,7 +1828,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get unitPrice => 'قیمت واحد';
 
   @override
-  String get qty => 'مقدار';
+  String get qty => 'تعداد';
 
   @override
   String get addItem => 'افزودن قلم';
@@ -3178,4 +3178,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get invoiceCurrency => 'ارز بل';
+
+  @override
+  String get localeAmount => 'قیمت محلی';
 }

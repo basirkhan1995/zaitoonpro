@@ -14,6 +14,7 @@ import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 abstract class InvoiceItem {
   String get productName;
   double get quantity;
+  int get batch;
   double get unitPrice;
   double get total;
   String get storageName;
@@ -24,6 +25,8 @@ class SaleInvoiceItemForPrint implements InvoiceItem {
   final String productName;
   @override
   final double quantity;
+  @override
+  final int batch;
   @override
   final double unitPrice;
   @override
@@ -36,6 +39,7 @@ class SaleInvoiceItemForPrint implements InvoiceItem {
   SaleInvoiceItemForPrint({
     required this.productName,
     required this.quantity,
+    required this.batch,
     required this.unitPrice,
     required this.total,
     required this.storageName,
@@ -50,6 +54,8 @@ class PurchaseInvoiceItemForPrint implements InvoiceItem {
   @override
   final double quantity;
   @override
+  final int batch;
+  @override
   final double unitPrice;
   @override
   final double total;
@@ -59,6 +65,7 @@ class PurchaseInvoiceItemForPrint implements InvoiceItem {
   PurchaseInvoiceItemForPrint({
     required this.productName,
     required this.quantity,
+    required this.batch,
     required this.unitPrice,
     required this.total,
     required this.storageName,
@@ -233,8 +240,6 @@ class InvoicePrintService extends PrintServices {
     final Uint8List imageBytes = imageData.buffer.asUint8List();
     final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
 
-   // final isSale = invoiceType.toLowerCase().contains('sale');
-
     document.addPage(
       pw.MultiPage(
         maxPages: 1000,
@@ -270,6 +275,7 @@ class InvoicePrintService extends PrintServices {
             account: account,
             currency: currency,
             isSale: isSale,
+            items: items
           ),
         ],
         header: (context) => prebuiltHeader,
@@ -386,118 +392,80 @@ class InvoicePrintService extends PrintServices {
     const qtyWidth = 60.0;
     const priceWidth = 80.0;
     const totalWidth = 90.0;
-    const storageWidth = 100.0;
+    const batchWidth = 60.0;
+
+    final isRtl = language == 'fa' || language == 'ar';
+
+    // Define columns in RTL order for RTL languages
+    final List<int> _ = isRtl
+        ? [5, 4, 3, 2, 1, 0]  // Reverse order for RTL
+        : [0, 1, 2, 3, 4, 5]; // Normal order for LTR
+
+    final List<String> headers = isRtl
+        ? [
+
+      tr(text: 'total', tr: language),
+      tr(text: 'unitPrice', tr: language),
+      tr(text: 'batch', tr: language),
+      tr(text: 'quantity', tr: language),
+      tr(text: 'description', tr: language),
+      tr(text: 'number', tr: language),
+    ]
+        : [
+      tr(text: 'number', tr: language),
+      tr(text: 'description', tr: language),
+      tr(text: 'quantity', tr: language),
+      tr(text: 'batch', tr: language),
+      tr(text: 'unitPrice', tr: language),
+      tr(text: 'total', tr: language),
+
+    ];
 
     return pw.Table(
       border: pw.TableBorder.all(color: pw.PdfColors.grey300, width: 1),
-      columnWidths: {
+      columnWidths: isRtl
+          ? {
+        0: pw.FixedColumnWidth(batchWidth),
+        1: pw.FixedColumnWidth(totalWidth),
+        2: pw.FixedColumnWidth(priceWidth),
+        3: pw.FixedColumnWidth(qtyWidth),
+        4: pw.FixedColumnWidth(descriptionWidth),
+        5: pw.FixedColumnWidth(numberWidth),
+      }
+          : {
         0: pw.FixedColumnWidth(numberWidth),
         1: pw.FixedColumnWidth(descriptionWidth),
         2: pw.FixedColumnWidth(qtyWidth),
         3: pw.FixedColumnWidth(priceWidth),
         4: pw.FixedColumnWidth(totalWidth),
-        5: pw.FixedColumnWidth(storageWidth),
+        5: pw.FixedColumnWidth(batchWidth),
       },
       children: [
         // Header Row
         pw.TableRow(
-          decoration: pw.BoxDecoration(color: pw.PdfColors.grey50),
-          children: [
-            pw.Padding(
-              padding: pw.EdgeInsets.all(4),
+          decoration: pw.BoxDecoration(color: pw.PdfColors.white),
+          children: headers.map((header) {
+            return pw.Padding(
+              padding: pw.EdgeInsets.all(3),
               child: zText(
-                text: tr(text: 'number', tr: language),
+                text: header,
                 fontSize: 9,
                 fontWeight: pw.FontWeight.bold,
                 textAlign: pw.TextAlign.center,
               ),
-            ),
-            pw.Padding(
-              padding: pw.EdgeInsets.all(4),
-              child: zText(
-                text: tr(text: 'description', tr: language),
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-              ),
-            ),
-            pw.Padding(
-              padding: pw.EdgeInsets.all(4),
-              child: zText(
-                text: tr(text: 'qty', tr: language),
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-                textAlign: pw.TextAlign.center,
-              ),
-            ),
-            pw.Padding(
-              padding: pw.EdgeInsets.all(4),
-              child: zText(
-                text: tr(text: 'unitPrice', tr: language),
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-                textAlign: pw.TextAlign.center,
-              ),
-            ),
-            pw.Padding(
-              padding: pw.EdgeInsets.all(4),
-              child: zText(
-                text: tr(text: 'total', tr: language),
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-                textAlign: pw.TextAlign.center,
-              ),
-            ),
-            pw.Padding(
-              padding: pw.EdgeInsets.all(4),
-              child: zText(
-                text: tr(text: 'storage', tr: language),
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-                textAlign: pw.TextAlign.center,
-              ),
-            ),
-          ],
+            );
+          }).toList(),
         ),
 
         // Data Rows
         for (int i = 0; i < items.length; i++)
           pw.TableRow(
-            decoration:
-            i.isOdd ? pw.BoxDecoration(color: pw.PdfColors.grey50) : null,
-            children: [
+            decoration: i.isOdd ? pw.BoxDecoration(color: pw.PdfColors.grey50) : null,
+            children: isRtl
+                ? [
+              // RTL order: Storage, Total, Price, Qty, Description, Number
               pw.Padding(
-                padding: pw.EdgeInsets.all(5),
-                child: zText(
-                  text: (i + 1).toString(),
-                  fontSize: 9,
-                  textAlign: pw.TextAlign.center,
-                ),
-              ),
-              pw.Padding(
-                padding: pw.EdgeInsets.all(5),
-                child: zText(
-                  text: items[i].productName,
-                  fontSize: 9,
-                ),
-              ),
-              pw.Padding(
-                padding: pw.EdgeInsets.all(5),
-                child: zText(
-                  text: items[i].quantity.toString(),
-                  fontSize: 9,
-                  textAlign: pw.TextAlign.center,
-                ),
-              ),
-              pw.Padding(
-                padding: pw.EdgeInsets.all(5),
-                child: zText(
-                  text: items[i].unitPrice.toAmount(),
-                  fontSize: 9,
-                  textAlign: pw.TextAlign.center,
-                ),
-              ),
-              pw.Padding(
-                padding: pw.EdgeInsets.all(5),
+                padding: pw.EdgeInsets.all(3),
                 child: zText(
                   text: items[i].total.toAmount(),
                   fontSize: 9,
@@ -506,10 +474,93 @@ class InvoicePrintService extends PrintServices {
                 ),
               ),
               pw.Padding(
-                padding: pw.EdgeInsets.all(5),
+                padding: pw.EdgeInsets.all(3),
                 child: zText(
-                  text: items[i].storageName,
+                  text: items[i].unitPrice.toAmount(),
                   fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: items[i].batch.toString(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: items[i].quantity.toString(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.symmetric(horizontal: 5),
+                child: zText(
+                  text: items[i].productName,
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.right,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: (i + 1).toString(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+            ]
+                : [
+              // LTR order: Number, Description, Qty, Price, Total, Storage
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: (i + 1).toString(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.symmetric(horizontal: 5),
+                child: zText(
+                  text: items[i].productName,
+                  fontSize: 9,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: items[i].quantity.toString(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: items[i].batch.toString(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: items[i].unitPrice.toAmount(),
+                  fontSize: 9,
+                  textAlign: pw.TextAlign.center,
+                ),
+              ),
+              pw.Padding(
+                padding: pw.EdgeInsets.all(3),
+                child: zText(
+                  text: items[i].total.toAmount(),
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
                   textAlign: pw.TextAlign.center,
                 ),
               ),
@@ -527,7 +578,9 @@ class InvoicePrintService extends PrintServices {
     required AccountsModel? account,
     String? currency,
     required bool isSale,
+    required List<InvoiceItem> items,
   }) {
+    final totalQty = items.fold<double>(0, (sum, item) => sum + item.quantity);
     final lang = NumberToWords.getLanguageFromLocale(Locale(language));
     final cleanAmount = grandTotal.toString().replaceAll(',', '');
     final parsedAmount = int.tryParse(
@@ -567,6 +620,24 @@ class InvoicePrintService extends PrintServices {
                   ],
                 ),
 
+                pw.SizedBox(height: 3),
+
+                // Total Quantity
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    zText(
+                      text: tr(text: 'totalQty', tr: language),
+                      fontSize: 10,
+                    ),
+                    zText(
+                      text: totalQty.toStringAsFixed(0),
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ],
+                ),
+                pw.SizedBox(height: 3),
                 // Cash Payment (if any)
                 if (cashPayment > 0)
                   _buildPaymentRow(
@@ -576,27 +647,9 @@ class InvoicePrintService extends PrintServices {
                     ccy: ccy,
                   ),
 
-                // Credit/Account Payment (if any)
-                if (creditAmount > 0 && account != null)
-                  _buildPaymentRow(
-                    label:
-                    "${tr(text: 'accountPayment', tr: language)} (${account.accNumber})",
-                    value: creditAmount,
-                    ccy: ccy,
-                  ),
-
-                // Total Payment
-                _buildPaymentRow(
-                  label: tr(
-                      text: 'totalPayment', tr: language),
-                  value: cashPayment + creditAmount,
-                  ccy: ccy,
-                  isBold: true,
-                ),
-
                 // Account Balance Information - ONLY show when credit is used AND account exists
                 if (account != null && creditAmount > 0) ...[
-                  pw.Divider(color: pw.PdfColors.grey300),
+                  pw.SizedBox(height: 3),
 
                   // Account Info
                   pw.Row(
@@ -604,12 +657,12 @@ class InvoicePrintService extends PrintServices {
                     children: [
                       zText(
                           text: "${account.accNumber} | ${account.accName}",
-                          fontSize: 10,
+                          fontSize: 9,
                           fontWeight: pw.FontWeight.bold
                       ),
                     ],
                   ),
-
+                  pw.SizedBox(height: 3),
                   // Previous Balance
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -634,7 +687,7 @@ class InvoicePrintService extends PrintServices {
                       zText(
                         text: isSale
                             ? tr(text: 'saleAmount', tr: language)
-                            : tr(text: 'purchaseAmount', tr: language),
+                            : tr(text: 'dueAmount', tr: language),
                         fontSize: 10,
                       ),
                       zText(
@@ -677,13 +730,13 @@ class InvoicePrintService extends PrintServices {
                       zText(
                         text: tr(
                             text: 'status', tr: language),
-                        fontSize: 10,
+                        fontSize: 9,
                       ),
                       zText(
                         text: isSale
                             ? _getBalanceStatus(_getAccountBalance(account) - creditAmount, language)
                             : _getBalanceStatus(_getAccountBalance(account) + creditAmount, language),
-                        fontSize: 10,
+                        fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
                         color: isSale
                             ? _getBalanceColor(_getAccountBalance(account) - creditAmount)

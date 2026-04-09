@@ -610,7 +610,7 @@
   "supplier": "فروشنده",
   "purchaseEntry": "بل خرید",
   "unitPrice": "قیمت واحد",
-  "qty": "مقدار",
+  "qty": "تعداد",
   "addItem": "توکی اضافه",
   "invoiceNumber": "نمبر بل #",
   "grandTotal": "ټولیزه مجموعه",
@@ -1053,5 +1053,6 @@
   "manageExpenses": "بل مصرفونه",
   "salePercentage": "فیصدی",
   "recalculate": "محاسبه مجدد",
-  "invoiceCurrency": "د بل ارز"
+  "invoiceCurrency": "د بل ارز",
+  "localeAmount": "قیمت محلی"
 }

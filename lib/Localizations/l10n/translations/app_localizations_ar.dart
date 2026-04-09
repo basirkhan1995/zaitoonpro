@@ -1831,7 +1831,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get unitPrice => 'قیمت واحد';
 
   @override
-  String get qty => 'مقدار';
+  String get qty => 'تعداد';
 
   @override
   String get addItem => 'توکی اضافه';
@@ -3181,4 +3181,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get invoiceCurrency => 'د بل ارز';
+
+  @override
+  String get localeAmount => 'قیمت محلی';
 }

@@ -333,8 +333,8 @@ class _ExpenseRowState extends State<_ExpenseRow> {
               flex: 2,
               child: TextField(
                 controller: _narrationController,
-                decoration: const InputDecoration(
-                  hintText: 'Narration',
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.narration,
                   border: InputBorder.none,
                   isDense: true,
                 ),
@@ -355,8 +355,8 @@ class _ExpenseRowState extends State<_ExpenseRow> {
                 controller: _amountController,
                 keyboardType:
                 const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  hintText: 'Amount',
+                decoration: InputDecoration(
+                  hintText: AppLocalizations.of(context)!.amount,
                   border: InputBorder.none,
                   isDense: true,
                 ),

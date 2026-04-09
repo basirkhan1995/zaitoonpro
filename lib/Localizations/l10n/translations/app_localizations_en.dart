@@ -3188,4 +3188,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceCurrency => 'Invoice Currency';
+
+  @override
+  String get localeAmount => 'Local Amount';
 }

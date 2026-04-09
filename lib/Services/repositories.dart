@@ -1815,6 +1815,8 @@ class Repositories {
     required String? xRef,
     required String orderName, //Purchase or Sale
     int? account,
+    String? remark,
+    String? ccyCode,
     double? amount,
     required List<PurchaseInvoiceRecord> records,
     required List<PurExpenseRecord> expRecord,
@@ -1824,7 +1826,8 @@ class Repositories {
       "ordName": orderName,
       "ordPersonal": perID,
       "ordxRef": xRef ?? "",
-      "oRemark": "",
+      "oRemark": remark,
+      "ccy": ccyCode,
       "account": account ?? 0,
       "amount": amount ?? 0.0,
       "records": records.map((r) => r.toJson()).toList(),

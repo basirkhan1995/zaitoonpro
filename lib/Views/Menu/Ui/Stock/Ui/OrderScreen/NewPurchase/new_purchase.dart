@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
@@ -19,7 +20,6 @@ import '../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../Features/Other/zForm_dialog.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
-import '../../../../../../../Features/Widgets/button.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -58,7 +58,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
   final TextEditingController _xRefController = TextEditingController();
-
+  final TextEditingController _remark = TextEditingController();
   final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   void _showExpensesDialog(BuildContext context) {
@@ -178,6 +178,52 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           }
         },
         child: Scaffold(
+          appBar: AppBar(
+            title: Text(tr.purchaseEntry),
+            titleSpacing: 0,
+            actionsPadding: EdgeInsets.symmetric(horizontal: 12),
+            actions: [
+              ZOutlineButton(
+                icon: Icons.outbond_outlined,
+                onPressed: ()=> _showExpensesDialog(context),
+                label: Text(tr.manageExpenses),
+              ),
+              const SizedBox(width: 8),
+              ZOutlineButton(
+                icon: FontAwesomeIcons.solidFilePdf,
+                onPressed: _onPrint,
+                label: Text("PDF"),
+              ),
+              const SizedBox(width: 8),
+              //Save Button
+              BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                  builder: (context, state) {
+                    if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
+                      final current = state is PurchaseInvoiceSaving ?
+                      state : (state as PurchaseInvoiceLoaded);
+                      final isSaving = state is PurchaseInvoiceSaving;
+
+                      return ZOutlineButton(
+                        isActive: true,
+                        icon: Icons.save_rounded,
+                        onPressed: (isSaving || !current.isFormValid) ? null : () => _saveInvoice(context, current),
+                        label: isSaving
+                            ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.surface,
+                          ),
+                        )
+                            : Text(tr.saveTitle),
+                      );
+                    }
+                    return const SizedBox();
+                  }
+              ),
+            ],
+          ),
           backgroundColor: Theme.of(context).colorScheme.surface,
           body: Form(
             key: _formKey,
@@ -186,14 +232,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    spacing: 8,
-                    children: [
-                      Utils.zBackButton(context),
-                      Text(tr.purchaseEntry, style: Theme.of(context).textTheme.titleLarge)
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+
 
                   // Supplier and Account Selection
                   Row(
@@ -316,9 +355,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: CurrencyDropdown(
-                          title: "Invoice Currency",
-                            isMulti: false,
-                            onMultiChanged: (e){},
+                          title: tr.invoiceCurrency,
                             onSingleChanged: (e){},
                         ),
                       ),
@@ -331,44 +368,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      ZOutlineButton(
-                        width: 170,
-                        icon: Icons.outbond_outlined,
-                        onPressed: ()=> _showExpensesDialog(context),
-                        label: Text(tr.manageExpenses),
-                      ),
-                      const SizedBox(width: 8),
-                      ZOutlineButton(
-                        width: 100,
-                        icon: Icons.print,
-                        onPressed: _onPrint,
-                        label: Text(tr.print),
-                      ),
-                      const SizedBox(width: 8),
-                      BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                          builder: (context, state) {
-                            if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-                              final current = state is PurchaseInvoiceSaving ?
-                              state : (state as PurchaseInvoiceLoaded);
-                              final isSaving = state is PurchaseInvoiceSaving;
-
-                              return ZButton(
-                                width: 100,
-                                onPressed: (isSaving || !current.isFormValid) ? null : () => _saveInvoice(context, current),
-                                label: isSaving
-                                    ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Theme.of(context).colorScheme.surface,
-                                  ),
-                                )
-                                    : Text(tr.saveTitle),
-                              );
-                            }
-                            return const SizedBox();
-                          }
+                      Expanded(
+                        flex: 2,
+                        child: ZTextFieldEntitled(
+                            controller: _remark,
+                            title: tr.remark,
+                        ),
                       )
                     ],
                   ),
@@ -832,7 +837,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
     );
   }
-
   void _showMixedPaymentDialog(BuildContext context, PurchaseInvoiceLoaded current) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
@@ -940,6 +944,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       usrName: _userName ?? '',
       expenses: state.expenses,
       orderName: "Purchase",
+      remark: _remark.text,
       ordPersonal: state.supplier!.perId!,
       xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
       items: state.items,
@@ -1133,7 +1138,6 @@ class _PurchaseItemRow extends StatefulWidget {
   @override
   State<_PurchaseItemRow> createState() => _PurchaseItemRowState();
 }
-
 class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _landedPriceController;
   late TextEditingController _storageController;

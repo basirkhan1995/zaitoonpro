@@ -6297,6 +6297,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Recalculate'**
   String get recalculate;
+
+  /// No description provided for @invoiceCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice Currency'**
+  String get invoiceCurrency;
 }
 
 class _AppLocalizationsDelegate

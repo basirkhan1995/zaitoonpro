@@ -467,6 +467,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         orderName: "Purchase",
         usrName: event.usrName,
         perID: event.ordPersonal,
+        remark: event.remark,
+        ccyCode: event.invoiceCcy,
         xRef: xRef,
         account: accountNumber,
         amount: amountToSend,

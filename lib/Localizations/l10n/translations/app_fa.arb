@@ -1052,5 +1052,6 @@
   "warehouse": "انبار",
   "manageExpenses": "مصارف بل",
   "salePercentage": "فیصدی",
-  "recalculate": "محاسبه مجدد"
+  "recalculate": "محاسبه مجدد",
+  "invoiceCurrency": "ارز بل"
 }

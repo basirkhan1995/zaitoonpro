@@ -3175,4 +3175,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get recalculate => 'محاسبه مجدد';
+
+  @override
+  String get invoiceCurrency => 'ارز بل';
 }

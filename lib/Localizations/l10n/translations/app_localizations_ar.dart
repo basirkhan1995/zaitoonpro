@@ -3178,4 +3178,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get recalculate => 'محاسبه مجدد';
+
+  @override
+  String get invoiceCurrency => 'د بل ارز';
 }

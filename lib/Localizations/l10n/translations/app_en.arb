@@ -1052,5 +1052,6 @@
   "warehouse": "Warehouse",
   "manageExpenses": "Manage Expenses",
   "salePercentage": "Percentange",
-  "recalculate": "Recalculate"
+  "recalculate": "Recalculate",
+  "invoiceCurrency": "Invoice Currency"
 }

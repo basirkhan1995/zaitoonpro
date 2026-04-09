@@ -999,7 +999,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
         ]),
 
         const SizedBox(height: 16),
-
         // Pricing Information Card
         _buildDetailCard(tr.pricingInformation, [
           _buildDetailItem(

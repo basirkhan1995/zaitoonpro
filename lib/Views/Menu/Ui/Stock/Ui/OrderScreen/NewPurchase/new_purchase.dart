@@ -8,7 +8,7 @@ import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/features/currency_drop.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/bloc/storage_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/model/storage_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
@@ -80,22 +80,36 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   String? _userName;
   String? baseCurrency;
   int? signatory;
+
   final Map<String, TextEditingController> _purchasePriceControllers = {};
   final Map<String, TextEditingController> _costPriceControllers = {};
   final Map<String, TextEditingController> _sellPriceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};
+  final Map<String, TextEditingController> _localeAmountControllers = {};
   final Map<String, TextEditingController> _batchControllers = {};
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthBloc>().state;
+      if(authState is AuthenticatedState){
+        // My company base currency
+        authState.loginData.company?.comLocalCcy;
+      }
       context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
     });
 
     final companyState = context.read<CompanyProfileBloc>().state;
     if (companyState is CompanyProfileLoadedState) {
       baseCurrency = companyState.company.comLocalCcy ?? "";
+    }
+  }
+
+  void getExchangeRate({required String firstCcy, required String secondCcy}){
+    final exRate = context.read<ExchangeRateBloc>().state;
+    if (exRate is ExchangeRateLoadedState) {
+     // currentRates = (exRate).rates;
     }
   }
 
@@ -124,6 +138,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       controller.dispose();
     }
     for (final controller in _batchControllers.values) {
+      controller.dispose();
+    }
+
+    for (final controller in _localeAmountControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -228,8 +246,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 strokeWidth: 2,
                                 color: Theme.of(context).colorScheme.surface,
                               ),
-                            )
-                          : Text(tr.saveTitle),
+                            ) : Text(tr.saveTitle),
                     );
                   }
                   return const SizedBox();
@@ -253,11 +270,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       Expanded(
                         flex: 2,
                         child:
-                            GenericTextfield<
-                              IndividualsModel,
-                              IndividualsBloc,
-                              IndividualsState
-                            >(
+                            GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
                               key: const ValueKey('person_field'),
                               controller: _personController,
                               title: tr.supplier,
@@ -270,10 +283,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 return null;
                               },
                               bloc: context.read<IndividualsBloc>(),
-                              fetchAllFunction: (bloc) =>
-                                  bloc.add(LoadIndividualsEvent()),
-                              searchFunction: (bloc, query) =>
-                                  bloc.add(LoadIndividualsEvent()),
+                              fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
+                              searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
                               itemBuilder: (context, ind) => Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
@@ -313,20 +324,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           builder: (context, state) {
                             if (state is PurchaseInvoiceLoaded) {
                               final current = state;
-                              return GenericTextfield<
-                                AccountsModel,
-                                AccountsBloc,
-                                AccountsState
-                              >(
+                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
                                 hintText: tr.selectAccount,
-                                isRequired:
-                                    current.paymentMode != PaymentMode.cash,
+                                isRequired: current.paymentMode != PaymentMode.cash,
                                 validator: (value) {
-                                  if (current.paymentMode != PaymentMode.cash &&
-                                      (value == null || value.isEmpty)) {
+                                  if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
                                     return tr.selectCreditAccountMsg;
                                   }
                                   return null;
@@ -363,8 +368,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   return [];
                                 },
                                 onSelected: (value) {
-                                  _accountController.text =
-                                      '${value.accName} (${value.accNumber})';
+                                  _accountController.text = '${value.accName} (${value.accNumber})';
                                   context.read<PurchaseInvoiceBloc>().add(
                                     SelectSupplierAccountEvent(value),
                                   );
@@ -372,11 +376,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 showClearButton: true,
                               );
                             }
-                            return GenericTextfield<
-                              AccountsModel,
-                              AccountsBloc,
-                              AccountsState
-                            >(
+                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
@@ -403,10 +403,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 ),
                                 trailing: Text(account.actCurrency ?? ""),
                               ),
-                              itemToString: (account) =>
-                                  '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) =>
-                                  state is AccountLoadingState,
+                              itemToString: (account) => '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) => state is AccountLoadingState,
                               stateToItems: (state) {
                                 if (state is AccountLoadedState) {
                                   return state.accounts;
@@ -414,8 +412,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 return [];
                               },
                               onSelected: (value) {
-                                _accountController.text =
-                                    '${value.accName} (${value.accNumber})';
+                                // selected account currency | if require for exchange rate
+                                value.actCurrency;
+
+                                _accountController.text = '${value.accName} (${value.accNumber})';
                                 context.read<PurchaseInvoiceBloc>().add(
                                   SelectSupplierAccountEvent(value),
                                 );
@@ -426,13 +426,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(
-                        child: CurrencyDropdown(
-                          title: tr.invoiceCurrency,
-                          onSingleChanged: (e) {},
-                        ),
-                      ),
-                      const SizedBox(width: 6),
                       Expanded(
                         child: ZTextFieldEntitled(
                           controller: _xRefController,
@@ -472,15 +465,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     // Items List
                                     ListView.builder(
                                       shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
+                                      physics: const NeverScrollableScrollPhysics(),
                                       itemCount: current.items.length,
                                       itemBuilder: (context, index) {
                                         final item = current.items[index];
-                                        final isLastRow =
-                                            index == current.items.length - 1;
+                                        final isLastRow = index == current.items.length - 1;
                                         final nodes = _rowFocusNodes[index];
-
                                         return _buildItemRow(
                                           item: item,
                                           nodes: nodes,
@@ -663,7 +653,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      tr.paymentMethod,
+                      tr.paymentMethod.toUpperCase(),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 17,

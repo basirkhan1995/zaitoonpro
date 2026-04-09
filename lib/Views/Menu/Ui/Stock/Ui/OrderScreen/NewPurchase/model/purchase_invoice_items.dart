@@ -5,10 +5,14 @@ class PurchaseInvoiceItem {
   int qty;
   int stkBatch;
   double? purPrice;
-  double? landedPrice;  // ← Add this field for display only
+  double? landedPrice;
   double sellPriceAmount;
   int storageId;
   String storageName;
+
+  // Add currency fields
+  double? localAmount;  // Amount in base currency
+  double? exchangeRate; // Exchange rate used for this item
 
   PurchaseInvoiceItem({
     String? itemId,
@@ -17,14 +21,17 @@ class PurchaseInvoiceItem {
     required this.qty,
     required this.stkBatch,
     this.purPrice,
-    this.landedPrice,  // ← Add here
+    this.landedPrice,
     required this.sellPriceAmount,
     required this.storageName,
     required this.storageId,
+    this.localAmount,
+    this.exchangeRate,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   double get totalPurchase => qty * (purPrice ?? 0);
   double get totalQty => qty.toDouble() * stkBatch;
+  double get totalLocalAmount => (qty * (purPrice ?? 0)) * (exchangeRate ?? 1);
 }
 
 class PurchaseInvoiceRecord {

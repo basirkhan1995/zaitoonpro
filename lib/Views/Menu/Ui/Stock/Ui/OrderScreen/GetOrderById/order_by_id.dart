@@ -2230,7 +2230,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
                     if (isPurchase && product is ProductsModel) {
                       return '0';
                     } else if (!isPurchase && product is ProductsStockModel) {
-                      return product.recentPrice;
+                      return product.recentPurPrice;
                     }
                     return '0';
                   },
@@ -2310,6 +2310,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
                   showAllOnFocus: true,
                   hintText: locale.products,
                   noResultsText: 'No products found',
+                  getBatch: (product)=> product.stkQtyInBatch,
                 ),
 
                 // Show product details if not editing

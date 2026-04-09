@@ -379,7 +379,7 @@ class _AddAdjustmentViewState extends State<AddAdjustmentView> {
                     ),
                     ZCover(
                       radius: 0,
-                      child: Text(product.recentPrice?.toAmount() ?? ""),
+                      child: Text(product.recentPurPrice?.toAmount() ?? ""),
                     ),
                     ZCover(
                       radius: 0,

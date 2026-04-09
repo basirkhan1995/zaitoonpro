@@ -38,6 +38,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final int? Function(T) getBatch;
   final String? Function(T) getAveragePrice;
   final String? Function(T) getRecentPrice;
+  final String? Function(T) getLandedPrice;
   final String? Function(T) getSellPrice;
 
   // Optional custom builders
@@ -65,6 +66,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     required this.getProductName,
     required this.getProductCode,
     required this.getStorageId,
+    required this.getLandedPrice,
     required this.getStorageName,
     required this.getAvailable,
     required this.getAveragePrice,
@@ -1009,6 +1011,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
             Icons.history,
             tr.recentPriceTitle,
             widget.getRecentPrice(product).toAmount(),
+          ),
+          _buildDetailItem(
+            Icons.dark_mode,
+            tr.costPrice,
+            widget.getLandedPrice(product).toAmount(),
           ),
           _buildDetailItem(
             Icons.attach_money,

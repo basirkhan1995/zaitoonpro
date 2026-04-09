@@ -2311,6 +2311,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
                   hintText: locale.products,
                   noResultsText: 'No products found',
                   getBatch: (product)=> product.stkQtyInBatch,
+                  getLandedPrice: (product)=> product.recentLandedPurPrice,
                 ),
 
                 // Show product details if not editing

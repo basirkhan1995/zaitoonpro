@@ -466,6 +466,7 @@ class _AddEstimateViewState extends State<AddEstimateView> {
               getRecentPrice: (product) => product.recentPurPrice,
               getSellPrice: (product) => product.sellPrice,
               getBatch: (product)=> product.stkQtyInBatch,
+              getLandedPrice: (product)=> product.recentLandedPurPrice,
 
               // Handle selection
               onProductSelected: (product) {

@@ -562,6 +562,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   getStorageName: (product) => product.stgName,
                   getAvailable: (product) => product.available,
                   getBatch: (product)=> product.stkQtyInBatch,
+                  getLandedPrice: (product)=> product.recentLandedPurPrice,
                   getAveragePrice: (product) => product.averagePrice,
                   getRecentPrice: (product) => product.recentPurPrice,
                   getSellPrice: (product) => product.sellPrice,

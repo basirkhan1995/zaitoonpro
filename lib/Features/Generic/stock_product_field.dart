@@ -12,9 +12,9 @@ typedef OnProductSelected<T> = void Function(T? product);
 typedef BlocSearchFunction<B> = void Function(B bloc, String query);
 typedef BlocFetchAllFunction<B> = void Function(B bloc);
 typedef ProductListItemBuilder<T> =
-    Widget Function(BuildContext context, T product);
+Widget Function(BuildContext context, T product);
 typedef ProductDetailsBuilder<T> =
-    Widget Function(BuildContext context, T product);
+Widget Function(BuildContext context, T product);
 
 class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final TextEditingController controller;
@@ -40,6 +40,15 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final String? Function(T) getRecentPrice;
   final String? Function(T) getLandedPrice;
   final String? Function(T) getSellPrice;
+
+  // New product specification fields
+  final String? Function(T)? getProductUnit;
+  final String? Function(T)? getProductBrand;
+  final String? Function(T)? getProductModel;
+  final String? Function(T)? getProductMadeIn;
+  final String? Function(T)? getProductGrade;
+  final String? Function(T)? getProductColor;
+  final String? Function(T)? getProductDetails;
 
   // Optional custom builders
   final ProductListItemBuilder<T>? customListItemBuilder;
@@ -72,6 +81,13 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     required this.getAveragePrice,
     required this.getRecentPrice,
     required this.getSellPrice,
+    this.getProductUnit,
+    this.getProductBrand,
+    this.getProductModel,
+    this.getProductMadeIn,
+    this.getProductGrade,
+    this.getProductColor,
+    this.getProductDetails,
     this.customListItemBuilder,
     this.customDetailsBuilder,
     this.hintText,
@@ -114,7 +130,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     _focusNode.addListener(_onFocusChange);
     widget.controller.addListener(_onControllerChanged);
 
-    // Always keep keyboard listener focused for arrow keys
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardListenerFocusNode.requestFocus();
     });
@@ -138,9 +153,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       _highlightedIndex = -1;
       _currentHighlightedItem = null;
     });
-    // Unfocus the text field to ensure proper cleanup
     _focusNode.unfocus();
-    // Refocus keyboard listener for future interactions
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _keyboardListenerFocusNode.requestFocus();
@@ -166,9 +179,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
         _showOverlay();
       }
     }
-
-    // ❌ DO NOTHING on unfocus
-    // overlay will NOT close automatically anymore
   }
 
   void _onControllerChanged() {
@@ -203,7 +213,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
   }
 
   void _showOverlay() {
-    // Don't remove overlay, just update it
     if (_overlayEntry != null) {
       _refreshOverlay();
       return;
@@ -211,27 +220,22 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
 
     final renderBox = context.findRenderObject() as RenderBox?;
     final overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox?;
+    Overlay.of(context).context.findRenderObject() as RenderBox?;
 
     if (renderBox == null || overlay == null || !mounted) return;
 
-    // Make overlay full screen
     final overlayWidth = overlay.size.width;
     final overlayHeight = overlay.size.height;
 
-    // Get screen dimensions using MediaQuery
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
 
-    // Define panel dimensions as percentage of screen
-    const double panelWidthPercentage = 0.85; // 85% of screen width
-    const double panelHeightPercentage = 0.75; // 75% of screen height
+    const double panelWidthPercentage = 0.85;
+    const double panelHeightPercentage = 0.75;
 
-    // Calculate panel dimensions
     double panelWidth = screenWidth * panelWidthPercentage;
     double panelHeight = screenHeight * panelHeightPercentage;
 
-    // Optional: Set maximum limits
     const double maxPanelWidth = 1400;
     const double maxPanelHeight = 900;
     const double minPanelWidth = 800;
@@ -240,16 +244,12 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     panelWidth = panelWidth.clamp(minPanelWidth, maxPanelWidth);
     panelHeight = panelHeight.clamp(minPanelHeight, maxPanelHeight);
 
-    // Calculate details panel width (30% of main panel or fixed)
-    // 35% of main panel
-
     _overlayEntry = OverlayEntry(
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Material(
           color: Colors.transparent,
           child: Stack(
             children: [
-              // Background click to close
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () {
@@ -259,7 +259,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   child: Container(color: Colors.black.withValues(alpha: .5)),
                 ),
               ),
-              // Modal content
               Positioned(
                 left: 0,
                 top: 0,
@@ -275,8 +274,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                       _keyboardListenerFocusNode.requestFocus();
                     },
                     child: Container(
-                      width: panelWidth, // Use MediaQuery-based width
-                      height: panelHeight, // Use MediaQuery-based height
+                      width: panelWidth,
+                      height: panelHeight,
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(12),
@@ -297,7 +296,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                         borderRadius: BorderRadius.circular(12),
                         child: Row(
                           children: [
-                            // Left side - Search Results
                             Flexible(
                               flex: 5,
                               child: Container(
@@ -314,7 +312,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                 ),
                                 child: Column(
                                   children: [
-                                    // Header with search query
                                     Container(
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
@@ -348,13 +345,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                     .textTheme
                                                     .titleSmall
                                                     ?.copyWith(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
+                                                  fontWeight:
+                                                  FontWeight.bold,
+                                                ),
                                                 children: [
                                                   TextSpan(
                                                     text:
-                                                        '${AppLocalizations.of(context)!.searchResultTitle} ',
+                                                    '${AppLocalizations.of(context)!.searchResultTitle} ',
                                                     style: TextStyle(
                                                       color: Theme.of(
                                                         context,
@@ -363,18 +360,18 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                   ),
                                                   TextSpan(
                                                     text:
-                                                        '${AppLocalizations.of(context)!.forTitle} ',
+                                                    '${AppLocalizations.of(context)!.forTitle} ',
                                                     style: TextStyle(
                                                       color: Theme.of(
                                                         context,
                                                       ).colorScheme.outline,
                                                       fontWeight:
-                                                          FontWeight.normal,
+                                                      FontWeight.normal,
                                                     ),
                                                   ),
                                                   TextSpan(
                                                     text:
-                                                        '"${widget.controller.text}"',
+                                                    '"${widget.controller.text}"',
                                                     style: TextStyle(
                                                       color: Theme.of(
                                                         context,
@@ -386,13 +383,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                           .isNotEmpty)
                                                     TextSpan(
                                                       text:
-                                                          ' (${_currentSuggestions.length})',
+                                                      ' (${_currentSuggestions.length})',
                                                       style: TextStyle(
                                                         color: Theme.of(
                                                           context,
                                                         ).colorScheme.outline,
                                                         fontWeight:
-                                                            FontWeight.normal,
+                                                        FontWeight.normal,
                                                       ),
                                                     ),
                                                 ],
@@ -408,15 +405,14 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                 width: 20,
                                                 height: 20,
                                                 child:
-                                                    CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      color: Theme.of(
-                                                        context,
-                                                      ).colorScheme.primary,
-                                                    ),
+                                                CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                  color: Theme.of(
+                                                    context,
+                                                  ).colorScheme.primary,
+                                                ),
                                               ),
                                             ),
-                                          // Close button in header
                                           IconButton(
                                             icon: Icon(
                                               Icons.close,
@@ -430,136 +426,132 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                         ],
                                       ),
                                     ),
-
-                                    // Search results list or loading/empty state
                                     Expanded(
                                       child: _isLoading
                                           ? Center(
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  CircularProgressIndicator(
-                                                    color: Theme.of(
-                                                      context,
-                                                    ).colorScheme.primary,
-                                                  ),
-                                                  const SizedBox(height: 16),
-                                                  Text(
-                                                    'Searching...',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium
-                                                        ?.copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          ).colorScheme.outline,
-                                                        ),
-                                                  ),
-                                                ],
+                                        child: Column(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                          children: [
+                                            CircularProgressIndicator(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.primary,
+                                            ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              'Searching...',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.outline,
                                               ),
-                                            )
+                                            ),
+                                          ],
+                                        ),
+                                      )
                                           : _currentSuggestions.isEmpty
                                           ? Center(
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Icon(
-                                                    Icons.search_off,
-                                                    size: 48,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .outline
-                                                        .withValues(alpha: .5),
-                                                  ),
-                                                  const SizedBox(height: 16),
-                                                  Text(
-                                                    widget.noResultsText,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium
-                                                        ?.copyWith(
-                                                          color: Theme.of(
-                                                            context,
-                                                          ).colorScheme.outline,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            )
-                                          : ListView.builder(
-                                              controller: _scrollController,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    vertical: 8,
-                                                  ),
-                                              itemCount:
-                                                  _currentSuggestions.length,
-                                              itemBuilder: (context, index) {
-                                                final item =
-                                                    _currentSuggestions[index];
-                                                final isHighlighted =
-                                                    index == _highlightedIndex;
-
-                                                return Container(
-                                                  decoration: BoxDecoration(
-                                                    color: isHighlighted
-                                                        ? Theme.of(context)
-                                                              .colorScheme
-                                                              .primary
-                                                              .withValues(
-                                                                alpha: .1,
-                                                              )
-                                                        : Colors.transparent,
-                                                    border: isHighlighted
-                                                        ? Border(
-                                                            left: BorderSide(
-                                                              color:
-                                                                  Theme.of(
-                                                                        context,
-                                                                      )
-                                                                      .colorScheme
-                                                                      .primary,
-                                                              width: 3,
-                                                            ),
-                                                          )
-                                                        : null,
-                                                  ),
-                                                  child: InkWell(
-                                                    onTap: () =>
-                                                        _handleItemSelection(
-                                                          item,
-                                                        ),
-                                                    onHover: (hovered) {
-                                                      if (hovered && mounted) {
-                                                        setState(() {
-                                                          _highlightedIndex =
-                                                              index;
-                                                          _currentHighlightedItem =
-                                                              item;
-                                                        });
-                                                        _refreshOverlay();
-                                                      }
-                                                    },
-                                                    child:
-                                                        widget.customListItemBuilder !=
-                                                            null
-                                                        ? widget
-                                                              .customListItemBuilder!(
-                                                            context,
-                                                            item,
-                                                          )
-                                                        : _buildDefaultListItem(
-                                                            item,
-                                                          ),
-                                                  ),
-                                                );
-                                              },
+                                        child: Column(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.search_off,
+                                              size: 48,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .outline
+                                                  .withValues(alpha: .5),
                                             ),
-                                    ),
+                                            const SizedBox(height: 16),
+                                            Text(
+                                              widget.noResultsText,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                color: Theme.of(
+                                                  context,
+                                                ).colorScheme.outline,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                          : ListView.builder(
+                                        controller: _scrollController,
+                                        padding:
+                                        const EdgeInsets.symmetric(
+                                          vertical: 8,
+                                        ),
+                                        itemCount:
+                                        _currentSuggestions.length,
+                                        itemBuilder: (context, index) {
+                                          final item =
+                                          _currentSuggestions[index];
+                                          final isHighlighted =
+                                              index == _highlightedIndex;
 
-                                    // Keyboard navigation footer
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              color: isHighlighted
+                                                  ? Theme.of(context)
+                                                  .colorScheme
+                                                  .primary
+                                                  .withValues(
+                                                alpha: .1,
+                                              )
+                                                  : Colors.transparent,
+                                              border: isHighlighted
+                                                  ? Border(
+                                                left: BorderSide(
+                                                  color:
+                                                  Theme.of(
+                                                    context,
+                                                  )
+                                                      .colorScheme
+                                                      .primary,
+                                                  width: 3,
+                                                ),
+                                              )
+                                                  : null,
+                                            ),
+                                            child: InkWell(
+                                              onTap: () =>
+                                                  _handleItemSelection(
+                                                    item,
+                                                  ),
+                                              onHover: (hovered) {
+                                                if (hovered && mounted) {
+                                                  setState(() {
+                                                    _highlightedIndex =
+                                                        index;
+                                                    _currentHighlightedItem =
+                                                        item;
+                                                  });
+                                                  _refreshOverlay();
+                                                }
+                                              },
+                                              child:
+                                              widget.customListItemBuilder !=
+                                                  null
+                                                  ? widget
+                                                  .customListItemBuilder!(
+                                                context,
+                                                item,
+                                              )
+                                                  : _buildDefaultListItem(
+                                                item,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
                                     if (!_isLoading &&
                                         _currentSuggestions.isNotEmpty)
                                       Container(
@@ -583,7 +575,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                         ),
                                         child: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.center,
+                                          MainAxisAlignment.center,
                                           children: [
                                             _buildKeyHint(
                                               context,
@@ -613,8 +605,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                 ),
                               ),
                             ),
-
-                            // Right side - Details Panel
                             if (_currentHighlightedItem != null &&
                                 !_isLoading &&
                                 _currentSuggestions.isNotEmpty)
@@ -624,7 +614,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                   padding: const EdgeInsets.all(20),
                                   child: Column(
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                    CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         children: [
@@ -636,7 +626,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                   .primary
                                                   .withValues(alpha: .1),
                                               borderRadius:
-                                                  BorderRadius.circular(8),
+                                              BorderRadius.circular(8),
                                             ),
                                             child: Icon(
                                               Icons.inventory_2_rounded,
@@ -650,7 +640,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                           Expanded(
                                             child: Column(
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                              CrossAxisAlignment.start,
                                               children: [
                                                 Text(
                                                   AppLocalizations.of(
@@ -660,9 +650,9 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                       .textTheme
                                                       .titleMedium
                                                       ?.copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
+                                                    fontWeight:
+                                                    FontWeight.bold,
+                                                  ),
                                                 ),
                                                 Text(
                                                   AppLocalizations.of(
@@ -672,10 +662,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                                       .textTheme
                                                       .bodySmall
                                                       ?.copyWith(
-                                                        color: Theme.of(
-                                                          context,
-                                                        ).colorScheme.outline,
-                                                      ),
+                                                    color: Theme.of(
+                                                      context,
+                                                    ).colorScheme.outline,
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -686,15 +676,15 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                       Expanded(
                                         child: SingleChildScrollView(
                                           child:
-                                              widget.customDetailsBuilder !=
-                                                  null
+                                          widget.customDetailsBuilder !=
+                                              null
                                               ? widget.customDetailsBuilder!(
-                                                  context,
-                                                  _currentHighlightedItem as T,
-                                                )
+                                            context,
+                                            _currentHighlightedItem as T,
+                                          )
                                               : _buildDefaultDetails(
-                                                  _currentHighlightedItem as T,
-                                                ),
+                                            _currentHighlightedItem as T,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -717,7 +707,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     Overlay.of(context).insert(_overlayEntry!);
   }
 
-  // Default list item builder
   Widget _buildDefaultListItem(T product) {
     final tr = AppLocalizations.of(context)!;
 
@@ -725,7 +714,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Row(
         children: [
-          // Product icon
           Container(
             width: 40,
             height: 40,
@@ -742,13 +730,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
             ),
           ),
           const SizedBox(width: 12),
-
-          // Product info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Product Name
                 Text(
                   widget.getProductName(product) ?? '',
                   style: const TextStyle(
@@ -759,8 +744,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
-
-                // Product Code
                 Text(
                   '${tr.codeTitle}: ${widget.getProductCode(product) ?? 'N/A'}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -769,8 +752,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   ),
                 ),
                 const SizedBox(height: 3),
-
-                // Batch and Storage info
                 Wrap(
                   spacing: 8,
                   children: [
@@ -784,19 +765,16 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                       context,
                       icon: Icons.store,
                       label:
-                          '${tr.storage}: ${widget.getStorageName(product) ?? 'N/A'}',
+                      '${tr.storage}: ${widget.getStorageName(product) ?? 'N/A'}',
                     ),
                   ],
                 ),
               ],
             ),
           ),
-
-
           Row(
             spacing: 8,
             children: [
-              // Batch quantity
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -824,7 +802,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   ],
                 ),
               ),
-              // Available quantity
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
@@ -865,12 +842,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     );
   }
 
-  // Helper method for info chips
   Widget _buildInfoChip(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-  }) {
+      BuildContext context, {
+        required IconData icon,
+        required String label,
+      }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
@@ -894,7 +870,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     );
   }
 
-  // Helper method for availability color
   Color _getAvailabilityColor(String available) {
     final qty = int.tryParse(available) ?? 0;
     if (qty <= 0) return Colors.red;
@@ -902,15 +877,12 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     return Colors.green;
   }
 
-  // Replace the _buildDefaultDetails method with this:
-
   Widget _buildDefaultDetails(T product) {
     final tr = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Product Header
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(12),
@@ -974,74 +946,121 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
             ],
           ),
         ),
-
         const SizedBox(height: 16),
-
-        // Stock Information Card
-        _buildDetailCard(tr.storageInfromation, [
+        _buildDetailCard('Storage Information', [
           _buildDetailItem(
             Icons.store,
-            tr.storage,
+            'Storage',
             widget.getStorageName(product) ?? 'N/A',
           ),
           _buildDetailItem(
             Icons.numbers,
-            tr.batchTitle,
+            'Batch',
             widget.getBatch(product)?.toString() ?? 'N/A',
           ),
           _buildDetailItem(
             Icons.shopping_bag,
-            tr.availableTitle,
+            'Available',
             widget.getAvailable(product) ?? '0',
             color: _getAvailabilityColor(widget.getAvailable(product) ?? '0'),
             isBold: true,
           ),
         ]),
-
         const SizedBox(height: 16),
-        // Pricing Information Card
-        _buildDetailCard(tr.pricingInformation, [
+        _buildDetailCard('Product Specifications', [
+          if (widget.getProductUnit != null)
+            _buildDetailItem(
+              Icons.category,
+              'Unit',
+              widget.getProductUnit!(product) ?? 'N/A',
+            ),
+          if (widget.getProductBrand != null)
+            _buildDetailItem(
+              Icons.branding_watermark,
+              'Brand',
+              widget.getProductBrand!(product) ?? 'N/A',
+            ),
+          if (widget.getProductModel != null)
+            _buildDetailItem(
+              Icons.model_training,
+              'Model',
+              widget.getProductModel!(product) ?? 'N/A',
+            ),
+          if (widget.getProductMadeIn != null)
+            _buildDetailItem(
+              Icons.location_on,
+              'Made In',
+              widget.getProductMadeIn!(product) ?? 'N/A',
+            ),
+          if (widget.getProductGrade != null)
+            _buildDetailItem(
+              Icons.star,
+              'Grade',
+              widget.getProductGrade!(product) ?? 'N/A',
+            ),
+          if (widget.getProductColor != null)
+            _buildDetailItem(
+              Icons.color_lens,
+              'Color',
+              widget.getProductColor!(product) ?? 'N/A',
+            ),
+        ]),
+        const SizedBox(height: 16),
+        _buildDetailCard('Pricing Information', [
           _buildDetailItem(
             Icons.trending_up,
-            tr.averagePriceTitle,
+            'Average Price',
             widget.getAveragePrice(product).toAmount(),
           ),
           _buildDetailItem(
             Icons.history,
-            tr.recentPriceTitle,
+            'Recent Price',
             widget.getRecentPrice(product).toAmount(),
           ),
           _buildDetailItem(
             Icons.dark_mode,
-            tr.costPrice,
+            'Cost Price',
             widget.getLandedPrice(product).toAmount(),
           ),
           _buildDetailItem(
             Icons.attach_money,
-            tr.sellPrice,
+            'Sell Price',
             widget.getSellPrice(product).toAmount(),
             color: Colors.green,
             isBold: true,
           ),
         ]),
-
         const SizedBox(height: 16),
-
-        // Basic Information Card
-        _buildDetailCard(tr.basicInformation, [
+        if (widget.getProductDetails != null &&
+            widget.getProductDetails!(product) != null &&
+            widget.getProductDetails!(product)!.isNotEmpty)
+          _buildDetailCard('Product Details', [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                widget.getProductDetails!(product) ?? '',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ),
+          ]),
+        const SizedBox(height: 16),
+        _buildDetailCard('Basic Information', [
           _buildDetailItem(
             Icons.tag,
-            tr.id,
+            'ID',
             widget.getProductId(product)?.toString() ?? 'N/A',
           ),
           _buildDetailItem(
             Icons.label,
-            tr.productName,
+            'Product Name',
             widget.getProductName(product) ?? 'N/A',
           ),
           _buildDetailItem(
             Icons.qr_code,
-            tr.codeTitle,
+            'Code',
             widget.getProductCode(product) ?? 'N/A',
           ),
         ]),
@@ -1049,14 +1068,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     );
   }
 
-  // Enhanced _buildDetailItem with color and bold options
   Widget _buildDetailItem(
-    IconData icon,
-    String label,
-    String value, {
-    Color? color,
-    bool isBold = false,
-  }) {
+      IconData icon,
+      String label,
+      String value, {
+        Color? color,
+        bool isBold = false,
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -1146,9 +1164,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     setState(() {
       _selectedItem = item;
       _currentHighlightedItem = item;
-      // Find and set the highlighted index
       final selectedIndex = _currentSuggestions.indexWhere(
-        (element) => widget.itemToString(element) == widget.itemToString(item),
+            (element) => widget.itemToString(element) == widget.itemToString(item),
       );
       if (selectedIndex >= 0) {
         _highlightedIndex = selectedIndex;
@@ -1162,36 +1179,35 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
   Widget? _buildSuffixIcon() {
     return widget.showClearButton && widget.controller.text.isNotEmpty
         ? IconButton(
-            constraints: const BoxConstraints(),
-            splashRadius: 2,
-            icon: Icon(
-              Icons.clear,
-              size: 16,
-              color: Theme.of(context).colorScheme.secondary,
-            ),
-            onPressed: () {
-              widget.controller.clear();
-              if (mounted) {
-                setState(() {
-                  _currentSuggestions = [];
-                  _firstFocus = true;
-                  _selectedItem = null;
-                  _currentHighlightedItem = null;
-                  _highlightedIndex = -1;
-                  _isLoading = false;
-                });
-              }
-              widget.onProductSelected?.call(null);
-              _closeOverlayAndReset();
-            },
-          )
+      constraints: const BoxConstraints(),
+      splashRadius: 2,
+      icon: Icon(
+        Icons.clear,
+        size: 16,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
+      onPressed: () {
+        widget.controller.clear();
+        if (mounted) {
+          setState(() {
+            _currentSuggestions = [];
+            _firstFocus = true;
+            _selectedItem = null;
+            _currentHighlightedItem = null;
+            _highlightedIndex = -1;
+            _isLoading = false;
+          });
+        }
+        widget.onProductSelected?.call(null);
+        _closeOverlayAndReset();
+      },
+    )
         : null;
   }
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
-    // Handle ESC key first - this is the most important part
     if (event.logicalKey == LogicalKeyboardKey.escape) {
       if (_overlayEntry != null) {
         _closeOverlayAndReset();
@@ -1200,7 +1216,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       return KeyEventResult.handled;
     }
 
-    // Only handle other keys if overlay is showing
     if (_overlayEntry == null) return KeyEventResult.ignored;
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
@@ -1221,7 +1236,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
         setState(() {
           _highlightedIndex =
               (_highlightedIndex - 1 + _currentSuggestions.length) %
-              _currentSuggestions.length;
+                  _currentSuggestions.length;
           _currentHighlightedItem = _currentSuggestions[_highlightedIndex];
         });
         _scrollToHighlightedItem();
@@ -1278,13 +1293,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
 
                     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-                    // Show loading state immediately
                     if (value.isNotEmpty) {
                       setState(() {
                         _isLoading = true;
                       });
 
-                      // Show or refresh overlay with loading indicator
                       if (_focusNode.hasFocus) {
                         _showOverlay();
                       }
@@ -1314,7 +1327,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                 ),
               ),
             ),
-
             if (widget.bloc != null)
               BlocListener<B, S>(
                 bloc: widget.bloc,
@@ -1322,18 +1334,17 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   final items = widget.stateToItems(state);
                   final isLoading =
                       widget.stateToLoading != null &&
-                      widget.stateToLoading!(state);
+                          widget.stateToLoading!(state);
 
                   if (mounted) {
                     setState(() {
                       _currentSuggestions = items;
                       _isLoading = isLoading;
 
-                      // If there's a selected item, try to maintain its highlight
                       if (_selectedItem != null && items.isNotEmpty) {
                         final selectedIndex = items.indexWhere(
-                          (item) =>
-                              widget.itemToString(item) ==
+                              (item) =>
+                          widget.itemToString(item) ==
                               widget.itemToString(_selectedItem as T),
                         );
 
@@ -1347,7 +1358,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                               : null;
                         }
                       } else {
-                        // No selected item, handle normally
                         if (_highlightedIndex >= items.length) {
                           _highlightedIndex = items.isEmpty ? -1 : 0;
                         }
@@ -1362,10 +1372,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                     });
                   }
 
-                  // Show overlay if field has focus and either:
-                  // - has text
-                  // - is loading
-                  // - openOverlayOnFocus is true
                   final hasText = widget.controller.text.isNotEmpty;
                   if (_focusNode.hasFocus &&
                       (hasText || isLoading || widget.openOverlayOnFocus)) {

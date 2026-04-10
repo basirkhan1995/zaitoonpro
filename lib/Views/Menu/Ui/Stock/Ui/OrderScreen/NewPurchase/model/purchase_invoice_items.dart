@@ -9,9 +9,7 @@ class PurchaseInvoiceItem {
   double sellPriceAmount;
   int storageId;
   String storageName;
-
-  // Add currency fields
-  double? localAmount;  // Amount in base currency
+  double? localAmount; // Amount in account currency
   double? exchangeRate; // Exchange rate used for this item
 
   PurchaseInvoiceItem({
@@ -31,7 +29,40 @@ class PurchaseInvoiceItem {
 
   double get totalPurchase => qty * (purPrice ?? 0);
   double get totalQty => qty.toDouble() * stkBatch;
-  double get totalLocalAmount => (qty * (purPrice ?? 0)) * (exchangeRate ?? 1);
+
+  double get totalLocalAmount {
+    if (exchangeRate == null || exchangeRate == 0) return totalPurchase;
+    return totalPurchase * exchangeRate!;
+  }
+
+  PurchaseInvoiceItem copyWith({
+    String? productId,
+    String? productName,
+    int? qty,
+    int? stkBatch,
+    double? purPrice,
+    double? landedPrice,
+    double? sellPriceAmount,
+    int? storageId,
+    String? storageName,
+    double? localAmount,
+    double? exchangeRate,
+  }) {
+    return PurchaseInvoiceItem(
+      itemId: rowId,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      qty: qty ?? this.qty,
+      stkBatch: stkBatch ?? this.stkBatch,
+      purPrice: purPrice ?? this.purPrice,
+      landedPrice: landedPrice ?? this.landedPrice,
+      sellPriceAmount: sellPriceAmount ?? this.sellPriceAmount,
+      storageId: storageId ?? this.storageId,
+      storageName: storageName ?? this.storageName,
+      localAmount: localAmount ?? this.localAmount,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+    );
+  }
 }
 
 class PurchaseInvoiceRecord {

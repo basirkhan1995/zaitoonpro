@@ -61,6 +61,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _personController = TextEditingController();
   final TextEditingController _xRefController = TextEditingController();
   final TextEditingController _remark = TextEditingController();
+  final TextEditingController _exchangeRateController = TextEditingController();
   final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   void _showExpensesDialog(BuildContext context) {
@@ -88,10 +89,38 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final Map<String, TextEditingController> _localeAmountControllers = {};
   final Map<String, TextEditingController> _batchControllers = {};
 
+  Timer? _debounce;
+
+  void _onExchangeRateChanged(String value) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      final rate = double.tryParse(value.replaceAll(',', ''));
+
+      if (rate != null && rate > 0) {
+        final state = context.read<PurchaseInvoiceBloc>().state;
+
+        if (state is PurchaseInvoiceLoaded && state.supplierAccount != null) {
+          context.read<PurchaseInvoiceBloc>().add(
+            UpdateExchangeRateManuallyEvent(
+              rate: rate,
+              fromCurrency: state.fromCurrency ?? baseCurrency ?? '',
+              toCurrency: state.toCurrency ?? state.supplierAccount!.actCurrency ?? '',
+            ),
+          );
+        }
+      }
+    });
+  }
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final purchaseBloc = context.read<PurchaseInvoiceBloc>();
+      final exchangeBloc = context.read<ExchangeRateBloc>();
+      purchaseBloc.setExchangeRateBloc(exchangeBloc);
+
       final authState = context.read<AuthBloc>().state;
       if(authState is AuthenticatedState){
         // My company base currency
@@ -150,6 +179,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
+
+    // In the build method, after getting the state, add:
+    final purchaseState = context.watch<PurchaseInvoiceBloc>().state;
+    final needsConversion = purchaseState is PurchaseInvoiceLoaded
+        ? purchaseState.needsExchangeRate
+        : false;
+
     final state = context.watch<AuthBloc>().state;
 
     if (state is! AuthenticatedState) {
@@ -367,11 +403,45 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   }
                                   return [];
                                 },
+
                                 onSelected: (value) {
                                   _accountController.text = '${value.accName} (${value.accNumber})';
+
+                                  // First select the account
                                   context.read<PurchaseInvoiceBloc>().add(
                                     SelectSupplierAccountEvent(value),
                                   );
+
+                                  // Then check and fetch exchange rate if needed
+                                  final companyState = context.read<CompanyProfileBloc>().state;
+                                  if (companyState is CompanyProfileLoadedState) {
+                                    final baseCurr = companyState.company.comLocalCcy ?? '';
+                                    final accountCurrency = value.actCurrency ?? '';
+
+                                    if (baseCurr.isNotEmpty &&
+                                        accountCurrency.isNotEmpty &&
+                                        baseCurr != accountCurrency) {
+                                      // Fetch exchange rate
+                                      context.read<PurchaseInvoiceBloc>().add(
+                                          UpdateExchangeRateForInvoiceEvent(
+                                            fromCurrency: baseCurr,
+                                            toCurrency: accountCurrency,
+                                          )
+                                      );
+                                    } else {
+                                      // Same currency, no conversion needed
+                                      context.read<PurchaseInvoiceBloc>().add(
+                                          UpdateExchangeRateManuallyEvent(
+                                            rate: 1.0,
+                                            fromCurrency: baseCurr,
+                                            toCurrency: accountCurrency,
+                                          )
+                                      );
+                                    }
+                                  }
+
+                                  // Clear and set exchange rate controller
+                                  _exchangeRateController.clear();
                                 },
                                 showClearButton: true,
                               );
@@ -430,6 +500,20 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         child: ZTextFieldEntitled(
                           controller: _xRefController,
                           title: tr.invoiceNumber,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        flex: 1,
+                        child: ZTextFieldEntitled(
+                          showClearButton: true,
+                          controller: _exchangeRateController,
+                          title: tr.exchangeRate,
+                          hint: needsConversion ? "Enter rate" : "Auto",
+                          inputFormat: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}')),
+                          ],
+                          onSubmit: _onExchangeRateChanged,
                         ),
                       ),
                       const SizedBox(width: 4),
@@ -633,11 +717,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               ? state
               : (state as PurchaseInvoiceLoaded);
 
-          // Calculate total expenses
           final totalExpenses = current.expenses.fold(
             0.0,
-            (sum, expense) => sum + expense.amount,
+                (sum, expense) => sum + expense.amount,
           );
+
+          final needsConversion = current.needsExchangeRate;
+
+          // Update exchange rate controller if needed
+          if (needsConversion && current.exchangeRate != null) {
+            if (_exchangeRateController.text != current.exchangeRate.toString()) {
+              _exchangeRateController.text = current.exchangeRate!.toStringAsFixed(4);
+            }
+          }
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -649,6 +741,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             ),
             child: Column(
               children: [
+                // Payment method row (existing code)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -682,55 +775,77 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 Divider(color: color.outline.withValues(alpha: .2)),
                 const SizedBox(height: 4),
 
-                // ✅ Add Total Expenses Section (if there are any expenses)
+                // Show exchange rate info
+                if (needsConversion) ...[
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: current.exchangeRate != null
+                          ? Colors.green.shade50
+                          : Colors.orange.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          current.exchangeRate != null
+                              ? '1 ${current.fromCurrency} = ${current.exchangeRate?.toStringAsFixed(4)} ${current.toCurrency}'
+                              : 'Fetching exchange rate...',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: current.exchangeRate != null
+                                ? Colors.green.shade900
+                                : Colors.orange.shade900,
+                          ),
+                        ),
+                        if (current.exchangeRate == null)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Expenses
                 if (totalExpenses > 0) ...[
                   _buildSummaryRow(
                     label: tr.totalExpense,
                     value: totalExpenses,
                     color: Colors.red,
+                    currency: baseCurrency,
                   ),
                   const SizedBox(height: 4),
                 ],
 
-                // Payment Breakdown
-                if (current.paymentMode == PaymentMode.cash) ...[
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.cashPayment,
-                    value: current.cashPayment,
-                    color: Colors.green,
-                  ),
-                ] else if (current.paymentMode == PaymentMode.credit) ...[
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.accountPayment,
-                    value: current.creditAmount,
-                    color: Colors.orange,
-                  ),
-                ] else if (current.paymentMode == PaymentMode.mixed) ...[
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.accountPayment,
-                    value: current.creditAmount,
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(height: 4),
-                  _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.cashPayment,
-                    value: current.cashPayment,
-                    color: Colors.green,
-                  ),
-                ],
-
-                const SizedBox(height: 4),
-                Divider(color: color.outline.withValues(alpha: .2)),
-                const SizedBox(height: 4),
-
-                // Grand Total (original)
+                // Grand Total
                 _buildSummaryRow(
                   label: tr.grandTotal,
                   value: current.grandTotal,
                   isBold: true,
+                  currency: baseCurrency,
                 ),
 
-                // ✅ Optional: Show Grand Total + Expenses (Total Cost)
+                // Local Amount - ALWAYS show if account is selected and has currency
+                if (current.supplierAccount != null && current.supplierAccount!.actCurrency != null && current.supplierAccount!.actCurrency!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Divider(color: color.outline.withValues(alpha: .2)),
+                  const SizedBox(height: 4),
+                  _buildSummaryRow(
+                    label: "Total (${current.supplierAccount!.actCurrency})",
+                    value: current.totalLocalAmount,
+                    isBold: true,
+                    color: Colors.purple,
+                    currency: current.supplierAccount!.actCurrency,
+                  ),
+                ],
+
+                // Total Cost with Expenses
                 if (totalExpenses > 0) ...[
                   const SizedBox(height: 4),
                   _buildSummaryRow(
@@ -738,15 +853,80 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     value: current.grandTotal + totalExpenses,
                     isBold: true,
                     color: Colors.purple,
+                    currency: baseCurrency,
                   ),
                 ],
 
+                // Payment breakdown
+                if (current.paymentMode == PaymentMode.cash) ...[
+                  _buildSummaryRow(
+                    label: tr.cashPayment,
+                    value: current.cashPayment,
+                    color: Colors.green,
+                    currency: baseCurrency,
+                  ),
+                  if (current.supplierAccount != null && current.exchangeRate != null)
+                    _buildSummaryRow(
+                      label: "Cash Payment (${current.supplierAccount!.actCurrency})",
+                      value: current.cashPaymentLocal,
+                      color: Colors.green,
+                      currency: current.supplierAccount!.actCurrency,
+                      fontSize: 12,
+                    ),
+                ] else if (current.paymentMode == PaymentMode.credit) ...[
+                  _buildSummaryRow(
+                    label: tr.accountPayment,
+                    value: current.creditAmount,
+                    color: Colors.orange,
+                    currency: baseCurrency,
+                  ),
+                  if (current.supplierAccount != null && current.exchangeRate != null)
+                    _buildSummaryRow(
+                      label: "Credit Payment (${current.supplierAccount!.actCurrency})",
+                      value: current.creditAmountLocal,
+                      color: Colors.orange,
+                      currency: current.supplierAccount!.actCurrency,
+                      fontSize: 12,
+                    ),
+                ] else if (current.paymentMode == PaymentMode.mixed) ...[
+                  _buildSummaryRow(
+                    label: tr.accountPayment,
+                    value: current.creditAmount,
+                    color: Colors.orange,
+                    currency: baseCurrency,
+                  ),
+                  _buildSummaryRow(
+                    label: tr.cashPayment,
+                    value: current.cashPayment,
+                    color: Colors.green,
+                    currency: baseCurrency,
+                  ),
+                  if (current.supplierAccount != null && current.exchangeRate != null) ...[
+                    const SizedBox(height: 4),
+                    Divider(color: color.outline.withValues(alpha: .2)),
+                    _buildSummaryRow(
+                      label: "Credit Payment (${current.supplierAccount!.actCurrency})",
+                      value: current.creditAmountLocal,
+                      color: Colors.orange,
+                      currency: current.supplierAccount!.actCurrency,
+                      fontSize: 12,
+                    ),
+                    _buildSummaryRow(
+                      label: "Cash Payment (${current.supplierAccount!.actCurrency})",
+                      value: current.cashPaymentLocal,
+                      color: Colors.green,
+                      currency: current.supplierAccount!.actCurrency,
+                      fontSize: 12,
+                    ),
+                  ],
+                ],
+
+                const SizedBox(height: 4),
+                Divider(color: color.outline.withValues(alpha: .2)),
+                const SizedBox(height: 4),
+
                 // Account Information
                 if (current.supplierAccount != null) ...[
-                  const SizedBox(height: 4),
-                  Divider(color: color.outline.withValues(alpha: .2)),
-
-                  // Account details
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Row(
@@ -759,35 +939,41 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        Text(
+                          current.supplierAccount!.actCurrency ?? '',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey,
+                          ),
+                        ),
                       ],
                     ),
                   ),
 
-                  // Current Balance
                   _buildSummaryRow(
-                    label: AppLocalizations.of(context)!.currentBalance,
+                    label: tr.currentBalance,
                     value: current.currentBalance,
                     color: _getBalanceColor(current.currentBalance),
+                    currency: current.supplierAccount!.actCurrency,
                   ),
 
-                  if (current.creditAmount > 0) ...[
+                  if (current.creditAmountLocal > 0) ...[
                     const SizedBox(height: 4),
                     _buildSummaryRow(
                       label: tr.invoiceAmount,
-                      value: current.creditAmount,
+                      value: current.creditAmountLocal,
                       color: Colors.orange,
+                      currency: current.supplierAccount!.actCurrency,
                     ),
                     const SizedBox(height: 4),
                     _buildSummaryRow(
-                      label: AppLocalizations.of(context)!.newBalance,
-                      value: current.currentBalance + current.creditAmount,
+                      label: tr.newBalance,
+                      value: current.newBalance,
                       isBold: true,
-                      color: _getBalanceColor(
-                        current.currentBalance + current.creditAmount,
-                      ),
+                      color: _getBalanceColor(current.newBalance),
+                      currency: current.supplierAccount!.actCurrency,
                     ),
 
-                    // Status
                     Padding(
                       padding: const EdgeInsets.only(top: 4.0),
                       child: Row(
@@ -795,15 +981,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         children: [
                           Text(tr.status, style: const TextStyle(fontSize: 12)),
                           Text(
-                            _getBalanceStatus(
-                              current.currentBalance + current.creditAmount,
-                            ),
+                            _getBalanceStatus(current.newBalance),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: _getBalanceColor(
-                                current.currentBalance + current.creditAmount,
-                              ),
+                              color: _getBalanceColor(current.newBalance),
                             ),
                           ),
                         ],
@@ -840,11 +1022,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     }
   }
 
+  // Update _buildSummaryRow to accept custom currency and font size
   Widget _buildSummaryRow({
     required String label,
     required double value,
     bool isBold = false,
     Color? color,
+    String? currency,
+    double fontSize = 16,
   }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -853,21 +1038,20 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           label,
           style: TextStyle(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 18 : 16,
+            fontSize: fontSize,
           ),
         ),
         Text(
-          "${value.toAmount()} $baseCurrency",
+          "${value.toAmount()} ${currency ?? ''}",
           style: TextStyle(
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: isBold ? 18 : 16,
+            fontSize: fontSize,
             color: color ?? Theme.of(context).colorScheme.primary,
           ),
         ),
       ],
     );
   }
-
   void _synchronizeFocusNodes(int itemCount) {
     // Each row needs 6 focus nodes (Product, Qty, Batch, UnitPrice, SellPrice, Storage)
     while (_rowFocusNodes.length < itemCount) {
@@ -1388,6 +1572,7 @@ class _PurchaseItemRow extends StatefulWidget {
 class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _landedPriceController;
   late TextEditingController _storageController;
+  late TextEditingController _localAmountController;
 
   @override
   void initState() {
@@ -1398,6 +1583,13 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           : '',
     );
     _storageController = TextEditingController(text: widget.item.storageName);
+
+    // Initialize local amount controller
+    _localAmountController = TextEditingController(
+      text: widget.item.localAmount != null && widget.item.localAmount! > 0
+          ? widget.item.localAmount!.toAmount()
+          : '',
+    );
   }
 
   @override
@@ -1418,12 +1610,31 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         _storageController.text = widget.item.storageName;
       }
     }
+
+    // Update local amount when totalPurchase changes
+    final oldTotalPurchase = oldWidget.item.totalPurchase;
+    final newTotalPurchase = widget.item.totalPurchase;
+
+    if (oldTotalPurchase != newTotalPurchase) {
+      final state = context.read<PurchaseInvoiceBloc>().state;
+      if (state is PurchaseInvoiceLoaded && state.exchangeRate != null) {
+        final newLocalAmount = newTotalPurchase * state.exchangeRate!;
+        if (widget.item.localAmount != newLocalAmount) {
+          // This will trigger a state update
+          context.read<PurchaseInvoiceBloc>().add(
+              UpdateItemLocalAmountEvent(widget.item.rowId)
+          );
+        }
+      }
+    }
+
   }
 
   @override
   void dispose() {
     _landedPriceController.dispose();
     _storageController.dispose();
+    _localAmountController.dispose();
     super.dispose();
   }
 
@@ -1633,9 +1844,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               SizedBox(
                 width: 150,
                 child: TextField(
-                  controller: _landedPriceController,
+                  controller: _localAmountController,
                   decoration: InputDecoration(
-                    hintText: locale.localeAmount,
+                    hintText: AppLocalizations.of(context)!.localeAmount,
                     border: InputBorder.none,
                     isDense: true,
                   ),
@@ -4240,3 +4451,5 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     );
   }
 }
+
+

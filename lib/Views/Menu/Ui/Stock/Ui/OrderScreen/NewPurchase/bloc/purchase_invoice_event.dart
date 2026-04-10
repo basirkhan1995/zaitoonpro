@@ -128,7 +128,6 @@ class LoadPurchaseStoragesEvent extends PurchaseInvoiceEvent {
 }
 
 
-///
 class AddExpenseEvent extends PurchaseInvoiceEvent {
   const AddExpenseEvent();
 }
@@ -162,4 +161,47 @@ class UpdateExpenseEvent extends PurchaseInvoiceEvent {
 
 class UpdateAllLandedPricesEvent extends PurchaseInvoiceEvent {
   const UpdateAllLandedPricesEvent();
+}
+
+
+
+class UpdateExchangeRateForInvoiceEvent extends PurchaseInvoiceEvent {
+  final String fromCurrency;
+  final String toCurrency;
+
+  const UpdateExchangeRateForInvoiceEvent({
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+
+  @override
+  List<Object?> get props => [fromCurrency, toCurrency];
+}
+
+class UpdateItemLocalAmountEvent extends PurchaseInvoiceEvent {
+  final String rowId;
+
+  const UpdateItemLocalAmountEvent(this.rowId);
+
+  @override
+  List<Object?> get props => [rowId];
+}
+
+class UpdateAllLocalAmountsEvent extends PurchaseInvoiceEvent {
+  const UpdateAllLocalAmountsEvent();
+}
+
+class UpdateExchangeRateManuallyEvent extends PurchaseInvoiceEvent {
+  final double rate;
+  final String fromCurrency;
+  final String toCurrency;
+
+  const UpdateExchangeRateManuallyEvent({
+    required this.rate,
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+
+  @override
+  List<Object?> get props => [rate, fromCurrency, toCurrency];
 }

@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../../../../Services/repositories.dart';
+import '../../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../../Settings/Ui/Company/Storage/model/storage_model.dart';
 import '../../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 import '../model/purchase_invoice_items.dart';
@@ -12,6 +13,8 @@ part 'purchase_invoice_state.dart';
 
 class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceState> {
   final Repositories repo;
+  late final ExchangeRateBloc _exchangeRateBloc;
+  StreamSubscription? _exchangeRateSubscription;
 
   PurchaseInvoiceBloc(this.repo) : super(PurchaseInvoiceInitial()) {
     on<InitializePurchaseInvoiceEvent>(_onInitialize);
@@ -32,7 +35,149 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<RemoveExpenseEvent>(_onRemoveExpense);
     on<UpdateExpenseEvent>(_onUpdateExpense);
     on<UpdateAllLandedPricesEvent>(_onUpdateAllLandedPrices);
+
+    on<UpdateExchangeRateForInvoiceEvent>(_onUpdateExchangeRate);
+    on<UpdateItemLocalAmountEvent>(_onUpdateItemLocalAmount);
+    on<UpdateAllLocalAmountsEvent>(_onUpdateAllLocalAmounts);
+    on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
   }
+  void _onUpdateExchangeRateManually(
+      UpdateExchangeRateManuallyEvent event,
+      Emitter<PurchaseInvoiceState> emit,
+      ) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+
+      emit(current.copyWith(
+        exchangeRate: event.rate,
+        fromCurrency: event.fromCurrency,
+        toCurrency: event.toCurrency,
+      ));
+
+      // Update all local amounts
+      add(UpdateAllLocalAmountsEvent());
+    }
+  }
+
+  void setExchangeRateBloc(ExchangeRateBloc exchangeRateBloc) {
+    _exchangeRateBloc = exchangeRateBloc;
+    _exchangeRateSubscription = _exchangeRateBloc.stream.listen((state) {
+      if (state is ExchangeRateLoadedState && this.state is PurchaseInvoiceLoaded) {
+        // Update local amounts when exchange rate changes
+        add(UpdateAllLocalAmountsEvent());
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _exchangeRateSubscription?.cancel();
+    return super.close();
+  }
+
+  // Add this to your PurchaseInvoiceBloc class
+
+  void _onUpdateItem(UpdatePurchaseItemEvent event, Emitter<PurchaseInvoiceState> emit) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+      final updatedItems = current.items.map((item) {
+        if (item.rowId == event.rowId) {
+          final updatedItem = PurchaseInvoiceItem(
+            itemId: item.rowId,
+            stkBatch: event.batch?.toInt() ?? item.stkBatch,
+            sellPriceAmount: event.sellPriceAmount ?? item.sellPriceAmount,
+            productId: event.productId ?? item.productId,
+            productName: event.productName ?? item.productName,
+            qty: event.qty ?? item.qty,
+            purPrice: event.purPrice ?? item.purPrice,
+            storageName: event.storageName ?? item.storageName,
+            storageId: event.storageId ?? item.storageId,
+          );
+
+          // Calculate local amount immediately if exchange rate exists
+          if (current.exchangeRate != null && current.exchangeRate! > 0) {
+            final localAmount = updatedItem.totalPurchase * current.exchangeRate!;
+            return updatedItem.copyWith(localAmount: localAmount);
+          }
+          return updatedItem;
+        }
+        return item;
+      }).toList();
+
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+
+  void _onUpdateAllLocalAmounts(
+      UpdateAllLocalAmountsEvent event,
+      Emitter<PurchaseInvoiceState> emit,
+      ) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+
+      // Only calculate if we have an exchange rate
+      if (current.exchangeRate == null || current.exchangeRate == 0) {
+        emit(current);
+        return;
+      }
+
+      final updatedItems = current.items.map((item) {
+        final localAmount = item.totalPurchase * current.exchangeRate!;
+        return item.copyWith(localAmount: localAmount);
+      }).toList();
+
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+
+  Future<void> _onUpdateExchangeRate(
+      UpdateExchangeRateForInvoiceEvent event,
+      Emitter<PurchaseInvoiceState> emit,
+      ) async {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+
+      try {
+        // Fetch exchange rate from API
+        final rate = await repo.getSingleRate(
+          fromCcy: event.fromCurrency,
+          toCcy: event.toCurrency,
+        );
+
+        emit(current.copyWith(
+          exchangeRate: double.tryParse(rate??"0.00"),
+          fromCurrency: event.fromCurrency,
+          toCurrency: event.toCurrency,
+        ));
+
+        // Update all local amounts
+        add(UpdateAllLocalAmountsEvent());
+      } catch (e) {
+        emit(PurchaseInvoiceError('Failed to fetch exchange rate: $e'));
+        emit(current);
+      }
+    }
+  }
+
+  void _onUpdateItemLocalAmount(
+      UpdateItemLocalAmountEvent event,
+      Emitter<PurchaseInvoiceState> emit,
+      ) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+      final updatedItems = current.items.map((item) {
+        if (item.rowId == event.rowId) {
+          // Calculate local amount using exchange rate
+          final localAmount = (item.totalPurchase) * (current.exchangeRate ?? 1);
+          return item.copyWith(localAmount: localAmount);
+        }
+        return item;
+      }).toList();
+
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+
 
   void _onAddExpense(AddExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
@@ -256,30 +401,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
   }
 
-  void _onUpdateItem(UpdatePurchaseItemEvent event, Emitter<PurchaseInvoiceState> emit) {
-    if (state is PurchaseInvoiceLoaded) {
-      final current = state as PurchaseInvoiceLoaded;
-      final updatedItems = current.items.map((item) {
-        if (item.rowId == event.rowId) {
-          return PurchaseInvoiceItem(
-            itemId: item.rowId,
-            stkBatch: event.batch?.toInt() ?? item.stkBatch,
-            sellPriceAmount: event.sellPriceAmount ?? item.sellPriceAmount,
-            productId: event.productId ?? item.productId,
-            productName: event.productName ?? item.productName,
-            qty: event.qty ?? item.qty,
-            purPrice: event.purPrice ?? item.purPrice,
-            storageName: event.storageName ?? item.storageName,
-            storageId: event.storageId ?? item.storageId,
-          );
-        }
-        return item;
-      }).toList();
-
-      emit(current.copyWith(items: updatedItems));
-    }
-  }
-
   void _onUpdatePayment(UpdatePurchasePaymentEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -343,6 +464,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
     final current = state as PurchaseInvoiceLoaded;
     final savedState = current.copyWith();
+
+
 
     // Validation
     if (current.supplier == null) {
@@ -512,8 +635,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           errorMessage = 'Account credit limit exceeded';
         } else if (msgLower.contains('block')) {
           errorMessage = 'Account is blocked';
-        } else if (msgLower.contains('invalid ccy')) {
-          errorMessage = 'Account currency does not match system currency';
         } else if (msgLower.contains('not found')) {
           errorMessage = 'Invalid product or storage ID';
         } else if (msgLower.contains('unavailable')) {

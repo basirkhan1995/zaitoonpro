@@ -1810,6 +1810,8 @@ class Repositories {
   }
 
   /// Purchase Invoice...........................................................................
+
+
   Future<Map<String, dynamic>> addPurchaseInvoice({
     required String usrName,
     required int perID,
@@ -1819,6 +1821,7 @@ class Repositories {
     String? remark,
     String? currency,
     double? amount,
+    double? exRate,
     required List<PurchaseInvoiceRecord> records,
     required List<PurExpenseRecord> expRecord,
   }) async {
@@ -1827,6 +1830,7 @@ class Repositories {
       "ordName": orderName,
       "ordPersonal": perID,
       "ordxRef": xRef ?? "",
+      "exRate": exRate,
       "oRemark": remark,
       "currency": currency,
       "account": account ?? 0,

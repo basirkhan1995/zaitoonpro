@@ -19,6 +19,7 @@ class PurchaseInvoiceError extends PurchaseInvoiceState {
   List<Object> get props => [message];
 }
 
+
 class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final List<PurchaseInvoiceItem> items;
   final List<PurExpenseRecord> expenses;
@@ -28,6 +29,11 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
 
+  // New fields for exchange rate handling
+  final double? exchangeRate;
+  final String? fromCurrency;
+  final String? toCurrency;
+
   const PurchaseInvoiceLoaded({
     required this.items,
     required this.expenses,
@@ -36,10 +42,19 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     required this.payment,
     this.paymentMode = PaymentMode.cash,
     this.storages,
+    this.exchangeRate,
+    this.fromCurrency,
+    this.toCurrency,
   });
 
   double get grandTotal {
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
+  }
+
+  // Total local amount (in account currency)
+  double get totalLocalAmount {
+    if (exchangeRate == null || exchangeRate == 0) return grandTotal;
+    return items.fold(0.0, (sum, item) => sum + (item.localAmount ?? 0));
   }
 
   double get cashPayment {
@@ -51,6 +66,11 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return 0.0;
   }
 
+  double get cashPaymentLocal {
+    if (exchangeRate == null || exchangeRate == 0) return cashPayment;
+    return cashPayment * exchangeRate!;
+  }
+
   double get creditAmount {
     if (paymentMode == PaymentMode.credit) {
       return grandTotal;
@@ -58,6 +78,11 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       return grandTotal - payment;
     }
     return 0.0;
+  }
+
+  double get creditAmountLocal {
+    if (exchangeRate == null || exchangeRate == 0) return creditAmount;
+    return creditAmount * exchangeRate!;
   }
 
   double get currentBalance {
@@ -68,7 +93,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   }
 
   double get newBalance {
-    return currentBalance + creditAmount;
+    return currentBalance + creditAmountLocal; // Use local amount for balance
   }
 
   bool get isFormValid {
@@ -97,6 +122,15 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return true;
   }
 
+  bool get needsExchangeRate {
+    if (supplierAccount == null) return false;
+    final accountCurrency = supplierAccount!.actCurrency ?? '';
+    final baseCurrency = fromCurrency ?? '';
+    return accountCurrency.isNotEmpty &&
+        baseCurrency.isNotEmpty &&
+        accountCurrency != baseCurrency;
+  }
+
   PurchaseInvoiceLoaded copyWith({
     List<PurchaseInvoiceItem>? items,
     List<PurExpenseRecord>? expenses,
@@ -105,6 +139,9 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     double? payment,
     PaymentMode? paymentMode,
     List<StorageModel>? storages,
+    double? exchangeRate,
+    String? fromCurrency,
+    String? toCurrency,
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
@@ -114,11 +151,25 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       payment: payment ?? this.payment,
       paymentMode: paymentMode ?? this.paymentMode,
       storages: storages ?? this.storages,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      fromCurrency: fromCurrency ?? this.fromCurrency,
+      toCurrency: toCurrency ?? this.toCurrency,
     );
   }
 
   @override
-  List<Object?> get props => [items, expenses, supplier, supplierAccount, payment, paymentMode, storages];
+  List<Object?> get props => [
+    items,
+    expenses,
+    supplier,
+    supplierAccount,
+    payment,
+    paymentMode,
+    storages,
+    exchangeRate,
+    fromCurrency,
+    toCurrency,
+  ];
 }
 
 class PurchaseInvoiceSaving extends PurchaseInvoiceLoaded {

@@ -14,6 +14,7 @@ class ApiServices {
         receiveTimeout: const Duration(seconds: 15),
         headers: {
           "Content-Type": "application/json",
+          "Accept": "application/json",
           "Cache-Control": "no-cache",
         },
       ),

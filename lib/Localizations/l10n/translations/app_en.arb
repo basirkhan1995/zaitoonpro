@@ -1051,7 +1051,7 @@
   "landedPrice": "Cost Price",
   "warehouse": "Warehouse",
   "manageExpenses": "Manage Expenses",
-  "salePercentage": "Percentange",
+  "salePercentage": "Sale Price (%)",
   "recalculate": "Recalculate",
   "invoiceCurrency": "Invoice Currency",
   "localeAmount": "Local Amount",

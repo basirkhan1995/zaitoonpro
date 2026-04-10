@@ -6289,7 +6289,7 @@ abstract class AppLocalizations {
   /// No description provided for @salePercentage.
   ///
   /// In en, this message translates to:
-  /// **'Percentange'**
+  /// **'Sale Price (%)'**
   String get salePercentage;
 
   /// No description provided for @recalculate.

@@ -784,7 +784,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       color: current.exchangeRate != null
                           ? Colors.green.shade50
                           : Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -792,9 +792,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         Text(
                           current.exchangeRate != null
                               ? '1 ${current.fromCurrency} = ${current.exchangeRate?.toStringAsFixed(4)} ${current.toCurrency}'
-                              : 'Fetching exchange rate...',
+                              : 'Fetching rate...',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: current.exchangeRate != null
                                 ? Colors.green.shade900

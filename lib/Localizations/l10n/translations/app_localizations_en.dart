@@ -3181,7 +3181,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageExpenses => 'Manage Expenses';
 
   @override
-  String get salePercentage => 'Percentange';
+  String get salePercentage => 'Sale Price (%)';
 
   @override
   String get recalculate => 'Recalculate';

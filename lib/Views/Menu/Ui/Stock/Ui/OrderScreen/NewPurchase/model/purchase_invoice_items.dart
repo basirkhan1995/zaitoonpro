@@ -26,9 +26,8 @@ class PurchaseInvoiceItem {
     this.localAmount,
     this.exchangeRate,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
-
-  double get totalPurchase => qty * (purPrice ?? 0);
   double get totalQty => qty.toDouble() * stkBatch;
+  double get totalPurchase => totalQty * (purPrice ?? 0);
 
   double get totalLocalAmount {
     if (exchangeRate == null || exchangeRate == 0) return totalPurchase;

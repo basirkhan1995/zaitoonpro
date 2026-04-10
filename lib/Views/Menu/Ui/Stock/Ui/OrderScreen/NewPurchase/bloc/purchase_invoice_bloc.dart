@@ -75,8 +75,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     return super.close();
   }
 
-  // Add this to your PurchaseInvoiceBloc class
-
   void _onUpdateItem(UpdatePurchaseItemEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -108,10 +106,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
   }
 
-  void _onUpdateAllLocalAmounts(
-      UpdateAllLocalAmountsEvent event,
-      Emitter<PurchaseInvoiceState> emit,
-      ) {
+  void _onUpdateAllLocalAmounts(UpdateAllLocalAmountsEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
@@ -130,10 +125,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
   }
 
-  Future<void> _onUpdateExchangeRate(
-      UpdateExchangeRateForInvoiceEvent event,
-      Emitter<PurchaseInvoiceState> emit,
-      ) async {
+  Future<void> _onUpdateExchangeRate(UpdateExchangeRateForInvoiceEvent event, Emitter<PurchaseInvoiceState> emit,) async {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
@@ -159,10 +151,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
   }
 
-  void _onUpdateItemLocalAmount(
-      UpdateItemLocalAmountEvent event,
-      Emitter<PurchaseInvoiceState> emit,
-      ) {
+  void _onUpdateItemLocalAmount(UpdateItemLocalAmountEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
       final updatedItems = current.items.map((item) {
@@ -177,7 +166,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(current.copyWith(items: updatedItems));
     }
   }
-
 
   void _onAddExpense(AddExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
@@ -592,6 +580,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         perID: event.ordPersonal,
         remark: event.remark,
         currency: event.invoiceCcy,
+        exRate: event.rate,
         xRef: xRef,
         account: accountNumber,
         amount: amountToSend,

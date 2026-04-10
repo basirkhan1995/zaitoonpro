@@ -9,8 +9,8 @@ class PurchaseInvoiceItem {
   double sellPriceAmount;
   int storageId;
   String storageName;
-  double? localAmount; // Amount in account currency
-  double? exchangeRate; // Exchange rate used for this item
+  double? localAmount;
+  double? exchangeRate;
 
   PurchaseInvoiceItem({
     String? itemId,

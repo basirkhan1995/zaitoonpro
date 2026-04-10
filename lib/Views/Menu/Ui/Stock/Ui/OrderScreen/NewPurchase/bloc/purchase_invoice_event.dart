@@ -93,6 +93,7 @@ class SavePurchaseInvoiceEvent extends PurchaseInvoiceEvent {
   final String? xRef;
   final String? invoiceCcy;
   final String? remark;
+  final double? rate;
   final List<PurchaseInvoiceItem> items;
   final List<PurExpenseRecord> expenses;
   final Completer<String> completer;
@@ -102,6 +103,7 @@ class SavePurchaseInvoiceEvent extends PurchaseInvoiceEvent {
     required this.ordPersonal,
     required this.orderName,
     this.xRef,
+    this.rate,
     this.invoiceCcy,
     this.remark,
     required this.items,
@@ -162,8 +164,6 @@ class UpdateExpenseEvent extends PurchaseInvoiceEvent {
 class UpdateAllLandedPricesEvent extends PurchaseInvoiceEvent {
   const UpdateAllLandedPricesEvent();
 }
-
-
 
 class UpdateExchangeRateForInvoiceEvent extends PurchaseInvoiceEvent {
   final String fromCurrency;

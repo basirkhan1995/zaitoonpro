@@ -1364,6 +1364,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         expenses: state.expenses,
         orderName: "Purchase",
         remark: _remark.text,
+        rate: double.tryParse(_exchangeRateController.text),
         ordPersonal: state.supplier!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
         items: state.items,

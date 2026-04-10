@@ -3197,4 +3197,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modelTitle => 'Model';
+
+  @override
+  String get totalQty => 'Total QTY';
 }

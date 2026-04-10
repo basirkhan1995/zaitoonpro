@@ -26,12 +26,14 @@ class PurchaseInvoiceItem {
     this.localAmount,
     this.exchangeRate,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
+
   double get totalQty => qty.toDouble() * stkBatch;
+
   double get totalPurchase => totalQty * (purPrice ?? 0);
 
   double get totalLocalAmount {
-    if (exchangeRate == null || exchangeRate == 0) return totalPurchase;
-    return totalPurchase * exchangeRate!;
+    final rate = exchangeRate ?? 1.0;
+    return totalPurchase * rate;
   }
 
   PurchaseInvoiceItem copyWith({

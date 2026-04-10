@@ -1056,5 +1056,6 @@
   "invoiceCurrency": "Invoice Currency",
   "localeAmount": "Local Amount",
   "brandTitle": "Brand",
-  "modelTitle": "Model"
+  "modelTitle": "Model",
+  "totalQty": "Total QTY"
 }

@@ -1056,5 +1056,6 @@
   "invoiceCurrency": "ارز بل",
   "localeAmount": "قیمت محلی",
   "brandTitle": "برند",
-  "modelTitle": "مدل"
+  "modelTitle": "مدل",
+  "totalQty": "مقدار کل"
 }

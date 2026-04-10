@@ -54,7 +54,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         toCurrency: event.toCurrency,
       ));
 
-      // Update all local amounts
+      // Update all local amounts immediately
       add(UpdateAllLocalAmountsEvent());
     }
   }
@@ -90,14 +90,13 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             purPrice: event.purPrice ?? item.purPrice,
             storageName: event.storageName ?? item.storageName,
             storageId: event.storageId ?? item.storageId,
+            exchangeRate: current.exchangeRate ?? 1.0,
           );
 
-          // Calculate local amount immediately if exchange rate exists
-          if (current.exchangeRate != null && current.exchangeRate! > 0) {
-            final localAmount = updatedItem.totalPurchase * current.exchangeRate!;
-            return updatedItem.copyWith(localAmount: localAmount);
-          }
-          return updatedItem;
+          // Calculate local amount immediately
+          final exchangeRate = current.exchangeRate ?? 1.0;
+          final localAmount = updatedItem.totalPurchase * exchangeRate;
+          return updatedItem.copyWith(localAmount: localAmount, exchangeRate: exchangeRate);
         }
         return item;
       }).toList();
@@ -105,44 +104,47 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(current.copyWith(items: updatedItems));
     }
   }
-
   void _onUpdateAllLocalAmounts(UpdateAllLocalAmountsEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
-      // Only calculate if we have an exchange rate
-      if (current.exchangeRate == null || current.exchangeRate == 0) {
-        emit(current);
-        return;
-      }
+      // Get exchange rate (default to 1.0 if not set)
+      final exchangeRate = current.exchangeRate ?? 1.0;
 
       final updatedItems = current.items.map((item) {
-        final localAmount = item.totalPurchase * current.exchangeRate!;
-        return item.copyWith(localAmount: localAmount);
+        final localAmount = item.totalPurchase * exchangeRate;
+        return item.copyWith(
+          localAmount: localAmount,
+          exchangeRate: exchangeRate,
+        );
       }).toList();
 
       emit(current.copyWith(items: updatedItems));
     }
   }
 
-  Future<void> _onUpdateExchangeRate(UpdateExchangeRateForInvoiceEvent event, Emitter<PurchaseInvoiceState> emit,) async {
+  Future<void> _onUpdateExchangeRate(
+      UpdateExchangeRateForInvoiceEvent event,
+      Emitter<PurchaseInvoiceState> emit,
+      ) async {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
       try {
-        // Fetch exchange rate from API
         final rate = await repo.getSingleRate(
           fromCcy: event.fromCurrency,
           toCcy: event.toCurrency,
         );
 
+        final parsedRate = double.tryParse(rate ?? "1.0") ?? 1.0;
+
         emit(current.copyWith(
-          exchangeRate: double.tryParse(rate??"0.00"),
+          exchangeRate: parsedRate,
           fromCurrency: event.fromCurrency,
           toCurrency: event.toCurrency,
         ));
 
-        // Update all local amounts
+        // Update all local amounts immediately after rate is set
         add(UpdateAllLocalAmountsEvent());
       } catch (e) {
         emit(PurchaseInvoiceError('Failed to fetch exchange rate: $e'));
@@ -154,11 +156,12 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
   void _onUpdateItemLocalAmount(UpdateItemLocalAmountEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
+      final exchangeRate = current.exchangeRate ?? 1.0;
+
       final updatedItems = current.items.map((item) {
         if (item.rowId == event.rowId) {
-          // Calculate local amount using exchange rate
-          final localAmount = (item.totalPurchase) * (current.exchangeRate ?? 1);
-          return item.copyWith(localAmount: localAmount);
+          final localAmount = item.totalPurchase * exchangeRate;
+          return item.copyWith(localAmount: localAmount, exchangeRate: exchangeRate);
         }
         return item;
       }).toList();
@@ -166,7 +169,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(current.copyWith(items: updatedItems));
     }
   }
-
   void _onAddExpense(AddExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -198,6 +200,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       add(UpdateAllLandedPricesEvent());
     }
   }
+
+
   void _onUpdateExpense(UpdateExpenseEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -260,7 +264,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
   void _onInitialize(InitializePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
     emit(PurchaseInvoiceLoaded(
-      expenses: [],  // ← Start with empty list instead of one empty row
+      expenses: [],
       items: [PurchaseInvoiceItem(
         productId: '',
         productName: '',
@@ -271,15 +275,21 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         landedPrice: 0,
         storageName: '',
         storageId: 0,
+        exchangeRate: 1.0, // Add default exchange rate
+        localAmount: 0,
       )],
       payment: 0.0,
       paymentMode: PaymentMode.cash,
+      exchangeRate: 1.0, // Add default exchange rate
+      fromCurrency: '',
+      toCurrency: '',
     ));
   }
 
+// Improve the reset method
   void _onReset(ResetPurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) {
     emit(PurchaseInvoiceLoaded(
-      expenses: [],  // ← Start with empty list
+      expenses: [],
       items: [PurchaseInvoiceItem(
         productId: '',
         productName: '',
@@ -290,9 +300,14 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         storageName: '',
         sellPriceAmount: 0,
         storageId: 0,
+        exchangeRate: 1.0,
+        localAmount: 0,
       )],
       payment: 0.0,
       paymentMode: PaymentMode.cash,
+      exchangeRate: 1.0,
+      fromCurrency: '',
+      toCurrency: '',
     ));
   }
   void _onClearSupplierAccount(ClearSupplierAccountEvent event, Emitter<PurchaseInvoiceState> emit) {
@@ -453,8 +468,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     final current = state as PurchaseInvoiceLoaded;
     final savedState = current.copyWith();
 
-
-
     // Validation
     if (current.supplier == null) {
       emit(PurchaseInvoiceError('Please select a supplier'));
@@ -462,14 +475,12 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       event.completer.complete('');
       return;
     }
-
     if (current.items.isEmpty) {
       emit(PurchaseInvoiceError('Please add at least one item'));
       emit(savedState);
       event.completer.complete('');
       return;
     }
-
     for (var i = 0; i < current.items.length; i++) {
       final item = current.items[i];
       if (item.productId.isEmpty) {

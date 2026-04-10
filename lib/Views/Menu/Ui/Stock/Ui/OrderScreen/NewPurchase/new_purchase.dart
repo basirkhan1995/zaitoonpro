@@ -80,9 +80,29 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   }
 
   String? _userName;
-  String? baseCurrency;
+  String? baseCurrency="";
   int? signatory;
+  void _updateControllersFromState(PurchaseInvoiceState state) {
+    if (state is PurchaseInvoiceLoaded) {
+      // Update exchange rate controller if needed
+      if (state.exchangeRate != null && state.exchangeRate! > 0) {
+        if (_exchangeRateController.text != state.exchangeRate!.toStringAsFixed(4)) {
+          _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
+        }
+      }
 
+      // Update local amount controllers for each item
+      for (var i = 0; i < state.items.length; i++) {
+        final item = state.items[i];
+        if (item.localAmount != null && item.localAmount! > 0) {
+          final controller = _localeAmountControllers[item.rowId];
+          if (controller != null && controller.text != item.localAmount!.toAmount()) {
+            controller.text = item.localAmount!.toAmount();
+          }
+        }
+      }
+    }
+  }
   final Map<String, TextEditingController> _purchasePriceControllers = {};
   final Map<String, TextEditingController> _costPriceControllers = {};
   final Map<String, TextEditingController> _sellPriceControllers = {};
@@ -118,6 +138,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     super.initState();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authState = context.read<AuthBloc>().state;
+      if(authState is AuthenticatedState){
+       baseCurrency = authState.loginData.company?.comLocalCcy;
+      }
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
@@ -168,6 +192,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     super.dispose();
   }
 
+  String? accountCcy = "";
+
   void _clearAllControllers() {
     _accountController.clear();
     _personController.clear();
@@ -191,7 +217,22 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     }
     _rowFocusNodes.clear();
   }
+  void _resetForm() {
+    _clearAllControllers();
+    context.read<PurchaseInvoiceBloc>().add(ResetPurchaseInvoiceEvent());
 
+    // Also reset any other necessary state
+    _rowFocusNodes.clear();
+    _purchasePriceControllers.clear();
+    _qtyControllers.clear();
+    _batchControllers.clear();
+    _sellPriceControllers.clear();
+    _localeAmountControllers.clear();
+    _costPriceControllers.clear();
+
+    // Re-initialize
+    context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
+  }
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -229,18 +270,18 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               String? savedInvoiceNumber = state.invoiceNumber;
               ToastManager.show(context: context, title: tr.successTitle, message: tr.successPurchaseInvoiceMsg, type: ToastType.success);
 
-              _accountController.clear();
-              _personController.clear();
-              _xRefController.clear();
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
+              WidgetsBinding.instance.addPostFrameCallback((_) async{
                 if (savedInvoiceNumber != null &&
                     savedInvoiceNumber.isNotEmpty) {
-                  _onPrint(invoiceNumber: savedInvoiceNumber);
+                   _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
               ToastManager.show(context: context, title: tr.operationFailedTitle, message: "Failed to create invoice", type: ToastType.error);
+            }  // Add loading state handling
+            if (state is PurchaseInvoiceInitial || state is PurchaseInvoiceLoaded) {
+              // Ensure controllers are updated when state changes
+              _updateControllersFromState(state);
             }
           }
         },
@@ -250,6 +291,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             titleSpacing: 0,
             actionsPadding: EdgeInsets.symmetric(horizontal: 12),
             actions: [
+              ZOutlineButton(
+                icon: Icons.lock_reset_outlined,
+                onPressed: _resetForm,
+                label: Text(tr.newPurchase),
+              ),
+              const SizedBox(width: 8),
               ZOutlineButton(
                 icon: Icons.outbond_outlined,
                 onPressed: () => _showExpensesDialog(context),
@@ -410,7 +457,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
                                 onSelected: (value) {
                                   _accountController.text = '${value.accName} (${value.accNumber})';
-
+                                  setState(() {
+                                    accountCcy = value.actCurrency;
+                                  });
                                   // First select the account
                                   context.read<PurchaseInvoiceBloc>().add(
                                     SelectSupplierAccountEvent(value),
@@ -487,7 +536,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               },
                               onSelected: (value) {
                                 // selected account currency | if require for exchange rate
-                                value.actCurrency;
+                                setState(() {
+                                  accountCcy = value.actCurrency;
+                                });
 
                                 _accountController.text = '${value.accName} (${value.accNumber})';
                                 context.read<PurchaseInvoiceBloc>().add(
@@ -621,14 +672,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           Expanded(child: Text(locale.products, style: title)),
           SizedBox(width: 100, child: Text(locale.qty, style: title)),
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
-          SizedBox(width: 100, child: Text(locale.totalTitle, style: title)),
-          SizedBox(width: 150, child: Text(locale.unitPrice, style: title)),
-          SizedBox(width: 150, child: Text(locale.localeAmount, style: title)),
-          SizedBox(
-            width: 150,
-            child: Text(locale.salePercentage, style: title),
-          ),
-          SizedBox(width: 150, child: Text(locale.landedPrice, style: title)),
+          SizedBox(width: 100, child: Text(locale.totalQty, style: title)),
+          SizedBox(width: 150, child: Text("${locale.unitPrice} ($baseCurrency)", style: title)),
+          SizedBox(width: 150, child: Text("${locale.totalTitle} ($accountCcy)", style: title)),
+          SizedBox(width: 150, child: Text(locale.salePercentage, style: title),),
+          SizedBox(width: 150, child: Text("${locale.landedPrice} ($baseCurrency)", style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
         ],
@@ -1588,19 +1636,32 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           : '',
     );
     _storageController = TextEditingController(text: widget.item.storageName);
-
-    // Initialize local amount controller
     _localAmountController = TextEditingController(
-      text: widget.item.localAmount != null && widget.item.localAmount! > 0
-          ? widget.item.localAmount!.toAmount()
-          : '',
+      text: _getLocalAmountText(),
     );
+  }
+
+  String _getLocalAmountText() {
+    if (widget.item.localAmount != null && widget.item.localAmount! > 0) {
+      return widget.item.localAmount!.toAmount();
+    }
+
+    // Calculate on the fly if not set
+    final state = context.read<PurchaseInvoiceBloc>().state;
+    if (state is PurchaseInvoiceLoaded && state.exchangeRate != null) {
+      final calculatedAmount = widget.item.totalPurchase * state.exchangeRate!;
+      if (calculatedAmount > 0) {
+        return calculatedAmount.toAmount();
+      }
+    }
+    return '';
   }
 
   @override
   void didUpdateWidget(_PurchaseItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    // Update landed price
     if (widget.item.landedPrice != oldWidget.item.landedPrice) {
       final newValue = widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
@@ -1610,29 +1671,35 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
+    // Update storage
     if (widget.item.storageName != oldWidget.item.storageName) {
       if (_storageController.text != widget.item.storageName) {
         _storageController.text = widget.item.storageName;
       }
     }
 
-    // Update local amount when totalPurchase changes
-    final oldTotalPurchase = oldWidget.item.totalPurchase;
-    final newTotalPurchase = widget.item.totalPurchase;
+    // Update local amount - CRITICAL FIX
+    final oldLocalAmount = oldWidget.item.localAmount;
+    final newLocalAmount = widget.item.localAmount;
 
-    if (oldTotalPurchase != newTotalPurchase) {
+    if (oldLocalAmount != newLocalAmount) {
+      final newText = newLocalAmount != null && newLocalAmount > 0
+          ? newLocalAmount.toAmount()
+          : '';
+      if (_localAmountController.text != newText) {
+        _localAmountController.text = newText;
+      }
+    } else {
+      // Force recalculation if exchange rate changed
       final state = context.read<PurchaseInvoiceBloc>().state;
       if (state is PurchaseInvoiceLoaded && state.exchangeRate != null) {
-        final newLocalAmount = newTotalPurchase * state.exchangeRate!;
-        if (widget.item.localAmount != newLocalAmount) {
-          // This will trigger a state update
-          context.read<PurchaseInvoiceBloc>().add(
-              UpdateItemLocalAmountEvent(widget.item.rowId)
-          );
+        final calculatedAmount = widget.item.totalPurchase * state.exchangeRate!;
+        final newText = calculatedAmount > 0 ? calculatedAmount.toAmount() : '';
+        if (_localAmountController.text != newText) {
+          _localAmountController.text = newText;
         }
       }
     }
-
   }
 
   @override
@@ -1755,7 +1822,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       }
                     });
                   },
-                  hintText: 'Search products',
+                  hintText: AppLocalizations.of(context)!.products,
                   showAllOnFocus: true,
                 ),
               ),
@@ -1825,6 +1892,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                   ],
                   decoration: InputDecoration(
+
                     hintText: locale.unitPrice,
                     border: InputBorder.none,
                     isDense: true,
@@ -1851,7 +1919,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 child: TextField(
                   controller: _localAmountController,
                   decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.localeAmount,
+                    hintText: AppLocalizations.of(context)!.totalAmount,
                     border: InputBorder.none,
                     isDense: true,
                   ),

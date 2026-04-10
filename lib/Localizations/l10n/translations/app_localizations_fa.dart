@@ -3187,4 +3187,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get modelTitle => 'مدل';
+
+  @override
+  String get totalQty => 'مقدار کل';
 }

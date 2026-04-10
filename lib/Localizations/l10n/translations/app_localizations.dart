@@ -6321,6 +6321,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Model'**
   String get modelTitle;
+
+  /// No description provided for @totalQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Total QTY'**
+  String get totalQty;
 }
 
 class _AppLocalizationsDelegate

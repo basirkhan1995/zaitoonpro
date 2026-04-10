@@ -8,6 +8,7 @@ import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/bloc/storage_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/model/storage_model.dart';
@@ -121,29 +122,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
 
-      final authState = context.read<AuthBloc>().state;
-      if(authState is AuthenticatedState){
-        // My company base currency
-        authState.loginData.company?.comLocalCcy;
-      }
-      context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
+      // IMPORTANT: Always initialize fresh when entering the screen
+      purchaseBloc.add(InitializePurchaseInvoiceEvent());
+
+      // Clear all controllers
+      _clearAllControllers();
     });
-
-    final companyState = context.read<CompanyProfileBloc>().state;
-    if (companyState is CompanyProfileLoadedState) {
-      baseCurrency = companyState.company.comLocalCcy ?? "";
-    }
-  }
-
-  void getExchangeRate({required String firstCcy, required String secondCcy}){
-    final exRate = context.read<ExchangeRateBloc>().state;
-    if (exRate is ExchangeRateLoadedState) {
-     // currentRates = (exRate).rates;
-    }
   }
 
   @override
   void dispose() {
+    // Clear all controllers on dispose
+    _clearAllControllers();
+
     for (final row in _rowFocusNodes) {
       for (final node in row) {
         node.dispose();
@@ -152,6 +143,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _accountController.dispose();
     _personController.dispose();
     _xRefController.dispose();
+    _remark.dispose();
+    _exchangeRateController.dispose();
 
     // Dispose all price and qty controllers
     for (final controller in _purchasePriceControllers.values) {
@@ -169,11 +162,34 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     for (final controller in _batchControllers.values) {
       controller.dispose();
     }
-
     for (final controller in _localeAmountControllers.values) {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _clearAllControllers() {
+    _accountController.clear();
+    _personController.clear();
+    _xRefController.clear();
+    _remark.clear();
+    _exchangeRateController.clear();
+
+    // Clear all item controllers
+    _purchasePriceControllers.clear();
+    _costPriceControllers.clear();
+    _sellPriceControllers.clear();
+    _qtyControllers.clear();
+    _batchControllers.clear();
+    _localeAmountControllers.clear();
+
+    // Clear focus nodes
+    for (final row in _rowFocusNodes) {
+      for (final node in row) {
+        node.unfocus();
+      }
+    }
+    _rowFocusNodes.clear();
   }
 
   @override
@@ -204,23 +220,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       child: BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceError) {
-            Utils.showOverlayMessage(
-              context,
-              message: state.message,
-              isError: true,
-            );
+            ToastManager.show(context: context, title: tr.operationFailedTitle, message: state.message, type: ToastType.error);
+
           }
           if (state is PurchaseInvoiceSaved) {
             Navigator.of(context).pop();
             if (state.success) {
               String? savedInvoiceNumber = state.invoiceNumber;
+              ToastManager.show(context: context, title: tr.successTitle, message: tr.successPurchaseInvoiceMsg, type: ToastType.success);
 
-              Utils.showOverlayMessage(
-                context,
-                title: tr.successTitle,
-                message: tr.successPurchaseInvoiceMsg,
-                isError: false,
-              );
               _accountController.clear();
               _personController.clear();
               _xRefController.clear();
@@ -232,11 +240,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 }
               });
             } else {
-              Utils.showOverlayMessage(
-                context,
-                message: "Failed to create invoice",
-                isError: true,
-              );
+              ToastManager.show(context: context, title: tr.operationFailedTitle, message: "Failed to create invoice", type: ToastType.error);
             }
           }
         },

@@ -69,6 +69,10 @@ class _DesktopState extends State<_Desktop> {
     final locale = AppLocalizations.of(context)!;
 
     return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: Text(locale.profileOverview,style: Theme.of(context).textTheme.titleMedium),
+      ),
       body: BlocListener<IndividualsBloc, IndividualsState>(
       listener: (context, state) {
         if(state is IndividualSuccessImageState || state is IndividualSuccessState){
@@ -81,86 +85,121 @@ class _DesktopState extends State<_Desktop> {
             individual = state.stk;
             fullName = "${state.stk.perName} ${state.stk.perLastName}";
           }
-          return Column(
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(height: 5),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                child: BlurLoader(
-                  isLoading: state is StakeholderByIdLoadingState,
-                  child: Column(
-                    children: [
-                      Row(
-                        spacing: 5,
-                        children: [
-                          BackButton(
-                            style: ButtonStyle(
-                              backgroundColor: WidgetStatePropertyAll(color.outline.withValues(alpha: .1))
-                            ),
+
+              SizedBox(
+                width: 400,
+                child: ZCover(
+                  radius: 12,
+                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.all(8),
+                  child: BlurLoader(
+                    isLoading: state is StakeholderByIdLoadingState,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+
+                        // 🔥 PROFILE IMAGE (FOCUS)
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                blurRadius: 15,
+                                color: Colors.black.withValues(alpha: .1),
+                              )
+                            ],
                           ),
-                          Text(locale.profileOverview,style: Theme.of(context).textTheme.titleMedium)
-                        ],
-                      ),
-                      SizedBox(height: 5),
-                      Row(
-                        children: [
-                          ImageHelper.stakeholderProfile(
-                              onImageTap: () => ImageHelper.showImageViewer(
-                                context: context,
-                                imageName: individual?.imageProfile,
-                                heroTag: 'profile_image_${individual!.perId}',
-                              ),
-                              shapeStyle: ShapeStyle.roundedRectangle,
+                          child: ImageHelper.stakeholderProfile(
+                            onImageTap: () => ImageHelper.showImageViewer(
+                              context: context,
                               imageName: individual?.imageProfile,
-                              border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
-                              borderRadius: 5,
-                              size: 115),
-                          SizedBox(width: 6),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  fullName??"",
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18),
-                                ),
-                                ZCover(child: Text(individual?.perPhone ?? "")),
-                                SizedBox(height: 5),
-                                Row(
-                                  spacing: 5,
-                                  children: [
-                                    ZCover(child: Text(Utils.genderType(gender: individual?.perGender ?? "",locale: locale))),
-                                    ZCover(child: Text(individual?.addCity ?? "")),
-                                    ZCover(child: Text(individual?.addProvince ?? "")),
-                                    ZCover(child: Text(individual?.addCountry ?? "")),
-                                    ZCover(child: Text(individual?.addName ?? "")),
-                                    ZCover(child: Text(individual?.perEnidNo ?? "")),
-                                  ],
-                                ),
-                                SizedBox(height: 5),
-                                ZOutlineButton(
-                                  icon: Icons.refresh,
-                                  height: 35,
-                                  onPressed: (){
-                                    showDialog(context: context, builder: (context){
-                                      return IndividualAddEditView(model: individual);
-                                    });
-                                  },
-                                  label: Text(locale.edit),
-                                ),
-                                SizedBox(height: 5),
-                              ],
+                              heroTag: 'profile_image_${individual!.perId}',
                             ),
+                            shapeStyle: ShapeStyle.roundedRectangle,
+                            imageName: individual?.imageProfile,
+                            borderRadius: 12,
+                            size: 130,
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // 🧑 NAME
+                        Text(
+                          fullName ?? "",
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        // 📞 PHONE (SUBTLE)
+                        Text(
+                          individual?.perPhone ?? "",
+                          style: TextStyle(
+                            color: color.outline.withValues(alpha: .6),
+                            fontSize: 13,
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Divider(color: Colors.grey.shade300),
+
+                        const SizedBox(height: 12),
+
+                        // 🧾 INFO CHIPS (BETTER UI)
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _chip(context, Utils.genderType(
+                                gender: individual?.perGender ?? "", locale: locale)),
+                            _chip(context, individual?.addCity),
+                            _chip(context, individual?.addProvince),
+                            _chip(context, individual?.addCountry),
+                            _chip(context, individual?.addName),
+                            _chip(context, individual?.perEnidNo),
+                          ],
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        // ✏️ EDIT BUTTON (FULL WIDTH)
+                        SizedBox(
+                          width: double.infinity,
+                          child: ZOutlineButton(
+                            icon: Icons.edit,
+                            height: 42,
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return IndividualAddEditView(model: individual);
+                                },
+                              );
+                            },
+                            label: Text(locale.edit),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
+              // Tabs on the LEFT side
               Expanded(
-                child: IndividualsDetailsTabView(ind: widget.ind),
+                child: ZCover(
+                    padding: const EdgeInsets.all(5),
+                    margin: const EdgeInsets.all(8),
+                    radius: 12,
+                    child: IndividualsDetailsTabView(ind: widget.ind)),
               ),
             ],
           );
@@ -169,4 +208,21 @@ class _DesktopState extends State<_Desktop> {
      ),
     );
   }
+
+  Widget _chip(BuildContext context, String? text) {
+    if (text == null || text.isEmpty) return const SizedBox();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 12),
+      ),
+    );
+  }
+
 }

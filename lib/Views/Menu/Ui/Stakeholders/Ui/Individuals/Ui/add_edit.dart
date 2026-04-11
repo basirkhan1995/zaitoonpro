@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/desktop_form_nav.dart';
 import 'package:zaitoonpro/Features/Other/image_helper.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
@@ -1162,6 +1163,10 @@ class _DesktopState extends State<_Desktop> {
             listener: (context, state) {
               if (state is IndividualSuccessState) {
                 Navigator.of(context).pop();
+              }if(state is IndividualErrorState){
+                ToastManager.show(context: context, title: locale.operationFailedTitle, message: state.message, type: ToastType.error);
+              }if(state is IndividualSuccessImageState){
+                ToastManager.show(context: context, title: locale.successTitle, message: locale.successMessage, type: ToastType.error);
               }
             },
             builder: (context, state) {

@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/Ui/add_user.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/HR/Ui/Users/bloc/users_bloc.dart';
+import '../../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../../Features/Widgets/no_data_widget.dart';
@@ -346,7 +347,10 @@ class _DesktopState extends State<_Desktop> {
             child: BlocBuilder<UsersBloc, UsersState>(
               builder: (context, state) {
                 if (state is UsersLoadingState) {
-                  return const Center(child: CircularProgressIndicator());
+                  return UniversalShimmer.accountList(
+                    itemCount: 8,
+                    useAlternatingColors: true,
+                  );
                 }
                 if (state is UsersErrorState) {
                   return NoDataWidget(
@@ -472,3 +476,4 @@ class _DesktopState extends State<_Desktop> {
     context.read<UsersBloc>().add(LoadUsersEvent(usrOwner: widget.perId));
   }
 }
+

@@ -10,6 +10,7 @@ import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/profile.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/Ui/add_edit.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
+import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../../Features/Widgets/zcard_mobile.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -331,7 +332,10 @@ class _DesktopState extends State<_Desktop> {
                   },
                   builder: (context, state) {
                     if (state is IndividualLoadingState) {
-                      return const Center(child: CircularProgressIndicator());
+                      return UniversalShimmer.accountList(
+                        itemCount: 8,
+                        useAlternatingColors: true,
+                      );
                     }
                     if (state is IndividualErrorState) {
                       return NoDataWidget(

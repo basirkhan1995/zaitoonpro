@@ -8,6 +8,7 @@ import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/IndividualDetails/Ui/Accounts/edit_add.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
+import '../../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../../Features/Widgets/mobile_acc_card.dart';
 import '../../../../../../../../Features/Widgets/no_data_widget.dart';
@@ -15,7 +16,6 @@ import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../../../Features/Widgets/zcard_mobile.dart';
 import '../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
-
 class AccountsByPerIdView extends StatelessWidget {
   final IndividualsModel ind;
   const AccountsByPerIdView({super.key, required this.ind});
@@ -231,6 +231,7 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
+
 class _DesktopState extends State<_Desktop> {
   @override
   void initState() {
@@ -243,6 +244,7 @@ class _DesktopState extends State<_Desktop> {
   }
 
   final TextEditingController searchController = TextEditingController();
+
   @override
   void dispose() {
     searchController.dispose();
@@ -297,7 +299,6 @@ class _DesktopState extends State<_Desktop> {
               ],
             ),
           ),
-
           Expanded(
             child: BlocConsumer<AccountsBloc, AccountsState>(
               listener: (context, state) {
@@ -306,7 +307,6 @@ class _DesktopState extends State<_Desktop> {
                 }
               },
               builder: (context, state) {
-                // Define the missing styles
                 final textTheme = Theme.of(context).textTheme;
                 final color = Theme.of(context).colorScheme;
 
@@ -319,9 +319,14 @@ class _DesktopState extends State<_Desktop> {
                   fontWeight: FontWeight.bold,
                 );
 
+
                 if (state is AccountLoadingState) {
-                  return Center(child: CircularProgressIndicator());
+                  return UniversalShimmer.accountList(
+                    itemCount: 8,
+                    useAlternatingColors: true,
+                  );
                 }
+
                 if (state is AccountErrorState) {
                   return NoDataWidget(
                     message: state.message,
@@ -332,6 +337,7 @@ class _DesktopState extends State<_Desktop> {
                     },
                   );
                 }
+
                 if (state is AccountLoadedState) {
                   final query = searchController.text.toLowerCase().trim();
                   final q = query.toLowerCase();
@@ -347,14 +353,13 @@ class _DesktopState extends State<_Desktop> {
                   if (filteredList.isEmpty) {
                     return NoDataWidget(message: locale.noDataFound);
                   }
+
                   return ListView.builder(
                     itemCount: filteredList.length,
                     itemBuilder: (context, index) {
                       final acc = filteredList[index];
-                      bool isAvailableEqualCurrent =
-                          acc.accAvailBalance == acc.accBalance;
+                      bool isAvailableEqualCurrent = acc.accAvailBalance == acc.accBalance;
 
-                      // ---------- UI ----------
                       return InkWell(
                         highlightColor: color.primary.withValues(alpha: .06),
                         hoverColor: color.primary.withValues(alpha: .06),
@@ -383,7 +388,6 @@ class _DesktopState extends State<_Desktop> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                // ---------- Avatar ----------
                                 CircleAvatar(
                                   backgroundColor: Utils.currencyColors(
                                     acc.actCurrency ?? "",
@@ -397,57 +401,38 @@ class _DesktopState extends State<_Desktop> {
                                     ),
                                   ),
                                 ),
-
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      // Full Name
                                       Text(
                                         acc.accName ?? "",
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium,
+                                        style: Theme.of(context).textTheme.titleMedium,
                                       ),
-
                                       const SizedBox(height: 1),
                                       Row(
                                         children: [
                                           Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 3.0,
-                                            ),
+                                            padding: const EdgeInsets.only(right: 3.0),
                                             child: ZCover(
                                               color: color.surface,
-                                              child: Text(
-                                                acc.accNumber.toString(),
-                                              ),
-                                            ),
-                                          ),
-
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 3.0,
-                                            ),
-                                            child: ZCover(
-                                              color: color.surface,
-                                              child: Text(
-                                                acc.actCurrency.toString(),
-                                              ),
+                                              child: Text(acc.accNumber.toString()),
                                             ),
                                           ),
                                           Padding(
-                                            padding: const EdgeInsets.only(
-                                              right: 3.0,
+                                            padding: const EdgeInsets.only(right: 3.0),
+                                            child: ZCover(
+                                              color: color.surface,
+                                              child: Text(acc.actCurrency.toString()),
                                             ),
+                                          ),
+                                          Padding(
+                                            padding: const EdgeInsets.only(right: 3.0),
                                             child: ZCover(
                                               color: color.surface,
                                               child: Text(
-                                                acc.accStatus == 1
-                                                    ? locale.active
-                                                    : locale.blocked,
+                                                acc.accStatus == 1 ? locale.active : locale.blocked,
                                               ),
                                             ),
                                           ),
@@ -456,17 +441,14 @@ class _DesktopState extends State<_Desktop> {
                                     ],
                                   ),
                                 ),
-
                                 Column(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     if (!isAvailableEqualCurrent)
                                       Column(
-                                        mainAxisAlignment:
-                                        MainAxisAlignment.end,
-                                        crossAxisAlignment:
-                                        CrossAxisAlignment.end,
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
                                           Text(
                                             locale.currentBalance,
@@ -482,8 +464,7 @@ class _DesktopState extends State<_Desktop> {
                                       ),
                                     Column(
                                       mainAxisAlignment: MainAxisAlignment.end,
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.end,
+                                      crossAxisAlignment: CrossAxisAlignment.end,
                                       children: [
                                         Text(
                                           locale.availableBalance,
@@ -524,3 +505,5 @@ class _DesktopState extends State<_Desktop> {
     });
   }
 }
+
+

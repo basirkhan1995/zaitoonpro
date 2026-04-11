@@ -762,34 +762,50 @@ class InvoicePrintService extends PrintServices {
     required double cashPayment,
     required double creditAmount,
     required AccountsModel? account,
-    String? currency,  // This is the account/supplier currency
+    String? currency,
     required bool isSale,
     required List<InvoiceItem> items,
     double? totalLocalAmount,
     String? localCurrency,
-    String? baseCurrency,  // Add this parameter for the company base currency
-    double? exchangeRate,  // Add this to show exchange rate
+    String? baseCurrency,
+    double? exchangeRate,
   }) {
     final totalQty = items.fold<double>(0, (sum, item) => sum + item.quantity);
     final lang = NumberToWords.getLanguageFromLocale(Locale(language));
-
-    final cleanAmount = grandTotal.toString().replaceAll(',', '');
-    final parsedAmount = int.tryParse(
-      double.tryParse(cleanAmount)?.toStringAsFixed(0) ?? "0",
-    ) ?? 0;
-    final amountInWords = NumberToWords.convert(parsedAmount, lang);
 
     // Check if we need to show local amount (different currencies)
     final needsConversion = !isSale &&
         localCurrency != null &&
         baseCurrency != null &&
         baseCurrency != localCurrency &&
-        exchangeRate != null;
+        exchangeRate != null &&
+        exchangeRate != 1.0;
 
-    final showLocalSummary = needsConversion;
+    // Determine which total to use for account-related calculations
+    // For purchase invoices with different currencies, use totalLocalAmount for account display
+
+    final effectiveCashPayment = (needsConversion && cashPayment > 0)
+        ? cashPayment * exchangeRate
+        : cashPayment;
+
+    final effectiveCreditAmount = (needsConversion && creditAmount > 0)
+        ? creditAmount * exchangeRate
+        : creditAmount;
+
+    // Determine which currency to display for account section
+    final accountCurrency = needsConversion
+        ? (localCurrency)
+        : (account?.actCurrency ?? baseCurrency);
+
+    // Clean amount for words (use base currency grand total for words)
+    final cleanAmount = needsConversion? totalLocalAmount.toString().replaceAll(',', '') : grandTotal.toString().replaceAll(',', '') ;
+    final parsedAmount = int.tryParse(
+      double.tryParse(cleanAmount)?.toStringAsFixed(0) ?? "0",
+    ) ?? 0;
+    final amountInWords = NumberToWords.convert(parsedAmount, lang);
 
     return pw.Container(
-      width: 350,
+      width: 250,
       alignment: pw.Alignment.centerRight,
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.end,
@@ -800,8 +816,7 @@ class InvoicePrintService extends PrintServices {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-
-                // Grand Total (in base currency)
+                // Grand Total in Base Currency (always show for reference)
                 pw.Row(
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
@@ -821,6 +836,7 @@ class InvoicePrintService extends PrintServices {
 
                 // Exchange Rate Info (if currencies are different)
                 if (needsConversion) ...[
+                  pw.SizedBox(height: 3),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
@@ -837,16 +853,14 @@ class InvoicePrintService extends PrintServices {
                       ),
                     ],
                   ),
-                  pw.SizedBox(height: 5),
-                ],
 
-                // Total Local Amount (in supplier's currency)
-                if (showLocalSummary) ...[
+                  // Total in Supplier's Currency
+                  pw.SizedBox(height: 3),
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       zText(
-                        text: tr(text: 'total', tr: language),
+                        text: "${tr(text: 'total', tr: language)} ($localCurrency)",
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                       ),
@@ -880,12 +894,12 @@ class InvoicePrintService extends PrintServices {
 
                 pw.SizedBox(height: 3),
 
-                // Cash Payment (if any) - in base currency
+                // Cash Payment (in appropriate currency)
                 if (cashPayment > 0)
                   _buildPaymentRow(
                     label: tr(text: 'cashPayment', tr: language),
-                    value: cashPayment,
-                    ccy: baseCurrency ?? '',
+                    value: effectiveCashPayment,
+                    ccy: needsConversion ? (localCurrency) : (baseCurrency ?? ''),
                   ),
 
                 // Account Balance Information - ONLY show when credit is used AND account exists
@@ -914,7 +928,7 @@ class InvoicePrintService extends PrintServices {
                         fontSize: 10,
                       ),
                       zText(
-                        text: "${_getAccountBalance(account).toAmount()} ${account.actCurrency ?? localCurrency ?? baseCurrency}",
+                        text: "${_getAccountBalance(account).toAmount()} $accountCurrency",
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                         color: _getBalanceColor(_getAccountBalance(account)),
@@ -922,20 +936,21 @@ class InvoicePrintService extends PrintServices {
                     ],
                   ),
 
-                  // Current Transaction (in account currency)
+                  // Current Transaction Amount (IN ACCOUNT CURRENCY - THIS IS THE FIX)
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       zText(
                         text: isSale
                             ? tr(text: 'saleAmount', tr: language)
-                            : tr(text: 'dueAmount', tr: language),
+                            : tr(text: 'invoiceAmount', tr: language),
                         fontSize: 10,
                       ),
                       zText(
-                        text: "${creditAmount.toAmount()} ${account.actCurrency ?? localCurrency ?? baseCurrency}",
+                        text: "${effectiveCreditAmount.toAmount()} $accountCurrency",
                         fontSize: 10,
-                        color: isSale ? pw.PdfColors.red : pw.PdfColors.green,
+                        fontWeight: pw.FontWeight.bold,
+                        color: isSale ? pw.PdfColors.red : pw.PdfColors.orange,
                       ),
                     ],
                   ),
@@ -951,13 +966,13 @@ class InvoicePrintService extends PrintServices {
                       ),
                       zText(
                         text: isSale
-                            ? "${(_getAccountBalance(account) - creditAmount).toAmount()} ${account.actCurrency ?? localCurrency ?? baseCurrency}"
-                            : "${(_getAccountBalance(account) + creditAmount).toAmount()} ${account.actCurrency ?? localCurrency ?? baseCurrency}",
+                            ? "${(_getAccountBalance(account) - effectiveCreditAmount).toAmount()} $accountCurrency"
+                            : "${(_getAccountBalance(account) + effectiveCreditAmount).toAmount()} $accountCurrency",
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                         color: isSale
-                            ? _getBalanceColor(_getAccountBalance(account) - creditAmount)
-                            : _getBalanceColor(_getAccountBalance(account) + creditAmount),
+                            ? _getBalanceColor(_getAccountBalance(account) - effectiveCreditAmount)
+                            : _getBalanceColor(_getAccountBalance(account) + effectiveCreditAmount),
                       ),
                     ],
                   ),
@@ -972,13 +987,13 @@ class InvoicePrintService extends PrintServices {
                       ),
                       zText(
                         text: isSale
-                            ? _getBalanceStatus(_getAccountBalance(account) - creditAmount, language)
-                            : _getBalanceStatus(_getAccountBalance(account) + creditAmount, language),
+                            ? _getBalanceStatus(_getAccountBalance(account) - effectiveCreditAmount, language)
+                            : _getBalanceStatus(_getAccountBalance(account) + effectiveCreditAmount, language),
                         fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
                         color: isSale
-                            ? _getBalanceColor(_getAccountBalance(account) - creditAmount)
-                            : _getBalanceColor(_getAccountBalance(account) + creditAmount),
+                            ? _getBalanceColor(_getAccountBalance(account) - effectiveCreditAmount)
+                            : _getBalanceColor(_getAccountBalance(account) + effectiveCreditAmount),
                       ),
                     ],
                   ),
@@ -1002,7 +1017,7 @@ class InvoicePrintService extends PrintServices {
                 ),
                 pw.SizedBox(height: 1),
                 zText(
-                  text: amountInWords.isNotEmpty ? "$amountInWords $baseCurrency" : "",
+                  text: amountInWords.isNotEmpty ? "$amountInWords $accountCurrency" : "",
                   fontSize: 8,
                 ),
               ],

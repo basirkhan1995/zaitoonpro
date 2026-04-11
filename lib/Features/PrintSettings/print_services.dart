@@ -472,10 +472,20 @@ abstract class PrintServices {
         "ar": "د بدهکار ننوتل",
         "fa": "ورودی‌های بدهکار"
       },
+      "localAmount": {
+        "en": "Amount",
+        "ar": "قیمت",
+        "fa": "قیمت"
+      },
       "creditEntries": {
         "en": "Credit Entries",
         "ar": "د کریډیټ ننوتل",
         "fa": "ورودی‌های بستانکار"
+      },
+      "invoiceAmount": {
+        "en": "Invoice Amount",
+        "ar": "بل مجموعه",
+        "fa": "مجموعه بل"
       },
       "noDebitEntries": {
         "en": "No debit entries",
@@ -1526,9 +1536,9 @@ abstract class PrintServices {
         'ar': 'متوسط تفاوت'
       },
       'totalQty': {
-        'en': 'Total QTY',
-        'fa': 'تعداد کارتن',
-        'ar': 'کارتن تعداد',
+        'en': 'Total Quantity',
+        'fa': 'کل تعداد',
+        'ar': 'کل تعداد',
       },
       'avgRentPerUnit': {
         'en': 'Avg Rent Per Unit',

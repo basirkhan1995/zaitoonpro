@@ -1,10 +1,11 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/zForm_dialog.dart';
 import '../../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
@@ -36,7 +37,12 @@ class _ExpensesDialogContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalExpenses = expenses.fold(0.0, (sum, e) => sum + e.amount);
+    String? baseCurrency;
     final tr = AppLocalizations.of(context)!;
+    final authState = context.read<AuthBloc>().state;
+    if(authState is AuthenticatedState){
+      baseCurrency = authState.loginData.company?.comLocalCcy;
+    }
     return ZFormDialog(
       title: tr.manageExpenses,
       icon: Icons.outbond_outlined,
@@ -53,7 +59,7 @@ class _ExpensesDialogContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                tr.expenses,
+                "",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -135,14 +141,14 @@ class _ExpensesDialogContent extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Total Expenses:',
+                  tr.totalExpense,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
-                  totalExpenses.toStringAsFixed(2),
+                  "${totalExpenses.toAmount()} $baseCurrency",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -178,10 +184,15 @@ class _ExpenseRowState extends State<_ExpenseRow> {
   Timer? _debounce;
   bool _isUpdating = false;
 
+  String? baseCurrency;
   @override
   void initState() {
     super.initState();
 
+    final authState = context.read<AuthBloc>().state;
+    if(authState is AuthenticatedState){
+      baseCurrency = authState.loginData.company?.comLocalCcy;
+    }
     _narrationController =
         TextEditingController(text: widget.expense.narration);
 
@@ -288,12 +299,12 @@ class _ExpenseRowState extends State<_ExpenseRow> {
                 bloc: context.read<AccountsBloc>(),
                 fetchAllFunction: (bloc) => bloc.add(
                   LoadAccountsFilterEvent(
-                      include: "11,12", ccy: "USD", exclude: ""),
+                      include: "11,12", ccy: baseCurrency, exclude: ""),
                 ),
                 searchFunction: (bloc, query) => bloc.add(
                   LoadAccountsFilterEvent(
                     include: "11,12",
-                    ccy: "USD",
+                    ccy: baseCurrency,
                     input: query,
                     exclude: "",
                   ),

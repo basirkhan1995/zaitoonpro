@@ -1849,7 +1849,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get saleTitle => 'فروش';
 
   @override
-  String get newBalance => 'مانده جدید';
+  String get newBalance => 'بیلانس جدید';
 
   @override
   String get cashPaymentSubtitle => 'پرداخت کامل به صورت نقدی';

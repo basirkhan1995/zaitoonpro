@@ -53,8 +53,12 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
 
   // Total local amount (in account currency)
   double get totalLocalAmount {
-    if (exchangeRate == null || exchangeRate == 0) return grandTotal;
-    return items.fold(0.0, (sum, item) => sum + (item.localAmount ?? 0));
+    // If no exchange rate or exchange rate is 1, return grand total
+    if (exchangeRate == null || exchangeRate == 1.0) return grandTotal;
+
+    // Calculate directly from items using current exchange rate
+    // Don't rely on stored localAmount as it might be stale
+    return items.fold(0.0, (sum, item) => sum + (item.totalPurchase * exchangeRate!));
   }
 
   double get cashPayment {

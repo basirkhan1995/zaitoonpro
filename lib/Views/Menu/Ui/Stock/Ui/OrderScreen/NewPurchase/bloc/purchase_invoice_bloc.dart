@@ -48,14 +48,17 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
-      emit(current.copyWith(
+      // Update exchange rate
+      final newState = current.copyWith(
         exchangeRate: event.rate,
         fromCurrency: event.fromCurrency,
         toCurrency: event.toCurrency,
-      ));
+      );
 
-      // Update all local amounts immediately
-      add(UpdateAllLocalAmountsEvent());
+      emit(newState);
+
+      // Immediately trigger UI update for local amounts
+      // No need to call UpdateAllLocalAmountsEvent since getters calculate on the fly
     }
   }
 
@@ -92,18 +95,16 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             storageId: event.storageId ?? item.storageId,
             exchangeRate: current.exchangeRate ?? 1.0,
           );
-
-          // Calculate local amount immediately
-          final exchangeRate = current.exchangeRate ?? 1.0;
-          final localAmount = updatedItem.totalPurchase * exchangeRate;
-          return updatedItem.copyWith(localAmount: localAmount, exchangeRate: exchangeRate);
+          return updatedItem;
         }
         return item;
       }).toList();
 
+      // Emit with updated items - totalLocalAmount will be recalculated by getter
       emit(current.copyWith(items: updatedItems));
     }
   }
+
   void _onUpdateAllLocalAmounts(UpdateAllLocalAmountsEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -138,14 +139,14 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
         final parsedRate = double.tryParse(rate ?? "1.0") ?? 1.0;
 
+        // Emit immediately with the new rate
         emit(current.copyWith(
           exchangeRate: parsedRate,
           fromCurrency: event.fromCurrency,
           toCurrency: event.toCurrency,
         ));
 
-        // Update all local amounts immediately after rate is set
-        add(UpdateAllLocalAmountsEvent());
+        // No need to call UpdateAllLocalAmountsEvent since getters calculate on the fly
       } catch (e) {
         emit(PurchaseInvoiceError('Failed to fetch exchange rate: $e'));
         emit(current);

@@ -115,20 +115,24 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   void _onExchangeRateChanged(String value) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 400), () {
+    _debounce = Timer(const Duration(milliseconds: 300), () {
       final rate = double.tryParse(value.replaceAll(',', ''));
 
       if (rate != null && rate > 0) {
         final state = context.read<PurchaseInvoiceBloc>().state;
 
         if (state is PurchaseInvoiceLoaded && state.supplierAccount != null) {
-          context.read<PurchaseInvoiceBloc>().add(
-            UpdateExchangeRateManuallyEvent(
-              rate: rate,
-              fromCurrency: state.fromCurrency ?? baseCurrency ?? '',
-              toCurrency: state.toCurrency ?? state.supplierAccount!.actCurrency ?? '',
-            ),
-          );
+          // Only update if rate is actually different
+          if (state.exchangeRate != rate) {
+            // Update the exchange rate immediately
+            context.read<PurchaseInvoiceBloc>().add(
+              UpdateExchangeRateManuallyEvent(
+                rate: rate,
+                fromCurrency: state.fromCurrency ?? baseCurrency ?? '',
+                toCurrency: state.toCurrency ?? state.supplierAccount!.actCurrency ?? '',
+              ),
+            );
+          }
         }
       }
     });
@@ -920,12 +924,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       fontSize: 12,
                     ),
                 ] else if (current.paymentMode == PaymentMode.credit) ...[
-                  // _buildSummaryRow(
-                  //   label: tr.accountPayment,
-                  //   value: current.creditAmount,
-                  //   color: Colors.orange,
-                  //   currency: baseCurrency,
-                  // ),
                   if (current.supplierAccount != null && current.exchangeRate != null)
                     _buildSummaryRow(
                       label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
@@ -1012,29 +1010,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     ),
                     const SizedBox(height: 4),
                     _buildSummaryRow(
-                      label: tr.newBalance,
+                      label: "${tr.newBalance} | ${_getBalanceStatus(current.newBalance)}",
                       value: current.newBalance,
                       isBold: true,
                       color: _getBalanceColor(current.newBalance),
                       currency: current.supplierAccount!.actCurrency,
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(tr.status, style: const TextStyle(fontSize: 12)),
-                          Text(
-                            _getBalanceStatus(current.newBalance),
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: _getBalanceColor(current.newBalance),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
                   ],
                 ],

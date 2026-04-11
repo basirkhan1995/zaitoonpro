@@ -6327,6 +6327,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total QTY'**
   String get totalQty;
+
+  /// No description provided for @totalCostPludExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Cost (with Expenses)'**
+  String get totalCostPludExpenses;
+
+  /// No description provided for @creditAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Credit Amount'**
+  String get creditAmount;
 }
 
 class _AppLocalizationsDelegate

@@ -136,12 +136,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   @override
   void initState() {
     super.initState();
-
+    final authState = context.read<AuthBloc>().state;
+    if(authState is AuthenticatedState){
+      baseCurrency = authState.loginData.company?.comLocalCcy;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final authState = context.read<AuthBloc>().state;
-      if(authState is AuthenticatedState){
-       baseCurrency = authState.loginData.company?.comLocalCcy;
-      }
+
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
@@ -444,10 +444,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
                                   ),
                                 ),
-                                itemToString: (account) =>
-                                    '${account.accName} (${account.accNumber})',
-                                stateToLoading: (state) =>
-                                    state is AccountLoadingState,
+                                itemToString: (account) => '${account.accName} (${account.accNumber})',
+                                stateToLoading: (state) => state is AccountLoadingState,
                                 stateToItems: (state) {
                                   if (state is AccountLoadedState) {
                                     return state.accounts;
@@ -471,8 +469,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     final baseCurr = companyState.company.comLocalCcy ?? '';
                                     final accountCurrency = value.actCurrency ?? '';
 
-                                    if (baseCurr.isNotEmpty &&
-                                        accountCurrency.isNotEmpty &&
+                                    if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty &&
                                         baseCurr != accountCurrency) {
                                       // Fetch exchange rate
                                       context.read<PurchaseInvoiceBloc>().add(
@@ -674,7 +671,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
           SizedBox(width: 100, child: Text(locale.totalQty, style: title)),
           SizedBox(width: 150, child: Text("${locale.unitPrice} ($baseCurrency)", style: title)),
-          SizedBox(width: 150, child: Text("${locale.totalTitle} ($accountCcy)", style: title)),
+          SizedBox(width: 150, child: Text("${locale.totalTitle} (${accountCcy??baseCurrency})", style: title)),
           SizedBox(width: 150, child: Text(locale.salePercentage, style: title),),
           SizedBox(width: 150, child: Text("${locale.landedPrice} ($baseCurrency)", style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
@@ -829,22 +826,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
                 // Show exchange rate info
                 if (needsConversion) ...[
-                  Container(
+                  ZCover(
                     padding: const EdgeInsets.all(8),
+                    radius: 4,
                     margin: const EdgeInsets.only(bottom: 8),
-                    decoration: BoxDecoration(
-                      color: current.exchangeRate != null
-                          ? Colors.green.shade50
-                          : Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           current.exchangeRate != null
-                              ? '1 ${current.fromCurrency} = ${current.exchangeRate?.toStringAsFixed(4)} ${current.toCurrency}'
-                              : 'Fetching rate...',
+                              ? '1 ${current.fromCurrency} = ${current.exchangeRate?.toAmount(decimal: 6)} ${current.toCurrency}'
+                              : tr.loadingTitle,
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -889,7 +881,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   Divider(color: color.outline.withValues(alpha: .2)),
                   const SizedBox(height: 4),
                   _buildSummaryRow(
-                    label: "Total (${current.supplierAccount!.actCurrency})",
+                    label: "${tr.totalTitle} (${current.supplierAccount!.actCurrency})",
                     value: current.totalLocalAmount,
                     isBold: true,
                     color: Colors.purple,
@@ -901,7 +893,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 if (totalExpenses > 0) ...[
                   const SizedBox(height: 4),
                   _buildSummaryRow(
-                    label: "Total Cost (with Expenses)",
+                    label: tr.totalCostPludExpenses,
                     value: current.grandTotal + totalExpenses,
                     isBold: true,
                     color: Colors.purple,
@@ -919,7 +911,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                   if (current.supplierAccount != null && current.exchangeRate != null)
                     _buildSummaryRow(
-                      label: "Cash Payment (${current.supplierAccount!.actCurrency})",
+                      label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.cashPaymentLocal,
                       color: Colors.green,
                       currency: current.supplierAccount!.actCurrency,
@@ -934,7 +926,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                   if (current.supplierAccount != null && current.exchangeRate != null)
                     _buildSummaryRow(
-                      label: "Credit Payment (${current.supplierAccount!.actCurrency})",
+                      label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.creditAmountLocal,
                       color: Colors.orange,
                       currency: current.supplierAccount!.actCurrency,
@@ -957,14 +949,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     const SizedBox(height: 4),
                     Divider(color: color.outline.withValues(alpha: .2)),
                     _buildSummaryRow(
-                      label: "Credit Payment (${current.supplierAccount!.actCurrency})",
+                      label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.creditAmountLocal,
                       color: Colors.orange,
                       currency: current.supplierAccount!.actCurrency,
                       fontSize: 12,
                     ),
                     _buildSummaryRow(
-                      label: "Cash Payment (${current.supplierAccount!.actCurrency})",
+                      label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.cashPaymentLocal,
                       color: Colors.green,
                       currency: current.supplierAccount!.actCurrency,
@@ -1212,9 +1204,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ZTextFieldEntitled(
-                    title: "Credit Amount",
+                    title: tr.creditAmount,
                     controller: controller,
-                    hint: "Enter credit amount",
+                    hint: tr.amount,
                     inputFormat: [SmartThousandsDecimalFormatter()],
                     onChanged: (_) => setState(() {}),
                   ),
@@ -1230,7 +1222,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
                         const Divider(height: 20),
 
-                        _amountRow("Credit", credit, color: Colors.orange),
+                        _amountRow(tr.creditTitle, credit, color: Colors.orange),
 
                         const SizedBox(height: 6),
 
@@ -1282,14 +1274,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     required VoidCallback onTap,
   }) {
     return InkWell(
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(8),
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.symmetric(vertical: 6),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: selected
                 ? color.primary
@@ -1694,7 +1686,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       // Force recalculation if exchange rate changed
       final state = context.read<PurchaseInvoiceBloc>().state;
       if (state is PurchaseInvoiceLoaded && state.exchangeRate != null) {
-        final calculatedAmount = widget.item.totalPurchase * state.exchangeRate!;
+        final calculatedAmount = widget.item.purchasePrice * state.exchangeRate!;
         final newText = calculatedAmount > 0 ? calculatedAmount.toAmount() : '';
         if (_localAmountController.text != newText) {
           _localAmountController.text = newText;

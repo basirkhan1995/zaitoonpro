@@ -3193,4 +3193,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get totalQty => 'مقدار کل';
+
+  @override
+  String get totalCostPludExpenses => 'مجموعه + مصارف';
+
+  @override
+  String get creditAmount => 'کریدت مبلغ';
 }

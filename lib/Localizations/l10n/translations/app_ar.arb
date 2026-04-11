@@ -1057,5 +1057,7 @@
   "localeAmount": "قیمت محلی",
   "brandTitle": "برند",
   "modelTitle": "مدل",
-  "totalQty": "مقدار کل"
+  "totalQty": "مقدار کل",
+  "totalCostPludExpenses": "مجموعه + مصارف",
+  "creditAmount": "کریدت مبلغ"
 }

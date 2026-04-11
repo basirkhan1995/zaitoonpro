@@ -3200,4 +3200,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalQty => 'Total QTY';
+
+  @override
+  String get totalCostPludExpenses => 'Total Cost (with Expenses)';
+
+  @override
+  String get creditAmount => 'Credit Amount';
 }

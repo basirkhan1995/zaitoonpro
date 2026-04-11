@@ -29,11 +29,18 @@ class PurchaseInvoiceItem {
 
   double get totalQty => qty.toDouble() * stkBatch;
 
+  double get purchasePrice => (purPrice??0);
+
   double get totalPurchase => totalQty * (purPrice ?? 0);
 
   double get totalLocalAmount {
     final rate = exchangeRate ?? 1.0;
     return totalPurchase * rate;
+  }
+
+  double get singleLocalAmount {
+    final rate = exchangeRate ?? 1.0;
+    return (purPrice ?? 0) * rate;
   }
 
   PurchaseInvoiceItem copyWith({

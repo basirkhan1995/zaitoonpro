@@ -1057,5 +1057,7 @@
   "localeAmount": "Local Amount",
   "brandTitle": "Brand",
   "modelTitle": "Model",
-  "totalQty": "Total QTY"
+  "totalQty": "Total QTY",
+  "totalCostPludExpenses": "Total Cost (with Expenses)",
+  "creditAmount": "Credit Amount"
 }

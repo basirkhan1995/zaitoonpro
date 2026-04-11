@@ -800,26 +800,6 @@ class InvoicePrintService extends PrintServices {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                // Exchange Rate Info (if currencies are different)
-                if (needsConversion) ...[
-                  pw.Row(
-                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                    children: [
-                      zText(
-                        text: '${tr(text: 'exchangeRate', tr: language)} (1 $baseCurrency = ? $localCurrency)',
-                        fontSize: 9,
-                        fontWeight: pw.FontWeight.bold,
-                      ),
-                      zText(
-                        text: exchangeRate.toStringAsFixed(4),
-                        fontSize: 9,
-                        fontWeight: pw.FontWeight.bold,
-                        color: pw.PdfColors.orange700,
-                      ),
-                    ],
-                  ),
-                  pw.SizedBox(height: 5),
-                ],
 
                 // Grand Total (in base currency)
                 pw.Row(
@@ -839,19 +819,39 @@ class InvoicePrintService extends PrintServices {
                   ],
                 ),
 
-                // Total Local Amount (in supplier's currency)
-                if (showLocalSummary) ...[
-                  pw.SizedBox(height: 3),
+                // Exchange Rate Info (if currencies are different)
+                if (needsConversion) ...[
                   pw.Row(
                     mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                     children: [
                       zText(
-                        text: '${tr(text: 'totalLocalAmount', tr: language)} ($localCurrency)',
+                        text: tr(text: 'exchangeRate', tr: language),
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                      zText(
+                        text: "1 $baseCurrency = ${exchangeRate.toStringAsFixed(4)} $localCurrency",
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: pw.PdfColors.orange700,
+                      ),
+                    ],
+                  ),
+                  pw.SizedBox(height: 5),
+                ],
+
+                // Total Local Amount (in supplier's currency)
+                if (showLocalSummary) ...[
+                  pw.Row(
+                    mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                    children: [
+                      zText(
+                        text: tr(text: 'total', tr: language),
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                       ),
                       zText(
-                        text: totalLocalAmount?.toAmount() ?? '0.00',
+                        text: "${totalLocalAmount?.toAmount() ?? '0.00'} $localCurrency",
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                         color: pw.PdfColors.purple700,

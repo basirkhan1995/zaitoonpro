@@ -989,6 +989,12 @@ abstract class PrintServices {
         'fa': 'پرداخت دفتر کل',
         'ar': 'پرداخت دفتر کل',
       },
+      'exchangeRate': {
+        'en': 'Exchange Rate',
+        'fa': 'نرخ تبادله',
+        'ar': 'تبادله نرخ',
+      },
+
       'GLCR': {
         'en': 'General Ledger Credit',
         'fa': 'دریافت دفتر کل',

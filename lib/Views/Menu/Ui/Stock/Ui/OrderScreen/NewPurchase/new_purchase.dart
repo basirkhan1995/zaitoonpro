@@ -834,7 +834,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(tr.exchangeRate),
+                        Text(tr.exchangeRate,style: Theme.of(context).textTheme.titleSmall),
                         Directionality(
                           textDirection: TextDirection.ltr,
                           child: Text(
@@ -844,9 +844,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: current.exchangeRate != null
-                                  ? Colors.green.shade900
-                                  : Colors.orange.shade900,
                             ),
                           ),
                         ),
@@ -923,19 +920,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       fontSize: 12,
                     ),
                 ] else if (current.paymentMode == PaymentMode.credit) ...[
-                  _buildSummaryRow(
-                    label: tr.accountPayment,
-                    value: current.creditAmount,
-                    color: Colors.orange,
-                    currency: baseCurrency,
-                  ),
+                  // _buildSummaryRow(
+                  //   label: tr.accountPayment,
+                  //   value: current.creditAmount,
+                  //   color: Colors.orange,
+                  //   currency: baseCurrency,
+                  // ),
                   if (current.supplierAccount != null && current.exchangeRate != null)
                     _buildSummaryRow(
                       label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.creditAmountLocal,
                       color: Colors.orange,
                       currency: current.supplierAccount!.actCurrency,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                 ] else if (current.paymentMode == PaymentMode.mixed) ...[
                   _buildSummaryRow(

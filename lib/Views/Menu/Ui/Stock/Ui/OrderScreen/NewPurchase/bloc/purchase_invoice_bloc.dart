@@ -466,7 +466,17 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
 
     final current = state as PurchaseInvoiceLoaded;
-    final savedState = current.copyWith();
+
+    // CRITICAL FIX: Create a deep copy of the state with ALL data preserved
+    final savedState = current.copyWith(
+      items: current.items.map((item) => item.copyWith(
+        localAmount: item.localAmount,
+        exchangeRate: current.exchangeRate,
+      )).toList(),
+      exchangeRate: current.exchangeRate,
+      fromCurrency: current.fromCurrency,
+      toCurrency: current.toCurrency,
+    );
 
     // Validation
     if (current.supplier == null) {
@@ -533,9 +543,12 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
     }
 
-    // Emit saving state
+    // Emit saving state - PRESERVE exchange rate and local amounts
     emit(PurchaseInvoiceSaving(
-      items: current.items,
+      items: current.items.map((item) => item.copyWith(
+        localAmount: item.localAmount,
+        exchangeRate: current.exchangeRate,
+      )).toList(),
       supplier: current.supplier,
       expenses: current.expenses,
       supplierAccount: current.supplierAccount,
@@ -551,19 +564,20 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       switch (current.paymentMode) {
         case PaymentMode.cash:
           accountNumber = 0;
-          amountToSend = 0.0; // No credit to account
+          amountToSend = 0.0;
           break;
 
         case PaymentMode.credit:
           accountNumber = current.supplierAccount!.accNumber;
-          amountToSend = current.grandTotal; // All amount as credit
+          amountToSend = current.grandTotal;
           break;
 
         case PaymentMode.mixed:
           accountNumber = current.supplierAccount!.accNumber;
-          amountToSend = current.creditAmount; // Credit portion to account
+          amountToSend = current.creditAmount;
           break;
       }
+
       final records = current.items.map((item) {
         return PurchaseInvoiceRecord(
           proID: int.tryParse(item.productId) ?? 0,
@@ -606,21 +620,34 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             response['ordID']?.toString() ??
             'Generated';
 
-        // FIX: Create a copy of the current state to preserve for printing
-        final invoiceData = current.copyWith();
+        // CRITICAL FIX: Create a complete copy of the current state with ALL data preserved
+        final invoiceData = PurchaseInvoiceLoaded(
+          items: current.items.map((item) => item.copyWith(
+            localAmount: item.localAmount,
+            exchangeRate: current.exchangeRate,
+          )).toList(),
+          expenses: current.expenses,
+          supplier: current.supplier,
+          supplierAccount: current.supplierAccount,
+          payment: current.payment,
+          paymentMode: current.paymentMode,
+          storages: current.storages,
+          exchangeRate: current.exchangeRate,
+          fromCurrency: current.fromCurrency,
+          toCurrency: current.toCurrency,
+        );
 
-        // Emit saved state WITH the invoice data
+        // Emit saved state WITH the complete invoice data
         emit(PurchaseInvoiceSaved(
           true,
           invoiceNumber: invoiceNumber,
-          invoiceData: invoiceData, // Pass the preserved data
+          invoiceData: invoiceData, // Pass the complete preserved data
         ));
 
         // Complete the completer with invoice number
         event.completer.complete(invoiceNumber);
 
         // Reset the form after a microtask delay to allow UI to handle printing
-        // This ensures the saved state is processed first
         Future.microtask(() {
           if (!emit.isDone) {
             add(ResetPurchaseInvoiceEvent());
@@ -662,7 +689,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       event.completer.complete('');
     }
   }
-
   Future<void> _onLoadStorages(LoadPurchaseStoragesEvent event, Emitter<PurchaseInvoiceState> emit) async {
     try {
       if (state is PurchaseInvoiceLoaded) {

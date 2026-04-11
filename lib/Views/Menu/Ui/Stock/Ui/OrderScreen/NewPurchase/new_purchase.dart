@@ -973,12 +973,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ],
                 ],
 
-                const SizedBox(height: 4),
-                Divider(color: color.outline.withValues(alpha: .2)),
-                const SizedBox(height: 4),
+
 
                 // Account Information
                 if (current.supplierAccount != null) ...[
+                  const SizedBox(height: 4),
+                  Divider(color: color.outline.withValues(alpha: .2)),
+                  const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Row(

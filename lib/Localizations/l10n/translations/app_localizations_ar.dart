@@ -3165,7 +3165,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get batchTitle => 'مقدار';
 
   @override
-  String get landedPrice => 'تمام شوی قیمت';
+  String get landedPrice => 'تمامشوی قیمت';
 
   @override
   String get warehouse => 'گدام';

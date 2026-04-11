@@ -3162,7 +3162,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get batchTitle => 'مقدار';
 
   @override
-  String get landedPrice => 'قیمت تمام‌شده';
+  String get landedPrice => 'قیمت تمامشد';
 
   @override
   String get warehouse => 'انبار';

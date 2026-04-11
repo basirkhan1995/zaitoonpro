@@ -33,14 +33,20 @@ class PurchaseInvoiceItem {
 
   double get totalPurchase => totalQty * (purPrice ?? 0);
 
-  double get totalLocalAmount {
-    final rate = exchangeRate ?? 1.0;
-    return totalPurchase * rate;
-  }
-
+  // Single item local amount = purchase price * exchange rate
   double get singleLocalAmount {
     final rate = exchangeRate ?? 1.0;
     return (purPrice ?? 0) * rate;
+  }
+
+  // Method to update local amount based on current exchange rate
+  void updateLocalAmount(double? exchangeRateValue) {
+    exchangeRate = exchangeRateValue;
+    if (purPrice != null && exchangeRate != null) {
+      localAmount = purPrice! * exchangeRate!;
+    } else {
+      localAmount = null;
+    }
   }
 
   PurchaseInvoiceItem copyWith({

@@ -671,7 +671,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
           SizedBox(width: 100, child: Text(locale.totalQty, style: title)),
           SizedBox(width: 150, child: Text("${locale.unitPrice} ($baseCurrency)", style: title)),
-          SizedBox(width: 150, child: Text("${locale.totalTitle} (${accountCcy??baseCurrency})", style: title)),
+          SizedBox(width: 150, child: Text("${locale.amount} (${accountCcy??baseCurrency})", style: title)),
           SizedBox(width: 150, child: Text(locale.salePercentage, style: title),),
           SizedBox(width: 150, child: Text("${locale.landedPrice} ($baseCurrency)", style: title)),
           SizedBox(width: 180, child: Text(locale.storage, style: title)),
@@ -1619,7 +1619,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _landedPriceController;
   late TextEditingController _storageController;
   late TextEditingController _localAmountController;
-
+  double? _lastExchangeRate;
+  double? _lastPurPrice;
   @override
   void initState() {
     super.initState();
@@ -1632,17 +1633,59 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _localAmountController = TextEditingController(
       text: _getLocalAmountText(),
     );
+    _lastExchangeRate = _getCurrentExchangeRate();
+    _lastPurPrice = widget.item.purPrice;
+  }
+
+  double? _getCurrentExchangeRate() {
+    final state = context.read<PurchaseInvoiceBloc>().state;
+    if (state is PurchaseInvoiceLoaded) {
+      return state.exchangeRate;
+    }
+    return null;
+  }
+
+  void _updateLocalAmount() {
+    final currentExchangeRate = _getCurrentExchangeRate();
+    final currentPurPrice = widget.item.purPrice;
+
+    // Check if exchange rate or purchase price changed
+    if (_lastExchangeRate != currentExchangeRate || _lastPurPrice != currentPurPrice) {
+      _lastExchangeRate = currentExchangeRate;
+      _lastPurPrice = currentPurPrice;
+
+      // Calculate new local amount
+      double? newLocalAmount;
+      if (currentPurPrice != null && currentExchangeRate != null) {
+        newLocalAmount = currentPurPrice * currentExchangeRate;
+      }
+
+      // Update the local amount text
+      final newText = (newLocalAmount != null && newLocalAmount > 0)
+          ? newLocalAmount.toAmount()
+          : '';
+
+      if (_localAmountController.text != newText) {
+        _localAmountController.text = newText;
+
+        // Also update the item's localAmount if needed
+        if (widget.item.localAmount != newLocalAmount) {
+          widget.item.localAmount = newLocalAmount;
+        }
+      }
+    }
   }
 
   String _getLocalAmountText() {
+    // First check if item has localAmount stored
     if (widget.item.localAmount != null && widget.item.localAmount! > 0) {
       return widget.item.localAmount!.toAmount();
     }
 
-    // Calculate on the fly if not set
-    final state = context.read<PurchaseInvoiceBloc>().state;
-    if (state is PurchaseInvoiceLoaded && state.exchangeRate != null) {
-      final calculatedAmount = widget.item.totalPurchase * state.exchangeRate!;
+    // Calculate from current values
+    final exchangeRate = _getCurrentExchangeRate();
+    if (widget.item.purPrice != null && exchangeRate != null && exchangeRate > 0) {
+      final calculatedAmount = widget.item.purPrice! * exchangeRate;
       if (calculatedAmount > 0) {
         return calculatedAmount.toAmount();
       }
@@ -1671,28 +1714,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
-    // Update local amount - CRITICAL FIX
-    final oldLocalAmount = oldWidget.item.localAmount;
-    final newLocalAmount = widget.item.localAmount;
-
-    if (oldLocalAmount != newLocalAmount) {
-      final newText = newLocalAmount != null && newLocalAmount > 0
-          ? newLocalAmount.toAmount()
-          : '';
-      if (_localAmountController.text != newText) {
-        _localAmountController.text = newText;
-      }
-    } else {
-      // Force recalculation if exchange rate changed
-      final state = context.read<PurchaseInvoiceBloc>().state;
-      if (state is PurchaseInvoiceLoaded && state.exchangeRate != null) {
-        final calculatedAmount = widget.item.purchasePrice * state.exchangeRate!;
-        final newText = calculatedAmount > 0 ? calculatedAmount.toAmount() : '';
-        if (_localAmountController.text != newText) {
-          _localAmountController.text = newText;
-        }
-      }
-    }
+    // Update local amount whenever anything changes
+    _updateLocalAmount();
   }
 
   @override
@@ -1912,7 +1935,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 child: TextField(
                   controller: _localAmountController,
                   decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.totalAmount,
+                    hintText: AppLocalizations.of(context)!.amount,
                     border: InputBorder.none,
                     isDense: true,
                   ),

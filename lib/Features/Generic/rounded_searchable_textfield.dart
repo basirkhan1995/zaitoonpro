@@ -329,14 +329,14 @@ class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericT
           borderRadius: BorderRadius.circular(3),
           borderSide: BorderSide(
             color: Theme.of(context).colorScheme.primary,
-            width: 2,
+            width: 1.5,
           ),
         );
       case TextFieldStyle.underline:
-        return const UnderlineInputBorder(
+        return UnderlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.blue,
-            width: 2,
+            color: Theme.of(context).colorScheme.primary,
+            width: 1.5,
           ),
         );
       case TextFieldStyle.noBorder:

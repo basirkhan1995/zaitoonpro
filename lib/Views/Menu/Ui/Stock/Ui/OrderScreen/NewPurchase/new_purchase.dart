@@ -1485,7 +1485,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         batch: item.stkBatch,
         total: item.totalPurchase,
         storageName: item.storageName,
-        localAmount: item.localAmount, // Single item local amount (unit price * exchange rate)
+        localAmount: item.singleLocalAmount, // Single item local amount (unit price * exchange rate)
         localCurrency: current?.supplierAccount?.actCurrency ?? current?.toCurrency,
         exchangeRate: current?.exchangeRate, // Pass exchange rate
       );

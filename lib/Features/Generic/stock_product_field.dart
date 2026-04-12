@@ -580,7 +580,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                             _buildKeyHint(
                                               context,
                                               '↑↓',
-                                              'Navigate',
+                                              AppLocalizations.of(context)!.navigateTitle,
                                             ),
                                             const SizedBox(width: 16),
                                             _buildKeyHint(
@@ -744,31 +744,25 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  '${tr.codeTitle}: ${widget.getProductCode(product) ?? 'N/A'}',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                    fontSize: 11,
-                  ),
-                ),
-                const SizedBox(height: 3),
                 Wrap(
                   spacing: 8,
                   children: [
-                    _buildInfoChip(
-                      context,
-                      icon: Icons.numbers,
-                      label:
-                      '${tr.batchTitle}: ${widget.getStorageId(product)?.toString() ?? 'N/A'}',
-                    ),
                     _buildInfoChip(
                       context,
                       icon: Icons.store,
                       label:
                       '${tr.storage}: ${widget.getStorageName(product) ?? 'N/A'}',
                     ),
+                    _buildInfoChip(
+                      context,
+                      icon: Icons.numbers,
+                      label:
+                      '${tr.codeTitle}: ${widget.getProductCode(product) ?? 'N/A'}',
+                    ),
+
                   ],
                 ),
+
               ],
             ),
           ),
@@ -856,12 +850,12 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: Theme.of(context).colorScheme.primary),
+          Icon(icon, size: 15, color: Theme.of(context).colorScheme.primary),
           const SizedBox(width: 2),
           Text(
             label,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: 10,
+              fontSize: 12,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),

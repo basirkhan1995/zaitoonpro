@@ -591,7 +591,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             },
                           ),
                         ),
-
                       ],
                       const SizedBox(width: 4),
                       Expanded(

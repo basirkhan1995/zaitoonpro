@@ -20,7 +20,6 @@ import '../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../Features/Other/zForm_dialog.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
-import '../../../../../../../Features/Widgets/button.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -46,6 +45,7 @@ class NewSaleView extends StatelessWidget {
     );
   }
 }
+
 class _DesktopNewSaleView extends StatefulWidget {
   const _DesktopNewSaleView();
 
@@ -80,10 +80,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     if (companyState is AuthenticatedState) {
       final auth = companyState.loginData;
       baseCurrency = auth.company?.comLocalCcy ?? "";
-      company.comName = auth.company?.comName??"";
-      company.comAddress = auth.company?.comAddress??"";
-      company.compPhone = auth.company?.comPhone??"";
-      company.comEmail = auth.company?.comEmail??"";
+      company.comName = auth.company?.comName ?? "";
+      company.comAddress = auth.company?.comAddress ?? "";
+      company.compPhone = auth.company?.comPhone ?? "";
+      company.comEmail = auth.company?.comEmail ?? "";
       company.statementDate = DateTime.now().toFullDateTime;
       final base64Logo = auth.company?.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
@@ -129,7 +129,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     }
 
     final login = state.loginData;
-    _userName = login.usrName??"";
+    _userName = login.usrName ?? "";
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -140,25 +140,40 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       child: BlocListener<SaleInvoiceBloc, SaleInvoiceState>(
         listener: (context, state) {
           if (state is SaleInvoiceError) {
-            ToastManager.show(context: context,title: tr.errorTitle, message: state.message, type: ToastType.error);
+            ToastManager.show(
+              context: context,
+              title: tr.errorTitle,
+              message: state.message,
+              type: ToastType.error,
+            );
           }
           if (state is SaleInvoiceSaved) {
             Navigator.of(context).pop();
             if (state.success) {
               // Store the invoice number first
               String? savedInvoiceNumber = state.invoiceNumber;
-              ToastManager.show(context: context, title:  tr.successTitle, message: tr.successPurchaseInvoiceMsg, type: ToastType.success);
+              ToastManager.show(
+                context: context,
+                title: tr.successTitle,
+                message: tr.successPurchaseInvoiceMsg,
+                type: ToastType.success,
+              );
               _accountController.clear();
               _personController.clear();
               _xRefController.clear();
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onSalePrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
-              Utils.showOverlayMessage(context, message: "Failed to create invoice", isError: true);
+              Utils.showOverlayMessage(
+                context,
+                message: "Failed to create invoice",
+                isError: true,
+              );
             }
           }
 
@@ -172,67 +187,76 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
+            titleSpacing: 0,
             title: Text(tr.saleEntry),
-            actionsPadding: EdgeInsets.symmetric(horizontal: 15),
+            actionsPadding: EdgeInsets.symmetric(horizontal: 18),
             actions: [
-              if(_accountController.text.isNotEmpty)...[
+              if (_accountController.text.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 ZOutlineButton(
-                  width: 140,
                   icon: Icons.alarm_rounded,
-                  onPressed: (){
-                    showDialog(context: context, builder: (context){
-                      return AddEditReminderView(
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AddEditReminderView(
                           accNumber: _selectedAccountNumber,
                           dueParameter: "Receivable",
-                          isEnable: true);
-                    });
+                          isEnable: true,
+                        );
+                      },
+                    );
                   },
                   label: Text(tr.setReminder),
                 ),
               ],
               const SizedBox(width: 8),
               ZOutlineButton(
-                height: 48,
                 icon: Icons.refresh,
-                onPressed: (){
-                  context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
+                onPressed: () {
+                  context.read<SaleInvoiceBloc>().add(
+                    InitializeSaleInvoiceEvent(),
+                  );
                 },
                 label: Text(tr.newSale),
               ),
               const SizedBox(width: 8),
               ZOutlineButton(
-                width: 100,
                 icon: FontAwesomeIcons.solidFilePdf,
                 onPressed: () => _onSalePrint(invoiceNumber: null),
                 label: Text("PDF"),
               ),
               const SizedBox(width: 8),
               BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                  builder: (context, state) {
-                    if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                      final current = state is SaleInvoiceSaving ?
-                      state : (state as SaleInvoiceLoaded);
-                      final isSaving = state is SaleInvoiceSaving;
+                builder: (context, state) {
+                  if (state is SaleInvoiceLoaded ||
+                      state is SaleInvoiceSaving) {
+                    final current = state is SaleInvoiceSaving
+                        ? state
+                        : (state as SaleInvoiceLoaded);
+                    final isSaving = state is SaleInvoiceSaving;
 
-                      return ZButton(
-                        width: 100,
-                        onPressed: (isSaving || !current.isFormValid) ? null : () => _saveInvoice(context, current),
-                        label: isSaving
-                            ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.surface,
-                          ),
-                        )
-                            : Text(tr.saveTitle),
-                      );
-                    }
-                    return const SizedBox();
+                    return ZOutlineButton(
+                      isActive: true,
+                      icon: Icons.save_rounded,
+                      onPressed: (isSaving || !current.isFormValid)
+                          ? null
+                          : () => _saveInvoice(context, current),
+                      label: isSaving
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.surface,
+                              ),
+                            )
+                          : Text(tr.saveTitle),
+                    );
                   }
-              )
+                  return const SizedBox();
+                },
+              ),
             ],
           ),
           body: Form(
@@ -242,48 +266,65 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   // Customer and Account Selection
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Expanded(
-                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
-                          key: const ValueKey('person_field'),
-                          controller: _personController,
-                          title: tr.customer,
-                          hintText: tr.customer,
-                          isRequired: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return tr.required(tr.customer);
-                            }
-                            return null;
-                          },
-                          bloc: context.read<IndividualsBloc>(),
-                          fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
-                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
-                          itemBuilder: (context, ind) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
-                          ),
-                          itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                          stateToLoading: (state) => state is IndividualLoadingState,
-                          stateToItems: (state) {
-                            if (state is IndividualLoadedState) return state.individuals;
-                            return [];
-                          },
-                          onSelected: (value) {
-                            _personController.text = "${value.perName} ${value.perLastName}";
-                            context.read<SaleInvoiceBloc>().add(SelectCustomerEvent(value));
-                            context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
-                            setState(() {
-                              signatory = value.perId;
-                            });
-                          },
-                          showClearButton: true,
-                        ),
+                        child:
+                            GenericTextfield<
+                              IndividualsModel,
+                              IndividualsBloc,
+                              IndividualsState
+                            >(
+                              key: const ValueKey('person_field'),
+                              controller: _personController,
+                              title: tr.customer,
+                              hintText: tr.customer,
+                              isRequired: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return tr.required(tr.customer);
+                                }
+                                return null;
+                              },
+                              bloc: context.read<IndividualsBloc>(),
+                              fetchAllFunction: (bloc) =>
+                                  bloc.add(const LoadIndividualsEvent()),
+                              searchFunction: (bloc, query) =>
+                                  bloc.add(LoadIndividualsEvent(search: query)),
+                              itemBuilder: (context, ind) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                                ),
+                              ),
+                              itemToString: (individual) =>
+                                  "${individual.perName} ${individual.perLastName}",
+                              stateToLoading: (state) =>
+                                  state is IndividualLoadingState,
+                              stateToItems: (state) {
+                                if (state is IndividualLoadedState) {
+                                  return state.individuals;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                _personController.text =
+                                    "${value.perName} ${value.perLastName}";
+                                context.read<SaleInvoiceBloc>().add(
+                                  SelectCustomerEvent(value),
+                                );
+                                context.read<AccountsBloc>().add(
+                                  LoadAccountsEvent(ownerId: value.perId),
+                                );
+                                setState(() {
+                                  signatory = value.perId;
+                                });
+                              },
+                              showClearButton: true,
+                            ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -291,87 +332,164 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           builder: (context, state) {
                             if (state is SaleInvoiceLoaded) {
                               final current = state;
-                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              return GenericTextfield<
+                                AccountsModel,
+                                AccountsBloc,
+                                AccountsState
+                              >(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
                                 hintText: tr.selectAccount,
-                                isRequired: current.paymentMode != PaymentMode.cash,
+                                isRequired:
+                                    current.paymentMode != PaymentMode.cash,
                                 validator: (value) {
-                                  if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                  if (current.paymentMode != PaymentMode.cash &&
+                                      (value == null || value.isEmpty)) {
                                     return tr.selectCreditAccountMsg;
                                   }
                                   return null;
                                 },
                                 bloc: context.read<AccountsBloc>(),
-                                fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                fetchAllFunction: (bloc) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
+                                searchFunction: (bloc, query) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
                                 itemBuilder: (context, account) => ListTile(
-                                  visualDensity: VisualDensity(vertical: -4,horizontal: -4),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 5),
+                                  visualDensity: VisualDensity(
+                                    vertical: -4,
+                                    horizontal: -4,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                  ),
                                   title: Text(account.accName ?? ''),
                                   subtitle: Text('${account.accNumber}'),
                                   trailing: Column(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Text(tr.balance,style: Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.outline)),
-                                      Text("${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",style: Theme.of(context).textTheme.titleSmall,),
+                                      Text(
+                                        tr.balance,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleSmall
+                                            ?.copyWith(
+                                              color: Theme.of(
+                                                context,
+                                              ).colorScheme.outline,
+                                            ),
+                                      ),
+                                      Text(
+                                        "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleSmall,
+                                      ),
                                     ],
                                   ),
                                 ),
-                                itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                stateToLoading: (state) => state is AccountLoadingState,
+                                itemToString: (account) =>
+                                    '${account.accName} (${account.accNumber})',
+                                stateToLoading: (state) =>
+                                    state is AccountLoadingState,
                                 stateToItems: (state) {
-                                  if (state is AccountLoadedState) return state.accounts;
+                                  if (state is AccountLoadedState) {
+                                    return state.accounts;
+                                  }
                                   return [];
                                 },
                                 onSelected: (value) {
                                   setState(() {
-                                    _accountController.text = '${value.accName} (${value.accNumber})';
+                                    _accountController.text =
+                                        '${value.accName} (${value.accNumber})';
                                     _selectedAccountNumber = value.accNumber;
                                   });
-                                  context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                  context.read<SaleInvoiceBloc>().add(
+                                    SelectCustomerAccountEvent(value),
+                                  );
                                 },
                                 showClearButton: true,
                               );
                             }
-                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            return GenericTextfield<
+                              AccountsModel,
+                              AccountsBloc,
+                              AccountsState
+                            >(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
                               hintText: tr.selectAccount,
                               isRequired: false,
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  include: '8',
+                                  exclude: '',
+                                ),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
                                   input: query,
                                   include: '8',
-                                  exclude: ''
-                              )),
+                                  exclude: '',
+                                ),
+                              ),
                               itemBuilder: (context, account) => ListTile(
                                 title: Text(account.accName ?? ''),
-                                subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                subtitle: Text(
+                                  '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                                ),
                                 trailing: Text(account.actCurrency ?? ""),
                               ),
-                              itemToString: (account) => '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) => state is AccountLoadingState,
+                              itemToString: (account) =>
+                                  '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) =>
+                                  state is AccountLoadingState,
                               stateToItems: (state) {
-                                if (state is AccountLoadedState) return state.accounts;
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
                                 return [];
                               },
                               onSelected: (value) {
                                 setState(() {
-                                  _accountController.text = value.accNumber.toString();
+                                  _accountController.text = value.accNumber
+                                      .toString();
                                 });
-                                context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                context.read<SaleInvoiceBloc>().add(
+                                  SelectCustomerAccountEvent(value),
+                                );
                               },
                               showClearButton: true,
                             );
                           },
                         ),
                       ),
-
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: ZTextFieldEntitled(
+                          showClearButton: true,
+                          //  controller: _exchangeRateController,
+                          title: tr.exchangeRate,
+                          inputFormat: [
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'^\d*\.?\d{0,6}'),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        flex: 2,
+                        child: ZTextFieldEntitled(
+                          //controller: _remark,
+                          title: tr.remark,
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 10),
@@ -384,15 +502,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   Expanded(
                     child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                       builder: (context, state) {
-                        if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                          final current = state is SaleInvoiceSaving ?
-                          state : (state as SaleInvoiceLoaded);
+                        if (state is SaleInvoiceLoaded ||
+                            state is SaleInvoiceSaving) {
+                          final current = state is SaleInvoiceSaving
+                              ? state
+                              : (state as SaleInvoiceLoaded);
                           _synchronizeFocusNodes(current.items.length);
                           return ListView.builder(
                             itemCount: current.items.length,
                             itemBuilder: (context, index) {
                               final item = current.items[index];
-                              final isLastRow = index == current.items.length - 1;
+                              final isLastRow =
+                                  index == current.items.length - 1;
                               final nodes = _rowFocusNodes[index];
 
                               return _buildItemRow(
@@ -423,7 +544,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
+    TextStyle? title = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
@@ -433,17 +556,20 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       ),
       child: Row(
         children: [
-          SizedBox(width: 25, child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5.0),
-            child: Text('#', style: title),
-          )),
+          SizedBox(
+            width: 25,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              child: Text('#', style: title),
+            ),
+          ),
           Expanded(child: Text(locale.products, style: title)),
           SizedBox(width: 80, child: Text(locale.qty, style: title)),
-          SizedBox(width: 80, child: Text(locale.pcs, style: title)),
+          SizedBox(width: 80, child: Text(locale.batchTitle, style: title)),
+          SizedBox(width: 80, child: Text(locale.unit, style: title)),
           SizedBox(width: 120, child: Text(locale.unitPrice, style: title)),
           SizedBox(width: 120, child: Text(locale.discountTitle, style: title)),
           SizedBox(width: 120, child: Text(locale.totalTitle, style: title)),
-          SizedBox(width: 150, child: Text(locale.storage, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
         ],
       ),
@@ -462,19 +588,34 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
     final productController = TextEditingController(text: item.productName);
     final qtyController = _qtyControllers.putIfAbsent(
-      item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
+      item.rowId,
+      () =>
+          TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
     );
 
     final salePriceController = _priceControllers.putIfAbsent(
-      "sale_${item.rowId}", () => TextEditingController(text: item.salePrice != null && item.salePrice! > 0 ? item.salePrice!.toAmount() : ''),
+      "sale_${item.rowId}",
+      () => TextEditingController(
+        text: item.salePrice != null && item.salePrice! > 0
+            ? item.salePrice!.toAmount()
+            : '',
+      ),
     );
 
     final discountController = _discountControllers.putIfAbsent(
-      "sale_${item.rowId}", () => TextEditingController(text: item.discount != null && item.discount! > 0 ? item.discount!.toAmount() : ''),
+      "sale_${item.rowId}",
+      () => TextEditingController(
+        text: item.discount != null && item.discount! > 0
+            ? item.discount!.toAmount()
+            : '',
+      ),
     );
 
     final pcsController = _pcsControllers.putIfAbsent(
-      "sale_${item.rowId}", () => TextEditingController(text: item.pcs != null && item.pcs! > 0 ? item.pcs!.toAmount() : ''),
+      "sale_${item.rowId}",
+      () => TextEditingController(
+        text: item.batch != null && item.batch! > 0 ? item.batch!.toAmount() : '',
+      ),
     );
 
     final storageController = TextEditingController(text: item.storageName);
@@ -482,19 +623,19 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     // Handle product selection
     void onProductSelected(ProductsStockModel? product) {
       if (product != null) {
-        final salePrice = double.tryParse(
-            product.sellPrice?.toAmount() ?? "0.0"
-        ) ?? 0.0;
-
-        context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-          rowId: item.rowId,
-          productId: product.proId.toString(),
-          productName: product.proName ?? '',
-          storageId: product.stkStorage,
-          storageName: product.stgName ?? '',
-          purPrice: double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0,
-          salePrice: salePrice,
-        ));
+        final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
+        context.read<SaleInvoiceBloc>().add(
+          UpdateSaleItemEvent(
+            rowId: item.rowId,
+            productId: product.proId.toString(),
+            productName: product.proName ?? '',
+            storageId: product.stkStorage,
+            storageName: product.stgName ?? '',
+            purPrice: double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0,
+            salePrice: salePrice,
+            batch: product.stkQtyInBatch,
+          ),
+        );
 
         salePriceController.text = salePrice.toAmount();
         storageController.text = product.stgName ?? '';
@@ -505,16 +646,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         });
       } else {
         // Handle clear
-        context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-          rowId: item.rowId,
-          productId: null,
-          productName: '',
-          storageId: null,
-          storageName: '',
-          discount: 0,
-          purPrice: 0,
-          salePrice: 0,
-        ));
+        context.read<SaleInvoiceBloc>().add(
+          UpdateSaleItemEvent(
+            rowId: item.rowId,
+            productId: null,
+            productName: '',
+            storageId: null,
+            storageName: '',
+            discount: 0,
+            purPrice: 0,
+            salePrice: 0,
+          ),
+        );
 
         salePriceController.clear();
         pcsController.clear();
@@ -541,42 +684,45 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ),
               // Product Selection
               Expanded(
-                child: ProductSearchField<ProductsStockModel, ProductsBloc, ProductsState>(
-                  controller: productController,
-                  hintText: tr.products,
-                  bloc: context.read<ProductsBloc>(),
-                  searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
-                  fetchAllFunction: (bloc) => bloc.add(LoadProductsStockEvent()),
-                  stateToItems: (state) {
-                    if (state is ProductsStockLoadedState) return state.products;
-                    return [];
-                  },
-                  stateToLoading: (state) => state is ProductsLoadingState,
-                  itemToString: (product) => product.proName ?? '',
+                child:
+                    ProductSearchField<ProductsStockModel, ProductsBloc, ProductsState>(
+                      controller: productController,
+                      hintText: tr.products,
+                      bloc: context.read<ProductsBloc>(),
+                      searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
+                      fetchAllFunction: (bloc) => bloc.add(LoadProductsStockEvent()),
+                      stateToItems: (state) {
+                        if (state is ProductsStockLoadedState) {
+                          return state.products;
+                        }
+                        return [];
+                      },
+                      stateToLoading: (state) => state is ProductsLoadingState,
+                      itemToString: (product) => product.proName ?? '',
 
-                  // Product field getters
-                  getProductId: (product) => product.proId?.toString(),
-                  getProductName: (product) => product.proName,
-                  getProductCode: (product) => product.proCode,
-                  getStorageId: (product) => product.stkStorage,
-                  getStorageName: (product) => product.stgName,
-                  getAvailable: (product) => product.available,
-                  getBatch: (product)=> product.stkQtyInBatch,
-                  getLandedPrice: (product)=> product.recentLandedPurPrice,
-                  getProductUnit: (product)=> product.proUnit,
-                  getAveragePrice: (product) => product.averagePrice,
-                  getRecentPrice: (product) => product.recentPurPrice,
-                  getSellPrice: (product) => product.sellPrice,
+                      // Product field getters
+                      getProductId: (product) => product.proId?.toString(),
+                      getProductName: (product) => product.proName,
+                      getProductCode: (product) => product.proCode,
+                      getStorageId: (product) => product.stkStorage,
+                      getStorageName: (product) => product.stgName,
+                      getAvailable: (product) => product.available,
+                      getBatch: (product) => product.stkQtyInBatch,
+                      getLandedPrice: (product) => product.recentLandedPurPrice,
+                      getProductUnit: (product) => product.proUnit,
+                      getAveragePrice: (product) => product.averagePrice,
+                      getRecentPrice: (product) => product.recentPurPrice,
+                      getSellPrice: (product) => product.sellPrice,
 
-                  // Handle product selection
-                  onProductSelected: onProductSelected,
+                      // Handle product selection
+                      onProductSelected: onProductSelected,
 
-                  // Open overlay automatically when this field gets focus (for new rows)
-                  openOverlayOnFocus: item.productId.isEmpty,
+                      // Open overlay automatically when this field gets focus (for new rows)
+                      openOverlayOnFocus: item.productId.isEmpty,
 
-                  // Make sure showAllOnFocus is true to fetch all products
-                  showAllOnFocus: true,
-                ),
+                      // Make sure showAllOnFocus is true to fetch all products
+                      showAllOnFocus: true,
+                    ),
               ),
 
               // Quantity
@@ -586,9 +732,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   controller: qtyController,
                   focusNode: nodes[1],
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: InputDecoration(
                     hintText: tr.qty,
                     border: InputBorder.none,
@@ -596,18 +740,16 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   ),
                   onChanged: (value) {
                     if (value.isEmpty) {
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        qty: 0,
-                      ));
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(rowId: item.rowId, qty: 0),
+                      );
                       return;
                     }
                     final qty = int.tryParse(value) ?? 0;
                     if (qty > 0) {
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        qty: qty,
-                      ));
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(rowId: item.rowId, qty: qty),
+                      );
                     }
                   },
                   onSubmitted: (_) {
@@ -622,33 +764,30 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               SizedBox(
                 width: 80,
                 child: TextField(
+                  readOnly: true,
                   controller: pcsController,
                   //focusNode: nodes[2],
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
                   decoration: InputDecoration(
                     hintText: AppLocalizations.of(context)!.batchTitle,
                     border: InputBorder.none,
                     isDense: true,
                   ),
-                  onChanged: (value) {
-                    if (value.isEmpty) {
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        qty: 0,
-                      ));
-                      return;
-                    }
-                    final qty = int.tryParse(value) ?? 0;
-                    if (qty > 0) {
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        qty: qty,
-                      ));
-                    }
-                  },
+                  textInputAction: TextInputAction.next,
+                ),
+              ),
+
+              // Unit
+              SizedBox(
+                width: 80,
+                child: TextField(
+                  readOnly: true,
+                  controller: pcsController,
+                  //focusNode: nodes[2],
+                  decoration: InputDecoration(
+                    hintText: AppLocalizations.of(context)!.unit,
+                    border: InputBorder.none,
+                    isDense: true,
+                  ),
                   onSubmitted: (_) {
                     // On Enter, move to sale price field
                     nodes[2].requestFocus();
@@ -663,7 +802,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 child: TextField(
                   controller: salePriceController,
                   focusNode: nodes[2],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                   ],
@@ -674,10 +815,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   ),
                   onChanged: (value) {
                     if (value.isEmpty) {
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        salePrice: 0,
-                      ));
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(rowId: item.rowId, salePrice: 0),
+                      );
                       return;
                     }
                     final parsed = double.tryParse(value);
@@ -707,7 +847,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 child: TextField(
                   controller: discountController,
                   focusNode: nodes[3],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                   ],
@@ -718,10 +860,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   ),
                   onChanged: (value) {
                     if (value.isEmpty) {
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        discount: 0,
-                      ));
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(rowId: item.rowId, discount: 0),
+                      );
                       return;
                     }
                     final parsed = double.tryParse(value);
@@ -759,33 +900,22 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    if(visibility.benefit)...[
-                      if (item.purPrice != null && item.purPrice! > 0 && item.salePrice != null && item.salePrice! > 0)
+                    if (visibility.benefit) ...[
+                      if (item.purPrice != null &&
+                          item.purPrice! > 0 &&
+                          item.salePrice != null &&
+                          item.salePrice! > 0)
                         Text(
                           '${tr.profit}: ${(item.totalSale - item.totalPurchase).toAmount()}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                            color: (item.totalSale - item.totalPurchase) >= 0
+                                ? Colors.green
+                                : Colors.red,
                           ),
                         ),
-                    ]
-
+                    ],
                   ],
-                ),
-              ),
-
-              // Storage Display (Read-only)
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: storageController,
-                  focusNode: nodes[4],
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    hintText: tr.storage,
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
                 ),
               ),
 
@@ -803,7 +933,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         _priceControllers.remove("purchase_${item.rowId}");
                         _priceControllers.remove("sale_${item.rowId}");
                         _qtyControllers.remove(item.rowId);
-                        context.read<SaleInvoiceBloc>().add(RemoveSaleItemEvent(item.rowId));
+                        context.read<SaleInvoiceBloc>().add(
+                          RemoveSaleItemEvent(item.rowId),
+                        );
                       },
                     ),
                   ],
@@ -826,10 +958,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   onPressed: () {
                     context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
                   },
-                )
+                ),
               ],
             ),
-          )
+          ),
       ],
     );
   }
@@ -886,10 +1018,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
       builder: (context, state) {
         if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-          final current = state is SaleInvoiceSaving ?
-          state : (state as SaleInvoiceLoaded);
+          final current = state is SaleInvoiceSaving
+              ? state
+              : (state as SaleInvoiceLoaded);
 
-          final bool hasCreditAccount = current.customerAccount != null && current.creditAmount > 0;
+          final bool hasCreditAccount =
+              current.customerAccount != null && current.creditAmount > 0;
 
           return SizedBox(
             width: 600,
@@ -911,16 +1045,30 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(tr.paymentMethod,
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text(
+                              tr.paymentMethod,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
                             InkWell(
                               onTap: () => _showPaymentModeDialog(current),
                               child: Row(
                                 children: [
-                                  Text(_getPaymentModeLabel(current.paymentMode),
-                                      style: TextStyle(color: color.primary, fontSize: 15)),
+                                  Text(
+                                    _getPaymentModeLabel(current.paymentMode),
+                                    style: TextStyle(
+                                      color: color.primary,
+                                      fontSize: 15,
+                                    ),
+                                  ),
                                   const SizedBox(width: 8),
-                                  Icon(Icons.more_vert_outlined, size: 20, color: color.primary),
+                                  Icon(
+                                    Icons.more_vert_outlined,
+                                    size: 20,
+                                    color: color.primary,
+                                  ),
                                 ],
                               ),
                             ),
@@ -928,7 +1076,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         ),
 
                         const SizedBox(height: 6),
-                        Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                        Divider(
+                          height: 1,
+                          color: color.outline.withValues(alpha: .5),
+                        ),
                         const SizedBox(height: 6),
 
                         // Grand Total - Compact
@@ -939,69 +1090,79 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         ),
 
                         // Profit in same row with percentage - Compact
-                       if(visibility.benefit)...[
-                         if (current.totalPurchaseCost > 0) ...[
-                           const SizedBox(height: 4),
-                           Row(
-                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                             children: [
-                               Text(
-                                 tr.profit,
-                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                               ),
-                               Container(
-                                 padding: const EdgeInsets.symmetric(
-                                   horizontal: 6,
-                                   vertical: 2,
-                                 ),
-                                 decoration: BoxDecoration(
-                                   color: current.totalProfit >= 0
-                                       ? Colors.green.withValues(alpha: .1)
-                                       : Colors.red.withValues(alpha: .1),
-                                   borderRadius: BorderRadius.circular(2),
-                                 ),
-                                 child: Row(
-                                   mainAxisSize: MainAxisSize.min,
-                                   children: [
-                                     Text(
-                                       current.totalProfit >= 0 ? '+' : '',
-                                       style: TextStyle(
-                                         fontSize: 15,
-                                         fontWeight: FontWeight.bold,
-                                         color: current.totalProfit >= 0
-                                             ? Colors.green
-                                             : Colors.red,
-                                       ),
-                                     ),
-                                     Text(
-                                       current.totalProfit.toAmount(),
-                                       style: TextStyle(
-                                         fontSize: 15,
-                                         fontWeight: FontWeight.bold,
-                                         color: current.totalProfit >= 0
-                                             ? Colors.green
-                                             : Colors.red,
-                                       ),
-                                     ),
-                                     Text(
-                                       ' (${current.profitPercentage.toStringAsFixed(1)}%)',
-                                       style: TextStyle(
-                                         fontSize: 14,
-                                         color: current.totalProfit >= 0
-                                             ? Colors.green.withValues(alpha: .9)
-                                             : Colors.red.withValues(alpha: .7),
-                                       ),
-                                     ),
-                                   ],
-                                 ),
-                               ),
-                             ],
-                           ),
-                         ],
-                       ],
+                        if (visibility.benefit) ...[
+                          if (current.totalPurchaseCost > 0) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  tr.profit,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: current.totalProfit >= 0
+                                        ? Colors.green.withValues(alpha: .1)
+                                        : Colors.red.withValues(alpha: .1),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        current.totalProfit >= 0 ? '+' : '',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: current.totalProfit >= 0
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                      Text(
+                                        current.totalProfit.toAmount(),
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: current.totalProfit >= 0
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                      Text(
+                                        ' (${current.profitPercentage.toStringAsFixed(1)}%)',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: current.totalProfit >= 0
+                                              ? Colors.green.withValues(
+                                                  alpha: .9,
+                                                )
+                                              : Colors.red.withValues(
+                                                  alpha: .7,
+                                                ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
 
                         const SizedBox(height: 6),
-                        Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                        Divider(
+                          height: 1,
+                          color: color.outline.withValues(alpha: .5),
+                        ),
                         const SizedBox(height: 6),
 
                         // Payment Breakdown - Compact
@@ -1011,13 +1172,15 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             value: current.cashPayment,
                             color: Colors.green,
                           ),
-                        ] else if (current.paymentMode == PaymentMode.credit) ...[
+                        ] else if (current.paymentMode ==
+                            PaymentMode.credit) ...[
                           _buildCompactSummaryRow(
                             label: AppLocalizations.of(context)!.accountPayment,
                             value: current.creditAmount,
                             color: Colors.orange,
                           ),
-                        ] else if (current.paymentMode == PaymentMode.mixed) ...[
+                        ] else if (current.paymentMode ==
+                            PaymentMode.mixed) ...[
                           _buildCompactSummaryRow(
                             label: AppLocalizations.of(context)!.accountPayment,
                             value: current.creditAmount,
@@ -1055,7 +1218,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         children: [
                           // Account name and number in a single row
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: color.primary.withValues(alpha: .05),
                               borderRadius: BorderRadius.circular(4),
@@ -1076,7 +1242,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 ),
                                 const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: color.primary.withValues(alpha: .1),
                                     borderRadius: BorderRadius.circular(4),
@@ -1103,7 +1272,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 child: _buildMiniBalanceRow(
                                   label: tr.currentBalance,
                                   value: current.currentBalance,
-                                  color: _getBalanceColor(current.currentBalance),
+                                  color: _getBalanceColor(
+                                    current.currentBalance,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -1121,7 +1292,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                           // New Balance and Status in a row
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: color.primary.withValues(alpha: .05),
                               borderRadius: BorderRadius.circular(4),
@@ -1134,15 +1308,23 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   children: [
                                     Text(
                                       '${tr.newBalance} :',
-                                      style: TextStyle(fontSize: 15, color: color.outline),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        color: color.outline,
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      (current.currentBalance - current.creditAmount).toAmount(),
+                                      (current.currentBalance -
+                                              current.creditAmount)
+                                          .toAmount(),
                                       style: TextStyle(
                                         fontSize: 15,
                                         fontWeight: FontWeight.bold,
-                                        color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                        color: _getBalanceColor(
+                                          current.currentBalance -
+                                              current.creditAmount,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -1150,18 +1332,29 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                                 // Status
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
                                   decoration: BoxDecoration(
-                                    color: _getBalanceColor(current.currentBalance - current.creditAmount)
-                                        .withValues(alpha: .1),
+                                    color: _getBalanceColor(
+                                      current.currentBalance -
+                                          current.creditAmount,
+                                    ).withValues(alpha: .1),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(
-                                    _getBalanceStatus(current.currentBalance - current.creditAmount),
+                                    _getBalanceStatus(
+                                      current.currentBalance -
+                                          current.creditAmount,
+                                    ),
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
-                                      color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                      color: _getBalanceColor(
+                                        current.currentBalance -
+                                            current.creditAmount,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1182,7 +1375,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-// Helper method for compact summary rows
+  // Helper method for compact summary rows
   Widget _buildCompactSummaryRow({
     required String label,
     required double value,
@@ -1214,7 +1407,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-// Helper method for mini balance rows in the right section
+  // Helper method for mini balance rows in the right section
   Widget _buildMiniBalanceRow({
     required String label,
     required double value,
@@ -1289,11 +1482,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     ),
                     child: Row(
                       children: [
-                        Icon(
-                          Icons.payment,
-                          color: color.primary,
-                          size: 28,
-                        ),
+                        Icon(Icons.payment, color: color.primary, size: 28),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -1334,7 +1523,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           onTap: () {
                             Navigator.pop(context);
                             _accountController.clear();
-                            context.read<SaleInvoiceBloc>().add(ClearCustomerAccountEvent());
+                            context.read<SaleInvoiceBloc>().add(
+                              ClearCustomerAccountEvent(),
+                            );
                           },
                         ),
                         const SizedBox(height: 12),
@@ -1349,7 +1540,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           selectedColor: Colors.blue,
                           onTap: () {
                             Navigator.pop(context);
-                            context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(0));
+                            context.read<SaleInvoiceBloc>().add(
+                              UpdateSaleReceivePaymentEvent(0),
+                            );
                             setState(() {});
                           },
                         ),
@@ -1397,27 +1590,29 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: isSelected ? selectedColor : themeColor.outline.withValues(alpha: .2),
+          color: isSelected
+              ? selectedColor
+              : themeColor.outline.withValues(alpha: .2),
           width: isSelected ? 1 : 0.5,
         ),
         gradient: isSelected
             ? LinearGradient(
-          colors: [
-            selectedColor.withValues(alpha: .08),
-            selectedColor.withValues(alpha: .02),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
+                colors: [
+                  selectedColor.withValues(alpha: .08),
+                  selectedColor.withValues(alpha: .02),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
             : null,
         boxShadow: isSelected
             ? [
-          BoxShadow(
-            color: selectedColor.withValues(alpha: .2),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ]
+                BoxShadow(
+                  color: selectedColor.withValues(alpha: .2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
             : null,
       ),
       child: Material(
@@ -1439,13 +1634,17 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         ? selectedColor.withValues(alpha: .15)
                         : themeColor.primary.withValues(alpha: .05),
                     border: Border.all(
-                      color: isSelected ? selectedColor : themeColor.outline.withValues(alpha: .3),
+                      color: isSelected
+                          ? selectedColor
+                          : themeColor.outline.withValues(alpha: .3),
                       width: 1.5,
                     ),
                   ),
                   child: Icon(
                     icon,
-                    color: isSelected ? selectedColor : themeColor.onSurfaceVariant,
+                    color: isSelected
+                        ? selectedColor
+                        : themeColor.onSurfaceVariant,
                     size: 24,
                   ),
                 ),
@@ -1461,7 +1660,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? selectedColor : themeColor.onSurface,
+                          color: isSelected
+                              ? selectedColor
+                              : themeColor.onSurface,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -1500,7 +1701,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-  void _showMixedPaymentDialog(BuildContext context, SaleInvoiceLoaded current) {
+  void _showMixedPaymentDialog(
+    BuildContext context,
+    SaleInvoiceLoaded current,
+  ) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
 
@@ -1520,25 +1724,38 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 controller: controller,
                 hint: "Enter amount to add to account as credit",
                 inputFormat: [SmartThousandsDecimalFormatter()],
-                onSubmit: (e){
+                onSubmit: (e) {
                   final cleaned = controller.text.replaceAll(',', '');
                   final creditPayment = double.tryParse(cleaned) ?? 0;
 
                   if (creditPayment <= 0) {
-                    ToastManager.show(context: context,title: "Invalid Amount", message: "Account payment must be greater than zero", type: ToastType.warning);
+                    ToastManager.show(
+                      context: context,
+                      title: "Invalid Amount",
+                      message: "Account payment must be greater than zero",
+                      type: ToastType.warning,
+                    );
                     return;
                   }
 
                   if (creditPayment >= current.grandTotal) {
-                    ToastManager.show(context: context, title: "Invalid Payment", message: "Account payment must be less than total amount for mixed payment", type: ToastType.warning);
+                    ToastManager.show(
+                      context: context,
+                      title: "Invalid Payment",
+                      message:
+                          "Account payment must be less than total amount for mixed payment",
+                      type: ToastType.warning,
+                    );
                     return;
                   }
 
                   // Pass credit amount to bloc with isCreditAmount flag
-                  context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(
-                    creditPayment,
-                    isCreditAmount: true,
-                  ));
+                  context.read<SaleInvoiceBloc>().add(
+                    UpdateSaleReceivePaymentEvent(
+                      creditPayment,
+                      isCreditAmount: true,
+                    ),
+                  );
                   Navigator.pop(context);
                 },
               ),
@@ -1572,20 +1789,30 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           final creditPayment = double.tryParse(cleaned) ?? 0;
 
           if (creditPayment <= 0) {
-            ToastManager.show(context: context,title: "Invalid Amount", message: "Account payment must be greater than zero", type: ToastType.warning);
+            ToastManager.show(
+              context: context,
+              title: "Invalid Amount",
+              message: "Account payment must be greater than zero",
+              type: ToastType.warning,
+            );
             return;
           }
 
           if (creditPayment >= current.grandTotal) {
-            ToastManager.show(context: context, title: "Invalid Payment", message: "Account payment must be less than total amount for mixed payment", type: ToastType.warning);
+            ToastManager.show(
+              context: context,
+              title: "Invalid Payment",
+              message:
+                  "Account payment must be less than total amount for mixed payment",
+              type: ToastType.warning,
+            );
             return;
           }
 
           // Pass credit amount to bloc with isCreditAmount flag
-          context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(
-            creditPayment,
-            isCreditAmount: true,
-          ));
+          context.read<SaleInvoiceBloc>().add(
+            UpdateSaleReceivePaymentEvent(creditPayment, isCreditAmount: true),
+          );
           Navigator.pop(context);
         },
       ),
@@ -1594,26 +1821,35 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
   String _getPaymentModeLabel(PaymentMode mode) {
     switch (mode) {
-      case PaymentMode.cash: return AppLocalizations.of(context)!.cash;
-      case PaymentMode.credit: return AppLocalizations.of(context)!.creditTitle;
-      case PaymentMode.mixed: return AppLocalizations.of(context)!.combinedPayment;
+      case PaymentMode.cash:
+        return AppLocalizations.of(context)!.cash;
+      case PaymentMode.credit:
+        return AppLocalizations.of(context)!.creditTitle;
+      case PaymentMode.mixed:
+        return AppLocalizations.of(context)!.combinedPayment;
     }
   }
 
   void _saveInvoice(BuildContext context, SaleInvoiceLoaded state) {
     if (!state.isFormValid) {
-      Utils.showOverlayMessage(context, message: 'Please fill all required fields correctly', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
       return;
     }
     final completer = Completer<String>();
-    context.read<SaleInvoiceBloc>().add(SaveSaleInvoiceEvent(
-      usrName: _userName ?? '',
-      orderName: "Sale",
-      ordPersonal: state.customer!.perId!,
-      xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-      items: state.items,
-      completer: completer,
-    ));
+    context.read<SaleInvoiceBloc>().add(
+      SaveSaleInvoiceEvent(
+        usrName: _userName ?? '',
+        orderName: "Sale",
+        ordPersonal: state.customer!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        items: state.items,
+        completer: completer,
+      ),
+    );
   }
 
   void _onSalePrint({String? invoiceNumber}) {
@@ -1630,9 +1866,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(context,
-          message: 'Cannot print: No invoice data available',
-          isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Cannot print: No invoice data available',
+        isError: true,
+      );
       return;
     }
 
@@ -1655,86 +1893,89 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              selectedPrinter: selectedPrinter,
-              pageFormat: pageFormat,
-              copies: copies,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
       ),
     );
   }
@@ -1768,7 +2009,6 @@ class _MobileNewSaleView extends StatefulWidget {
   @override
   State<_MobileNewSaleView> createState() => _MobileNewSaleViewState();
 }
-
 class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
@@ -1798,10 +2038,10 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     if (companyState is AuthenticatedState) {
       final auth = companyState.loginData;
       baseCurrency = auth.company?.comLocalCcy ?? "";
-      company.comName = auth.company?.comName??"";
-      company.comAddress = auth.company?.comAddress??"";
-      company.compPhone = auth.company?.comPhone??"";
-      company.comEmail = auth.company?.comEmail??"";
+      company.comName = auth.company?.comName ?? "";
+      company.comAddress = auth.company?.comAddress ?? "";
+      company.compPhone = auth.company?.comPhone ?? "";
+      company.comEmail = auth.company?.comEmail ?? "";
       company.statementDate = DateTime.now().toFullDateTime;
       final base64Logo = auth.company?.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
@@ -1838,13 +2078,12 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     final tr = AppLocalizations.of(context)!;
     final state = context.watch<AuthBloc>().state;
 
-
     if (state is! AuthenticatedState) {
       return const SizedBox();
     }
 
     final login = state.loginData;
-    _userName = login.usrName??"";
+    _userName = login.usrName ?? "";
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -1855,7 +2094,11 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
       child: BlocListener<SaleInvoiceBloc, SaleInvoiceState>(
         listener: (context, state) {
           if (state is SaleInvoiceError) {
-            Utils.showOverlayMessage(context, message: state.message, isError: true);
+            Utils.showOverlayMessage(
+              context,
+              message: state.message,
+              isError: true,
+            );
           }
           if (state is SaleInvoiceSaved) {
             Navigator.of(context).pop();
@@ -1873,12 +2116,17 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
               _xRefController.clear();
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onSalePrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
-              Utils.showOverlayMessage(context, message: "Failed to create invoice", isError: true);
+              Utils.showOverlayMessage(
+                context,
+                message: "Failed to create invoice",
+                isError: true,
+              );
             }
           }
         },
@@ -1894,21 +2142,23 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
               ),
               BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                 builder: (context, state) {
-                  if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                    final current = state is SaleInvoiceSaving ?
-                    state : (state as SaleInvoiceLoaded);
+                  if (state is SaleInvoiceLoaded ||
+                      state is SaleInvoiceSaving) {
+                    final current = state is SaleInvoiceSaving
+                        ? state
+                        : (state as SaleInvoiceLoaded);
                     final isSaving = state is SaleInvoiceSaving;
 
                     return IconButton(
                       icon: isSaving
                           ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            )
                           : const Icon(Icons.save),
                       onPressed: (isSaving || !current.isFormValid)
                           ? null
@@ -1929,7 +2179,11 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
                     children: [
-                      GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                      GenericTextfield<
+                        IndividualsModel,
+                        IndividualsBloc,
+                        IndividualsState
+                      >(
                         key: const ValueKey('person_field'),
                         controller: _personController,
                         title: tr.customer,
@@ -1942,22 +2196,35 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                           return null;
                         },
                         bloc: context.read<IndividualsBloc>(),
-                        fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
-                        searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
+                        fetchAllFunction: (bloc) =>
+                            bloc.add(const LoadIndividualsEvent()),
+                        searchFunction: (bloc, query) =>
+                            bloc.add(LoadIndividualsEvent(search: query)),
                         itemBuilder: (context, ind) => Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                          child: Text(
+                            "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                          ),
                         ),
-                        itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                        stateToLoading: (state) => state is IndividualLoadingState,
+                        itemToString: (individual) =>
+                            "${individual.perName} ${individual.perLastName}",
+                        stateToLoading: (state) =>
+                            state is IndividualLoadingState,
                         stateToItems: (state) {
-                          if (state is IndividualLoadedState) return state.individuals;
+                          if (state is IndividualLoadedState) {
+                            return state.individuals;
+                          }
                           return [];
                         },
                         onSelected: (value) {
-                          _personController.text = "${value.perName} ${value.perLastName}";
-                          context.read<SaleInvoiceBloc>().add(SelectCustomerEvent(value));
-                          context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
+                          _personController.text =
+                              "${value.perName} ${value.perLastName}";
+                          context.read<SaleInvoiceBloc>().add(
+                            SelectCustomerEvent(value),
+                          );
+                          context.read<AccountsBloc>().add(
+                            LoadAccountsEvent(ownerId: value.perId),
+                          );
                           setState(() {
                             signatory = value.perId;
                           });
@@ -1969,90 +2236,138 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                         builder: (context, state) {
                           if (state is SaleInvoiceLoaded) {
                             final current = state;
-                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            return GenericTextfield<
+                              AccountsModel,
+                              AccountsBloc,
+                              AccountsState
+                            >(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
                               hintText: tr.selectAccount,
-                              isRequired: current.paymentMode != PaymentMode.cash,
+                              isRequired:
+                                  current.paymentMode != PaymentMode.cash,
                               validator: (value) {
-                                if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                if (current.paymentMode != PaymentMode.cash &&
+                                    (value == null || value.isEmpty)) {
                                   return tr.selectCreditAccountMsg;
                                 }
                                 return null;
                               },
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsEvent(ownerId: signatory),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsEvent(ownerId: signatory),
+                              ),
                               itemBuilder: (context, account) => ListTile(
-                                visualDensity: VisualDensity(vertical: -4,horizontal: -4),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 5),
+                                visualDensity: VisualDensity(
+                                  vertical: -4,
+                                  horizontal: -4,
+                                ),
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                ),
                                 title: Text(account.accName ?? ''),
                                 subtitle: Text('${account.accNumber}'),
-                                trailing: Text("${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}"),
+                                trailing: Text(
+                                  "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                ),
                               ),
-                              itemToString: (account) => '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) => state is AccountLoadingState,
+                              itemToString: (account) =>
+                                  '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) =>
+                                  state is AccountLoadingState,
                               stateToItems: (state) {
-                                if (state is AccountLoadedState) return state.accounts;
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
                                 return [];
                               },
                               onSelected: (value) {
                                 setState(() {
-                                  _accountController.text = '${value.accName} (${value.accNumber})';
+                                  _accountController.text =
+                                      '${value.accName} (${value.accNumber})';
                                   _selectedAccountNumber = value.accNumber;
                                 });
-                                context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                context.read<SaleInvoiceBloc>().add(
+                                  SelectCustomerAccountEvent(value),
+                                );
                               },
                               showClearButton: true,
                             );
                           }
-                          return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                          return GenericTextfield<
+                            AccountsModel,
+                            AccountsBloc,
+                            AccountsState
+                          >(
                             key: const ValueKey('account_field'),
                             controller: _accountController,
                             title: tr.accounts,
                             hintText: tr.selectAccount,
                             isRequired: false,
                             bloc: context.read<AccountsBloc>(),
-                            fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                            searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(
+                            fetchAllFunction: (bloc) => bloc.add(
+                              LoadAccountsFilterEvent(
+                                include: '8',
+                                exclude: '',
+                              ),
+                            ),
+                            searchFunction: (bloc, query) => bloc.add(
+                              LoadAccountsFilterEvent(
                                 input: query,
                                 include: '8',
-                                exclude: ''
-                            )),
+                                exclude: '',
+                              ),
+                            ),
                             itemBuilder: (context, account) => ListTile(
                               title: Text(account.accName ?? ''),
-                              subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                              subtitle: Text(
+                                '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                              ),
                               trailing: Text(account.actCurrency ?? ""),
                             ),
-                            itemToString: (account) => '${account.accName} (${account.accNumber})',
-                            stateToLoading: (state) => state is AccountLoadingState,
+                            itemToString: (account) =>
+                                '${account.accName} (${account.accNumber})',
+                            stateToLoading: (state) =>
+                                state is AccountLoadingState,
                             stateToItems: (state) {
-                              if (state is AccountLoadedState) return state.accounts;
+                              if (state is AccountLoadedState) {
+                                return state.accounts;
+                              }
                               return [];
                             },
                             onSelected: (value) {
                               setState(() {
-                                _accountController.text = value.accNumber.toString();
+                                _accountController.text = value.accNumber
+                                    .toString();
                               });
-                              context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                              context.read<SaleInvoiceBloc>().add(
+                                SelectCustomerAccountEvent(value),
+                              );
                             },
                             showClearButton: true,
                           );
                         },
                       ),
-                      if(_accountController.text.isNotEmpty)...[
+                      if (_accountController.text.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         ZOutlineButton(
                           width: double.infinity,
                           icon: Icons.alarm_rounded,
-                          onPressed: (){
-                            showDialog(context: context, builder: (context){
-                              return AddEditReminderView(
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AddEditReminderView(
                                   accNumber: _selectedAccountNumber,
                                   dueParameter: "Receivable",
-                                  isEnable: true);
-                            });
+                                  isEnable: true,
+                                );
+                              },
+                            );
                           },
                           label: Text(tr.setReminder),
                         ),
@@ -2065,28 +2380,35 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 Expanded(
                   child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                     builder: (context, state) {
-                      if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                        final current = state is SaleInvoiceSaving ?
-                        state : (state as SaleInvoiceLoaded);
+                      if (state is SaleInvoiceLoaded ||
+                          state is SaleInvoiceSaving) {
+                        final current = state is SaleInvoiceSaving
+                            ? state
+                            : (state as SaleInvoiceLoaded);
 
                         if (current.items.isEmpty) {
                           return Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.shopping_cart_outlined,
+                                Icon(
+                                  Icons.shopping_cart_outlined,
                                   size: 64,
                                   color: Theme.of(context).colorScheme.outline,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   tr.noItems,
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 const SizedBox(height: 8),
                                 ElevatedButton.icon(
                                   onPressed: () {
-                                    context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
+                                    context.read<SaleInvoiceBloc>().add(
+                                      AddNewSaleItemEvent(),
+                                    );
                                   },
                                   icon: const Icon(Icons.add),
                                   label: Text(tr.addItem),
@@ -2120,11 +2442,15 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   child: ZOutlineButton(
                     width: double.infinity,
                     height: 45,
-                    backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: .08),
+                    backgroundColor: Theme.of(
+                      context,
+                    ).colorScheme.primary.withValues(alpha: .08),
                     icon: Icons.add,
                     label: Text(AppLocalizations.of(context)!.addItem),
                     onPressed: () {
-                      context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
+                      context.read<SaleInvoiceBloc>().add(
+                        AddNewSaleItemEvent(),
+                      );
                       // Scroll to bottom
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         _scrollController.animateTo(
@@ -2150,11 +2476,18 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     final visibility = context.read<SettingsVisibleBloc>().state;
     final productController = TextEditingController(text: item.productName);
     final qtyController = _qtyControllers.putIfAbsent(
-      item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
+      item.rowId,
+      () =>
+          TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
     );
 
     final salePriceController = _priceControllers.putIfAbsent(
-      "sale_${item.rowId}", () => TextEditingController(text: item.salePrice != null && item.salePrice! > 0 ? item.salePrice!.toAmount() : ''),
+      "sale_${item.rowId}",
+      () => TextEditingController(
+        text: item.salePrice != null && item.salePrice! > 0
+            ? item.salePrice!.toAmount()
+            : '',
+      ),
     );
 
     return ZCover(
@@ -2179,7 +2512,9 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   onPressed: () {
                     _priceControllers.remove("sale_${item.rowId}");
                     _qtyControllers.remove(item.rowId);
-                    context.read<SaleInvoiceBloc>().add(RemoveSaleItemEvent(item.rowId));
+                    context.read<SaleInvoiceBloc>().add(
+                      RemoveSaleItemEvent(item.rowId),
+                    );
                   },
                 ),
               ],
@@ -2192,8 +2527,10 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
               hintText: tr.products,
               isRequired: true,
               bloc: context.read<ProductsBloc>(),
-              fetchAllFunction: (bloc) => bloc.add(LoadProductsStockEvent(noStock: 1)),
-              searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
+              fetchAllFunction: (bloc) =>
+                  bloc.add(LoadProductsStockEvent(noStock: 1)),
+              searchFunction: (bloc, query) =>
+                  bloc.add(LoadProductsStockEvent(input: query)),
               itemBuilder: (context, product) => ListTile(
                 tileColor: Colors.transparent,
                 title: Text(product.proName ?? ''),
@@ -2201,20 +2538,30 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   spacing: 8,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: color.primary.withValues(alpha: .1),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text('${tr.purchasePrice}: ${product.averagePrice?.toAmount() ?? ""}'),
+                      child: Text(
+                        '${tr.purchasePrice}: ${product.averagePrice?.toAmount() ?? ""}',
+                      ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: color.primary.withValues(alpha: .1),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text('${tr.salePriceBrief}: ${product.sellPrice?.toAmount() ?? ""}'),
+                      child: Text(
+                        '${tr.salePriceBrief}: ${product.sellPrice?.toAmount() ?? ""}',
+                      ),
                     ),
                   ],
                 ),
@@ -2224,7 +2571,10 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   children: [
                     Text(
                       product.available?.toAmount() ?? "",
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     Text(
                       product.stgName ?? "",
@@ -2243,18 +2593,26 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 return [];
               },
               onSelected: (product) {
-                final purchasePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
-                final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
+                final purchasePrice =
+                    double.tryParse(
+                      product.averagePrice?.toAmount() ?? "0.0",
+                    ) ??
+                    0.0;
+                final salePrice =
+                    double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ??
+                    0.0;
 
-                context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                  rowId: item.rowId,
-                  productId: product.proId.toString(),
-                  productName: product.proName ?? '',
-                  storageId: product.stkStorage,
-                  storageName: product.stgName ?? '',
-                  purPrice: purchasePrice,
-                  salePrice: salePrice,
-                ));
+                context.read<SaleInvoiceBloc>().add(
+                  UpdateSaleItemEvent(
+                    rowId: item.rowId,
+                    productId: product.proId.toString(),
+                    productName: product.proName ?? '',
+                    storageId: product.stkStorage,
+                    storageName: product.stgName ?? '',
+                    purPrice: purchasePrice,
+                    salePrice: salePrice,
+                  ),
+                );
 
                 salePriceController.text = salePrice.toAmount();
               },
@@ -2270,28 +2628,27 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   child: TextFormField(
                     controller: qtyController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
                       labelText: tr.qty,
                       border: const OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                          rowId: item.rowId,
-                          qty: 0,
-                        ));
+                        context.read<SaleInvoiceBloc>().add(
+                          UpdateSaleItemEvent(rowId: item.rowId, qty: 0),
+                        );
                         return;
                       }
                       final qty = int.tryParse(value) ?? 0;
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        qty: qty,
-                      ));
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(rowId: item.rowId, qty: qty),
+                      );
                     },
                   ),
                 ),
@@ -2302,7 +2659,9 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   flex: 3,
                   child: TextFormField(
                     controller: salePriceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                     ],
@@ -2310,14 +2669,16 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                       labelText: tr.unitPrice,
                       border: const OutlineInputBorder(),
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 12,
+                      ),
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                          rowId: item.rowId,
-                          salePrice: 0,
-                        ));
+                        context.read<SaleInvoiceBloc>().add(
+                          UpdateSaleItemEvent(rowId: item.rowId, salePrice: 0),
+                        );
                         return;
                       }
                       final parsed = double.tryParse(value);
@@ -2347,10 +2708,7 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                   children: [
                     Text(
                       tr.totalTitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: color.outline,
-                      ),
+                      style: TextStyle(fontSize: 12, color: color.outline),
                     ),
                     Text(
                       item.totalSale.toAmount(),
@@ -2364,45 +2722,46 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 ),
 
                 // Profit if available
-                if (item.purPrice != null && item.purPrice! > 0 && item.salePrice != null && item.salePrice! > 0)
+                if (item.purPrice != null &&
+                    item.purPrice! > 0 &&
+                    item.salePrice != null &&
+                    item.salePrice! > 0)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      if(visibility.benefit)...[
+                      if (visibility.benefit) ...[
                         Text(
                           tr.profit,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: color.outline,
-                          ),
+                          style: TextStyle(fontSize: 12, color: color.outline),
                         ),
                         Text(
                           (item.totalSale - item.totalPurchase).toAmount(),
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                            color: (item.totalSale - item.totalPurchase) >= 0
+                                ? Colors.green
+                                : Colors.red,
                           ),
                         ),
                       ],
-
                     ],
                   ),
 
                 // Storage
                 if (item.storageName.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: color.primary.withValues(alpha: .1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       item.storageName,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: color.primary,
-                      ),
+                      style: TextStyle(fontSize: 12, color: color.primary),
                     ),
                   ),
               ],
@@ -2420,8 +2779,9 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
       builder: (context, state) {
         if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-          final current = state is SaleInvoiceSaving ?
-          state : (state as SaleInvoiceLoaded);
+          final current = state is SaleInvoiceSaving
+              ? state
+              : (state as SaleInvoiceLoaded);
 
           return Container(
             padding: const EdgeInsets.all(12),
@@ -2441,7 +2801,10 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 InkWell(
                   onTap: () => _showPaymentModeDialog(current),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: color.primary.withValues(alpha: .05),
                       borderRadius: BorderRadius.circular(2),
@@ -2487,26 +2850,26 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 const SizedBox(height: 4),
 
                 // Profit
-                if(visibility.benefit)...[
-                  if(current.totalPurchaseCost > 0)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(tr.profit),
-                      Text(
-                        "${current.totalProfit.toAmount()} $baseCurrency (${current.profitPercentage.toStringAsFixed(2)}%)",
-                        style: TextStyle(
-                          color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                          fontWeight: FontWeight.w500,
+                if (visibility.benefit) ...[
+                  if (current.totalPurchaseCost > 0)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(tr.profit),
+                        Text(
+                          "${current.totalProfit.toAmount()} $baseCurrency (${current.profitPercentage.toStringAsFixed(2)}%)",
+                          style: TextStyle(
+                            color: current.totalProfit >= 0
+                                ? Colors.green
+                                : Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                 ],
 
-
-
-               // Payment breakdown
+                // Payment breakdown
                 if (current.paymentMode == PaymentMode.cash) ...[
                   const SizedBox(height: 4),
                   Row(
@@ -2556,7 +2919,8 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                 ],
 
                 // Account info if available
-                if (current.customerAccount != null && current.creditAmount > 0) ...[
+                if (current.customerAccount != null &&
+                    current.creditAmount > 0) ...[
                   const Divider(height: 12),
                   Text(
                     '${current.customerAccount!.accNumber} | ${current.customerAccount!.accName}',
@@ -2580,10 +2944,13 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
                     children: [
                       Text(tr.newBalance),
                       Text(
-                        (current.currentBalance - current.creditAmount).toAmount(),
+                        (current.currentBalance - current.creditAmount)
+                            .toAmount(),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                          color: _getBalanceColor(
+                            current.currentBalance - current.creditAmount,
+                          ),
                         ),
                       ),
                     ],
@@ -2618,40 +2985,65 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
             const SizedBox(height: 16),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.money,
-                      color: current.paymentMode == PaymentMode.cash ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.money,
+                  color: current.paymentMode == PaymentMode.cash
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.cashPayment),
               subtitle: Text(tr.cashPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.cash ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.cash
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _accountController.clear();
-                context.read<SaleInvoiceBloc>().add(ClearCustomerAccountEvent());
+                context.read<SaleInvoiceBloc>().add(
+                  ClearCustomerAccountEvent(),
+                );
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.credit_card,
-                      color: current.paymentMode == PaymentMode.credit ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.credit_card,
+                  color: current.paymentMode == PaymentMode.credit
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.accountCredit),
               subtitle: Text(tr.accountCreditSubtitle),
-              trailing: current.paymentMode == PaymentMode.credit ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.credit
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
-                context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(0));
+                context.read<SaleInvoiceBloc>().add(
+                  UpdateSaleReceivePaymentEvent(0),
+                );
                 setState(() {});
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.payments,
-                      color: current.paymentMode == PaymentMode.mixed ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.payments,
+                  color: current.paymentMode == PaymentMode.mixed
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.combinedPayment),
               subtitle: Text(tr.combinedPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.mixed ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.mixed
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _showMixedPaymentDialog(context, current);
@@ -2663,7 +3055,10 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     );
   }
 
-  void _showMixedPaymentDialog(BuildContext context, SaleInvoiceLoaded current) {
+  void _showMixedPaymentDialog(
+    BuildContext context,
+    SaleInvoiceLoaded current,
+  ) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
 
@@ -2702,19 +3097,30 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
               final creditPayment = double.tryParse(cleaned) ?? 0;
 
               if (creditPayment <= 0) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be greater than 0', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message: 'Account payment must be greater than 0',
+                  isError: true,
+                );
                 return;
               }
 
               if (creditPayment >= current.grandTotal) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be less than total amount for mixed payment', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message:
+                      'Account payment must be less than total amount for mixed payment',
+                  isError: true,
+                );
                 return;
               }
 
-              context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(
-                creditPayment,
-                isCreditAmount: true,
-              ));
+              context.read<SaleInvoiceBloc>().add(
+                UpdateSaleReceivePaymentEvent(
+                  creditPayment,
+                  isCreditAmount: true,
+                ),
+              );
               Navigator.pop(context);
             },
             child: Text(tr.submit),
@@ -2726,9 +3132,12 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
 
   String _getPaymentModeLabel(PaymentMode mode) {
     switch (mode) {
-      case PaymentMode.cash: return AppLocalizations.of(context)!.cash;
-      case PaymentMode.credit: return AppLocalizations.of(context)!.creditTitle;
-      case PaymentMode.mixed: return AppLocalizations.of(context)!.combinedPayment;
+      case PaymentMode.cash:
+        return AppLocalizations.of(context)!.cash;
+      case PaymentMode.credit:
+        return AppLocalizations.of(context)!.creditTitle;
+      case PaymentMode.mixed:
+        return AppLocalizations.of(context)!.combinedPayment;
     }
   }
 
@@ -2744,18 +3153,24 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
 
   void _saveInvoice(BuildContext context, SaleInvoiceLoaded state) {
     if (!state.isFormValid) {
-      Utils.showOverlayMessage(context, message: 'Please fill all required fields correctly', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
       return;
     }
     final completer = Completer<String>();
-    context.read<SaleInvoiceBloc>().add(SaveSaleInvoiceEvent(
-      usrName: _userName ?? '',
-      orderName: "Sale",
-      ordPersonal: state.customer!.perId!,
-      xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-      items: state.items,
-      completer: completer,
-    ));
+    context.read<SaleInvoiceBloc>().add(
+      SaveSaleInvoiceEvent(
+        usrName: _userName ?? '',
+        orderName: "Sale",
+        ordPersonal: state.customer!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        items: state.items,
+        completer: completer,
+      ),
+    );
   }
 
   void _onSalePrint({String? invoiceNumber}) {
@@ -2770,9 +3185,11 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(context,
-          message: 'Cannot print: No invoice data available',
-          isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Cannot print: No invoice data available',
+        isError: true,
+      );
       return;
     }
 
@@ -2794,86 +3211,89 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              selectedPrinter: selectedPrinter,
-              pageFormat: pageFormat,
-              copies: copies,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
       ),
     );
   }
@@ -2913,10 +3333,10 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
     final companyState = context.read<CompanyProfileBloc>().state;
     if (companyState is CompanyProfileLoadedState) {
       baseCurrency = companyState.company.comLocalCcy ?? "";
-      company.comName = companyState.company.comName??"";
-      company.comAddress = companyState.company.addName??"";
-      company.compPhone = companyState.company.comPhone??"";
-      company.comEmail = companyState.company.comEmail??"";
+      company.comName = companyState.company.comName ?? "";
+      company.comAddress = companyState.company.addName ?? "";
+      company.compPhone = companyState.company.comPhone ?? "";
+      company.comEmail = companyState.company.comEmail ?? "";
       company.statementDate = DateTime.now().toFullDateTime;
       final base64Logo = companyState.company.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
@@ -2957,7 +3377,7 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
     }
 
     final login = state.loginData;
-    _userName = login.usrName??"";
+    _userName = login.usrName ?? "";
 
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
@@ -2968,7 +3388,11 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       child: BlocListener<SaleInvoiceBloc, SaleInvoiceState>(
         listener: (context, state) {
           if (state is SaleInvoiceError) {
-            Utils.showOverlayMessage(context, message: state.message, isError: true);
+            Utils.showOverlayMessage(
+              context,
+              message: state.message,
+              isError: true,
+            );
           }
           if (state is SaleInvoiceSaved) {
             Navigator.of(context).pop();
@@ -2986,12 +3410,17 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
               _xRefController.clear();
 
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onSalePrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
-              Utils.showOverlayMessage(context, message: "Failed to create invoice", isError: true);
+              Utils.showOverlayMessage(
+                context,
+                message: "Failed to create invoice",
+                isError: true,
+              );
             }
           }
         },
@@ -3006,21 +3435,23 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
               ),
               BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                 builder: (context, state) {
-                  if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                    final current = state is SaleInvoiceSaving ?
-                    state : (state as SaleInvoiceLoaded);
+                  if (state is SaleInvoiceLoaded ||
+                      state is SaleInvoiceSaving) {
+                    final current = state is SaleInvoiceSaving
+                        ? state
+                        : (state as SaleInvoiceLoaded);
                     final isSaving = state is SaleInvoiceSaving;
 
                     return IconButton(
                       icon: isSaving
                           ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      )
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            )
                           : const Icon(Icons.save),
                       onPressed: (isSaving || !current.isFormValid)
                           ? null
@@ -3043,41 +3474,59 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
-                          key: const ValueKey('person_field'),
-                          controller: _personController,
-                          title: tr.customer,
-                          hintText: tr.customer,
-                          isRequired: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return tr.required(tr.customer);
-                            }
-                            return null;
-                          },
-                          bloc: context.read<IndividualsBloc>(),
-                          fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
-                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
-                          itemBuilder: (context, ind) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
-                          ),
-                          itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                          stateToLoading: (state) => state is IndividualLoadingState,
-                          stateToItems: (state) {
-                            if (state is IndividualLoadedState) return state.individuals;
-                            return [];
-                          },
-                          onSelected: (value) {
-                            _personController.text = "${value.perName} ${value.perLastName}";
-                            context.read<SaleInvoiceBloc>().add(SelectCustomerEvent(value));
-                            context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
-                            setState(() {
-                              signatory = value.perId;
-                            });
-                          },
-                          showClearButton: true,
-                        ),
+                        child:
+                            GenericTextfield<
+                              IndividualsModel,
+                              IndividualsBloc,
+                              IndividualsState
+                            >(
+                              key: const ValueKey('person_field'),
+                              controller: _personController,
+                              title: tr.customer,
+                              hintText: tr.customer,
+                              isRequired: true,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return tr.required(tr.customer);
+                                }
+                                return null;
+                              },
+                              bloc: context.read<IndividualsBloc>(),
+                              fetchAllFunction: (bloc) =>
+                                  bloc.add(const LoadIndividualsEvent()),
+                              searchFunction: (bloc, query) =>
+                                  bloc.add(LoadIndividualsEvent(search: query)),
+                              itemBuilder: (context, ind) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                                ),
+                              ),
+                              itemToString: (individual) =>
+                                  "${individual.perName} ${individual.perLastName}",
+                              stateToLoading: (state) =>
+                                  state is IndividualLoadingState,
+                              stateToItems: (state) {
+                                if (state is IndividualLoadedState) {
+                                  return state.individuals;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                _personController.text =
+                                    "${value.perName} ${value.perLastName}";
+                                context.read<SaleInvoiceBloc>().add(
+                                  SelectCustomerEvent(value),
+                                );
+                                context.read<AccountsBloc>().add(
+                                  LoadAccountsEvent(ownerId: value.perId),
+                                );
+                                setState(() {
+                                  signatory = value.perId;
+                                });
+                              },
+                              showClearButton: true,
+                            ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -3085,73 +3534,117 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                           builder: (context, state) {
                             if (state is SaleInvoiceLoaded) {
                               final current = state;
-                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              return GenericTextfield<
+                                AccountsModel,
+                                AccountsBloc,
+                                AccountsState
+                              >(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
                                 hintText: tr.selectAccount,
-                                isRequired: current.paymentMode != PaymentMode.cash,
+                                isRequired:
+                                    current.paymentMode != PaymentMode.cash,
                                 validator: (value) {
-                                  if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                  if (current.paymentMode != PaymentMode.cash &&
+                                      (value == null || value.isEmpty)) {
                                     return tr.selectCreditAccountMsg;
                                   }
                                   return null;
                                 },
                                 bloc: context.read<AccountsBloc>(),
-                                fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                fetchAllFunction: (bloc) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
+                                searchFunction: (bloc, query) => bloc.add(
+                                  LoadAccountsEvent(ownerId: signatory),
+                                ),
                                 itemBuilder: (context, account) => ListTile(
-                                  visualDensity: VisualDensity(vertical: -4,horizontal: -4),
-                                  contentPadding: EdgeInsets.symmetric(horizontal: 5),
+                                  visualDensity: VisualDensity(
+                                    vertical: -4,
+                                    horizontal: -4,
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                  ),
                                   title: Text(account.accName ?? ''),
                                   subtitle: Text('${account.accNumber}'),
-                                  trailing: Text("${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}"),
+                                  trailing: Text(
+                                    "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                  ),
                                 ),
-                                itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                stateToLoading: (state) => state is AccountLoadingState,
+                                itemToString: (account) =>
+                                    '${account.accName} (${account.accNumber})',
+                                stateToLoading: (state) =>
+                                    state is AccountLoadingState,
                                 stateToItems: (state) {
-                                  if (state is AccountLoadedState) return state.accounts;
+                                  if (state is AccountLoadedState) {
+                                    return state.accounts;
+                                  }
                                   return [];
                                 },
                                 onSelected: (value) {
                                   setState(() {
-                                    _accountController.text = '${value.accName} (${value.accNumber})';
+                                    _accountController.text =
+                                        '${value.accName} (${value.accNumber})';
                                     _selectedAccountNumber = value.accNumber;
                                   });
-                                  context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                  context.read<SaleInvoiceBloc>().add(
+                                    SelectCustomerAccountEvent(value),
+                                  );
                                 },
                                 showClearButton: true,
                               );
                             }
-                            return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            return GenericTextfield<
+                              AccountsModel,
+                              AccountsBloc,
+                              AccountsState
+                            >(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
                               hintText: tr.selectAccount,
                               isRequired: false,
                               bloc: context.read<AccountsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                              searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  include: '8',
+                                  exclude: '',
+                                ),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
                                   input: query,
                                   include: '8',
-                                  exclude: ''
-                              )),
+                                  exclude: '',
+                                ),
+                              ),
                               itemBuilder: (context, account) => ListTile(
                                 title: Text(account.accName ?? ''),
-                                subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                subtitle: Text(
+                                  '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                                ),
                                 trailing: Text(account.actCurrency ?? ""),
                               ),
-                              itemToString: (account) => '${account.accName} (${account.accNumber})',
-                              stateToLoading: (state) => state is AccountLoadingState,
+                              itemToString: (account) =>
+                                  '${account.accName} (${account.accNumber})',
+                              stateToLoading: (state) =>
+                                  state is AccountLoadingState,
                               stateToItems: (state) {
-                                if (state is AccountLoadedState) return state.accounts;
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
                                 return [];
                               },
                               onSelected: (value) {
                                 setState(() {
-                                  _accountController.text = value.accNumber.toString();
+                                  _accountController.text = value.accNumber
+                                      .toString();
                                 });
-                                context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                context.read<SaleInvoiceBloc>().add(
+                                  SelectCustomerAccountEvent(value),
+                                );
                               },
                               showClearButton: true,
                             );
@@ -3160,18 +3653,22 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                       ),
                     ],
                   ),
-                  if(_accountController.text.isNotEmpty)...[
+                  if (_accountController.text.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     ZOutlineButton(
                       width: 200,
                       icon: Icons.alarm_rounded,
-                      onPressed: (){
-                        showDialog(context: context, builder: (context){
-                          return AddEditReminderView(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AddEditReminderView(
                               accNumber: _selectedAccountNumber,
                               dueParameter: "Receivable",
-                              isEnable: true);
-                        });
+                              isEnable: true,
+                            );
+                          },
+                        );
                       },
                       label: Text(tr.setReminder),
                     ),
@@ -3186,28 +3683,37 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                   Expanded(
                     child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                       builder: (context, state) {
-                        if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                          final current = state is SaleInvoiceSaving ?
-                          state : (state as SaleInvoiceLoaded);
+                        if (state is SaleInvoiceLoaded ||
+                            state is SaleInvoiceSaving) {
+                          final current = state is SaleInvoiceSaving
+                              ? state
+                              : (state as SaleInvoiceLoaded);
 
                           if (current.items.isEmpty) {
                             return Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.shopping_cart_outlined,
+                                  Icon(
+                                    Icons.shopping_cart_outlined,
                                     size: 64,
-                                    color: Theme.of(context).colorScheme.outline,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.outline,
                                   ),
                                   const SizedBox(height: 16),
                                   Text(
                                     tr.noItems,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
                                   ),
                                   const SizedBox(height: 8),
                                   ElevatedButton.icon(
                                     onPressed: () {
-                                      context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
+                                      context.read<SaleInvoiceBloc>().add(
+                                        AddNewSaleItemEvent(),
+                                      );
                                     },
                                     icon: const Icon(Icons.add),
                                     label: Text(tr.addItem),
@@ -3256,11 +3762,15 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                     child: ZOutlineButton(
                       width: 200,
                       height: 45,
-                      backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: .08),
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.primary.withValues(alpha: .08),
                       icon: Icons.add,
                       label: Text(AppLocalizations.of(context)!.addItem),
                       onPressed: () {
-                        context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
+                        context.read<SaleInvoiceBloc>().add(
+                          AddNewSaleItemEvent(),
+                        );
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           _scrollController.animateTo(
                             _scrollController.position.maxScrollExtent,
@@ -3283,7 +3793,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
+    TextStyle? title = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -3304,17 +3816,25 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       ),
     );
   }
+
   Widget _buildTabletItemCard(SaleInvoiceItem item, BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
 
     final productController = TextEditingController(text: item.productName);
     final qtyController = _qtyControllers.putIfAbsent(
-      item.rowId, () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
+      item.rowId,
+      () =>
+          TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
     );
 
     final salePriceController = _priceControllers.putIfAbsent(
-      "sale_${item.rowId}", () => TextEditingController(text: item.salePrice != null && item.salePrice! > 0 ? item.salePrice!.toAmount() : ''),
+      "sale_${item.rowId}",
+      () => TextEditingController(
+        text: item.salePrice != null && item.salePrice! > 0
+            ? item.salePrice!.toAmount()
+            : '',
+      ),
     );
 
     final storageController = TextEditingController(text: item.storageName);
@@ -3341,79 +3861,111 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                 // Product Selection
                 Expanded(
                   flex: 3,
-                  child: GenericTextfield<ProductsStockModel, ProductsBloc, ProductsState>(
-                    title: "",
-                    controller: productController,
-                    hintText: tr.products,
-                    bloc: context.read<ProductsBloc>(),
-                    fetchAllFunction: (bloc) => bloc.add(LoadProductsStockEvent(noStock: 1)),
-                    searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
-                    itemBuilder: (context, product) => ListTile(
-                      tileColor: Colors.transparent,
-                      title: Text(product.proName ?? ''),
-                      subtitle: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: color.primary.withValues(alpha: .1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text('${tr.purchasePrice}: ${product.averagePrice?.toAmount() ?? ""}'),
+                  child:
+                      GenericTextfield<
+                        ProductsStockModel,
+                        ProductsBloc,
+                        ProductsState
+                      >(
+                        title: "",
+                        controller: productController,
+                        hintText: tr.products,
+                        bloc: context.read<ProductsBloc>(),
+                        fetchAllFunction: (bloc) =>
+                            bloc.add(LoadProductsStockEvent(noStock: 1)),
+                        searchFunction: (bloc, query) =>
+                            bloc.add(LoadProductsStockEvent(input: query)),
+                        itemBuilder: (context, product) => ListTile(
+                          tileColor: Colors.transparent,
+                          title: Text(product.proName ?? ''),
+                          subtitle: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: color.primary.withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${tr.purchasePrice}: ${product.averagePrice?.toAmount() ?? ""}',
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: color.primary.withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '${tr.salePriceBrief}: ${product.sellPrice?.toAmount() ?? ""}',
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: color.primary.withValues(alpha: .1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text('${tr.salePriceBrief}: ${product.sellPrice?.toAmount() ?? ""}'),
+                          trailing: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                product.available?.toAmount() ?? "",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                product.stgName ?? "",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Theme.of(context).colorScheme.outline,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            product.available?.toAmount() ?? "",
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            product.stgName ?? "",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    itemToString: (product) => product.proName ?? '',
-                    stateToLoading: (state) => state is ProductsLoadingState,
-                    stateToItems: (state) {
-                      if (state is ProductsStockLoadedState) return state.products;
-                      return [];
-                    },
-                    onSelected: (product) {
-                      final purchasePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
-                      final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
+                        ),
+                        itemToString: (product) => product.proName ?? '',
+                        stateToLoading: (state) =>
+                            state is ProductsLoadingState,
+                        stateToItems: (state) {
+                          if (state is ProductsStockLoadedState) {
+                            return state.products;
+                          }
+                          return [];
+                        },
+                        onSelected: (product) {
+                          final purchasePrice =
+                              double.tryParse(
+                                product.averagePrice?.toAmount() ?? "0.0",
+                              ) ??
+                              0.0;
+                          final salePrice =
+                              double.tryParse(
+                                product.sellPrice?.toAmount() ?? "0.0",
+                              ) ??
+                              0.0;
 
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        productId: product.proId.toString(),
-                        productName: product.proName ?? '',
-                        storageId: product.stkStorage,
-                        storageName: product.stgName ?? '',
-                        purPrice: purchasePrice,
-                        salePrice: salePrice,
-                      ));
+                          context.read<SaleInvoiceBloc>().add(
+                            UpdateSaleItemEvent(
+                              rowId: item.rowId,
+                              productId: product.proId.toString(),
+                              productName: product.proName ?? '',
+                              storageId: product.stkStorage,
+                              storageName: product.stgName ?? '',
+                              purPrice: purchasePrice,
+                              salePrice: salePrice,
+                            ),
+                          );
 
-                      salePriceController.text = salePrice.toAmount();
-                      storageController.text = product.stgName ?? '';
-                    },
-                  ),
+                          salePriceController.text = salePrice.toAmount();
+                          storageController.text = product.stgName ?? '';
+                        },
+                      ),
                 ),
 
                 // Quantity
@@ -3422,26 +3974,22 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                   child: TextFormField(
                     controller: qtyController,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                          rowId: item.rowId,
-                          qty: 0,
-                        ));
+                        context.read<SaleInvoiceBloc>().add(
+                          UpdateSaleItemEvent(rowId: item.rowId, qty: 0),
+                        );
                         return;
                       }
                       final qty = int.tryParse(value) ?? 0;
-                      context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                        rowId: item.rowId,
-                        qty: qty,
-                      ));
+                      context.read<SaleInvoiceBloc>().add(
+                        UpdateSaleItemEvent(rowId: item.rowId, qty: qty),
+                      );
                     },
                   ),
                 ),
@@ -3451,7 +3999,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                   width: 100,
                   child: TextFormField(
                     controller: salePriceController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
                     ],
@@ -3461,10 +4011,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                     ),
                     onChanged: (value) {
                       if (value.isEmpty) {
-                        context.read<SaleInvoiceBloc>().add(UpdateSaleItemEvent(
-                          rowId: item.rowId,
-                          salePrice: 0,
-                        ));
+                        context.read<SaleInvoiceBloc>().add(
+                          UpdateSaleItemEvent(rowId: item.rowId, salePrice: 0),
+                        );
                         return;
                       }
                       final parsed = double.tryParse(value);
@@ -3509,7 +4058,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                     onPressed: () {
                       _priceControllers.remove("sale_${item.rowId}");
                       _qtyControllers.remove(item.rowId);
-                      context.read<SaleInvoiceBloc>().add(RemoveSaleItemEvent(item.rowId));
+                      context.read<SaleInvoiceBloc>().add(
+                        RemoveSaleItemEvent(item.rowId),
+                      );
                     },
                   ),
                 ),
@@ -3517,7 +4068,10 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
             ),
 
             // Profit info if available (shown below the row for tablet)
-            if (item.purPrice != null && item.purPrice! > 0 && item.salePrice != null && item.salePrice! > 0)
+            if (item.purPrice != null &&
+                item.purPrice! > 0 &&
+                item.salePrice != null &&
+                item.salePrice! > 0)
               Padding(
                 padding: const EdgeInsets.only(top: 8, left: 30),
                 child: Row(
@@ -3526,7 +4080,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                       '${tr.profit}: ${(item.totalSale - item.totalPurchase).toAmount()}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: (item.totalSale - item.totalPurchase) >= 0 ? Colors.green : Colors.red,
+                        color: (item.totalSale - item.totalPurchase) >= 0
+                            ? Colors.green
+                            : Colors.red,
                       ),
                     ),
                   ],
@@ -3537,6 +4093,7 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       ),
     );
   }
+
   Widget _buildTabletSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
@@ -3544,8 +4101,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
     return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
       builder: (context, state) {
         if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-          final current = state is SaleInvoiceSaving ?
-          state : (state as SaleInvoiceLoaded);
+          final current = state is SaleInvoiceSaving
+              ? state
+              : (state as SaleInvoiceLoaded);
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -3559,13 +4117,18 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(tr.paymentMethod, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      tr.paymentMethod,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     InkWell(
                       onTap: () => _showPaymentModeDialog(current),
                       child: Row(
                         children: [
-                          Text(_getPaymentModeLabel(current.paymentMode),
-                              style: TextStyle(color: color.primary)),
+                          Text(
+                            _getPaymentModeLabel(current.paymentMode),
+                            style: TextStyle(color: color.primary),
+                          ),
                           const SizedBox(width: 4),
                           Icon(Icons.edit, size: 16, color: color.primary),
                         ],
@@ -3611,13 +4174,17 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                 ],
 
                 // Account Information
-                if (current.customerAccount != null && current.creditAmount > 0) ...[
+                if (current.customerAccount != null &&
+                    current.creditAmount > 0) ...[
                   Divider(color: color.outline.withValues(alpha: .2)),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4.0),
                     child: Text(
                       '${current.customerAccount!.accNumber} | ${current.customerAccount!.accName}',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   _buildSummaryRow(
@@ -3636,7 +4203,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                     label: tr.newBalance,
                     value: current.currentBalance - current.creditAmount,
                     isBold: true,
-                    color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                    color: _getBalanceColor(
+                      current.currentBalance - current.creditAmount,
+                    ),
                   ),
                 ],
               ],
@@ -3647,6 +4216,7 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       },
     );
   }
+
   Widget _buildTabletProfitSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
@@ -3654,8 +4224,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
     return BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
       builder: (context, state) {
         if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-          final current = state is SaleInvoiceSaving ?
-          state : (state as SaleInvoiceLoaded);
+          final current = state is SaleInvoiceSaving
+              ? state
+              : (state as SaleInvoiceLoaded);
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -3669,7 +4240,10 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(tr.profitSummary, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      tr.profitSummary,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     Icon(Icons.ssid_chart, size: 22, color: color.primary),
                   ],
                 ),
@@ -3695,7 +4269,9 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
                       Text(
                         '${current.profitPercentage.toStringAsFixed(2)}%',
                         style: TextStyle(
-                          color: current.totalProfit >= 0 ? Colors.green : Colors.red,
+                          color: current.totalProfit >= 0
+                              ? Colors.green
+                              : Colors.red,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
@@ -3711,7 +4287,13 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       },
     );
   }
-  Widget _buildSummaryRow({required String label, required double value, bool isBold = false, Color? color}) {
+
+  Widget _buildSummaryRow({
+    required String label,
+    required double value,
+    bool isBold = false,
+    Color? color,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -3733,6 +4315,7 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       ],
     );
   }
+
   void _showPaymentModeDialog(SaleInvoiceLoaded current) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
@@ -3745,40 +4328,65 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
           children: [
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.money,
-                      color: current.paymentMode == PaymentMode.cash ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.money,
+                  color: current.paymentMode == PaymentMode.cash
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.cashPayment),
               subtitle: Text(tr.cashPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.cash ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.cash
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _accountController.clear();
-                context.read<SaleInvoiceBloc>().add(ClearCustomerAccountEvent());
+                context.read<SaleInvoiceBloc>().add(
+                  ClearCustomerAccountEvent(),
+                );
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.credit_card,
-                      color: current.paymentMode == PaymentMode.credit ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.credit_card,
+                  color: current.paymentMode == PaymentMode.credit
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.accountCredit),
               subtitle: Text(tr.accountCreditSubtitle),
-              trailing: current.paymentMode == PaymentMode.credit ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.credit
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
-                context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(0));
+                context.read<SaleInvoiceBloc>().add(
+                  UpdateSaleReceivePaymentEvent(0),
+                );
                 setState(() {});
               },
             ),
             ListTile(
               leading: CircleAvatar(
-                  backgroundColor: color.primary.withValues(alpha: .05),
-                  child: Icon(Icons.payments,
-                      color: current.paymentMode == PaymentMode.mixed ? color.primary : color.outline)),
+                backgroundColor: color.primary.withValues(alpha: .05),
+                child: Icon(
+                  Icons.payments,
+                  color: current.paymentMode == PaymentMode.mixed
+                      ? color.primary
+                      : color.outline,
+                ),
+              ),
               title: Text(tr.combinedPayment),
               subtitle: Text(tr.combinedPaymentSubtitle),
-              trailing: current.paymentMode == PaymentMode.mixed ? Icon(Icons.check, color: color.primary) : null,
+              trailing: current.paymentMode == PaymentMode.mixed
+                  ? Icon(Icons.check, color: color.primary)
+                  : null,
               onTap: () {
                 Navigator.pop(context);
                 _showMixedPaymentDialog(context, current);
@@ -3795,7 +4403,11 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       ),
     );
   }
-  void _showMixedPaymentDialog(BuildContext context, SaleInvoiceLoaded current) {
+
+  void _showMixedPaymentDialog(
+    BuildContext context,
+    SaleInvoiceLoaded current,
+  ) {
     final controller = TextEditingController();
     final tr = AppLocalizations.of(context)!;
 
@@ -3834,19 +4446,30 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
               final creditPayment = double.tryParse(cleaned) ?? 0;
 
               if (creditPayment <= 0) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be greater than 0', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message: 'Account payment must be greater than 0',
+                  isError: true,
+                );
                 return;
               }
 
               if (creditPayment >= current.grandTotal) {
-                Utils.showOverlayMessage(context, message: 'Account payment must be less than total amount for mixed payment', isError: true);
+                Utils.showOverlayMessage(
+                  context,
+                  message:
+                      'Account payment must be less than total amount for mixed payment',
+                  isError: true,
+                );
                 return;
               }
 
-              context.read<SaleInvoiceBloc>().add(UpdateSaleReceivePaymentEvent(
-                creditPayment,
-                isCreditAmount: true,
-              ));
+              context.read<SaleInvoiceBloc>().add(
+                UpdateSaleReceivePaymentEvent(
+                  creditPayment,
+                  isCreditAmount: true,
+                ),
+              );
               Navigator.pop(context);
             },
             child: Text(tr.submit),
@@ -3855,13 +4478,18 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       ),
     );
   }
+
   String _getPaymentModeLabel(PaymentMode mode) {
     switch (mode) {
-      case PaymentMode.cash: return AppLocalizations.of(context)!.cash;
-      case PaymentMode.credit: return AppLocalizations.of(context)!.creditTitle;
-      case PaymentMode.mixed: return AppLocalizations.of(context)!.combinedPayment;
+      case PaymentMode.cash:
+        return AppLocalizations.of(context)!.cash;
+      case PaymentMode.credit:
+        return AppLocalizations.of(context)!.creditTitle;
+      case PaymentMode.mixed:
+        return AppLocalizations.of(context)!.combinedPayment;
     }
   }
+
   Color _getBalanceColor(double balance) {
     if (balance < 0) {
       return Colors.red;
@@ -3871,21 +4499,29 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       return Colors.grey;
     }
   }
+
   void _saveInvoice(BuildContext context, SaleInvoiceLoaded state) {
     if (!state.isFormValid) {
-      Utils.showOverlayMessage(context, message: 'Please fill all required fields correctly', isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
       return;
     }
     final completer = Completer<String>();
-    context.read<SaleInvoiceBloc>().add(SaveSaleInvoiceEvent(
-      usrName: _userName ?? '',
-      orderName: "Sale",
-      ordPersonal: state.customer!.perId!,
-      xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-      items: state.items,
-      completer: completer,
-    ));
+    context.read<SaleInvoiceBloc>().add(
+      SaveSaleInvoiceEvent(
+        usrName: _userName ?? '',
+        orderName: "Sale",
+        ordPersonal: state.customer!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        items: state.items,
+        completer: completer,
+      ),
+    );
   }
+
   void _onSalePrint({String? invoiceNumber}) {
     final state = context.read<SaleInvoiceBloc>().state;
 
@@ -3898,9 +4534,11 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(context,
-          message: 'Cannot print: No invoice data available',
-          isError: true);
+      Utils.showOverlayMessage(
+        context,
+        message: 'Cannot print: No invoice data available',
+        isError: true,
+      );
       return;
     }
 
@@ -3922,86 +4560,89 @@ class _TabletNewSaleViewState extends State<_TabletNewSaleView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              selectedPrinter: selectedPrinter,
-              pageFormat: pageFormat,
-              copies: copies,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-              invoiceType: "Sale",
-              invoiceNumber: invoiceNumber ?? "",
-              reference: _xRefController.text,
-              invoiceDate: DateTime.now(),
-              customerSupplierName: current!.customer?.perName ?? "",
-              items: invoiceItems,
-              grandTotal: current.grandTotal,
-              cashPayment: current.cashPayment,
-              creditAmount: current.creditAmount,
-              account: current.customerAccount,
-              language: language,
-              orientation: orientation,
-              company: company,
-              pageFormat: pageFormat,
-              currency: baseCurrency,
-              isSale: true
-          );
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Sale",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current!.customer?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current.grandTotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.customerAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: true,
+              );
+            },
       ),
     );
   }

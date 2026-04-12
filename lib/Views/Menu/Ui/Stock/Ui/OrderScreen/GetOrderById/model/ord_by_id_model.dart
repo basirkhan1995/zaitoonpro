@@ -88,15 +88,19 @@ class OrderByIdModel {
   };
 }
 
+
 class OrderRecords {
   final int? stkId;
   final int? stkOrder;
   final int? stkProduct;
   final String? stkEntryType;
   final int? stkStorage;
-  final DateTime? stkExpiryDate;
+  final dynamic stkExpiryDate;
   final String? stkQuantity;
   final String? stkPurPrice;
+  final int? stkQtyInBatch;
+  final String? stkLandedPurPrice;
+  final String? stkDiscount;
   final String? stkSalePrice;
 
   OrderRecords({
@@ -108,6 +112,9 @@ class OrderRecords {
     this.stkExpiryDate,
     this.stkQuantity,
     this.stkPurPrice,
+    this.stkQtyInBatch,
+    this.stkLandedPurPrice,
+    this.stkDiscount,
     this.stkSalePrice,
   });
 
@@ -117,9 +124,12 @@ class OrderRecords {
     int? stkProduct,
     String? stkEntryType,
     int? stkStorage,
-    DateTime? stkExpiryDate,
+    dynamic stkExpiryDate,
     String? stkQuantity,
     String? stkPurPrice,
+    int? stkQtyInBatch,
+    String? stkLandedPurPrice,
+    String? stkDiscount,
     String? stkSalePrice,
   }) =>
       OrderRecords(
@@ -131,6 +141,9 @@ class OrderRecords {
         stkExpiryDate: stkExpiryDate ?? this.stkExpiryDate,
         stkQuantity: stkQuantity ?? this.stkQuantity,
         stkPurPrice: stkPurPrice ?? this.stkPurPrice,
+        stkQtyInBatch: stkQtyInBatch ?? this.stkQtyInBatch,
+        stkLandedPurPrice: stkLandedPurPrice ?? this.stkLandedPurPrice,
+        stkDiscount: stkDiscount ?? this.stkDiscount,
         stkSalePrice: stkSalePrice ?? this.stkSalePrice,
       );
 
@@ -140,25 +153,30 @@ class OrderRecords {
     stkProduct: json["stkProduct"],
     stkEntryType: json["stkEntryType"],
     stkStorage: json["stkStorage"],
-    stkExpiryDate: json["stkExpiryDate"] == null ? null : DateTime.parse(json["stkExpiryDate"]),
-    stkQuantity: json["stkQuantity"],
+    stkExpiryDate: json["stkExpiryDate"],
+    stkQuantity: json["stkQuantity"]?.toString(),
     stkPurPrice: json["stkPurPrice"],
+    stkQtyInBatch: json["stkQtyInBatch"],
+    stkLandedPurPrice: json["stkLandedPurPrice"],
+    stkDiscount: json["stkDiscount"],
     stkSalePrice: json["stkSalePrice"],
   );
+
   Map<String, dynamic> toMap() => {
     "stkID": stkId,
     "stkOrder": stkOrder,
     "stkProduct": stkProduct,
     "stkEntryType": stkEntryType,
     "stkStorage": stkStorage,
-    "stkExpiryDate": stkExpiryDate?.toIso8601String(),
+    "stkExpiryDate": stkExpiryDate,
     "stkQuantity": stkQuantity,
     "stkPurPrice": stkPurPrice,
+    "stkQtyInBatch": stkQtyInBatch,
+    "stkLandedPurPrice": stkLandedPurPrice,
+    "stkDiscount": stkDiscount,
     "stkSalePrice": stkSalePrice,
   };
 }
-
-
 
 
 

@@ -42,7 +42,9 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
   final String? productId;
   final String? productName;
   final int? qty;
-  final int? pcs;
+  final int? batch;
+  final double? localeAmount;
+  final double? exchangeRate;
   final double? discount;
   final double? purPrice;
   final double? salePrice;
@@ -55,7 +57,9 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     this.productName,
     this.qty,
     this.discount,
-    this.pcs,
+    this.batch,
+    this.localeAmount,
+    this.exchangeRate,
     this.purPrice,
     this.salePrice,
     this.storageId,
@@ -69,7 +73,9 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     productName,
     qty,
     discount,
-    pcs,
+    batch,
+    localeAmount,
+    exchangeRate,
     purPrice,
     salePrice,
     storageId,

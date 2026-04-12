@@ -45,10 +45,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         productId: '',
         productName: '',
         qty: 1,
-        pcs: 0,
+        batch: 0,
         discount: 0,
         purPrice: 0,
-        salePrice: 0, // Add this
+        salePrice: 0,
         storageName: '',
         storageId: 0,
       )],
@@ -106,7 +106,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       productId: '',
       productName: '',
       qty: 1,
-      pcs: 0,
+      batch: 0,
       discount: 0,
       purPrice: 0,
       salePrice: 0,
@@ -127,7 +127,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           productId: '',
           productName: '',
           qty: 1,
-          pcs: 0,
+          batch: 0,
           discount: 0,
           purPrice: 0,
           storageName: '',
@@ -149,10 +149,12 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
             productId: event.productId ?? item.productId,
             productName: event.productName ?? item.productName,
             qty: event.qty ?? item.qty,
-            pcs: event.pcs ?? item.pcs,
+            batch: event.batch ?? item.batch,
             discount: event.discount ?? item.discount,
+            localAmount: event.localeAmount,
+            exchangeRate: event.exchangeRate,
             purPrice: event.purPrice ?? item.purPrice,
-            salePrice: event.salePrice ?? item.salePrice, // FIX: Add sale price
+            salePrice: event.salePrice ?? item.salePrice,
             storageName: event.storageName ?? item.storageName,
             storageId: event.storageId ?? item.storageId,
           );
@@ -223,7 +225,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         productId: '',
         productName: '',
         qty: 1,
-        pcs: 0,
+        batch: 0,
         discount: 0,
         purPrice: 0,
         salePrice: 0,
@@ -346,7 +348,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
-          pcs: item.pcs?.toDouble(),
+          batch: item.batch?.toDouble(),
           discount: item.discount?.toDouble(),
           pPrice: item.purPrice,
           sPrice: item.salePrice,
@@ -406,8 +408,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           errorMessage = tr.overLimitMessage;
         } else if (msgLower.contains('block')) {
           errorMessage = tr.accountBlockedMessage;
-        } else if (msgLower.contains('invalid ccy')) {
-          errorMessage = 'Account currency does not match system currency';
         } else if (msgLower.contains('not found')) {
           errorMessage = 'Invalid product or storage ID';
         } else if (msgLower.contains('unavailable')) {

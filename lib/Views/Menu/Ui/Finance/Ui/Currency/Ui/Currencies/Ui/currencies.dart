@@ -10,6 +10,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/Ui/ad
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/bloc/currencies_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flag/flag.dart';
+import '../../../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../../Features/Widgets/search_field.dart';
@@ -31,7 +32,6 @@ class _Mobile extends StatefulWidget {
   @override
   State<_Mobile> createState() => _MobileState();
 }
-
 class _MobileState extends State<_Mobile> {
   final ScrollController _scrollController = ScrollController();
   bool _isFabVisible = true;
@@ -480,8 +480,9 @@ class _DesktopState extends State<_Desktop> {
               child: BlocBuilder<CurrenciesBloc, CurrenciesState>(
                 builder: (context, state) {
                   if(state is CurrenciesLoadingState){
-                    return Center(
-                      child: CircularProgressIndicator(),
+                    return UniversalShimmer.dataList(
+                      itemCount: 15,
+                      numberOfColumns: 5,
                     );
                   } if(state is CurrenciesErrorState){
                     return NoDataWidget(

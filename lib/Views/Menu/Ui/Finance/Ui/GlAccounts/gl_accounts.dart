@@ -5,6 +5,7 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/shortcut.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/GlAccounts/add_edit_gl.dart';
+import '../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../Features/Other/alert_dialog.dart';
 import '../../../../../../Features/Other/utils.dart';
 import '../../../../../../Features/Widgets/no_data_widget.dart';
@@ -426,7 +427,10 @@ class _DesktopState extends State<_Desktop> {
                 },
                 builder: (context, state) {
                   if(state is GlAccountsLoadingState){
-                   return Center(child: CircularProgressIndicator());
+                    return UniversalShimmer.dataList(
+                      itemCount: 15,
+                      numberOfColumns: 6,
+                    );
                   }
                   if(state is GlAccountLoadedState){
                     final query = searchController.text.toLowerCase().trim();

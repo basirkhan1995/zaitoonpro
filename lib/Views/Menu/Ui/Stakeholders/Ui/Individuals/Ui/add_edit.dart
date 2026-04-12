@@ -1166,7 +1166,7 @@ class _DesktopState extends State<_Desktop> {
               }if(state is IndividualErrorState){
                 ToastManager.show(context: context, title: locale.operationFailedTitle, message: state.message, type: ToastType.error);
               }if(state is IndividualSuccessImageState){
-                ToastManager.show(context: context, title: locale.successTitle, message: locale.successMessage, type: ToastType.error);
+                ToastManager.show(context: context, title: locale.successTitle, message: locale.successMessage, type: ToastType.success);
               }
             },
             builder: (context, state) {

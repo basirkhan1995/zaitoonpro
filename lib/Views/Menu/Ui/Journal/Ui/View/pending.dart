@@ -17,6 +17,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/TxnByReference/txn_reference
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/bloc/transactions_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Journal/Ui/model/transaction_model.dart';
+import '../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../GetOrder/bloc/order_txn_bloc.dart';
@@ -1195,8 +1196,9 @@ class _DesktopState extends State<_Desktop> {
                       }
 
                       if (state is TxnLoadingState) {
-                        return const Center(
-                          child: CircularProgressIndicator(),
+                        return UniversalShimmer.dataList(
+                          itemCount: 15,
+                          numberOfColumns: 5,
                         );
                       }
 

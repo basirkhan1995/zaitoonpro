@@ -7,6 +7,7 @@ import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/shortcut.dart';
+import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Localizations/Bloc/localizations_bloc.dart';
@@ -1121,12 +1122,18 @@ class _DesktopState extends State<_Desktop> {
   }
 
   void onSubmit(){
-    context.read<AccStatementBloc>().add(
-      LoadAccountStatementEvent(
-        accountNumber: accNumber!,
-        fromDate: fromDate,
-        toDate: toDate,
-      ),
-    );
+    if(accNumber == null){
+      ToastManager.show(context: context,
+          title: "NO Account Selected",
+          message: "Please select an account.", type: ToastType.info);
+    }else{
+      context.read<AccStatementBloc>().add(
+        LoadAccountStatementEvent(
+          accountNumber: accNumber!,
+          fromDate: fromDate,
+          toDate: toDate,
+        ),
+      );
+    }
   }
 }

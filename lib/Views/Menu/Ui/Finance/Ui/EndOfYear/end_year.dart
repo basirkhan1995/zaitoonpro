@@ -16,6 +16,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/EndOfYear/bloc/eoy_bloc.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/EndOfYear/model/eoy_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../Localizations/Bloc/localizations_bloc.dart';
 
 class EndOfYearView extends StatelessWidget {
@@ -160,8 +161,9 @@ class _DesktopState extends State<_Desktop> {
                           );
                         }
                         if (state is EoyLoadingState) {
-                          return const Center(
-                            child: CircularProgressIndicator(),
+                          return UniversalShimmer.dataList(
+                            itemCount: 15,
+                            numberOfColumns: 6,
                           );
                         }
                         if (state is EoyLoadedState) {

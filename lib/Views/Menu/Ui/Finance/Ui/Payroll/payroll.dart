@@ -9,6 +9,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Payroll/bloc/payroll_bloc.da
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Payroll/model/payroll_model.dart';
 import '../../../../../../Features/Date/month_year_picker.dart';
+import '../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../Features/Widgets/no_data_widget.dart';
 import '../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';
@@ -1026,7 +1027,10 @@ class __DesktopState extends State<_Desktop> {
                 }
 
                 if (state is PayrollLoadingState) {
-                  return const Center(child: CircularProgressIndicator());
+                  return UniversalShimmer.dataList(
+                    itemCount: 15,
+                    numberOfColumns: 6,
+                  );
                 }
 
                 return Stack(

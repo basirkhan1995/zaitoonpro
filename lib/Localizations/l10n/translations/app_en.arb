@@ -1065,5 +1065,10 @@
   "noProductFound": "No Products found",
   "closeKey": "Close (ESC)",
   "navigateTitle": "Navigate",
-  "completeInfo": "Products Complete Information"
+  "completeInfo": "Products Complete Information",
+  "localAmount": "Local Amount",
+  "subtotal": "Subtotal",
+  "itemDiscounts": "Item Discounts",
+  "afterItemDiscount": "After Item Discount",
+  "generalDiscount": "General Discount"
 }

@@ -3217,4 +3217,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get completeInfo => 'معلومات مکمل کالا ';
+
+  @override
+  String get localAmount => 'محلي اندازه';
+
+  @override
+  String get subtotal => 'فرعي مجموعه';
+
+  @override
+  String get itemDiscounts => 'د توکو تخفیف';
+
+  @override
+  String get afterItemDiscount => 'د توکو له تخفیف وروسته';
+
+  @override
+  String get generalDiscount => 'عمومي تخفیف';
 }

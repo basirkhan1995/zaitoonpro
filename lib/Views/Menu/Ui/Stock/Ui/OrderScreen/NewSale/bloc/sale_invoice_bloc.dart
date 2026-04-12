@@ -26,7 +26,76 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<ResetSaleInvoiceEvent>(_onReset);
     on<SaveSaleInvoiceEvent>(_onSaveInvoice);
     on<ClearCustomerAccountEvent>(_onClearSupplierAccount);
+
+    on<UpdateItemDiscountTypeEvent>(_onUpdateItemDiscountType);
+    on<UpdateItemDiscountValueEvent>(_onUpdateItemDiscountValue);
+    on<UpdateGeneralDiscountEvent>(_onUpdateGeneralDiscount);
+    on<UpdateItemUnitEvent>(_onUpdateItemUnit);
+    on<UpdateExchangeRateEvent>(_onUpdateExchangeRate);
   }
+
+  void _onUpdateExchangeRate(UpdateExchangeRateEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      emit(current.copyWith(
+        exchangeRate: event.rate,
+        fromCurrency: event.fromCurrency,
+        toCurrency: event.toCurrency,
+      ));
+    }
+  }
+
+  void _onUpdateItemDiscountType(UpdateItemDiscountTypeEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      final updatedItems = current.items.map((item) {
+        if (item.rowId == event.rowId) {
+          return item.copyWith(discountType: event.discountType);
+        }
+        return item;
+      }).toList();
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+
+  void _onUpdateItemDiscountValue(UpdateItemDiscountValueEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      final updatedItems = current.items.map((item) {
+        if (item.rowId == event.rowId) {
+          return item.copyWith(discount: event.discountValue);
+        }
+        return item;
+      }).toList();
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+
+  void _onUpdateGeneralDiscount(UpdateGeneralDiscountEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      emit(current.copyWith(
+        generalDiscount: event.discountValue,
+        generalDiscountType: event.discountType,
+      ));
+    }
+  }
+
+  void _onUpdateItemUnit(UpdateItemUnitEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      final updatedItems = current.items.map((item) {
+        if (item.rowId == event.rowId) {
+          return item.copyWith(unit: event.unit);
+        }
+        return item;
+      }).toList();
+      emit(current.copyWith(items: updatedItems));
+    }
+  }
+
+
+
 
   void _onClearSupplierAccount(ClearCustomerAccountEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
@@ -348,12 +417,18 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
-          batch: item.batch?.toDouble(),
-          discount: item.discount?.toDouble(),
+          batch: item.batch?.toDouble() ?? 0.0, // Make sure batch is included
+          discount: item.discountAmount, // Send calculated discount amount
           pPrice: item.purPrice,
           sPrice: item.salePrice,
         );
       }).toList();
+
+      // general discount to the invoice data
+      // final generalDiscountAmount = current.generalDiscountAmount;
+      // final generalDiscountPercent = current.generalDiscountType == DiscountType.percentage
+      //     ? current.generalDiscount
+      //     : 0.0;
 
       final xRef = event.xRef ?? '';
 

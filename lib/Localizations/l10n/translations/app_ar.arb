@@ -1065,5 +1065,10 @@
   "noProductFound": "هیچ کالا یافت نشد",
   "closeKey": "بستن (ESC)",
   "navigateTitle": "هدایت",
-  "completeInfo": "معلومات مکمل کالا "
+  "completeInfo": "معلومات مکمل کالا ",
+  "localAmount": "محلي اندازه",
+  "subtotal": "فرعي مجموعه",
+  "itemDiscounts": "د توکو تخفیف",
+  "afterItemDiscount": "د توکو له تخفیف وروسته",
+  "generalDiscount": "عمومي تخفیف"
 }

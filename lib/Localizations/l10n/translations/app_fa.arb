@@ -1065,5 +1065,10 @@
   "noProductFound": "هیچ کالا یافت نشد",
   "closeKey": "بستن (ESC)",
   "navigateTitle": "هدایت",
-  "completeInfo": "معلومات مکمل کالا "
+  "completeInfo": "معلومات مکمل کالا ",
+  "localAmount": "مبلغ محلی",
+  "subtotal": "جمع موقت",
+  "itemDiscounts": "تخفیف اقلام",
+  "afterItemDiscount": "پس از تخفیف اقلام",
+  "generalDiscount": "تخفیف عمومی"
 }

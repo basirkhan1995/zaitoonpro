@@ -27,6 +27,12 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
 
+  // New fields for general discount
+  final double generalDiscount;
+  final double exchangeRate;
+  final DiscountType generalDiscountType;
+  final String? fromCurrency;
+  final String? toCurrency;
   const SaleInvoiceLoaded({
     required this.items,
     this.customer,
@@ -34,29 +40,70 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     required this.payment,
     this.paymentMode = PaymentMode.cash,
     this.storages,
+    this.generalDiscount = 0.0,
+    this.exchangeRate = 1.0,
+    this.generalDiscountType = DiscountType.percentage,
+    this.fromCurrency,
+    this.toCurrency,
   });
 
-  // TotalDailyTxn purchase cost (total cost price)
+
+  // Helper to check if currency conversion is needed
+  bool get needsExchangeRate {
+    if (customerAccount == null) return false;
+    final accountCurrency = customerAccount!.actCurrency ?? '';
+    final baseCurr = fromCurrency ?? '';
+    return accountCurrency.isNotEmpty &&
+        baseCurr.isNotEmpty &&
+        accountCurrency != baseCurr;
+  }
+
+  // Local amount for display (total in account currency)
+  double get totalLocalAmount {
+    if (!needsExchangeRate) return grandTotal;
+    return items.fold(0.0, (sum, item) =>
+    sum + (item.totalSale * exchangeRate));
+  }
+
+  // Total sale amount before discount
+  double get subtotal {
+    return items.fold(0.0, (sum, item) => sum + (item.qty * (item.salePrice ?? 0)));
+  }
+
+  // Total item discount amount
+  double get totalItemDiscount {
+    return items.fold(0.0, (sum, item) => sum + item.discountAmount);
+  }
+
+  // Total after item discounts but before general discount
+  double get totalAfterItemDiscount {
+    return items.fold(0.0, (sum, item) => sum + item.totalSale);
+  }
+
+  // General discount amount
+  double get generalDiscountAmount {
+    if (generalDiscount <= 0) return 0;
+
+    if (generalDiscountType == DiscountType.percentage) {
+      return totalAfterItemDiscount * (generalDiscount / 100);
+    } else {
+      return generalDiscount;
+    }
+  }
+
+  // Grand total (after all discounts)
+  double get grandTotal {
+    return totalAfterItemDiscount - generalDiscountAmount;
+  }
+
   double get totalPurchaseCost {
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
   }
 
-  // TotalDailyTxn sale amount (total selling price)
-  double get totalSaleAmount {
-    return items.fold(0.0, (sum, item) => sum + item.totalSale);
-  }
-
-  // Grand total (use sale amount for the invoice total)
-  double get grandTotal {
-    return totalSaleAmount;
-  }
-
-  // Profit calculation
   double get totalProfit {
-    return totalSaleAmount - totalPurchaseCost;
+    return grandTotal - totalPurchaseCost;
   }
 
-  // Profit percentage
   double get profitPercentage {
     if (totalPurchaseCost > 0) {
       return (totalProfit / totalPurchaseCost) * 100;
@@ -116,6 +163,11 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       if (payment <= 0 || payment >= grandTotal) return false;
     }
 
+    // Validate general discount
+    if (generalDiscountType == DiscountType.amount && generalDiscount > grandTotal + generalDiscountAmount) {
+      return false;
+    }
+
     return true;
   }
 
@@ -126,6 +178,11 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     double? payment,
     PaymentMode? paymentMode,
     List<StorageModel>? storages,
+    double? generalDiscount,
+    DiscountType? generalDiscountType,
+    double? exchangeRate,
+    String? fromCurrency,
+    String? toCurrency,
   }) {
     return SaleInvoiceLoaded(
       items: items ?? this.items,
@@ -134,11 +191,27 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       payment: payment ?? this.payment,
       paymentMode: paymentMode ?? this.paymentMode,
       storages: storages ?? this.storages,
+      generalDiscount: generalDiscount ?? this.generalDiscount,
+      generalDiscountType: generalDiscountType ?? this.generalDiscountType,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      fromCurrency: fromCurrency ?? this.fromCurrency,
+      toCurrency: toCurrency ?? this.toCurrency,
     );
   }
 
   @override
-  List<Object?> get props => [items, customer, customerAccount, payment, paymentMode, storages];
+  List<Object?> get props => [
+    items,
+    customer,
+    customerAccount,
+    payment,
+    paymentMode,
+    storages,
+    generalDiscount,
+    generalDiscountType,
+    fromCurrency,
+    toCurrency,
+  ];
 }
 class SaleInvoiceSaving extends SaleInvoiceLoaded {
   const SaleInvoiceSaving({

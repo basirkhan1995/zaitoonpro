@@ -3224,4 +3224,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get completeInfo => 'Products Complete Information';
+
+  @override
+  String get localAmount => 'Local Amount';
+
+  @override
+  String get subtotal => 'Subtotal';
+
+  @override
+  String get itemDiscounts => 'Item Discounts';
+
+  @override
+  String get afterItemDiscount => 'After Item Discount';
+
+  @override
+  String get generalDiscount => 'General Discount';
 }

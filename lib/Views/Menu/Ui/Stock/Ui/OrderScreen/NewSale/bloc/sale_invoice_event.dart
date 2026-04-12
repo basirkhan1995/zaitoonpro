@@ -127,3 +127,72 @@ class LoadSaleStoragesEvent extends SaleInvoiceEvent {
   @override
   List<Object?> get props => [productId];
 }
+
+// Add these events to sale_invoice_event.dart
+
+class UpdateItemDiscountTypeEvent extends SaleInvoiceEvent {
+  final String rowId;
+  final DiscountType discountType; // 'percentage' or 'amount'
+
+  const UpdateItemDiscountTypeEvent({
+    required this.rowId,
+    required this.discountType,
+  });
+
+  @override
+  List<Object?> get props => [rowId, discountType];
+}
+
+class UpdateExchangeRateEvent extends SaleInvoiceEvent {
+  final double rate;
+  final String fromCurrency;
+  final String toCurrency;
+
+  const UpdateExchangeRateEvent({
+    required this.rate,
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+
+  @override
+  List<Object?> get props => [rate, fromCurrency, toCurrency];
+}
+
+class UpdateItemDiscountValueEvent extends SaleInvoiceEvent {
+  final String rowId;
+  final double discountValue;
+
+  const UpdateItemDiscountValueEvent({
+    required this.rowId,
+    required this.discountValue,
+  });
+
+  @override
+  List<Object?> get props => [rowId, discountValue];
+}
+
+class UpdateGeneralDiscountEvent extends SaleInvoiceEvent {
+  final double discountValue;
+  final DiscountType discountType; // 'percentage' or 'amount'
+
+  const UpdateGeneralDiscountEvent({
+    required this.discountValue,
+    required this.discountType,
+  });
+
+  @override
+  List<Object?> get props => [discountValue, discountType];
+}
+
+class UpdateItemUnitEvent extends SaleInvoiceEvent {
+  final String rowId;
+  final String unit;
+
+  const UpdateItemUnitEvent({
+    required this.rowId,
+    required this.unit,
+  });
+
+  @override
+  List<Object?> get props => [rowId, unit];
+}

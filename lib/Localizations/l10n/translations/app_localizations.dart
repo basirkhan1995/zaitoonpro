@@ -6375,6 +6375,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Products Complete Information'**
   String get completeInfo;
+
+  /// No description provided for @localAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Amount'**
+  String get localAmount;
+
+  /// No description provided for @subtotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Subtotal'**
+  String get subtotal;
+
+  /// No description provided for @itemDiscounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Item Discounts'**
+  String get itemDiscounts;
+
+  /// No description provided for @afterItemDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'After Item Discount'**
+  String get afterItemDiscount;
+
+  /// No description provided for @generalDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'General Discount'**
+  String get generalDiscount;
 }
 
 class _AppLocalizationsDelegate

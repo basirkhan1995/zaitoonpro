@@ -3214,4 +3214,19 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get completeInfo => 'معلومات مکمل کالا ';
+
+  @override
+  String get localAmount => 'مبلغ محلی';
+
+  @override
+  String get subtotal => 'جمع موقت';
+
+  @override
+  String get itemDiscounts => 'تخفیف اقلام';
+
+  @override
+  String get afterItemDiscount => 'پس از تخفیف اقلام';
+
+  @override
+  String get generalDiscount => 'تخفیف عمومی';
 }

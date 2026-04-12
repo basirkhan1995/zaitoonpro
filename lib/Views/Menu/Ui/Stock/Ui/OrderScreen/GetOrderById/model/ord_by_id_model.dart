@@ -145,7 +145,6 @@ class OrderRecords {
     stkPurPrice: json["stkPurPrice"],
     stkSalePrice: json["stkSalePrice"],
   );
-
   Map<String, dynamic> toMap() => {
     "stkID": stkId,
     "stkOrder": stkOrder,

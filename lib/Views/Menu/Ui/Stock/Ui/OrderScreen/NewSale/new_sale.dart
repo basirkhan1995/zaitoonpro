@@ -629,7 +629,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                   decoration: InputDecoration(
-                    hintText: "pcs",
+                    hintText: AppLocalizations.of(context)!.batchTitle,
                     border: InputBorder.none,
                     isDense: true,
                   ),
@@ -891,286 +891,289 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
           final bool hasCreditAccount = current.customerAccount != null && current.creditAmount > 0;
 
-          return ZCover(
-            padding: const EdgeInsets.all(12),
-            radius: 8,
-            color: Theme.of(context).colorScheme.surface,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // LEFT SECTION - Always visible
-                Expanded(
-                  flex: hasCreditAccount ? 5 : 12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min, // Minimize height
-                    children: [
-                      // Payment Method Row - Compact
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(tr.paymentMethod,
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                          InkWell(
-                            onTap: () => _showPaymentModeDialog(current),
-                            child: Row(
-                              children: [
-                                Text(_getPaymentModeLabel(current.paymentMode),
-                                    style: TextStyle(color: color.primary, fontSize: 15)),
-                                const SizedBox(width: 8),
-                                Icon(Icons.more_vert_outlined, size: 20, color: color.primary),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 6),
-                      Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                      const SizedBox(height: 6),
-
-                      // Grand Total - Compact
-                      _buildCompactSummaryRow(
-                        label: tr.grandTotal,
-                        value: current.grandTotal,
-                        isBold: true,
-                      ),
-
-                      // Profit in same row with percentage - Compact
-                     if(visibility.benefit)...[
-                       if (current.totalPurchaseCost > 0) ...[
-                         const SizedBox(height: 4),
-                         Row(
-                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                           children: [
-                             Text(
-                               tr.profit,
-                               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
-                             ),
-                             Container(
-                               padding: const EdgeInsets.symmetric(
-                                 horizontal: 6,
-                                 vertical: 2,
-                               ),
-                               decoration: BoxDecoration(
-                                 color: current.totalProfit >= 0
-                                     ? Colors.green.withValues(alpha: .1)
-                                     : Colors.red.withValues(alpha: .1),
-                                 borderRadius: BorderRadius.circular(2),
-                               ),
-                               child: Row(
-                                 mainAxisSize: MainAxisSize.min,
-                                 children: [
-                                   Text(
-                                     current.totalProfit >= 0 ? '+' : '',
-                                     style: TextStyle(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: current.totalProfit >= 0
-                                           ? Colors.green
-                                           : Colors.red,
-                                     ),
-                                   ),
-                                   Text(
-                                     current.totalProfit.toAmount(),
-                                     style: TextStyle(
-                                       fontSize: 15,
-                                       fontWeight: FontWeight.bold,
-                                       color: current.totalProfit >= 0
-                                           ? Colors.green
-                                           : Colors.red,
-                                     ),
-                                   ),
-                                   Text(
-                                     ' (${current.profitPercentage.toStringAsFixed(1)}%)',
-                                     style: TextStyle(
-                                       fontSize: 14,
-                                       color: current.totalProfit >= 0
-                                           ? Colors.green.withValues(alpha: .9)
-                                           : Colors.red.withValues(alpha: .7),
-                                     ),
-                                   ),
-                                 ],
-                               ),
-                             ),
-                           ],
-                         ),
-                       ],
-                     ],
-
-                      const SizedBox(height: 6),
-                      Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                      const SizedBox(height: 6),
-
-                      // Payment Breakdown - Compact
-                      if (current.paymentMode == PaymentMode.cash) ...[
-                        _buildCompactSummaryRow(
-                          label: AppLocalizations.of(context)!.cashPayment,
-                          value: current.cashPayment,
-                          color: Colors.green,
-                        ),
-                      ] else if (current.paymentMode == PaymentMode.credit) ...[
-                        _buildCompactSummaryRow(
-                          label: AppLocalizations.of(context)!.accountPayment,
-                          value: current.creditAmount,
-                          color: Colors.orange,
-                        ),
-                      ] else if (current.paymentMode == PaymentMode.mixed) ...[
-                        _buildCompactSummaryRow(
-                          label: AppLocalizations.of(context)!.accountPayment,
-                          value: current.creditAmount,
-                          color: Colors.orange,
-                        ),
-                        const SizedBox(height: 2),
-                        _buildCompactSummaryRow(
-                          label: AppLocalizations.of(context)!.cashPayment,
-                          value: current.cashPayment,
-                          color: Colors.green,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-
-                // RIGHT SECTION - Only visible when credit account is selected
-                if (hasCreditAccount) ...[
-                  const SizedBox(width: 12),
-                  SizedBox(
-                    height: 120,
-                    child: VerticalDivider(
-                      width: 1,
-                      thickness: 1.5,
-                      color: color.outline.withValues(alpha: .15),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
+          return SizedBox(
+            width: 600,
+            child: ZCover(
+              padding: const EdgeInsets.all(12),
+              radius: 8,
+              color: Theme.of(context).colorScheme.surface,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // LEFT SECTION - Always visible
                   Expanded(
-                    flex: 7,
+                    flex: hasCreditAccount ? 5 : 12,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min, // Minimize height
                       children: [
-                        // Account name and number in a single row
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: color.primary.withValues(alpha: .05),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  current.customerAccount!.accName ?? '',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: color.primary.withValues(alpha: .1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  '#${current.customerAccount!.accNumber}',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: color.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 6),
-
-                        // Balance Information in a row
+                        // Payment Method Row - Compact
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Expanded(
-                              child: _buildMiniBalanceRow(
-                                label: tr.currentBalance,
-                                value: current.currentBalance,
-                                color: _getBalanceColor(current.currentBalance),
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: _buildMiniBalanceRow(
-                                label: tr.invoiceAmount,
-                                value: current.creditAmount,
-                                color: Colors.orange,
+                            Text(tr.paymentMethod,
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            InkWell(
+                              onTap: () => _showPaymentModeDialog(current),
+                              child: Row(
+                                children: [
+                                  Text(_getPaymentModeLabel(current.paymentMode),
+                                      style: TextStyle(color: color.primary, fontSize: 15)),
+                                  const SizedBox(width: 8),
+                                  Icon(Icons.more_vert_outlined, size: 20, color: color.primary),
+                                ],
                               ),
                             ),
                           ],
                         ),
 
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 6),
+                        Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                        const SizedBox(height: 6),
 
-                        // New Balance and Status in a row
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: color.primary.withValues(alpha: .05),
-                            borderRadius: BorderRadius.circular(4),
+                        // Grand Total - Compact
+                        _buildCompactSummaryRow(
+                          label: tr.grandTotal,
+                          value: current.grandTotal,
+                          isBold: true,
+                        ),
+
+                        // Profit in same row with percentage - Compact
+                       if(visibility.benefit)...[
+                         if (current.totalPurchaseCost > 0) ...[
+                           const SizedBox(height: 4),
+                           Row(
+                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                             children: [
+                               Text(
+                                 tr.profit,
+                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                               ),
+                               Container(
+                                 padding: const EdgeInsets.symmetric(
+                                   horizontal: 6,
+                                   vertical: 2,
+                                 ),
+                                 decoration: BoxDecoration(
+                                   color: current.totalProfit >= 0
+                                       ? Colors.green.withValues(alpha: .1)
+                                       : Colors.red.withValues(alpha: .1),
+                                   borderRadius: BorderRadius.circular(2),
+                                 ),
+                                 child: Row(
+                                   mainAxisSize: MainAxisSize.min,
+                                   children: [
+                                     Text(
+                                       current.totalProfit >= 0 ? '+' : '',
+                                       style: TextStyle(
+                                         fontSize: 15,
+                                         fontWeight: FontWeight.bold,
+                                         color: current.totalProfit >= 0
+                                             ? Colors.green
+                                             : Colors.red,
+                                       ),
+                                     ),
+                                     Text(
+                                       current.totalProfit.toAmount(),
+                                       style: TextStyle(
+                                         fontSize: 15,
+                                         fontWeight: FontWeight.bold,
+                                         color: current.totalProfit >= 0
+                                             ? Colors.green
+                                             : Colors.red,
+                                       ),
+                                     ),
+                                     Text(
+                                       ' (${current.profitPercentage.toStringAsFixed(1)}%)',
+                                       style: TextStyle(
+                                         fontSize: 14,
+                                         color: current.totalProfit >= 0
+                                             ? Colors.green.withValues(alpha: .9)
+                                             : Colors.red.withValues(alpha: .7),
+                                       ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ],
+                           ),
+                         ],
+                       ],
+
+                        const SizedBox(height: 6),
+                        Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                        const SizedBox(height: 6),
+
+                        // Payment Breakdown - Compact
+                        if (current.paymentMode == PaymentMode.cash) ...[
+                          _buildCompactSummaryRow(
+                            label: AppLocalizations.of(context)!.cashPayment,
+                            value: current.cashPayment,
+                            color: Colors.green,
                           ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              // New Balance
-                              Row(
-                                children: [
-                                  Text(
-                                    '${tr.newBalance} :',
-                                    style: TextStyle(fontSize: 15, color: color.outline),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    (current.currentBalance - current.creditAmount).toAmount(),
+                        ] else if (current.paymentMode == PaymentMode.credit) ...[
+                          _buildCompactSummaryRow(
+                            label: AppLocalizations.of(context)!.accountPayment,
+                            value: current.creditAmount,
+                            color: Colors.orange,
+                          ),
+                        ] else if (current.paymentMode == PaymentMode.mixed) ...[
+                          _buildCompactSummaryRow(
+                            label: AppLocalizations.of(context)!.accountPayment,
+                            value: current.creditAmount,
+                            color: Colors.orange,
+                          ),
+                          const SizedBox(height: 2),
+                          _buildCompactSummaryRow(
+                            label: AppLocalizations.of(context)!.cashPayment,
+                            value: current.cashPayment,
+                            color: Colors.green,
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  // RIGHT SECTION - Only visible when credit account is selected
+                  if (hasCreditAccount) ...[
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      height: 120,
+                      child: VerticalDivider(
+                        width: 1,
+                        thickness: 1.5,
+                        color: color.outline.withValues(alpha: .15),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      flex: 7,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min, // Minimize height
+                        children: [
+                          // Account name and number in a single row
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: color.primary.withValues(alpha: .05),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    current.customerAccount!.accName ?? '',
                                     style: TextStyle(
-                                      fontSize: 15,
+                                      fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: color.primary.withValues(alpha: .1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    '#${current.customerAccount!.accNumber}',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: color.primary,
                                     ),
                                   ),
-                                ],
-                              ),
-
-                              // Status
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: _getBalanceColor(current.currentBalance - current.creditAmount)
-                                      .withValues(alpha: .1),
-                                  borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Text(
-                                  _getBalanceStatus(current.currentBalance - current.creditAmount),
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: _getBalanceColor(current.currentBalance - current.creditAmount),
-                                  ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          // Balance Information in a row
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildMiniBalanceRow(
+                                  label: tr.currentBalance,
+                                  value: current.currentBalance,
+                                  color: _getBalanceColor(current.currentBalance),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: _buildMiniBalanceRow(
+                                  label: tr.invoiceAmount,
+                                  value: current.creditAmount,
+                                  color: Colors.orange,
                                 ),
                               ),
                             ],
                           ),
-                        ),
-                      ],
+
+                          const SizedBox(height: 4),
+
+                          // New Balance and Status in a row
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: color.primary.withValues(alpha: .05),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                // New Balance
+                                Row(
+                                  children: [
+                                    Text(
+                                      '${tr.newBalance} :',
+                                      style: TextStyle(fontSize: 15, color: color.outline),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      (current.currentBalance - current.creditAmount).toAmount(),
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                // Status
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: _getBalanceColor(current.currentBalance - current.creditAmount)
+                                        .withValues(alpha: .1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    _getBalanceStatus(current.currentBalance - current.creditAmount),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: _getBalanceColor(current.currentBalance - current.creditAmount),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
           );
         }

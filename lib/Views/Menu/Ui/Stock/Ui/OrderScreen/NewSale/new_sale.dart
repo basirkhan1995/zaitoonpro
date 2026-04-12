@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
@@ -170,6 +171,70 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         },
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
+          appBar: AppBar(
+            title: Text(tr.saleEntry),
+            actionsPadding: EdgeInsets.symmetric(horizontal: 15),
+            actions: [
+              if(_accountController.text.isNotEmpty)...[
+                const SizedBox(width: 8),
+                ZOutlineButton(
+                  width: 140,
+                  icon: Icons.alarm_rounded,
+                  onPressed: (){
+                    showDialog(context: context, builder: (context){
+                      return AddEditReminderView(
+                          accNumber: _selectedAccountNumber,
+                          dueParameter: "Receivable",
+                          isEnable: true);
+                    });
+                  },
+                  label: Text(tr.setReminder),
+                ),
+              ],
+              const SizedBox(width: 8),
+              ZOutlineButton(
+                height: 48,
+                icon: Icons.refresh,
+                onPressed: (){
+                  context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
+                },
+                label: Text(tr.newSale),
+              ),
+              const SizedBox(width: 8),
+              ZOutlineButton(
+                width: 100,
+                icon: FontAwesomeIcons.solidFilePdf,
+                onPressed: () => _onSalePrint(invoiceNumber: null),
+                label: Text("PDF"),
+              ),
+              const SizedBox(width: 8),
+              BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                  builder: (context, state) {
+                    if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
+                      final current = state is SaleInvoiceSaving ?
+                      state : (state as SaleInvoiceLoaded);
+                      final isSaving = state is SaleInvoiceSaving;
+
+                      return ZButton(
+                        width: 100,
+                        onPressed: (isSaving || !current.isFormValid) ? null : () => _saveInvoice(context, current),
+                        label: isSaving
+                            ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.surface,
+                          ),
+                        )
+                            : Text(tr.saveTitle),
+                      );
+                    }
+                    return const SizedBox();
+                  }
+              )
+            ],
+          ),
           body: Form(
             key: _formKey,
             child: Padding(
@@ -177,14 +242,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    spacing: 8,
-                    children: [
-                      Utils.zBackButton(context),
-                      Text(tr.saleEntry, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold,fontSize: 20))
-                    ],
-                  ),
-                  const SizedBox(height: 8),
 
                   // Customer and Account Selection
                   Row(
@@ -314,64 +371,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           },
                         ),
                       ),
-                      if(_accountController.text.isNotEmpty)...[
-                        const SizedBox(width: 8),
-                        ZOutlineButton(
-                          width: 140,
-                          icon: Icons.alarm_rounded,
-                          onPressed: (){
-                            showDialog(context: context, builder: (context){
-                              return AddEditReminderView(
-                                  accNumber: _selectedAccountNumber,
-                                  dueParameter: "Receivable",
-                                  isEnable: true);
-                            });
-                          },
-                          label: Text(tr.setReminder),
-                        ),
-                      ],
-                      const SizedBox(width: 8),
-                      ZOutlineButton(
-                        height: 48,
-                        icon: Icons.refresh,
-                        onPressed: (){
-                          context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
-                        },
-                        label: Text(tr.newSale),
-                      ),
-                      const SizedBox(width: 8),
-                      ZOutlineButton(
-                        width: 100,
-                        icon: Icons.print,
-                        onPressed: () => _onSalePrint(invoiceNumber: null),
-                        label: Text(tr.print),
-                      ),
-                      const SizedBox(width: 8),
-                      BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                          builder: (context, state) {
-                            if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                              final current = state is SaleInvoiceSaving ?
-                              state : (state as SaleInvoiceLoaded);
-                              final isSaving = state is SaleInvoiceSaving;
 
-                              return ZButton(
-                                width: 100,
-                                onPressed: (isSaving || !current.isFormValid) ? null : () => _saveInvoice(context, current),
-                                label: isSaving
-                                    ? SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Theme.of(context).colorScheme.surface,
-                                  ),
-                                )
-                                    : Text(tr.create),
-                              );
-                            }
-                            return const SizedBox();
-                          }
-                      )
                     ],
                   ),
                   const SizedBox(height: 10),

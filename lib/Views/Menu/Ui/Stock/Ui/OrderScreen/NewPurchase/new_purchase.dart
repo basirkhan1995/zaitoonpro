@@ -558,20 +558,41 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           title: tr.invoiceNumber,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        flex: 1,
-                        child: ZTextFieldEntitled(
-                          showClearButton: true,
-                          controller: _exchangeRateController,
-                          title: tr.exchangeRate,
-                          hint: needsConversion ? "Enter rate" : "Auto",
-                          inputFormat: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}')),
-                          ],
-                          onSubmit: _onExchangeRateChanged,
+                      // Exchange Rate Field - Only show when needed
+                      if (needsConversion) ...[
+                        const SizedBox(width: 4),
+                        Expanded(
+                          flex: 1,
+                          child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                            builder: (context, state) {
+                              if (state is PurchaseInvoiceLoaded) {
+                                final isLoading = state.exchangeRate == null;
+
+                                return ZTextFieldEntitled(
+                                  showClearButton: true,
+                                  controller: _exchangeRateController,
+                                  title: tr.exchangeRate,
+                                  hint: isLoading ? "Loading rate..." : "Enter rate",
+                                  inputFormat: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}')),
+                                  ],
+                                  onSubmit: _onExchangeRateChanged,
+                                  end: isLoading
+                                      ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                      : null,
+                                  isEnabled: !isLoading, // Disable while loading
+                                );
+                              }
+                              return const SizedBox();
+                            },
+                          ),
                         ),
-                      ),
+
+                      ],
                       const SizedBox(width: 4),
                       Expanded(
                         flex: 2,

@@ -1059,5 +1059,11 @@
   "modelTitle": "Model",
   "totalQty": "Total QTY",
   "totalCostPludExpenses": "Total Cost (with Expenses)",
-  "creditAmount": "Credit Amount"
+  "creditAmount": "Credit Amount",
+  "searchProducts": "Search Products",
+  "searchResult": "Search Result for",
+  "noProductFound": "No Products found",
+  "closeKey": "Close (ESC)",
+  "navigateTitle": "Navigate",
+  "completeInfo": "Products Complete Information"
 }

@@ -1849,7 +1849,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get saleTitle => 'فروش';
 
   @override
-  String get newBalance => 'بیلانس جدید';
+  String get newBalance => 'مانده جدید';
 
   @override
   String get cashPaymentSubtitle => 'پرداخت کامل به صورت نقدی';
@@ -3196,4 +3196,22 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get creditAmount => 'مبلغ کریدت';
+
+  @override
+  String get searchProducts => 'جستجو کالا ها';
+
+  @override
+  String get searchResult => 'نتیجه جستجو';
+
+  @override
+  String get noProductFound => 'هیچ کالا یافت نشد';
+
+  @override
+  String get closeKey => 'بستن (ESC)';
+
+  @override
+  String get navigateTitle => 'هدایت';
+
+  @override
+  String get completeInfo => 'معلومات مکمل کالا ';
 }

@@ -6339,6 +6339,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Credit Amount'**
   String get creditAmount;
+
+  /// No description provided for @searchProducts.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Products'**
+  String get searchProducts;
+
+  /// No description provided for @searchResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Result for'**
+  String get searchResult;
+
+  /// No description provided for @noProductFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No Products found'**
+  String get noProductFound;
+
+  /// No description provided for @closeKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Close (ESC)'**
+  String get closeKey;
+
+  /// No description provided for @navigateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigate'**
+  String get navigateTitle;
+
+  /// No description provided for @completeInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Products Complete Information'**
+  String get completeInfo;
 }
 
 class _AppLocalizationsDelegate

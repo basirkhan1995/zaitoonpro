@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../Localizations/l10n/translations/app_localizations.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 
@@ -21,6 +22,7 @@ class PurchaseProductSearchField extends StatefulWidget {
   final ProductListItemBuilder? customListItemBuilder;
   final ProductDetailsBuilder? customDetailsBuilder;
   final String noResultsText;
+  final String initialMessageText;
   final double? width;
   final EdgeInsetsGeometry? padding;
   final bool showClearButton;
@@ -39,10 +41,11 @@ class PurchaseProductSearchField extends StatefulWidget {
     this.hintText,
     this.enabled = true,
     this.noResultsText = 'No products found',
+    this.initialMessageText = 'Search for products',
     this.width,
     this.padding,
     this.showClearButton = true,
-    this.showAllOnFocus = true,
+    this.showAllOnFocus = false, // Changed to false
     this.openOverlayOnFocus = false,
   });
 
@@ -78,9 +81,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardListenerFocusNode.requestFocus();
-      if (widget.showAllOnFocus) {
-        widget.bloc.add(LoadProductsEvent());
-      }
+      // REMOVED: No initial fetch
     });
   }
 
@@ -116,8 +117,12 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
     if (_effectiveFocusNode.hasFocus) {
       if (widget.showAllOnFocus && _firstFocus) {
         _firstFocus = false;
+        if (widget.showAllOnFocus) {
+          widget.bloc.add(LoadProductsEvent());
+        }
       }
 
+      // Only show overlay if there are suggestions, loading, or text is not empty
       if (_currentSuggestions.isNotEmpty ||
           _isLoading ||
           widget.controller.text.isNotEmpty ||
@@ -270,41 +275,15 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                                           ),
                                           const SizedBox(width: 8),
                                           Expanded(
-                                            child: RichText(
-                                              text: TextSpan(
-                                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                                children: [
-                                                  TextSpan(
-                                                    text: '${AppLocalizations.of(context)!.searchResultTitle} ',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context).colorScheme.primary,
-                                                    ),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${AppLocalizations.of(context)!.forTitle} ',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context).colorScheme.outline,
-                                                      fontWeight: FontWeight.normal,
-                                                    ),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '"${widget.controller.text}"',
-                                                    style: TextStyle(
-                                                      color: Theme.of(context).colorScheme.primary,
-                                                    ),
-                                                  ),
-                                                  if (!_isLoading && _currentSuggestions.isNotEmpty)
-                                                    TextSpan(
-                                                      text: ' (${_currentSuggestions.length})',
-                                                      style: TextStyle(
-                                                        color: Theme.of(context).colorScheme.outline,
-                                                        fontWeight: FontWeight.normal,
-                                                      ),
-                                                    ),
-                                                ],
+                                            child: Text(
+                                              widget.controller.text.isEmpty
+                                                  ? AppLocalizations.of(context)!.searchProducts
+                                                  : '${AppLocalizations.of(context)!.searchResult} "${widget.controller.text}"${!_isLoading && _currentSuggestions.isNotEmpty ? ' (${_currentSuggestions.length})' : ''}',
+                                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                color: Theme.of(context).colorScheme.primary,
                                               ),
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
                                           if (_isLoading)
@@ -322,7 +301,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                                           IconButton(
                                             icon: Icon(Icons.close, color: Theme.of(context).colorScheme.outline),
                                             onPressed: _closeOverlayAndReset,
-                                            tooltip: 'Close (ESC)',
+                                            tooltip: AppLocalizations.of(context)!.closeKey,
                                           ),
                                         ],
                                       ),
@@ -340,17 +319,32 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
                                             Icon(
-                                              Icons.search_off,
+                                              widget.controller.text.isEmpty ? Icons.search : Icons.search_off,
                                               size: 48,
                                               color: Theme.of(context).colorScheme.outline.withValues(alpha: .5),
                                             ),
                                             const SizedBox(height: 16),
                                             Text(
-                                              widget.noResultsText,
+                                              widget.controller.text.isEmpty
+                                                  ? widget.initialMessageText
+                                                  : widget.noResultsText,
                                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                                 color: Theme.of(context).colorScheme.outline,
                                               ),
                                             ),
+                                            if (widget.controller.text.isEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 8),
+                                                child: Text(
+                                                  'Type to search for products',
+                                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                    color: Theme.of(context)
+                                                        .colorScheme
+                                                        .outline
+                                                        .withValues(alpha: .7),
+                                                  ),
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       )
@@ -409,7 +403,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.center,
                                           children: [
-                                            _buildKeyHint(context, '↑↓', 'Navigate'),
+                                            _buildKeyHint(context, '↑↓', AppLocalizations.of(context)!.navigateTitle),
                                             const SizedBox(width: 16),
                                             _buildKeyHint(context, '⏎', AppLocalizations.of(context)!.selectTitle),
                                             const SizedBox(width: 16),
@@ -424,7 +418,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                             if (_currentHighlightedItem != null && !_isLoading && _currentSuggestions.isNotEmpty)
                               Flexible(
                                 flex: 3,
-                                child: Container(
+                                child: ZCover(
                                   padding: const EdgeInsets.all(20),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,7 +449,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                                                   ),
                                                 ),
                                                 Text(
-                                                  AppLocalizations.of(context)!.completeInformation,
+                                                  AppLocalizations.of(context)!.completeInfo,
                                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                                     color: Theme.of(context).colorScheme.outline,
                                                   ),
@@ -496,6 +490,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
   Widget _buildDefaultListItem(ProductsModel product) {
     return ListTile(
       visualDensity: const VisualDensity(vertical: -4),
+      contentPadding: EdgeInsets.symmetric(vertical: 0,horizontal: 15),
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
@@ -512,22 +507,11 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
         product.proName ?? '',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '${product.proCode ?? 'N/A'} | ${product.proBrand ?? 'N/A'}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-          Text(
-            '${AppLocalizations.of(context)!.unit}: ${product.proUnit ?? 'N/A'}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-        ],
+      subtitle: Text(
+        '${product.proCode ?? 'N/A'} | ${product.proBrand ?? 'N/A'} | ${product.proUnit ?? 'N/A'}',
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: Theme.of(context).colorScheme.outline,
+        ),
       ),
     );
   }
@@ -539,7 +523,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
       children: [
         _buildDetailCard(tr.basicInformation, [
           _buildDetailItem(Icons.label, tr.productName, product.proName ?? 'N/A'),
-          _buildDetailItem(Icons.qr_code, tr.codeTitle, product.proCode ?? 'N/A'),
+          _buildDetailItem(Icons.qr_code, tr.productCode, product.proCode ?? 'N/A'),
           _buildDetailItem(Icons.category, tr.unit, product.proUnit ?? 'N/A'),
           _buildDetailItem(Icons.grade, tr.brandTitle, product.proBrand ?? 'N/A'),
           _buildDetailItem(Icons.grade, tr.modelTitle, product.proModel ?? 'N/A'),
@@ -654,7 +638,6 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
     });
     widget.onProductSelected?.call(product);
     _closeOverlayAndReset();
-    // Call onSubmitted after selection
     widget.onSubmitted?.call();
   }
 
@@ -678,7 +661,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
         }
         widget.onProductSelected?.call(null);
         _closeOverlayAndReset();
-        widget.bloc.add(LoadProductsEvent());
+        // REMOVED: Don't fetch all products on clear
       },
     )
         : null;
@@ -696,7 +679,6 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
     }
 
     if (_overlayEntry == null) {
-      // If no overlay, let the enter key pass through to onFieldSubmitted
       if (event.logicalKey == LogicalKeyboardKey.enter) {
         widget.onSubmitted?.call();
         return KeyEventResult.handled;
@@ -733,7 +715,6 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
         final selectedItem = _currentSuggestions[_highlightedIndex];
         _handleItemSelection(selectedItem);
       } else {
-        // No item selected, just submit/close
         _closeOverlayAndReset();
         widget.onSubmitted?.call();
       }
@@ -759,7 +740,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                 focusNode: _keyboardListenerFocusNode,
                 onKeyEvent: _handleKeyEvent,
                 child: TextFormField(
-                  focusNode: _effectiveFocusNode, // Use the effective focus node
+                  focusNode: _effectiveFocusNode,
                   enabled: widget.enabled,
                   key: _fieldKey,
                   controller: widget.controller,
@@ -784,6 +765,13 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                       if (_effectiveFocusNode.hasFocus) {
                         _showOverlay();
                       }
+                    } else {
+                      // Clear suggestions when search is empty
+                      setState(() {
+                        _currentSuggestions = [];
+                        _isLoading = false;
+                      });
+                      _removeOverlay();
                     }
 
                     _debounce = Timer(const Duration(milliseconds: 300), () {
@@ -796,13 +784,11 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                           _currentSuggestions = [];
                           _isLoading = false;
                         });
-                        widget.bloc.add(LoadProductsEvent());
                         _removeOverlay();
                       }
                     });
                   },
                   onFieldSubmitted: (_) {
-                    // Call onSubmitted when Enter is pressed
                     widget.onSubmitted?.call();
                   },
                   decoration: InputDecoration(
@@ -810,7 +796,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                     suffixIconConstraints: const BoxConstraints(),
                     suffixIcon: _buildSuffixIcon(),
                     isDense: true,
-                    hintText: widget.hintText ?? AppLocalizations.of(context)!.products,
+                    hintText: widget.hintText ?? 'Products',
                   ),
                 ),
               ),
@@ -845,7 +831,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                   setState(() {
                     _isLoading = true;
                   });
-                  if (_effectiveFocusNode.hasFocus) {
+                  if (_effectiveFocusNode.hasFocus && widget.controller.text.isNotEmpty) {
                     _showOverlay();
                   }
                 } else if (state is ProductsErrorState) {

@@ -12,8 +12,10 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/p
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/bloc/orders_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/search_field.dart';
+import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../OrderScreen/GetOrderById/order_by_id.dart';
 
@@ -775,7 +777,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
               ),
               child: Row(
                 children: [
-                  SizedBox(width: 30, child: Text("#", style: titleStyle)),
+                  SizedBox(width: 50, child: Text("#", style: titleStyle)),
                   SizedBox(width: 100, child: Text(tr.date, style: titleStyle)),
                   SizedBox(
                     width: 215,
@@ -786,9 +788,20 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     width: 100,
                     child: Text(tr.invoiceType, style: titleStyle),
                   ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    width: 140,
+                    child: Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: Text(tr.totalInvoice, style: titleStyle,
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  ),
+
                   SizedBox(
-                    width: 130,
-                    child: Text(tr.totalInvoice, style: titleStyle),
+                    width: 115,
+                    child: Text(tr.status, style: titleStyle),
                   ),
                 ],
               ),
@@ -802,7 +815,10 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     return NoDataWidget(message: state.message, onRefresh: onRefresh);
                   }
                   if (state is OrdersLoadingState) {
-                    return const Center(child: CircularProgressIndicator());
+                   return UniversalShimmer.dataList(
+                      itemCount: 15,
+                      numberOfColumns: 7,
+                    );
                   }
                   if (state is OrdersLoadedState) {
                     final query = searchController.text.toLowerCase().trim();
@@ -850,7 +866,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: 30,
+                                  width: 50,
                                   child: Text(ord.ordId.toString()),
                                 ),
                                 SizedBox(
@@ -943,12 +959,23 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                     ),
                                   ),
                                 ),
-                                SizedBox(
-                                  width: 130,
-                                  child: Text(
-                                    "${ord.totalBill?.toAmount()} $baseCurrency",
+
+                                Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 15),
+                                  width: 140,
+                                  child: Directionality(
+                                    textDirection: TextDirection.ltr, // Force LTR for numbers
+                                    child: Text(
+                                      "${ord.totalBill?.toAmount()} $baseCurrency",
+                                      style: Theme.of(context).textTheme.titleSmall,
+                                      textAlign: TextAlign.start,
+                                    ),
                                   ),
                                 ),
+
+                                SizedBox(
+                                    width: 115,
+                                    child: TransactionStatusBadge(status: ord.ordStatus??"")),
                               ],
                             ),
                           ),

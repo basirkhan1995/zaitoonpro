@@ -16,6 +16,77 @@ class UniversalShimmer {
     );
   }
 
+  // ==================== DATA LIST SHIMMER (NEW) ====================
+
+  /// Data list shimmer - Perfect for orders, invoices, transactions, etc.
+  /// Features: 3-5 columns of data with proper spacing
+  static Widget dataList({
+    int itemCount = 6,
+    int numberOfColumns = 3,
+    bool showAvatar = false,
+    bool showCheckbox = false,
+    bool showActions = true,
+    double avatarRadius = 20,
+    EdgeInsetsGeometry? padding,
+    List<double>? columnWidths, // Custom widths for each column
+  }) {
+    return _DataListShimmerContent(
+      itemCount: itemCount,
+      numberOfColumns: numberOfColumns,
+      showAvatar: showAvatar,
+      showCheckbox: showCheckbox,
+      showActions: showActions,
+      avatarRadius: avatarRadius,
+      padding: padding,
+      columnWidths: columnWidths,
+    );
+  }
+
+  /// Order/Transaction list shimmer (specialized data list)
+  static Widget orderList({
+    int itemCount = 6,
+    bool showDate = true,
+    bool showReference = true,
+    bool showAmount = true,
+    bool showStatus = true,
+  }) {
+    return _OrderListShimmerContent(
+      itemCount: itemCount,
+      showDate: showDate,
+      showReference: showReference,
+      showAmount: showAmount,
+      showStatus: showStatus,
+    );
+  }
+
+  /// Product list shimmer (with image placeholder)
+  static Widget productList({
+    int itemCount = 6,
+    bool showImage = true,
+    bool showPrice = true,
+    bool showRating = false,
+  }) {
+    return _ProductListShimmerContent(
+      itemCount: itemCount,
+      showImage: showImage,
+      showPrice: showPrice,
+      showRating: showRating,
+    );
+  }
+
+  /// Table/Grid data list shimmer
+  static Widget tableDataList({
+    int rowCount = 5,
+    int columnCount = 4,
+    bool showHeader = true,
+  }) {
+    return _TableDataShimmerContent(
+      rowCount: rowCount,
+      columnCount: columnCount,
+      showHeader: showHeader,
+    );
+  }
+
   // ==================== OTHER STATIC METHODS USING YOUR COLORS ====================
 
   /// Simple text-only list
@@ -213,6 +284,441 @@ class UniversalShimmer {
   }
 }
 
+// ==================== DATA LIST SHIMMER (NEW) ====================
+
+class _DataListShimmerContent extends StatelessWidget {
+  final int itemCount;
+  final int numberOfColumns;
+  final bool showAvatar;
+  final bool showCheckbox;
+  final bool showActions;
+  final double avatarRadius;
+  final EdgeInsetsGeometry? padding;
+  final List<double>? columnWidths;
+
+  const _DataListShimmerContent({
+    required this.itemCount,
+    required this.numberOfColumns,
+    required this.showAvatar,
+    required this.showCheckbox,
+    required this.showActions,
+    required this.avatarRadius,
+    this.padding,
+    this.columnWidths,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: .9);
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: baseColor,
+          highlightColor: highlightColor,
+          period: const Duration(milliseconds: 1200),
+          child: Container(
+            margin: padding ?? const EdgeInsets.symmetric(horizontal: 0, vertical: 0),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: index.isOdd
+                  ? colorScheme.primary.withValues(alpha: 0.04)
+                  : Colors.transparent,
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (showCheckbox) ...[
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                if (showAvatar) ...[
+                  CircleAvatar(
+                    radius: avatarRadius,
+                    backgroundColor: colorScheme.primaryContainer,
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                ...List.generate(numberOfColumns, (colIndex) {
+                  final width = columnWidths != null && colIndex < columnWidths!.length
+                      ? columnWidths![colIndex]
+                      : 100.0;
+                  return Expanded(
+                    flex: (width / 100).toInt(),
+                    child: Padding(
+                      padding: EdgeInsets.only(right: colIndex < numberOfColumns - 1 ? 8 : 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            height: 14,
+                            width: width,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            height: 18,
+                            width: width * 0.7,
+                            color: Colors.white.withValues(alpha: 0.7),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+                if (showActions) ...[
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ==================== ORDER LIST SHIMMER (SPECIALIZED) ====================
+
+class _OrderListShimmerContent extends StatelessWidget {
+  final int itemCount;
+  final bool showDate;
+  final bool showReference;
+  final bool showAmount;
+  final bool showStatus;
+
+  const _OrderListShimmerContent({
+    required this.itemCount,
+    required this.showDate,
+    required this.showReference,
+    required this.showAmount,
+    required this.showStatus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: baseColor,
+          highlightColor: highlightColor,
+          period: const Duration(milliseconds: 1200),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: index.isOdd
+                  ? colorScheme.primary.withValues(alpha: 0.04)
+                  : Colors.transparent,
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                // Copy button placeholder
+                Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                // ID/Reference
+                SizedBox(
+                  width: showReference ? 100 : 60,
+                  child: Container(height: 16, color: Colors.white),
+                ),
+                const SizedBox(width: 8),
+
+                // Date
+                if (showDate) ...[
+                  SizedBox(
+                    width: 80,
+                    child: Container(height: 14, color: Colors.white),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                // Reference/TrnRef
+                if (showReference) ...[
+                  SizedBox(
+                    width: 120,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(height: 14, width: 100, color: Colors.white),
+                        const SizedBox(height: 4),
+                        Container(height: 12, width: 80, color: Colors.white.withValues(alpha: 0.6)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                // Personal/Customer name
+                Expanded(
+                  child: Container(height: 16, width: double.infinity, color: Colors.white),
+                ),
+                const SizedBox(width: 8),
+
+                // Invoice type
+                SizedBox(
+                  width: 80,
+                  child: Container(height: 14, color: Colors.white),
+                ),
+                const SizedBox(width: 8),
+
+                // Amount
+                if (showAmount) ...[
+                  SizedBox(
+                    width: 100,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(height: 16, width: 60, color: Colors.white),
+                        const SizedBox(height: 4),
+                        Container(height: 12, width: 40, color: Colors.white.withValues(alpha: 0.6)),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                // Status badge
+                if (showStatus) ...[
+                  Container(
+                    width: 80,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ==================== PRODUCT LIST SHIMMER ====================
+
+class _ProductListShimmerContent extends StatelessWidget {
+  final int itemCount;
+  final bool showImage;
+  final bool showPrice;
+  final bool showRating;
+
+  const _ProductListShimmerContent({
+    required this.itemCount,
+    required this.showImage,
+    required this.showPrice,
+    required this.showRating,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        return Shimmer.fromColors(
+          baseColor: baseColor,
+          highlightColor: highlightColor,
+          period: const Duration(milliseconds: 1200),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.1),
+                ),
+              ),
+            ),
+            child: Row(
+              children: [
+                if (showImage) ...[
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(height: 18, width: 180, color: Colors.white),
+                      const SizedBox(height: 6),
+                      Container(height: 14, width: 120, color: Colors.white),
+                      if (showRating) ...[
+                        const SizedBox(height: 6),
+                        Row(
+                          children: List.generate(5, (star) =>
+                              Container(
+                                width: 14,
+                                height: 14,
+                                margin: const EdgeInsets.only(right: 2),
+                                color: Colors.white,
+                              ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (showPrice) ...[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Container(height: 18, width: 70, color: Colors.white),
+                      const SizedBox(height: 4),
+                      Container(height: 12, width: 50, color: Colors.white.withValues(alpha: 0.6)),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ==================== TABLE DATA SHIMMER ====================
+
+class _TableDataShimmerContent extends StatelessWidget {
+  final int rowCount;
+  final int columnCount;
+  final bool showHeader;
+
+  const _TableDataShimmerContent({
+    required this.rowCount,
+    required this.columnCount,
+    required this.showHeader,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      period: const Duration(milliseconds: 1200),
+      child: Column(
+        children: [
+          if (showHeader)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: colorScheme.primary.withValues(alpha: 0.08),
+              child: Row(
+                children: List.generate(columnCount, (index) => Expanded(
+                  child: Container(height: 16, color: Colors.white),
+                )),
+              ),
+            ),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: rowCount,
+            itemBuilder: (context, index) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: index.isOdd
+                      ? colorScheme.primary.withValues(alpha: 0.04)
+                      : Colors.transparent,
+                  border: Border(
+                    bottom: BorderSide(
+                      color: colorScheme.outline.withValues(alpha: 0.1),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: List.generate(columnCount, (colIndex) => Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(height: 14, width: double.infinity, color: Colors.white),
+                        const SizedBox(height: 4),
+                        Container(height: 12, width: 60, color: Colors.white.withValues(alpha: 0.6)),
+                      ],
+                    ),
+                  )),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ==================== PRIVATE WIDGETS USING YOUR COLORS ====================
 
 class _ShimmerListView extends StatelessWidget {
@@ -230,11 +736,12 @@ class _ShimmerListView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // USING YOUR BETTER COLORS
     final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
     final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         return Shimmer.fromColors(
@@ -268,11 +775,12 @@ class _AccountListShimmerContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // USING YOUR BETTER COLORS
     final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
     final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
 
     return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: itemCount,
       itemBuilder: (context, index) {
         return Shimmer.fromColors(
@@ -360,7 +868,6 @@ class _ShimmerGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // USING YOUR BETTER COLORS
     final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
     final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
 
@@ -407,7 +914,6 @@ class _ShimmerHorizontalList extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    // USING YOUR BETTER COLORS
     final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
     final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
 

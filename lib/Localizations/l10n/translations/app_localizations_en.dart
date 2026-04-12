@@ -3206,4 +3206,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditAmount => 'Credit Amount';
+
+  @override
+  String get searchProducts => 'Search Products';
+
+  @override
+  String get searchResult => 'Search Result for';
+
+  @override
+  String get noProductFound => 'No Products found';
+
+  @override
+  String get closeKey => 'Close (ESC)';
+
+  @override
+  String get navigateTitle => 'Navigate';
+
+  @override
+  String get completeInfo => 'Products Complete Information';
 }

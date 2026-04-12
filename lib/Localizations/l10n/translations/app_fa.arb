@@ -1059,5 +1059,11 @@
   "modelTitle": "مدل",
   "totalQty": "مقدار کل",
   "totalCostPludExpenses": "مجموعه + مصارف",
-  "creditAmount": "مبلغ کریدت"
+  "creditAmount": "مبلغ کریدت",
+  "searchProducts": "جستجو کالا ها",
+  "searchResult": "نتیجه جستجو",
+  "noProductFound": "هیچ کالا یافت نشد",
+  "closeKey": "بستن (ESC)",
+  "navigateTitle": "هدایت",
+  "completeInfo": "معلومات مکمل کالا "
 }

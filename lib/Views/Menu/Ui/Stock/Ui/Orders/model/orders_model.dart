@@ -19,7 +19,7 @@ class OrdersModel {
   final String? brcName;
   final String? totalBill;
   final String? benifit;
-  final String? trnStateText;
+  final String? ordStatus;
   final DateTime? ordEntryDate;
 
   OrdersModel({
@@ -33,7 +33,7 @@ class OrdersModel {
     this.brcName,
     this.totalBill,
     this.benifit,
-    this.trnStateText,
+    this.ordStatus,
     this.ordEntryDate,
   });
 
@@ -48,7 +48,7 @@ class OrdersModel {
     String? brcName,
     String? totalBill,
     String? benifit,
-    String? trnStateText,
+    String? ordStatus,
     DateTime? ordEntryDate,
   }) =>
       OrdersModel(
@@ -62,7 +62,7 @@ class OrdersModel {
         brcName: brcName ?? this.brcName,
         totalBill: totalBill ?? this.totalBill,
         benifit: benifit ?? this.benifit,
-        trnStateText: trnStateText ?? this.trnStateText,
+        ordStatus: ordStatus ?? this.ordStatus,
         ordEntryDate: ordEntryDate ?? this.ordEntryDate,
       );
 
@@ -77,7 +77,7 @@ class OrdersModel {
     brcName: json["brcName"],
     totalBill: json["totalBill"],
     benifit: json["benifit"],
-    trnStateText: json["trnStateText"],
+    ordStatus: json["ordStatus"],
     ordEntryDate: json["ordEntryDate"] == null ? null : DateTime.parse(json["ordEntryDate"]),
   );
 
@@ -92,7 +92,7 @@ class OrdersModel {
     "brcName": brcName,
     "totalBill": totalBill,
     "benifit": benifit,
-    "trnStateText": trnStateText,
+    "ordStatus": ordStatus,
     "ordEntryDate": ordEntryDate?.toIso8601String(),
   };
 }

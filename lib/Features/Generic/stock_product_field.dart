@@ -62,7 +62,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final bool showClearButton;
   final bool showAllOnFocus;
   final bool openOverlayOnFocus;
-
+  final VoidCallback? onSubmit;
   const ProductSearchField({
     super.key,
     required this.controller,
@@ -84,6 +84,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     required this.getRecentPrice,
     required this.getSellPrice,
     this.getProductUnit,
+    this.onSubmit,
     this.getProductBrand,
     this.getProductModel,
     this.getProductMadeIn,
@@ -1184,6 +1185,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
 
     widget.onProductSelected?.call(item);
     _closeOverlayAndReset();
+    widget.onSubmit?.call();
   }
 
   Widget? _buildSuffixIcon() {
@@ -1226,13 +1228,18 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       return KeyEventResult.handled;
     }
 
-    if (_overlayEntry == null) return KeyEventResult.ignored;
+    if (_overlayEntry == null) {
+      if (event.logicalKey == LogicalKeyboardKey.enter) {
+        widget.onSubmit?.call();
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
       if (_currentSuggestions.isNotEmpty && mounted) {
         setState(() {
-          _highlightedIndex =
-              (_highlightedIndex + 1) % _currentSuggestions.length;
+          _highlightedIndex = (_highlightedIndex + 1) % _currentSuggestions.length;
           _currentHighlightedItem = _currentSuggestions[_highlightedIndex];
         });
         _scrollToHighlightedItem();
@@ -1244,9 +1251,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
       if (_currentSuggestions.isNotEmpty && mounted) {
         setState(() {
-          _highlightedIndex =
-              (_highlightedIndex - 1 + _currentSuggestions.length) %
-                  _currentSuggestions.length;
+          _highlightedIndex = (_highlightedIndex - 1 + _currentSuggestions.length) % _currentSuggestions.length;
           _currentHighlightedItem = _currentSuggestions[_highlightedIndex];
         });
         _scrollToHighlightedItem();
@@ -1256,10 +1261,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     }
 
     if (event.logicalKey == LogicalKeyboardKey.enter) {
-      if (_highlightedIndex >= 0 &&
-          _highlightedIndex < _currentSuggestions.length) {
+      if (_highlightedIndex >= 0 && _highlightedIndex < _currentSuggestions.length) {
         final selectedItem = _currentSuggestions[_highlightedIndex];
         _handleItemSelection(selectedItem);
+      } else {
+        // ADD THIS - Close overlay and call onSubmit when Enter with no selection
+        _closeOverlayAndReset();
+        widget.onSubmit?.call();
       }
       return KeyEventResult.handled;
     }
@@ -1326,6 +1334,18 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                         _removeOverlay();
                       }
                     });
+                  },
+                  onFieldSubmitted: (_) {
+                    // Handles Enter key from keyboard
+                    if (_currentSuggestions.isEmpty) {
+                      widget.onSubmit?.call();
+                    } else if (_highlightedIndex >= 0 && _highlightedIndex < _currentSuggestions.length) {
+                      _handleItemSelection(_currentSuggestions[_highlightedIndex]);
+                    } else if (_currentSuggestions.isNotEmpty) {
+                      _handleItemSelection(_currentSuggestions.first);
+                    } else {
+                      widget.onSubmit?.call();
+                    }
                   },
                   decoration: InputDecoration(
                     border: InputBorder.none,

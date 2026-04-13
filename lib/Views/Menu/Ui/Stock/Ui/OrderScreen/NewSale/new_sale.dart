@@ -53,7 +53,6 @@ class _DesktopNewSaleView extends StatefulWidget {
   @override
   State<_DesktopNewSaleView> createState() => _DesktopNewSaleViewState();
 }
-
 class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
@@ -225,9 +224,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 isError: true,
               );
             }
-          }
-
-          if (state is SaleInvoiceLoaded) {
+          } if (state is SaleInvoiceLoaded) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _focusNewRowIfNeeded(state);
               // Update exchange rate controller if needed
@@ -639,7 +636,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         text: item.discount != null && item.discount! > 0 ? item.discount!.toAmount() : '',
       ),
     );
-    final pcsController = _pcsControllers.putIfAbsent(
+    final batchController = _pcsControllers.putIfAbsent(
       "sale_${item.rowId}",
           () => TextEditingController(
         text: item.batch != null && item.batch! > 0 ? item.batch!.toAmount() : '',
@@ -672,7 +669,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         }
 
         if (product.stkQtyInBatch != null && product.stkQtyInBatch! > 0) {
-          pcsController.text = product.stkQtyInBatch.toString();
+          batchController.text = product.stkQtyInBatch.toString();
         }
 
         salePriceController.text = salePrice.toAmount();
@@ -720,6 +717,14 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   getRecentPrice: (product) => product.recentPurPrice,
                   getSellPrice: (product) => product.sellPrice,
                   onProductSelected: onProductSelected,
+                  onSubmit: () {
+                    // ADD THIS - Move focus to quantity field when Enter is pressed
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (nodes.length > 1 && nodes[1].canRequestFocus) {
+                        nodes[1].requestFocus();
+                      }
+                    });
+                  },
                   openOverlayOnFocus: item.productId.isEmpty,
                   showAllOnFocus: true,
                 ),
@@ -743,7 +748,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               SizedBox(
                 width: 80,
                 child: TextField(
-                  controller: pcsController,
+                  controller: batchController,
                   readOnly: true,
                   decoration: InputDecoration(hintText: tr.batchTitle, border: InputBorder.none, isDense: true),
                 ),
@@ -811,6 +816,20 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         onChanged: (value) {
                           final discount = double.tryParse(value) ?? 0;
                           context.read<SaleInvoiceBloc>().add(UpdateItemDiscountValueEvent(rowId: item.rowId, discountValue: discount));
+                        },
+                        onSubmitted: (_) {
+                          // FIX: Handle Enter key on discount field
+                          if (isLastRow) {
+                            // If this is the last row, add a new row and focus its product field
+                            _addNewRowAndFocus();
+                          } else {
+                            // If not the last row, move to next row's product field
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (index + 1 < _rowFocusNodes.length && _rowFocusNodes[index + 1].isNotEmpty) {
+                                _rowFocusNodes[index + 1][0].requestFocus();
+                              }
+                            });
+                          }
                         },
                       ),
                     ),
@@ -916,19 +935,38 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   }
 
   void _addNewRowAndFocus() {
+    // Store current item count before adding
+    final currentCount = _rowFocusNodes.length;
+
+    // Add new item
     context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
-    Future.delayed(const Duration(milliseconds: 150), () {
-      if (mounted) {
-        final state = context.read<SaleInvoiceBloc>().state;
-        if (state is SaleInvoiceLoaded) {
-          final newRowIndex = state.items.length - 1;
-          _setupRowFocus(newRowIndex);
+
+    // Wait for the state to update and widget tree to rebuild
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 150), () {
+        if (mounted) {
+          final state = context.read<SaleInvoiceBloc>().state;
+          if (state is SaleInvoiceLoaded) {
+            final newRowIndex = state.items.length - 1;
+
+            // Ensure we have focus nodes for the new row
+            if (newRowIndex >= _rowFocusNodes.length) {
+              _synchronizeFocusNodes(state.items.length);
+            }
+
+            // Request focus on the product field of the new row
+            if (newRowIndex < _rowFocusNodes.length && _rowFocusNodes[newRowIndex].isNotEmpty) {
+              final productFocusNode = _rowFocusNodes[newRowIndex][0];
+              productFocusNode.requestFocus();
+            }
+          }
         }
-      }
+      });
     });
   }
 
   void _synchronizeFocusNodes(int itemCount) {
+    // Add new focus nodes if needed
     while (_rowFocusNodes.length < itemCount) {
       _rowFocusNodes.add([
         FocusNode(), // Product (index 0)
@@ -937,20 +975,27 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         FocusNode(), // Discount (index 3)
       ]);
     }
+
+    // Remove extra focus nodes if needed
     while (_rowFocusNodes.length > itemCount) {
       final removed = _rowFocusNodes.removeLast();
-      for (final node in removed) node.dispose();
+      for (final node in removed) {
+        node.dispose();
+      }
     }
   }
 
   void _focusNewRowIfNeeded(SaleInvoiceLoaded state) {
     if (!mounted) return;
-    Future.delayed(const Duration(milliseconds: 100), () {
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+
+      // First, check if there's any empty product field (new row)
       for (int i = 0; i < state.items.length; i++) {
         final item = state.items[i];
         if (item.productId.isEmpty) {
-          if (i < _rowFocusNodes.length) {
+          if (i < _rowFocusNodes.length && _rowFocusNodes[i].isNotEmpty) {
             _rowFocusNodes[i][0].requestFocus();
             context.read<ProductsBloc>().add(LoadProductsStockEvent());
             break;

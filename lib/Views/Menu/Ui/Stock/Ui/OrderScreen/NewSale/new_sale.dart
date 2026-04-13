@@ -420,14 +420,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     final accountCurrency = value.actCurrency ?? '';
 
                                     if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
-                                      _fetchExchangeRate(baseCurr, accountCurrency);
+                                      _fetchExchangeRate(baseCurr, accountCurrency);   // ← Fixed
                                     } else {
                                       context.read<SaleInvoiceBloc>().add(
-                                        UpdateExchangeRateEvent(
-                                          rate: 1.0,
-                                          fromCurrency: baseCurr,
-                                          toCurrency: accountCurrency,
-                                        ),
+                                        UpdateExchangeRateEvent(rate: 1.0, fromCurrency: baseCurr, toCurrency: accountCurrency),
                                       );
                                       _exchangeRateController.text = "1.0000";
                                     }
@@ -818,15 +814,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           context.read<SaleInvoiceBloc>().add(UpdateItemDiscountValueEvent(rowId: item.rowId, discountValue: discount));
                         },
                         onSubmitted: (_) {
-                          // FIX: Handle Enter key on discount field
                           if (isLastRow) {
-                            // If this is the last row, add a new row and focus its product field
-                            _addNewRowAndFocus();
+                            _addNewRowAndFocus();           // ← This now works properly
                           } else {
-                            // If not the last row, move to next row's product field
                             WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (index + 1 < _rowFocusNodes.length && _rowFocusNodes[index + 1].isNotEmpty) {
-                                _rowFocusNodes[index + 1][0].requestFocus();
+                              if (index + 1 < _rowFocusNodes.length) {
+                                _rowFocusNodes[index + 1][0].requestFocus(); // Product of next row
                               }
                             });
                           }
@@ -935,29 +928,17 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   }
 
   void _addNewRowAndFocus() {
-    // Store current item count before adding
-    final currentCount = _rowFocusNodes.length;
-
-    // Add new item
     context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
 
-    // Wait for the state to update and widget tree to rebuild
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 150), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) {
           final state = context.read<SaleInvoiceBloc>().state;
           if (state is SaleInvoiceLoaded) {
-            final newRowIndex = state.items.length - 1;
-
-            // Ensure we have focus nodes for the new row
-            if (newRowIndex >= _rowFocusNodes.length) {
-              _synchronizeFocusNodes(state.items.length);
-            }
-
-            // Request focus on the product field of the new row
-            if (newRowIndex < _rowFocusNodes.length && _rowFocusNodes[newRowIndex].isNotEmpty) {
-              final productFocusNode = _rowFocusNodes[newRowIndex][0];
-              productFocusNode.requestFocus();
+            final newIndex = state.items.length - 1;
+            _synchronizeFocusNodes(state.items.length);
+            if (newIndex < _rowFocusNodes.length) {
+              _rowFocusNodes[newIndex][0].requestFocus(); // Focus product
             }
           }
         }
@@ -1150,9 +1131,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           // Extra Charges
                           Row(
                             children: [
-                              Expanded(child: Text("extra Charges".toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold))),
+                              Expanded(child: Text("EXTRA CHARGES".toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold))),
                               SizedBox(
-                                width: 100,
+                                width: 120,
                                 child: TextField(
                                   controller: _extraChargesController,
                                   keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -1161,7 +1142,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   textAlign: TextAlign.end,
                                   onChanged: (value) {
                                     final charges = double.tryParse(value) ?? 0;
-                                   // context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(charges));
+                                    context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(charges));
                                   },
                                 ),
                               ),
@@ -1171,12 +1152,16 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           const SizedBox(height: 6),
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
 
+                          // Grand Total (already includes extra charges via bloc)
                           _buildSummaryRow(label: tr.grandTotal, value: current.grandTotal, isBold: true, fontSize: 18),
 
-                          if (needsConversion) ...[
-                            const SizedBox(height: 2),
-                            _buildSummaryRow(label: '${tr.grandTotal} (${current.toCurrency})', value: current.totalLocalAmount, fontSize: 12, color: color.primary.withValues(alpha: .8)),
-                          ],
+                          if (needsConversion)
+                            _buildSummaryRow(
+                              label: '${tr.grandTotal} (${current.toCurrency})',
+                              value: current.totalLocalAmount,
+                              fontSize: 12,
+                              color: color.primary.withValues(alpha: .8),
+                            ),
                         ],
                       ),
                     ),

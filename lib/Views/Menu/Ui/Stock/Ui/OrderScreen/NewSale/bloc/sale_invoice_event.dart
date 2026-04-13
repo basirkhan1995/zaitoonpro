@@ -155,7 +155,11 @@ class LoadSaleStoragesEvent extends SaleInvoiceEvent {
   List<Object?> get props => [productId];
 }
 
-// Add these events to sale_invoice_event.dart
+class UpdateExtraChargesEvent extends SaleInvoiceEvent {
+  final double charges;
+  const UpdateExtraChargesEvent(this.charges);
+  @override List<Object?> get props => [charges];
+}
 
 class UpdateItemDiscountTypeEvent extends SaleInvoiceEvent {
   final String rowId;

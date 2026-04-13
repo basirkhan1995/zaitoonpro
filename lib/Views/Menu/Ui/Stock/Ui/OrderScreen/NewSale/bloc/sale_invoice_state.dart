@@ -31,7 +31,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final DiscountType generalDiscountType;
   final String? fromCurrency; // Base currency
   final String? toCurrency; // Account currency
-
+  final double extraCharges;
   const SaleInvoiceLoaded({
     required this.items,
     this.customer,
@@ -41,6 +41,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     this.storages,
     this.generalDiscount = 0.0,
     this.exchangeRate = 1.0,
+    this.extraCharges = 0.0,
     this.generalDiscountType = DiscountType.percentage,
     this.fromCurrency,
     this.toCurrency,
@@ -56,11 +57,11 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
         baseCurr.isNotEmpty &&
         accountCurrency != baseCurr;
   }
-
+  double get grandTotal => totalAfterItemDiscount - generalDiscountAmount + extraCharges;
   // Total local amount for all items (in account currency)
   double get totalLocalAmount {
     if (!needsExchangeRate) return grandTotal;
-    return items.fold(0.0, (sum, item) => sum + item.totalLocalAmount);
+    return items.fold(0.0, (sum, item) => sum + item.totalLocalAmount) + (extraCharges * exchangeRate);
   }
 
   // Subtotal before any discounts (in base currency)
@@ -86,11 +87,6 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     } else {
       return generalDiscount;
     }
-  }
-
-  // Grand total after all discounts (in base currency)
-  double get grandTotal {
-    return totalAfterItemDiscount - generalDiscountAmount;
   }
 
   // Grand total in local currency (for display)
@@ -187,6 +183,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     double? exchangeRate,
     String? fromCurrency,
     String? toCurrency,
+    double? extraCharges,
   }) {
     return SaleInvoiceLoaded(
       items: items ?? this.items,
@@ -200,6 +197,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       exchangeRate: exchangeRate ?? this.exchangeRate,
       fromCurrency: fromCurrency ?? this.fromCurrency,
       toCurrency: toCurrency ?? this.toCurrency,
+      extraCharges: extraCharges ?? this.extraCharges,
     );
   }
 
@@ -215,6 +213,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     generalDiscountType,
     fromCurrency,
     toCurrency,
+    extraCharges,
   ];
 }
 class SaleInvoiceSaving extends SaleInvoiceLoaded {

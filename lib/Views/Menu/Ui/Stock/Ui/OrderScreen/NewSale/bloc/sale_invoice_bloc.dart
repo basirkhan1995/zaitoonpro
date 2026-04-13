@@ -32,9 +32,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateGeneralDiscountEvent>(_onUpdateGeneralDiscount);
     on<UpdateItemUnitEvent>(_onUpdateItemUnit);
     on<UpdateExchangeRateEvent>(_onUpdateExchangeRate);
-
+    on<UpdateExtraChargesEvent>(_onUpdateExtraCharges);
   }
-
+  void _onUpdateExtraCharges(UpdateExtraChargesEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      emit(current.copyWith(extraCharges: event.charges));
+    }
+  }
   void _onUpdateExchangeRate(UpdateExchangeRateEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;

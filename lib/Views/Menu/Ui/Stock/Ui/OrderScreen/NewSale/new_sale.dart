@@ -575,10 +575,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final color = Theme.of(context).colorScheme;
     TextStyle? title = Theme.of(
       context,
-    ).textTheme.titleSmall?.copyWith(color: color.surface);
+    ).textTheme.titleMedium?.copyWith(color: color.surface);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       decoration: BoxDecoration(
         color: color.primary,
         borderRadius: BorderRadius.circular(3),
@@ -598,10 +598,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           SizedBox(width: 80, child: Text(locale.unit, style: title)),
           SizedBox(width: 120, child: Text(locale.unitPrice, style: title)),
           if (_needsLocalConversion(context))...[
-            SizedBox(width: 120, child: Text(locale.localeAmount, style: title)),
+            SizedBox(width: 120, child: Text(locale.totalTitle, style: title)),
           ],
-          SizedBox(width: 120, child: Text(locale.discountTitle, style: title)),
-          SizedBox(width: 120, child: Text(locale.totalTitle, style: title)),
+          SizedBox(width: 140, child: Text(locale.discountTitle, style: title)),
+          SizedBox(width: 140, child: Text(locale.totalTitle, style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
         ],
       ),
@@ -711,7 +711,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
               // Product Selection
               Expanded(
-                flex: 2,
                 child: ProductSearchField<ProductsStockModel, ProductsBloc, ProductsState>(
                   controller: productController,
                   hintText: tr.products,
@@ -830,7 +829,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     controller: localAmountController,
                     readOnly: true,
                     decoration: InputDecoration(
-                      hintText: tr.localeAmount,
+                      hintText: tr.costPrice,
                       border: InputBorder.none,
                       isDense: true,
                     ),
@@ -844,7 +843,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
               // Discount with toggle
               SizedBox(
-                width: 120,
+                width: 140,
                 child: Row(
                   children: [
                     Expanded(
@@ -894,7 +893,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
               // Total
               SizedBox(
-                width: 120,
+                width: 140,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1180,7 +1179,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${tr.localeAmount}: ${current.totalLocalAmount.toAmount()} ${current.toCurrency}',
+                            '${tr.totalTitle}: ${current.totalLocalAmount.toAmount()} ${current.toCurrency}',
                             style: TextStyle(
                               fontSize: 12,
                               color: color.primary,

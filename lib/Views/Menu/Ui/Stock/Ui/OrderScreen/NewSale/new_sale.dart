@@ -1061,377 +1061,428 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               current.customerAccount != null && current.creditAmount > 0;
           final bool needsConversion = current.needsExchangeRate;
 
-          return SizedBox(
-            width: 600,
-            child: ZCover(
-              padding: const EdgeInsets.all(12),
-              radius: 8,
-              color: Theme.of(context).colorScheme.surface,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          return ZCover(
+            padding: const EdgeInsets.all(12),
+            radius: 8,
+            color: Theme.of(context).colorScheme.surface,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Payment Method Row
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        tr.paymentMethod,
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                      ),
-                      InkWell(
-                        onTap: () => _showPaymentModeDialog(current),
-                        child: Row(
-                          children: [
-                            Text(
-                              _getPaymentModeLabel(current.paymentMode),
-                              style: TextStyle(color: color.primary, fontSize: 15),
-                            ),
-                            const SizedBox(width: 8),
-                            Icon(Icons.more_vert_outlined, size: 20, color: color.primary),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                  const SizedBox(height: 6),
-
-                  // Exchange Rate Section (only when needed)
-                  if (needsConversion) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: color.primary.withValues(alpha: .05),
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(
-                          color: color.primary.withValues(alpha: .2),
-                        ),
-                      ),
+                  // Column 1: Totals (Subtotal to Grand Total)
+                  Expanded(
+                    child: SingleChildScrollView(
                       child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Payment Method Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '${tr.exchangeRate}:',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 13,
-                                ),
+                                tr.paymentMethod.toUpperCase(),
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: color.surface,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: color.outline.withValues(alpha: .3)),
-                                ),
+                              InkWell(
+                                onTap: () => _showPaymentModeDialog(current),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
-                                      '1 ${current.fromCurrency ?? baseCurrency}',
-                                      style: TextStyle(fontSize: 12, color: color.outline),
+                                      _getPaymentModeLabel(current.paymentMode),
+                                      style: TextStyle(color: color.primary, fontSize: 15),
                                     ),
                                     const SizedBox(width: 8),
-                                    SizedBox(
-                                      width: 100,
-                                      child: TextField(
-                                        controller: _exchangeRateController,
-                                        keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}')),
-                                        ],
-                                        decoration: const InputDecoration(
-                                          isDense: true,
-                                          border: InputBorder.none,
-                                          contentPadding: EdgeInsets.zero,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: color.primary,
-                                        ),
-                                        onChanged: (value) {
-                                          final rate = double.tryParse(value);
-                                          if (rate != null && rate > 0 && current.fromCurrency != null && current.toCurrency != null) {
-                                            context.read<SaleInvoiceBloc>().add(
-                                              UpdateExchangeRateEvent(
-                                                rate: rate,
-                                                fromCurrency: current.fromCurrency!,
-                                                toCurrency: current.toCurrency!,
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      current.toCurrency ?? '',
-                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-                                    ),
+                                    Icon(Icons.more_vert_outlined, size: 20, color: color.primary),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${tr.totalTitle}: ${current.totalLocalAmount.toAmount()} ${current.toCurrency}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: color.primary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                  ],
+                          const SizedBox(height: 6),
+                          Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                          const SizedBox(height: 6),
 
-                  // Subtotal
-                  _buildSummaryRow(
-                    label: "subtotal",
-                    value: current.subtotal,
-                  ),
-
-                  // Item Discounts (if any)
-                  if (current.totalItemDiscount > 0)
-                    _buildSummaryRow(
-                      label: "itemDiscounts",
-                      value: -current.totalItemDiscount,
-                      color: Colors.red,
-                    ),
-
-                  // After Item Discounts
-                  if (current.totalItemDiscount > 0)
-                    _buildSummaryRow(
-                      label: "afterItemDiscount",
-                      value: current.totalAfterItemDiscount,
-                      isBold: true,
-                    ),
-
-                  const SizedBox(height: 4),
-
-                  // General Discount Section
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                    decoration: BoxDecoration(
-                      color: color.primary.withValues(alpha: .05),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                "generalDiscount",
-                                style: TextStyle(fontWeight: FontWeight.w500),
+                          // Exchange Rate Section (only when needed)
+                          if (needsConversion) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: color.primary.withValues(alpha: .05),
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: color.primary.withValues(alpha: .2),
+                                ),
+                              ),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${tr.exchangeRate}:',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: color.surface,
+                                          borderRadius: BorderRadius.circular(4),
+                                          border: Border.all(color: color.outline.withValues(alpha: .3)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              '1 ${current.fromCurrency ?? baseCurrency}',
+                                              style: TextStyle(fontSize: 12, color: color.outline),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            SizedBox(
+                                              width: 100,
+                                              child: TextField(
+                                                controller: _exchangeRateController,
+                                                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                                inputFormatters: [
+                                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}')),
+                                                ],
+                                                decoration: const InputDecoration(
+                                                  isDense: true,
+                                                  border: InputBorder.none,
+                                                  contentPadding: EdgeInsets.zero,
+                                                ),
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: color.primary,
+                                                ),
+                                                onChanged: (value) {
+                                                  final rate = double.tryParse(value);
+                                                  if (rate != null && rate > 0 && current.fromCurrency != null && current.toCurrency != null) {
+                                                    context.read<SaleInvoiceBloc>().add(
+                                                      UpdateExchangeRateEvent(
+                                                        rate: rate,
+                                                        fromCurrency: current.fromCurrency!,
+                                                        toCurrency: current.toCurrency!,
+                                                      ),
+                                                    );
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              current.toCurrency ?? '',
+                                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${tr.totalTitle}: ${current.totalLocalAmount.toAmount()} ${current.toCurrency}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: color.primary,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            SizedBox(
-                              width: 100,
-                              child: TextField(
-                                controller: _generalDiscountController,
-                                keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
-                                ],
-                                decoration: InputDecoration(
-                                  hintText: '0',
-                                  border: InputBorder.none,
-                                  isDense: true,
-                                  suffixText: current.generalDiscountType == DiscountType.percentage ? '%' : null,
+                            const SizedBox(height: 8),
+                          ],
+
+                          // Subtotal
+                          _buildSummaryRow(
+                            label: tr.subtotal.toUpperCase(),
+                            fontSize: 18,
+                            value: current.subtotal,
+                          ),
+
+                          // General Discount Field
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  tr.generalDiscount.toUpperCase(),
+                                  style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                textAlign: TextAlign.end,
-                                onChanged: (value) {
-                                  final discount = double.tryParse(value) ?? 0;
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  current.generalDiscountType == DiscountType.percentage
+                                      ? Icons.percent
+                                      : Icons.attach_money,
+                                  size: 16,
+                                ),
+                                onPressed: () {
+                                  final newType = current.generalDiscountType == DiscountType.percentage
+                                      ? DiscountType.amount
+                                      : DiscountType.percentage;
                                   context.read<SaleInvoiceBloc>().add(
                                     UpdateGeneralDiscountEvent(
-                                      discountValue: discount,
-                                      discountType: current.generalDiscountType,
+                                      discountValue: current.generalDiscount,
+                                      discountType: newType,
                                     ),
                                   );
                                 },
                               ),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                current.generalDiscountType == DiscountType.percentage
-                                    ? Icons.percent
-                                    : Icons.attach_money,
-                                size: 16,
-                              ),
-                              onPressed: () {
-                                final newType = current.generalDiscountType == DiscountType.percentage
-                                    ? DiscountType.amount
-                                    : DiscountType.percentage;
-                                context.read<SaleInvoiceBloc>().add(
-                                  UpdateGeneralDiscountEvent(
-                                    discountValue: current.generalDiscount,
-                                    discountType: newType,
+                              SizedBox(
+                                width: 100,
+                                child: TextField(
+                                  controller: _generalDiscountController,
+                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
+                                  ],
+                                  decoration: InputDecoration(
+                                    hintText: '0',
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    prefixText: current.generalDiscountType == DiscountType.percentage ? '%' : null,
                                   ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                        if (current.generalDiscountAmount > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  '(-${current.generalDiscountAmount.toAmount()})',
-                                  style: TextStyle(fontSize: 11, color: Colors.red),
+                                  textAlign: TextAlign.end,
+                                  onChanged: (value) {
+                                    final discount = double.tryParse(value) ?? 0;
+                                    context.read<SaleInvoiceBloc>().add(
+                                      UpdateGeneralDiscountEvent(
+                                        discountValue: discount,
+                                        discountType: current.generalDiscountType,
+                                      ),
+                                    );
+                                  },
                                 ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-                  Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-
-                  // Grand Total
-                  _buildSummaryRow(
-                    label: tr.grandTotal,
-                    value: current.grandTotal,
-                    isBold: true,
-                    fontSize: 18,
-                  ),
-
-                  // Show grand total in local currency if conversion is needed
-                  if (needsConversion) ...[
-                    const SizedBox(height: 2),
-                    _buildSummaryRow(
-                      label: '${tr.grandTotal} (${current.toCurrency})',
-                      value: current.totalLocalAmount,
-                      fontSize: 12,
-                      color: color.primary.withValues(alpha: .8),
-                    ),
-                  ],
-
-                  if (visibility.benefit && current.totalPurchaseCost > 0) ...[
-                    const SizedBox(height: 4),
-                    _buildSummaryRow(
-                      label: tr.profit,
-                      value: current.totalProfit,
-                      color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                    ),
-                    Text(
-                      '${current.profitPercentage.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: current.totalProfit >= 0 ? Colors.green : Colors.red,
-                      ),
-                      textAlign: TextAlign.end,
-                    ),
-                  ],
-
-                  const SizedBox(height: 6),
-                  Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                  const SizedBox(height: 6),
-
-                  // Payment Breakdown
-                  if (current.paymentMode == PaymentMode.cash) ...[
-                    _buildSummaryRow(
-                      label: tr.cashPayment,
-                      value: current.cashPayment,
-                      color: Colors.green,
-                    ),
-                    if (needsConversion)
-                      _buildSummaryRow(
-                        label: '${tr.cashPayment} (${current.toCurrency})',
-                        value: current.cashPayment * current.exchangeRate,
-                        fontSize: 11,
-                        color: Colors.green.withValues(alpha: .7),
-                      ),
-                  ] else if (current.paymentMode == PaymentMode.credit) ...[
-                    _buildSummaryRow(
-                      label: tr.accountPayment,
-                      value: current.creditAmount,
-                      color: Colors.orange,
-                    ),
-                    if (needsConversion)
-                      _buildSummaryRow(
-                        label: '${tr.accountPayment} (${current.toCurrency})',
-                        value: current.creditAmount * current.exchangeRate,
-                        fontSize: 11,
-                        color: Colors.orange.withValues(alpha: .7),
-                      ),
-                  ] else if (current.paymentMode == PaymentMode.mixed) ...[
-                    _buildSummaryRow(
-                      label: tr.accountPayment,
-                      value: current.creditAmount,
-                      color: Colors.orange,
-                    ),
-                    _buildSummaryRow(
-                      label: tr.cashPayment,
-                      value: current.cashPayment,
-                      color: Colors.green,
-                    ),
-                    if (needsConversion) ...[
-                      _buildSummaryRow(
-                        label: '${tr.accountPayment} (${current.toCurrency})',
-                        value: current.creditAmount * current.exchangeRate,
-                        fontSize: 11,
-                        color: Colors.orange.withValues(alpha: .7),
-                      ),
-                      _buildSummaryRow(
-                        label: '${tr.cashPayment} (${current.toCurrency})',
-                        value: current.cashPayment * current.exchangeRate,
-                        fontSize: 11,
-                        color: Colors.green.withValues(alpha: .7),
-                      ),
-                    ],
-                  ],
-
-                  // Account Information (if credit)
-                  if (hasCreditAccount) ...[
-                    const SizedBox(height: 8),
-                    Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '${current.customerAccount!.accName}',
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Text(
-                                '#${current.customerAccount!.accNumber}',
-                                style: TextStyle(fontSize: 12, color: color.outline),
                               ),
                             ],
                           ),
+
+                          // Item Discounts (if any)
+                          if (current.totalItemDiscount > 0)
+                            _buildSummaryRow(
+                              label: tr.itemDiscounts,
+                              value: -current.totalItemDiscount,
+                              color: Colors.red,
+                            ),
+
+                          // After Item Discounts
+                          if (current.totalItemDiscount > 0)
+                            _buildSummaryRow(
+                              label: tr.afterItemDiscount,
+                              value: current.totalAfterItemDiscount,
+                              isBold: true,
+                            ),
+
                           const SizedBox(height: 4),
+
+                          // General Discount Section
+                          if (current.generalDiscountAmount > 0)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text("GENERAL DISCOUNT AMOUNT", style: TextStyle(fontSize: 13)),
+                                Text(
+                                  '(-${current.generalDiscountAmount.toAmount()})',
+                                  style: TextStyle(fontSize: 15, color: Colors.red),
+                                ),
+                              ],
+                            ),
+
+                          const SizedBox(height: 6),
+                          Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+
+                          // Grand Total
                           _buildSummaryRow(
-                            label: tr.currentBalance,
-                            value: current.currentBalance,
-                            fontSize: 13,
-                          ),
-                          _buildSummaryRow(
-                            label: tr.newBalance,
-                            value: current.newBalance,
+                            label: tr.grandTotal,
+                            value: current.grandTotal,
                             isBold: true,
-                            color: _getBalanceColor(current.newBalance),
-                            fontSize: 13,
+                            fontSize: 18,
                           ),
+
+                          // Show grand total in local currency if conversion is needed
+                          if (needsConversion) ...[
+                            const SizedBox(height: 2),
+                            _buildSummaryRow(
+                              label: '${tr.grandTotal} (${current.toCurrency})',
+                              value: current.totalLocalAmount,
+                              fontSize: 12,
+                              color: color.primary.withValues(alpha: .8),
+                            ),
+                          ],
                         ],
                       ),
                     ),
+                  ),
+
+                  SizedBox(width: 8),
+                  // Vertical Divider 1
+                  VerticalDivider(
+                    width: 20,
+                    thickness: 1,
+                      color: color.outline.withValues(alpha: .2),
+                  ),
+                  SizedBox(width: 8),
+                  // Column 2: Profit & Payment Info
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (visibility.benefit && current.totalPurchaseCost > 0) ...[
+                            const SizedBox(height: 4),
+                            _buildSummaryRow(
+                              label: tr.profit,
+                              value: current.totalProfit,
+                              fontSize: 15,
+                              color: current.totalProfit >= 0 ? Colors.green : Colors.red,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  '${tr.profit} %',
+                                  style: TextStyle(fontSize: 13),
+                                ),
+                                Text(
+                                  '${current.profitPercentage.toStringAsFixed(1)}%',
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: current.totalProfit >= 0 ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                            const SizedBox(height: 6),
+                          ],
+
+                          // Payment Breakdown
+                          Text(
+                            tr.paymentDetails,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                          const SizedBox(height: 4),
+                          if (current.paymentMode == PaymentMode.cash) ...[
+                            _buildSummaryRow(
+                              label: tr.cashPayment,
+                              value: current.cashPayment,
+                              color: Colors.green,
+                            ),
+                            if (needsConversion)
+                              _buildSummaryRow(
+                                label: '${tr.cashPayment} (${current.toCurrency})',
+                                value: current.cashPayment * current.exchangeRate,
+                                fontSize: 11,
+                                color: Colors.green.withValues(alpha: .7),
+                              ),
+                          ] else if (current.paymentMode == PaymentMode.credit) ...[
+                            _buildSummaryRow(
+                              label: tr.accountPayment,
+                              value: current.creditAmount,
+                              color: Colors.orange,
+                            ),
+                            if (needsConversion)
+                              _buildSummaryRow(
+                                label: '${tr.accountPayment} (${current.toCurrency})',
+                                value: current.creditAmount * current.exchangeRate,
+                                fontSize: 11,
+                                color: Colors.orange.withValues(alpha: .7),
+                              ),
+                          ] else if (current.paymentMode == PaymentMode.mixed) ...[
+                            _buildSummaryRow(
+                              label: tr.accountPayment,
+                              value: current.creditAmount,
+                              color: Colors.orange,
+                            ),
+                            _buildSummaryRow(
+                              label: tr.cashPayment,
+                              value: current.cashPayment,
+                              color: Colors.green,
+                            ),
+                            if (needsConversion) ...[
+                              _buildSummaryRow(
+                                label: '${tr.accountPayment} (${current.toCurrency})',
+                                value: current.creditAmount * current.exchangeRate,
+                                fontSize: 11,
+                                color: Colors.orange.withValues(alpha: .7),
+                              ),
+                              _buildSummaryRow(
+                                label: '${tr.cashPayment} (${current.toCurrency})',
+                                value: current.cashPayment * current.exchangeRate,
+                                fontSize: 11,
+                                color: Colors.green.withValues(alpha: .7),
+                              ),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Vertical Divider 2 (only if credit account exists)
+                  if (hasCreditAccount)...[
+                    SizedBox(width: 8),
+                    VerticalDivider(
+                      width: 20,
+                      thickness: 1,
+                      color: color.outline.withValues(alpha: .2),
+                    ),
+                    SizedBox(width: 8),
                   ],
+
+                  // Column 3: Account Information (if credit)
+                  if (hasCreditAccount)
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Account Information"),
+                            SizedBox(height: 8),
+                            Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                            SizedBox(height: 1),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        '${current.customerAccount!.accName}',
+                                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      ),
+                                      Text(
+                                        '#${current.customerAccount!.accNumber}',
+                                        style: TextStyle(fontSize: 14, color: color.outline),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _buildSummaryRow(
+                                    label: tr.currentBalance,
+                                    value: current.currentBalance,
+                                    fontSize: 18,
+                                  ),
+                                  _buildSummaryRow(
+                                    label: tr.newBalance,
+                                    value: current.newBalance,
+                                    isBold: true,
+                                    color: _getBalanceColor(current.newBalance),
+                                    fontSize: 20,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1442,13 +1493,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-  Widget _buildSummaryRow({
-    required String label,
-    required double value,
-    bool isBold = false,
-    Color? color,
-    double fontSize = 14,
-  }) {
+  Widget _buildSummaryRow({required String label, required double value, bool isBold = false, Color? color, double fontSize = 14,}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(

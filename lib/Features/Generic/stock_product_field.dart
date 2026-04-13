@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
+import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import '../../Localizations/l10n/translations/app_localizations.dart';
 
 typedef LoadingBuilder = Widget Function(BuildContext context);
@@ -123,6 +124,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
   bool _isOverlayHovered = false;
+  String? baseCurrency;
 
   @override
   void initState() {
@@ -131,6 +133,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     _focusNode.addListener(_onFocusChange);
     widget.controller.addListener(_onControllerChanged);
 
+    final auth = context.read<AuthBloc>().state;
+    if(auth is AuthenticatedState){
+      baseCurrency = auth.loginData.company?.comLocalCcy;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardListenerFocusNode.requestFocus();
     });
@@ -984,19 +990,19 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
             Icons.trending_up,
             tr.averagePrice,
             widget.getAveragePrice(product).toAmount(),
-            currency: "USD"
+            currency: baseCurrency
           ),
           _buildDetailItem(
             Icons.history,
             tr.recentPrice,
             widget.getRecentPrice(product).toAmount(),
-            currency: "USD"
+            currency: baseCurrency
           ),
           _buildDetailItem(
             Icons.dark_mode,
             tr.landedPrice,
             widget.getLandedPrice(product).toAmount(),
-            currency: "USD"
+            currency: baseCurrency
           ),
           _buildDetailItem(
             Icons.attach_money,
@@ -1004,7 +1010,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
             widget.getSellPrice(product).toAmount(),
             color: Colors.green,
             isBold: true,
-            currency: "USD"
+            currency: baseCurrency
           ),
         ]),
         const SizedBox(height: 16),
@@ -1012,31 +1018,31 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
           if (widget.getProductUnit != null)
             _buildDetailItem(
               Icons.category,
-              'Unit',
+              tr.unit,
               widget.getProductUnit!(product) ?? 'N/A',
             ),
           if (widget.getProductBrand != null)
             _buildDetailItem(
               Icons.branding_watermark,
-              'Brand',
+              tr.brandTitle,
               widget.getProductBrand!(product) ?? 'N/A',
             ),
           if (widget.getProductModel != null)
             _buildDetailItem(
               Icons.model_training,
-              'Model',
+              tr.modelTitle,
               widget.getProductModel!(product) ?? 'N/A',
             ),
           if (widget.getProductMadeIn != null)
             _buildDetailItem(
               Icons.location_on,
-              'Made In',
+              tr.madeIn,
               widget.getProductMadeIn!(product) ?? 'N/A',
             ),
           if (widget.getProductGrade != null)
             _buildDetailItem(
               Icons.star,
-              'Grade',
+              tr.gradeTitle,
               widget.getProductGrade!(product) ?? 'N/A',
             ),
           if (widget.getProductColor != null)

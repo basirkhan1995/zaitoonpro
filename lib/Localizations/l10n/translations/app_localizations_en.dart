@@ -3239,4 +3239,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get generalDiscount => 'General Discount';
+
+  @override
+  String get deselectAll => 'Deselect All';
+
+  @override
+  String get productSpecification => 'Product Specifications';
 }

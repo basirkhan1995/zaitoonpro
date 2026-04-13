@@ -4,7 +4,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'localization_services.dart';
 
 class ApiServices {
-  static const String baseUrl = "http://ec2-52-202-21-195.compute-1.amazonaws.com/rapi";
+  static const String baseUrl = "http://52.202.21.195/rapi";
   static const String imageUrl = "http://ec2-52-202-21-195.compute-1.amazonaws.com/images/personal/";
   ApiServices() {
     _dio = Dio(

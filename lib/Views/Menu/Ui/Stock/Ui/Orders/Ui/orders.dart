@@ -4,6 +4,7 @@ import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
@@ -18,6 +19,7 @@ import '../../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../OrderScreen/GetOrderById/order_by_id.dart';
+import '../model/orders_model.dart';
 
 class OrdersView extends StatelessWidget {
   const OrdersView({super.key});
@@ -646,7 +648,7 @@ class _TabletOrdersViewState extends State<_TabletOrdersView> {
   }
 }
 
-// Desktop View - Keep exactly as original
+// Desktop View
 class _DesktopOrdersView extends StatefulWidget {
   const _DesktopOrdersView();
 
@@ -659,11 +661,17 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
   final Map<String, bool> _copiedStates = {};
   final TextEditingController searchController = TextEditingController();
 
+  // Multi-select related variables
+  final Set<int> _selectedOrderIds = {};
+  bool _isSelectionMode = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrdersBloc>().add(const LoadOrdersEvent());
+      if (mounted) {
+        context.read<OrdersBloc>().add(const LoadOrdersEvent());
+      }
     });
 
     final companyState = context.read<AuthBloc>().state;
@@ -679,11 +687,133 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
   }
 
   void onRefresh() {
-    context.read<OrdersBloc>().add(LoadOrdersEvent());
+    if (!mounted) return;
+    _exitSelectionMode();
+    context.read<OrdersBloc>().add(const LoadOrdersEvent());
+  }
+
+  void _exitSelectionMode() {
+    if (!mounted) return;
+    setState(() {
+      _selectedOrderIds.clear();
+      _isSelectionMode = false;
+    });
+  }
+
+  void _enterSelectionMode() {
+    if (!mounted) return;
+    setState(() {
+      _isSelectionMode = true;
+    });
+  }
+
+  void _toggleSelection(int orderId) {
+    if (!mounted) return;
+    setState(() {
+      if (_selectedOrderIds.contains(orderId)) {
+        _selectedOrderIds.remove(orderId);
+        if (_selectedOrderIds.isEmpty) {
+          _isSelectionMode = false;
+        }
+      } else {
+        _selectedOrderIds.add(orderId);
+        _isSelectionMode = true;
+      }
+    });
+  }
+
+  void _selectAll(List<OrdersModel> orders) {
+    if (!mounted) return;
+    setState(() {
+      _selectedOrderIds.clear();
+      for (var order in orders) {
+        if (order.ordId != null) {
+          _selectedOrderIds.add(order.ordId!);
+        }
+      }
+      _isSelectionMode = _selectedOrderIds.isNotEmpty;
+    });
+  }
+
+  void _deselectAll() {
+    if (!mounted) return;
+    setState(() {
+      _selectedOrderIds.clear();
+      // Exit selection mode completely when deselect all
+      _isSelectionMode = false;
+    });
+  }
+
+  Future<void> _updateSelectedOrdersStatus() async {
+    if (!mounted) return;
+
+    if (_selectedOrderIds.isEmpty) {
+      _showSnackBar('No orders selected', isError: true);
+      return;
+    }
+
+    // Store selected IDs before async gap
+    final selectedCount = _selectedOrderIds.length;
+    final ordersData = _selectedOrderIds.map((orderId) {
+      return {
+        'ordID': orderId,
+        'ordStatus': 'Authorized',
+      };
+    }).toList();
+
+    // Show confirmation dialog with safe context
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8)
+        ),
+        title:   Text(AppLocalizations.of(context)!.areYouSure),
+        content: Text(
+          'Do you want to update $selectedCount order(s) status to "Authorized"?',
+        ),
+        actions: [
+          ZOutlineButton(
+            onPressed: () {
+              if (Navigator.canPop(dialogContext)) {
+                Navigator.pop(dialogContext, false);
+              }
+            },
+            label: Text(AppLocalizations.of(context)!.cancel),
+          ),
+          ZOutlineButton(
+            isActive: true,
+            onPressed: () {
+              if (Navigator.canPop(dialogContext)) {
+                Navigator.pop(dialogContext, true);
+              }
+            },
+            label: Text(AppLocalizations.of(context)!.confirm),
+          ),
+        ],
+      ),
+    );
+
+    // Check mounted after dialog
+    if (!mounted) return;
+
+    if (confirmed == true) {
+      // Call BLoC to update status
+      context.read<OrdersBloc>().add(UpdateOrdersStatusEvent(ordersData));
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+    ToastManager.show(context: context,
+        title: isError? AppLocalizations.of(context)!.errorTitle : AppLocalizations.of(context)!.successTitle,
+        message: message, type: isError? ToastType.error : ToastType.success);
   }
 
   Future<void> _copyToClipboard(String reference, BuildContext context) async {
     await Utils.copyToClipboard(reference);
+    if (!mounted) return;
     setState(() {
       _copiedStates[reference] = true;
     });
@@ -709,14 +839,29 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
           BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
             listener: (context, state) {
               if (state is PurchaseInvoiceSaved && state.success) {
-                context.read<OrdersBloc>().add(LoadOrdersEvent());
+                if (mounted) {
+                  context.read<OrdersBloc>().add(const LoadOrdersEvent());
+                }
               }
             },
           ),
           BlocListener<SaleInvoiceBloc, SaleInvoiceState>(
             listener: (context, state) {
               if (state is SaleInvoiceSaved && state.success) {
-                context.read<OrdersBloc>().add(LoadOrdersEvent());
+                if (mounted) {
+                  context.read<OrdersBloc>().add(const LoadOrdersEvent());
+                }
+              }
+            },
+          ),
+          BlocListener<OrdersBloc, OrdersState>(
+            listener: (context, state) {
+              if (!mounted) return;
+              if (state is OrdersStatusUpdatedState) {
+                _showSnackBar(state.message);
+                _exitSelectionMode();
+              } else if (state is OrdersErrorState) {
+                _showSnackBar(state.message, isError: true);
               }
             },
           ),
@@ -725,8 +870,9 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with Search and Actions
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 5.0),
+              padding: const EdgeInsets.symmetric(horizontal: 5.0, vertical: 8),
               child: Row(
                 spacing: 8,
                 children: [
@@ -737,9 +883,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                       contentPadding: EdgeInsets.zero,
                       title: Text(
                         tr.orderTitle,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(fontSize: 20),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20),
                       ),
                       subtitle: Text(
                         tr.ordersSubtitle,
@@ -754,72 +898,115 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                       controller: searchController,
                       hint: AppLocalizations.of(context)!.orderSearchHint,
                       onChanged: (e) {
-                        setState(() {});
+                        if (!mounted) return;
+                        setState(() {
+                          if (_isSelectionMode) {
+                            _exitSelectionMode();
+                          }
+                        });
                       },
                       title: "",
                     ),
                   ),
-                  ZOutlineButton(
-                    toolTip: "F5",
-                    width: 120,
-                    icon: Icons.refresh,
-                    onPressed: onRefresh,
-                    label: Text(tr.refresh),
-                  ),
+
+                  // Selection Mode Actions
+                  if (_isSelectionMode) ...[
+                    ZOutlineButton(
+                      icon: Icons.check_circle,
+                      onPressed: _updateSelectedOrdersStatus,
+                      label:   Text(tr.authorize),
+                      width: 120,
+                    ),
+                    ZOutlineButton(
+                      width: 120,
+                      icon: Icons.close,
+                      onPressed: _exitSelectionMode,
+                      label: Text(tr.cancel),
+                    ),
+                  ],
+
+                  // Normal Actions
+                  if (!_isSelectionMode) ...[
+                    ZOutlineButton(
+                      toolTip: "F5",
+                      width: 120,
+                      icon: Icons.refresh,
+                      onPressed: onRefresh,
+                      label: Text(tr.refresh),
+                    ),
+                  ],
                 ],
               ),
             ),
 
+            // Column Headers
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
               decoration: BoxDecoration(
                 color: color.primary.withValues(alpha: .9),
               ),
               child: Row(
                 children: [
-                  SizedBox(width: 50, child: Text("#", style: titleStyle)),
-                  SizedBox(width: 100, child: Text(tr.date, style: titleStyle)),
+                  // Dynamic width based on selection mode
                   SizedBox(
-                    width: 215,
-                    child: Text(tr.referenceNumber, style: titleStyle),
+                    width: _isSelectionMode ? 74 : 50, // 50 + 24 for checkbox
+                    child: Row(
+                      children: [
+                        if (_isSelectionMode)
+                          const SizedBox(width: 24), // Placeholder for checkbox
+                        const SizedBox(width: 4),
+                        Text("#", style: titleStyle),
+                      ],
+                    ),
                   ),
-                  Expanded(child: Text(tr.party, style: titleStyle)),
-                  SizedBox(
-                    width: 100,
-                    child: Text(tr.invoiceType, style: titleStyle),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    SizedBox(width: 100, child: Text(tr.date,style: titleStyle)),
+                    SizedBox(width: 215, child: Text(tr.referenceNumber,style: titleStyle)),
+                    Expanded(child: Text(tr.party,style: titleStyle)),
+                    SizedBox(width: 100, child: Text(tr.category,style: titleStyle)),
+                    SizedBox(
                     width: 140,
-                    child: Directionality(
-                      textDirection: TextDirection.ltr,
-                      child: Text(tr.totalInvoice, style: titleStyle,
-                        textAlign: TextAlign.start,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 15),
+                      child: Directionality(
+                        textDirection: TextDirection.ltr,
+                        child: Text(tr.totalInvoice,style: titleStyle),
                       ),
                     ),
                   ),
-
-                  SizedBox(
-                    width: 115,
-                    child: Text(tr.status, style: titleStyle),
-                  ),
-                ],
+                    SizedBox(width: 115, child: Text(tr.status,style: titleStyle)),
+                ]
               ),
             ),
             const SizedBox(height: 5),
 
+            // Orders List
             Expanded(
               child: BlocBuilder<OrdersBloc, OrdersState>(
                 builder: (context, state) {
                   if (state is OrdersErrorState) {
                     return NoDataWidget(message: state.message, onRefresh: onRefresh);
                   }
+
                   if (state is OrdersLoadingState) {
-                   return UniversalShimmer.dataList(
+                    return UniversalShimmer.dataList(
                       itemCount: 15,
                       numberOfColumns: 7,
                     );
                   }
+
+                  if (state is OrdersStatusUpdatingState) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('Updating order status...'),
+                        ],
+                      ),
+                    );
+                  }
+
                   if (state is OrdersLoadedState) {
                     final query = searchController.text.toLowerCase().trim();
                     final filteredList = state.order.where((item) {
@@ -832,157 +1019,251 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     }).toList();
 
                     if (filteredList.isEmpty) {
-                      return NoDataWidget(message: tr.noDataFound);
+                      return NoDataWidget(
+                        message: query.isEmpty ? tr.noDataFound : "No result found",
+                        onRefresh: onRefresh,
+                      );
                     }
-                    if (state.order.isEmpty) {
-                      return const NoDataWidget(enableAction: false);
-                    }
-                    return ListView.builder(
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        final ord = filteredList[index];
-                        final isCopied = _copiedStates[ord.ordTrnRef ?? ""] ?? false;
-                        final reference = ord.ordTrnRef ?? "";
-                        return InkWell(
-                          onTap: () {
-                            Utils.goto(
-                              context,
-                              OrderByIdView(
-                                orderId: ord.ordId!,
-                                ordName: ord.ordName,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 8,
-                            ),
+
+                    return Column(
+                      children: [
+                        // Selection Controls (only show in selection mode and when there are items)
+                        if (_isSelectionMode && filteredList.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                             decoration: BoxDecoration(
-                              color: index.isEven
-                                  ? color.primary.withValues(alpha: .05)
-                                  : Colors.transparent,
+                              color: color.primary.withValues(alpha: .05),
+                              borderRadius: BorderRadius.circular(1),
                             ),
+                            margin: const EdgeInsets.only(bottom: 5),
                             child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                SizedBox(
-                                  width: 50,
-                                  child: Text(ord.ordId.toString()),
-                                ),
-                                SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    ord.ordEntryDate?.toFormattedDate() ?? "",
+                                Text(
+                                  '${_selectedOrderIds.length} of ${filteredList.length} selected',
+                                  style: TextStyle(
+                                    color: color.primary,
+                                    fontWeight: FontWeight.w500,
                                   ),
                                 ),
                                 Row(
                                   children: [
-                                    SizedBox(
-                                      width: 28,
-                                      height: 28,
-                                      child: Material(
-                                        color: Colors.transparent,
-                                        child: InkWell(
-                                          onTap: () => _copyToClipboard(
-                                            reference,
-                                            context,
-                                          ),
-                                          borderRadius: BorderRadius.circular(4),
-                                          hoverColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                              .withValues(alpha: .05),
-                                          child: AnimatedContainer(
-                                            duration: const Duration(
-                                              milliseconds: 100,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: isCopied
-                                                  ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withAlpha(25)
-                                                  : Colors.transparent,
-                                              border: Border.all(
-                                                color: isCopied
-                                                    ? Theme.of(context)
-                                                    .colorScheme
-                                                    .primary
-                                                    : Theme.of(context)
-                                                    .colorScheme
-                                                    .outline
-                                                    .withValues(alpha: .3),
-                                                width: 1,
-                                              ),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Center(
-                                              child: AnimatedSwitcher(
-                                                duration: const Duration(
-                                                  milliseconds: 300,
-                                                ),
-                                                child: Icon(
-                                                  isCopied
-                                                      ? Icons.check
-                                                      : Icons.content_copy,
-                                                  key: ValueKey<bool>(isCopied),
-                                                  size: 15,
-                                                  color: isCopied
-                                                      ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                      : Theme.of(context)
-                                                      .colorScheme
-                                                      .outline
-                                                      .withValues(alpha: .6),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                                    TextButton.icon(
+                                      onPressed: () => _selectAll(filteredList),
+                                      icon: const Icon(Icons.select_all, size: 18),
+                                      label: Text('${tr.selectAll} (${filteredList.length})'),
+                                      style: TextButton.styleFrom(
+                                        visualDensity: VisualDensity.compact,
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    SizedBox(
-                                      width: 180,
-                                      child: Text(ord.ordTrnRef ?? ""),
+                                    TextButton.icon(
+                                      onPressed: _deselectAll,
+                                      icon: const Icon(Icons.deselect, size: 18),
+                                      label: Text(tr.deselectAll),
+                                      style: TextButton.styleFrom(
+                                        visualDensity: VisualDensity.compact,
+                                      ),
                                     ),
                                   ],
                                 ),
-                                Expanded(child: Text(ord.personal ?? "")),
-                                SizedBox(
-                                  width: 100,
-                                  child: Text(
-                                    Utils.getInvoiceType(
-                                      txn: ord.ordName ?? "",
-                                      context: context,
-                                    ),
-                                  ),
-                                ),
-
-                                Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 15),
-                                  width: 140,
-                                  child: Directionality(
-                                    textDirection: TextDirection.ltr, // Force LTR for numbers
-                                    child: Text(
-                                      "${ord.totalBill?.toAmount()} $baseCurrency",
-                                      style: Theme.of(context).textTheme.titleSmall,
-                                      textAlign: TextAlign.start,
-                                    ),
-                                  ),
-                                ),
-
-                                SizedBox(
-                                    width: 115,
-                                    child: TransactionStatusBadge(status: ord.ordStatus??"")),
                               ],
                             ),
                           ),
-                        );
-                      },
+
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final ord = filteredList[index];
+                              final isCopied = _copiedStates[ord.ordTrnRef ?? ""] ?? false;
+                              final reference = ord.ordTrnRef ?? "";
+                              final isSelected = _selectedOrderIds.contains(ord.ordId);
+
+                              return InkWell(
+                                onTap: () {
+                                  if (_isSelectionMode) {
+                                    _toggleSelection(ord.ordId!);
+                                  } else {
+                                    Utils.goto(
+                                      context,
+                                      OrderByIdView(
+                                        orderId: ord.ordId!,
+                                        ordName: ord.ordName,
+                                      ),
+                                    );
+                                  }
+                                },
+                                onLongPress: () {
+                                  if (!_isSelectionMode) {
+                                    _enterSelectionMode();
+                                    _toggleSelection(ord.ordId!);
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? color.primary.withValues(alpha: .15)
+                                        : index.isEven
+                                        ? color.primary.withValues(alpha: .05)
+                                        : Colors.transparent,
+                                    border: isSelected
+                                        ? Border.all(
+                                      color: color.primary,
+                                      width: 1,
+                                    )
+                                        : null,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Order ID with dynamic spacing for checkbox
+                                      SizedBox(
+                                        width: _isSelectionMode ? 74 : 50,
+                                        child: Row(
+                                          children: [
+                                            if (_isSelectionMode)
+                                              SizedBox(
+                                                width: 24,
+                                                height: 24,
+                                                child: Checkbox(
+                                                  value: isSelected,
+                                                  onChanged: (_) => _toggleSelection(ord.ordId!),
+                                                  visualDensity: VisualDensity.compact,
+                                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                  activeColor: color.primary,
+                                                ),
+                                              ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                ord.ordId.toString(),
+                                                style: TextStyle(
+                                                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Date
+                                       SizedBox(width: 100, child: Text(ord.ordEntryDate.toFormattedDate())),
+
+                                      // Reference Number with Copy
+                                      Row(
+                                        children: [
+                                          SizedBox(
+                                            width: 28,
+                                            height: 28,
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                onTap: () => _copyToClipboard(reference, context),
+                                                borderRadius: BorderRadius.circular(4),
+                                                hoverColor: color.primary.withValues(alpha: .05),
+                                                child: AnimatedContainer(
+                                                  duration: const Duration(milliseconds: 100),
+                                                  decoration: BoxDecoration(
+                                                    color: isCopied
+                                                        ? color.primary.withAlpha(25)
+                                                        : Colors.transparent,
+                                                    border: Border.all(
+                                                      color: isCopied
+                                                          ? color.primary
+                                                          : color.outline.withValues(alpha: .3),
+                                                      width: 1,
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                  ),
+                                                  child: Center(
+                                                    child: AnimatedSwitcher(
+                                                      duration: const Duration(milliseconds: 300),
+                                                      child: Icon(
+                                                        isCopied ? Icons.check : Icons.content_copy,
+                                                        key: ValueKey<bool>(isCopied),
+                                                        size: 15,
+                                                        color: isCopied
+                                                            ? color.primary
+                                                            : color.outline.withValues(alpha: .6),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          SizedBox(
+                                            width: 180,
+                                            child: Text(
+                                              reference,
+                                              style: TextStyle(
+                                                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      // Party
+                                      Expanded(
+                                        child: Text(
+                                          ord.personal ?? "",
+                                          style: TextStyle(
+                                            color: isSelected ? color.primary : null,
+                                            fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Invoice Type
+                                      SizedBox(
+                                        width: 100,
+                                        child: Text(
+                                          Utils.getInvoiceType(
+                                            txn: ord.ordName ?? "",
+                                            context: context,
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Total Amount
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                                        width: 140,
+                                        child: Directionality(
+                                          textDirection: TextDirection.ltr,
+                                          child: Text(
+                                            "${ord.totalBill?.toAmount()} $baseCurrency",
+                                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                              color: isSelected ? color.primary : null,
+                                            ),
+                                            textAlign: TextAlign.start,
+                                          ),
+                                        ),
+                                      ),
+
+                                      // Status Badge
+                                      SizedBox(
+                                        width: 115,
+                                        child: TransactionStatusBadge(status: ord.ordStatus ?? ""),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
                     );
                   }
+
                   return const SizedBox();
                 },
               ),

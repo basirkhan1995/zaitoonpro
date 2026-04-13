@@ -2569,6 +2569,17 @@ class Repositories {
     return [];
   }
 
+  Future<Map<String, dynamic>> postOrderStatus(
+      List<Map<String, dynamic>> ordersData) async {
+
+    final response = await api.put(
+      endpoint: "/inventory/ordersView.php",
+      data: ordersData,
+    );
+
+    return response.data;
+  }
+
   Future<List<StockRecordModel>> stockRecord({
     String? fromDate,
     String? toDate,

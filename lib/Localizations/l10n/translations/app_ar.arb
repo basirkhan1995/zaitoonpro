@@ -1070,5 +1070,7 @@
   "subtotal": "فرعي مجموعه",
   "itemDiscounts": "د توکو تخفیف",
   "afterItemDiscount": "د توکو له تخفیف وروسته",
-  "generalDiscount": "عمومي تخفیف"
+  "generalDiscount": "عمومي تخفیف",
+  "deselectAll": "د ټولو ټاکنه لغوه",
+  "productSpecification": "خصوصیات کالا"
 }

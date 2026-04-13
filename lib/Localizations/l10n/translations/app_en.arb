@@ -1070,5 +1070,7 @@
   "subtotal": "Subtotal",
   "itemDiscounts": "Item Discounts",
   "afterItemDiscount": "After Item Discount",
-  "generalDiscount": "General Discount"
+  "generalDiscount": "General Discount",
+  "deselectAll": "Deselect All",
+  "productSpecification": "Product Specifications"
 }

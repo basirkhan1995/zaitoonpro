@@ -6405,6 +6405,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'General Discount'**
   String get generalDiscount;
+
+  /// No description provided for @deselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect All'**
+  String get deselectAll;
+
+  /// No description provided for @productSpecification.
+  ///
+  /// In en, this message translates to:
+  /// **'Product Specifications'**
+  String get productSpecification;
 }
 
 class _AppLocalizationsDelegate

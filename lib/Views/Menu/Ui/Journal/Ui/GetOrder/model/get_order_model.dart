@@ -148,7 +148,7 @@ class Bill {
   factory Bill.fromMap(Map<String, dynamic> json) => Bill(
     storageName: json["storage_name"],
     productName: json["product_name"],
-    quantity: json["quantity"],
+    quantity: json["quantity"]?.toString(),
     unitPrice: json["unit_price"],
     totalPrice: json["total_price"],
   );

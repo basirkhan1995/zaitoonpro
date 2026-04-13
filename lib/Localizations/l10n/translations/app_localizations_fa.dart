@@ -3229,4 +3229,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get generalDiscount => 'تخفیف عمومی';
+
+  @override
+  String get deselectAll => 'لغو انتخاب همه';
+
+  @override
+  String get productSpecification => 'خصوصیات کالا';
 }

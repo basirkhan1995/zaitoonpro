@@ -2,8 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
-
+import 'package:zaitoonpro/Features/Widgets/section_title.dart';
 import '../../Localizations/l10n/translations/app_localizations.dart';
 
 typedef LoadingBuilder = Widget Function(BuildContext context);
@@ -201,11 +202,29 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
   }
 
   void _scrollToHighlightedItem() {
-    if (_scrollController.hasClients && _highlightedIndex >= 0) {
-      final itemHeight = 72.0;
-      final scrollOffset = _highlightedIndex * itemHeight;
+    if (!_scrollController.hasClients || _highlightedIndex < 0) return;
+
+    const itemHeight = 72.0;
+
+    final viewportStart = _scrollController.offset;
+    final viewportEnd =
+        viewportStart + _scrollController.position.viewportDimension;
+
+    final itemStart = _highlightedIndex * itemHeight;
+    final itemEnd = itemStart + itemHeight;
+
+    // ✅ Scroll DOWN only if item is below view
+    if (itemEnd > viewportEnd) {
       _scrollController.animateTo(
-        scrollOffset,
+        itemEnd - _scrollController.position.viewportDimension,
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+      );
+    }
+    // ✅ Scroll UP only if item is above view
+    else if (itemStart < viewportStart) {
+      _scrollController.animateTo(
+        itemStart,
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
       );
@@ -231,7 +250,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
     final screenHeight = MediaQuery.of(context).size.height;
 
     const double panelWidthPercentage = 0.85;
-    const double panelHeightPercentage = 0.75;
+    const double panelHeightPercentage = 0.85;
 
     double panelWidth = screenWidth * panelWidthPercentage;
     double panelHeight = screenHeight * panelHeightPercentage;
@@ -243,7 +262,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
 
     panelWidth = panelWidth.clamp(minPanelWidth, maxPanelWidth);
     panelHeight = panelHeight.clamp(minPanelHeight, maxPanelHeight);
-
+    final isRTL = Directionality.of(context) == TextDirection.rtl;
     _overlayEntry = OverlayEntry(
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => Material(
@@ -499,24 +518,22 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                                           return Container(
                                             decoration: BoxDecoration(
                                               color: isHighlighted
-                                                  ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                                  .withValues(
-                                                alpha: .1,
-                                              )
+                                                  ? Theme.of(context).colorScheme.primary.withValues(alpha: .08)
                                                   : Colors.transparent,
                                               border: isHighlighted
                                                   ? Border(
-                                                left: BorderSide(
-                                                  color:
-                                                  Theme.of(
-                                                    context,
-                                                  )
-                                                      .colorScheme
-                                                      .primary,
+                                                left: isRTL
+                                                    ? BorderSide.none
+                                                    : BorderSide(
+                                                  color: Theme.of(context).colorScheme.primary,
                                                   width: 3,
                                                 ),
+                                                right: isRTL
+                                                    ? BorderSide(
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                  width: 3,
+                                                )
+                                                    : BorderSide.none,
                                               )
                                                   : null,
                                             ),
@@ -879,17 +896,17 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       children: [
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                Theme.of(context).colorScheme.primary.withValues(alpha: .1),
+                Theme.of(context).colorScheme.primary.withValues(alpha: .01),
                 Theme.of(context).colorScheme.surface,
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(
               color: Theme.of(
                 context,
@@ -904,8 +921,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(8),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: .9),
+                      borderRadius: BorderRadius.circular(5),
                     ),
                     child: Icon(
                       Icons.inventory_2,
@@ -917,6 +934,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      spacing: 3,
                       children: [
                         Text(
                           widget.getProductName(product) ?? '',
@@ -941,27 +959,56 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
           ),
         ),
         const SizedBox(height: 16),
-        _buildDetailCard('Storage Information', [
+        _buildDetailCard(tr.stock, [
           _buildDetailItem(
             Icons.store,
-            'Storage',
+            tr.storage,
             widget.getStorageName(product) ?? 'N/A',
           ),
           _buildDetailItem(
             Icons.numbers,
-            'Batch',
+            tr.batchTitle,
             widget.getBatch(product)?.toString() ?? 'N/A',
           ),
           _buildDetailItem(
             Icons.shopping_bag,
-            'Available',
+            tr.available,
             widget.getAvailable(product) ?? '0',
             color: _getAvailabilityColor(widget.getAvailable(product) ?? '0'),
             isBold: true,
           ),
         ]),
+        const SizedBox(height: 8),
+        _buildDetailCard(tr.pricingInformation, [
+          _buildDetailItem(
+            Icons.trending_up,
+            tr.averagePrice,
+            widget.getAveragePrice(product).toAmount(),
+            currency: "USD"
+          ),
+          _buildDetailItem(
+            Icons.history,
+            tr.recentPrice,
+            widget.getRecentPrice(product).toAmount(),
+            currency: "USD"
+          ),
+          _buildDetailItem(
+            Icons.dark_mode,
+            tr.landedPrice,
+            widget.getLandedPrice(product).toAmount(),
+            currency: "USD"
+          ),
+          _buildDetailItem(
+            Icons.attach_money,
+            tr.sellPrice,
+            widget.getSellPrice(product).toAmount(),
+            color: Colors.green,
+            isBold: true,
+            currency: "USD"
+          ),
+        ]),
         const SizedBox(height: 16),
-        _buildDetailCard('Product Specifications', [
+        _buildDetailCard(tr.productSpecification, [
           if (widget.getProductUnit != null)
             _buildDetailItem(
               Icons.category,
@@ -999,36 +1046,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
               widget.getProductColor!(product) ?? 'N/A',
             ),
         ]),
-        const SizedBox(height: 16),
-        _buildDetailCard('Pricing Information', [
-          _buildDetailItem(
-            Icons.trending_up,
-            'Average Price',
-            widget.getAveragePrice(product).toAmount(),
-          ),
-          _buildDetailItem(
-            Icons.history,
-            'Recent Price',
-            widget.getRecentPrice(product).toAmount(),
-          ),
-          _buildDetailItem(
-            Icons.dark_mode,
-            'Cost Price',
-            widget.getLandedPrice(product).toAmount(),
-          ),
-          _buildDetailItem(
-            Icons.attach_money,
-            'Sell Price',
-            widget.getSellPrice(product).toAmount(),
-            color: Colors.green,
-            isBold: true,
-          ),
-        ]),
-        const SizedBox(height: 16),
+        const SizedBox(height: 8),
         if (widget.getProductDetails != null &&
             widget.getProductDetails!(product) != null &&
             widget.getProductDetails!(product)!.isNotEmpty)
-          _buildDetailCard('Product Details', [
+          _buildDetailCard(tr.productDetails, [
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
@@ -1040,24 +1062,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
               ),
             ),
           ]),
-        const SizedBox(height: 16),
-        _buildDetailCard('Basic Information', [
-          _buildDetailItem(
-            Icons.tag,
-            'ID',
-            widget.getProductId(product)?.toString() ?? 'N/A',
-          ),
-          _buildDetailItem(
-            Icons.label,
-            'Product Name',
-            widget.getProductName(product) ?? 'N/A',
-          ),
-          _buildDetailItem(
-            Icons.qr_code,
-            'Code',
-            widget.getProductCode(product) ?? 'N/A',
-          ),
-        ]),
       ],
     );
   }
@@ -1066,35 +1070,41 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       IconData icon,
       String label,
       String value, {
+        String? currency, // ✅ NEW
         Color? color,
         bool isBold = false,
       }) {
+    final displayValue =
+    currency != null && currency.isNotEmpty
+        ? "$value $currency"
+        : value;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Container(
-            width: 28,
-            height: 28,
+            width: 32,
+            height: 32,
             decoration: BoxDecoration(
               color: Colors.grey.withValues(alpha: .1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: Icon(icon, size: 16, color: Colors.grey[600]),
+            child: Icon(icon, size: 20, color: Colors.grey[600]),
           ),
           const SizedBox(width: 12),
           SizedBox(
-            width: 100,
+            width: 150,
             child: Text(
               '$label:',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             ),
           ),
           Expanded(
             child: Text(
-              value,
+              displayValue,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 15,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
                 color: color,
               ),
@@ -1118,11 +1128,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
+         ZCover(
+             radius: 3,
+             padding: EdgeInsets.symmetric(horizontal: 3),
+             child: SectionTitle(title: title)),
+          const SizedBox(height: 5),
           ...children,
         ],
       ),

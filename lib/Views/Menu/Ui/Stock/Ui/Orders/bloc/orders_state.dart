@@ -22,14 +22,28 @@ final class OrdersSuccessState extends OrdersState {
 final class OrdersErrorState extends OrdersState {
   final String message;
   const OrdersErrorState(this.message);
+
   @override
   List<Object> get props => [message];
 }
 
-
 final class OrdersLoadedState extends OrdersState {
   final List<OrdersModel> order;
   const OrdersLoadedState(this.order);
+
   @override
   List<Object> get props => [order];
+}
+
+final class OrdersStatusUpdatingState extends OrdersState {
+  @override
+  List<Object> get props => [];
+}
+
+final class OrdersStatusUpdatedState extends OrdersState {
+  final String message;
+  const OrdersStatusUpdatedState(this.message);
+
+  @override
+  List<Object> get props => [message];
 }

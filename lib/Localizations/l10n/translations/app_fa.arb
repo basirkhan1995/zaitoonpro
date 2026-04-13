@@ -1070,5 +1070,7 @@
   "subtotal": "جمع موقت",
   "itemDiscounts": "تخفیف اقلام",
   "afterItemDiscount": "پس از تخفیف اقلام",
-  "generalDiscount": "تخفیف عمومی"
+  "generalDiscount": "تخفیف عمومی",
+  "deselectAll": "لغو انتخاب همه",
+  "productSpecification": "خصوصیات کالا"
 }

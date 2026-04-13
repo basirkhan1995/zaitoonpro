@@ -3232,4 +3232,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get generalDiscount => 'عمومي تخفیف';
+
+  @override
+  String get deselectAll => 'د ټولو ټاکنه لغوه';
+
+  @override
+  String get productSpecification => 'خصوصیات کالا';
 }

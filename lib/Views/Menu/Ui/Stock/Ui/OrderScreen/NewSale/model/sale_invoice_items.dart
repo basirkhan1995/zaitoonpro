@@ -33,7 +33,19 @@ class SaleInvoiceItem {
     this.exchangeRate,
     this.unit,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
+  // Single item local amount (unit price * exchange rate)
+  double get singleLocalAmount {
+    final rate = exchangeRate ?? 1.0;
+    if (rate <= 0) return 0; // Handle loading
+    return (salePrice ?? 0) * rate;
+  }
 
+  // Total local amount for this item
+  double get totalLocalAmount {
+    final rate = exchangeRate ?? 1.0;
+    if (rate <= 0) return 0; // Handle loading
+    return totalSale * rate;
+  }
   double get totalPurchase => qty * (purPrice ?? 0);
 
   double get totalSale {
@@ -60,17 +72,7 @@ class SaleInvoiceItem {
     return 0;
   }
 
-  // Single item local amount (unit price * exchange rate)
-  double get singleLocalAmount {
-    final rate = exchangeRate ?? 1.0;
-    return (salePrice ?? 0) * rate;
-  }
 
-  // Total local amount for this item
-  double get totalLocalAmount {
-    final rate = exchangeRate ?? 1.0;
-    return totalSale * rate;
-  }
 
   void updateLocalAmount(double? exchangeRateValue) {
     exchangeRate = exchangeRateValue;

@@ -16,7 +16,18 @@ class SelectCustomerEvent extends SaleInvoiceEvent {
   @override
   List<Object?> get props => [supplier];
 }
-
+class UpdateExchangeRateManuallyEvent extends SaleInvoiceEvent {
+  final double rate;
+  final String fromCurrency;
+  final String toCurrency;
+  const UpdateExchangeRateManuallyEvent({
+    required this.rate,
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+  @override
+  List<Object?> get props => [rate, fromCurrency, toCurrency];
+}
 class SelectCustomerAccountEvent extends SaleInvoiceEvent {
   final AccountsModel customer;
   const SelectCustomerAccountEvent(this.customer);

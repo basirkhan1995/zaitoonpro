@@ -33,6 +33,17 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateItemUnitEvent>(_onUpdateItemUnit);
     on<UpdateExchangeRateEvent>(_onUpdateExchangeRate);
     on<UpdateExtraChargesEvent>(_onUpdateExtraCharges);
+    on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
+  }
+  void _onUpdateExchangeRateManually(UpdateExchangeRateManuallyEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      emit(current.copyWith(
+        exchangeRate: event.rate,
+        fromCurrency: event.fromCurrency,
+        toCurrency: event.toCurrency,
+      ));
+    }
   }
   void _onUpdateExtraCharges(UpdateExtraChargesEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
@@ -41,26 +52,34 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     }
   }
   void _onUpdateExchangeRate(UpdateExchangeRateEvent event, Emitter<SaleInvoiceState> emit) {
-    if (state is SaleInvoiceLoaded) {
-      final current = state as SaleInvoiceLoaded;
+    if (state is! SaleInvoiceLoaded) return;
+    final current = state as SaleInvoiceLoaded;
 
-      // Update items with new exchange rate
-      final updatedItems = current.items.map((item) {
-        return item.copyWith(
-          exchangeRate: event.rate,
-          localAmount: (item.salePrice ?? 0) * event.rate,
-        );
-      }).toList();
-
+    // Handle loading state (negative rate)
+    if (event.rate < 0) {
       emit(current.copyWith(
-        items: updatedItems,
         exchangeRate: event.rate,
         fromCurrency: event.fromCurrency,
         toCurrency: event.toCurrency,
       ));
+      return;
     }
-  }
 
+    // Update all items with new exchange rate
+    final updatedItems = current.items.map((item) {
+      return item.copyWith(
+        exchangeRate: event.rate,
+        localAmount: item.totalSale * event.rate, // Use totalSale (after discount)
+      );
+    }).toList();
+
+    emit(current.copyWith(
+      items: updatedItems,
+      exchangeRate: event.rate,
+      fromCurrency: event.fromCurrency,
+      toCurrency: event.toCurrency,
+    ));
+  }
   void _onUpdateItemDiscountType(UpdateItemDiscountTypeEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -73,7 +92,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(items: updatedItems));
     }
   }
-
   void _onUpdateItemDiscountValue(UpdateItemDiscountValueEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -86,7 +104,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(items: updatedItems));
     }
   }
-
   void _onUpdateGeneralDiscount(UpdateGeneralDiscountEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -96,7 +113,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       ));
     }
   }
-
   void _onUpdateItemUnit(UpdateItemUnitEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -109,10 +125,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(items: updatedItems));
     }
   }
-
-
-
-
   void _onClearSupplierAccount(ClearCustomerAccountEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -123,7 +135,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       ));
     }
   }
-
   void _onInitialize(InitializeSaleInvoiceEvent event, Emitter<SaleInvoiceState> emit) {
     emit(SaleInvoiceLoaded(
       items: [SaleInvoiceItem(

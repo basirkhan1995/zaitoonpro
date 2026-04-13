@@ -77,33 +77,57 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _localeAmountControllers = {};
   int? _selectedAccountNumber;
-  String? _selectedAccountCurrency;
 
-  void _fetchExchangeRate(String fromCurrency, String toCurrency) async {
+  // ====================== Exchange Rate Fetch ======================
+  Future<void> _fetchExchangeRate(String fromCurrency, String toCurrency) async {
     try {
-      final rate = await context.read<Repositories>().getSingleRate(
+      // Show loading state
+      if (mounted) {
+        context.read<SaleInvoiceBloc>().add(
+          UpdateExchangeRateEvent(
+            rate: -1, // Use negative to indicate loading
+            fromCurrency: fromCurrency,
+            toCurrency: toCurrency,
+          ),
+        );
+        _exchangeRateController.text = "Loading...";
+      }
+
+      final rateStr = await context.read<Repositories>().getSingleRate(
         fromCcy: fromCurrency,
         toCcy: toCurrency,
       );
 
-      final parsedRate = double.tryParse(rate ?? "1.0") ?? 1.0;
+      final parsedRate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
 
-      context.read<SaleInvoiceBloc>().add(
-        UpdateExchangeRateEvent(
-          rate: parsedRate,
-          fromCurrency: fromCurrency,
-          toCurrency: toCurrency,
-        ),
-      );
-
-      _exchangeRateController.text = parsedRate.toStringAsFixed(4);
+      if (mounted) {
+        context.read<SaleInvoiceBloc>().add(
+          UpdateExchangeRateEvent(
+            rate: parsedRate,
+            fromCurrency: fromCurrency,
+            toCurrency: toCurrency,
+          ),
+        );
+        _exchangeRateController.text = parsedRate.toStringAsFixed(4);
+      }
     } catch (e) {
-      ToastManager.show(
-        context: context,
-        title: "Error",
-        message: "Failed to fetch exchange rate",
-        type: ToastType.error,
-      );
+      if (mounted) {
+        ToastManager.show(
+          context: context,
+          title: "Error",
+          message: "Failed to fetch exchange rate: $e",
+          type: ToastType.error,
+        );
+        // Set default rate
+        context.read<SaleInvoiceBloc>().add(
+          UpdateExchangeRateEvent(
+            rate: 1.0,
+            fromCurrency: fromCurrency,
+            toCurrency: toCurrency,
+          ),
+        );
+        _exchangeRateController.text = "1.0000";
+      }
     }
   }
 
@@ -224,10 +248,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 isError: true,
               );
             }
-          } if (state is SaleInvoiceLoaded) {
+          }
+          if (state is SaleInvoiceLoaded) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _focusNewRowIfNeeded(state);
-              // Update exchange rate controller if needed
               if (state.exchangeRate > 0 && _exchangeRateController.text != state.exchangeRate.toStringAsFixed(4)) {
                 _exchangeRateController.text = state.exchangeRate.toStringAsFixed(4);
               }
@@ -409,7 +433,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   setState(() {
                                     _accountController.text = '${value.accName} (${value.accNumber})';
                                     _selectedAccountNumber = value.accNumber;
-                                    _selectedAccountCurrency = value.actCurrency;
                                   });
 
                                   context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
@@ -420,10 +443,15 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     final accountCurrency = value.actCurrency ?? '';
 
                                     if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
-                                      _fetchExchangeRate(baseCurr, accountCurrency);   // ← Fixed
+                                      // THIS LINE WAS MISSING - Actually fetch the rate!
+                                      _fetchExchangeRate(baseCurr, accountCurrency);
                                     } else {
                                       context.read<SaleInvoiceBloc>().add(
-                                        UpdateExchangeRateEvent(rate: 1.0, fromCurrency: baseCurr, toCurrency: accountCurrency),
+                                        UpdateExchangeRateEvent(
+                                          rate: 1.0,
+                                          fromCurrency: baseCurr,
+                                          toCurrency: accountCurrency,
+                                        ),
                                       );
                                       _exchangeRateController.text = "1.0000";
                                     }
@@ -458,7 +486,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 setState(() {
                                   _accountController.text = '${value.accName} (${value.accNumber})';
                                   _selectedAccountNumber = value.accNumber;
-                                  _selectedAccountCurrency = value.actCurrency;
                                 });
 
                                 context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
@@ -469,7 +496,17 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   final accountCurrency = value.actCurrency ?? '';
 
                                   if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
+                                    // THIS LINE WAS MISSING - Actually fetch the rate!
                                     _fetchExchangeRate(baseCurr, accountCurrency);
+                                  } else {
+                                    context.read<SaleInvoiceBloc>().add(
+                                      UpdateExchangeRateEvent(
+                                        rate: 1.0,
+                                        fromCurrency: baseCurr,
+                                        toCurrency: accountCurrency,
+                                      ),
+                                    );
+                                    _exchangeRateController.text = "1.0000";
                                   }
                                 }
                               },
@@ -479,33 +516,44 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      Expanded(
-                        child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                          builder: (context, state) {
-                            if (state is SaleInvoiceLoaded && state.needsExchangeRate) {
-                              return ZTextFieldEntitled(
-                                controller: _exchangeRateController,
-                                title: tr.exchangeRate,
-                                hint: "Enter exchange rate",
-                                inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
-                                onChanged: (value) {
-                                  final rate = double.tryParse(value);
-                                  if (rate != null && rate > 0 && state.fromCurrency != null && state.toCurrency != null) {
-                                    context.read<SaleInvoiceBloc>().add(
-                                      UpdateExchangeRateEvent(
-                                        rate: rate,
-                                        fromCurrency: state.fromCurrency!,
-                                        toCurrency: state.toCurrency!,
-                                      ),
-                                    );
-                                  }
-                                },
-                              );
-                            }
-                            return const SizedBox();
-                          },
+                      if (_needsLocalConversion(context))...[
+                        Expanded(
+                          child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                            builder: (context, state) {
+                              if (state is SaleInvoiceLoaded && state.needsExchangeRate) {
+                                final isLoading = state.exchangeRate < 0;
+                                return ZTextFieldEntitled(
+                                  controller: _exchangeRateController,
+                                  title: tr.exchangeRate,
+                                  hint: isLoading ? "Fetching rate..." : "Enter exchange rate",
+                                  isEnabled: !isLoading,
+                                  end: isLoading
+                                      ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(strokeWidth: 2)
+                                  )
+                                      : null,
+                                  inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
+                                  onChanged: (value) {
+                                    final rate = double.tryParse(value);
+                                    if (rate != null && rate > 0 && state.fromCurrency != null && state.toCurrency != null) {
+                                      context.read<SaleInvoiceBloc>().add(
+                                        UpdateExchangeRateEvent(
+                                          rate: rate,
+                                          fromCurrency: state.fromCurrency!,
+                                          toCurrency: state.toCurrency!,
+                                        ),
+                                      );
+                                    }
+                                  },
+                                );
+                              }
+                              return const SizedBox();
+                            },
+                          ),
                         ),
-                      ),
+                      ],
                       const SizedBox(width: 4),
                       Expanded(
                         flex: 2,
@@ -714,7 +762,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   getSellPrice: (product) => product.sellPrice,
                   onProductSelected: onProductSelected,
                   onSubmit: () {
-                    // ADD THIS - Move focus to quantity field when Enter is pressed
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       if (nodes.length > 1 && nodes[1].canRequestFocus) {
                         nodes[1].requestFocus();
@@ -786,11 +833,28 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               if (_needsLocalConversion(context))
                 SizedBox(
                   width: 120,
-                  child: TextField(
-                    controller: localAmountController,
-                    readOnly: true,
-                    decoration: InputDecoration(hintText: tr.localAmount, border: InputBorder.none, isDense: true),
-                    style: TextStyle(color: color.primary, fontWeight: FontWeight.w500),
+                  child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                    builder: (context, state) {
+                      if (state is SaleInvoiceLoaded && state.exchangeRate < 0) {
+                        return const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      }
+                      return TextField(
+                        controller: localAmountController,
+                        readOnly: true,
+                        decoration: InputDecoration(
+                            hintText: tr.localAmount,
+                            border: InputBorder.none,
+                            isDense: true
+                        ),
+                        style: TextStyle(color: color.primary, fontWeight: FontWeight.w500),
+                      );
+                    },
                   ),
                 ),
               SizedBox(
@@ -815,11 +879,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         },
                         onSubmitted: (_) {
                           if (isLastRow) {
-                            _addNewRowAndFocus();           // ← This now works properly
+                            _addNewRowAndFocus();
                           } else {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               if (index + 1 < _rowFocusNodes.length) {
-                                _rowFocusNodes[index + 1][0].requestFocus(); // Product of next row
+                                _rowFocusNodes[index + 1][0].requestFocus();
                               }
                             });
                           }
@@ -898,18 +962,27 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
   String _getLocalAmountText(SaleInvoiceItem item) {
     final state = context.read<SaleInvoiceBloc>().state;
-    if (state is SaleInvoiceLoaded && state.exchangeRate > 0) {
-      final localAmount = (item.salePrice ?? 0) * state.exchangeRate * item.qty;
-      if (localAmount > 0) return localAmount.toAmount();
+    if (state is SaleInvoiceLoaded) {
+      // Handle loading state
+      if (state.exchangeRate < 0) return 'Loading...';
+      if (state.exchangeRate > 0) {
+        final localAmount = item.totalSale * state.exchangeRate;
+        if (localAmount > 0) return localAmount.toAmount();
+      }
     }
     return '';
   }
 
   TextEditingController _getLocalAmountController(SaleInvoiceItem item) {
-    return _localeAmountControllers.putIfAbsent(
+    final controller = _localeAmountControllers.putIfAbsent(
       item.rowId,
-          () => TextEditingController(text: _getLocalAmountText(item)),
+          () => TextEditingController(),
     );
+    final newText = _getLocalAmountText(item);
+    if (controller.text != newText) {
+      controller.text = newText;
+    }
+    return controller;
   }
 
   void _updateLocalAmountText(SaleInvoiceItem item, TextEditingController controller) {
@@ -919,35 +992,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     }
   }
 
-  void _setupRowFocus(int rowIndex) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (rowIndex < _rowFocusNodes.length && _rowFocusNodes[rowIndex].isNotEmpty) {
-        _rowFocusNodes[rowIndex][0].requestFocus();
-      }
-    });
-  }
-
   void _addNewRowAndFocus() {
     context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          final state = context.read<SaleInvoiceBloc>().state;
-          if (state is SaleInvoiceLoaded) {
-            final newIndex = state.items.length - 1;
-            _synchronizeFocusNodes(state.items.length);
-            if (newIndex < _rowFocusNodes.length) {
-              _rowFocusNodes[newIndex][0].requestFocus(); // Focus product
-            }
-          }
-        }
-      });
-    });
   }
 
   void _synchronizeFocusNodes(int itemCount) {
-    // Add new focus nodes if needed
     while (_rowFocusNodes.length < itemCount) {
       _rowFocusNodes.add([
         FocusNode(), // Product (index 0)
@@ -957,7 +1006,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       ]);
     }
 
-    // Remove extra focus nodes if needed
     while (_rowFocusNodes.length > itemCount) {
       final removed = _rowFocusNodes.removeLast();
       for (final node in removed) {
@@ -972,7 +1020,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      // First, check if there's any empty product field (new row)
       for (int i = 0; i < state.items.length; i++) {
         final item = state.items[i];
         if (item.productId.isEmpty) {
@@ -1007,13 +1054,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Column 1: Totals
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Payment Method
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -1034,7 +1079,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                           const SizedBox(height: 6),
 
-                          // Exchange Rate Info
                           if (needsConversion) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1080,10 +1124,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             const SizedBox(height: 8),
                           ],
 
-                          // Subtotal
                           _buildSummaryRow(label: tr.subtotal.toUpperCase(), fontSize: 18, value: current.subtotal),
 
-                          // General Discount
                           Row(
                             children: [
                               Expanded(child: Text(tr.generalDiscount.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold))),
@@ -1128,7 +1170,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               ],
                             ),
 
-                          // Extra Charges
                           Row(
                             children: [
                               Expanded(child: Text("EXTRA CHARGES".toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold))),
@@ -1152,7 +1193,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           const SizedBox(height: 6),
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
 
-                          // Grand Total (already includes extra charges via bloc)
                           _buildSummaryRow(label: tr.grandTotal, value: current.grandTotal, isBold: true, fontSize: 18),
 
                           if (needsConversion)
@@ -1171,7 +1211,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   VerticalDivider(width: 20, thickness: 1, color: color.outline.withValues(alpha: .2)),
                   SizedBox(width: 8),
 
-                  // Column 2: Profit & Payment
                   Expanded(
                     child: SingleChildScrollView(
                       child: Column(

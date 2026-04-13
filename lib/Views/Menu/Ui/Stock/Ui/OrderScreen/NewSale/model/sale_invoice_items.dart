@@ -1,6 +1,4 @@
 
-// Update SaleInvoiceItem class
-
 enum DiscountType { percentage, amount }
 
 class SaleInvoiceItem {
@@ -10,14 +8,14 @@ class SaleInvoiceItem {
   int qty;
   int? batch;
   double? discount;
-  DiscountType discountType; // New field
+  DiscountType discountType;
   double? purPrice;
   double? salePrice;
-  double? localAmount;
+  double? localAmount; // Amount in account currency
   int storageId;
   String storageName;
-  double? exchangeRate;
-  String? unit; // New field for unit
+  double? exchangeRate; // Store exchange rate for this item
+  String? unit;
 
   SaleInvoiceItem({
     String? itemId,
@@ -26,7 +24,7 @@ class SaleInvoiceItem {
     required this.qty,
     this.batch,
     this.discount,
-    this.discountType = DiscountType.percentage, // Default to percentage
+    this.discountType = DiscountType.percentage,
     this.purPrice,
     this.salePrice,
     this.localAmount,
@@ -40,24 +38,18 @@ class SaleInvoiceItem {
 
   double get totalSale {
     double subtotal = qty * (salePrice ?? 0);
-
     if (discount != null && discount! > 0) {
       if (discountType == DiscountType.percentage) {
-        // Percentage discount
         subtotal = subtotal * (1 - discount! / 100);
       } else {
-        // Amount discount
         subtotal = subtotal - discount!;
       }
     }
-
     return subtotal > 0 ? subtotal : 0;
   }
 
-  // Get discount amount for display
   double get discountAmount {
     double subtotal = qty * (salePrice ?? 0);
-
     if (discount != null && discount! > 0) {
       if (discountType == DiscountType.percentage) {
         return subtotal * (discount! / 100);
@@ -68,9 +60,16 @@ class SaleInvoiceItem {
     return 0;
   }
 
+  // Single item local amount (unit price * exchange rate)
   double get singleLocalAmount {
     final rate = exchangeRate ?? 1.0;
     return (salePrice ?? 0) * rate;
+  }
+
+  // Total local amount for this item
+  double get totalLocalAmount {
+    final rate = exchangeRate ?? 1.0;
+    return totalSale * rate;
   }
 
   void updateLocalAmount(double? exchangeRateValue) {

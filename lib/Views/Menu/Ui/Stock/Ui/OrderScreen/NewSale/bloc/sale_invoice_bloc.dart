@@ -32,12 +32,23 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateGeneralDiscountEvent>(_onUpdateGeneralDiscount);
     on<UpdateItemUnitEvent>(_onUpdateItemUnit);
     on<UpdateExchangeRateEvent>(_onUpdateExchangeRate);
+
   }
 
   void _onUpdateExchangeRate(UpdateExchangeRateEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
+
+      // Update items with new exchange rate
+      final updatedItems = current.items.map((item) {
+        return item.copyWith(
+          exchangeRate: event.rate,
+          localAmount: (item.salePrice ?? 0) * event.rate,
+        );
+      }).toList();
+
       emit(current.copyWith(
+        items: updatedItems,
         exchangeRate: event.rate,
         fromCurrency: event.fromCurrency,
         toCurrency: event.toCurrency,

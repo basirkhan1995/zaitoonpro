@@ -82,6 +82,33 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     storageName,
   ];
 }
+class UpdateExchangeRateEvent extends SaleInvoiceEvent {
+  final double rate;
+  final String fromCurrency;
+  final String toCurrency;
+
+  const UpdateExchangeRateEvent({
+    required this.rate,
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+
+  @override
+  List<Object?> get props => [rate, fromCurrency, toCurrency];
+}
+
+class UpdateItemLocalAmountEvent extends SaleInvoiceEvent {
+  final String rowId;
+
+  const UpdateItemLocalAmountEvent(this.rowId);
+
+  @override
+  List<Object?> get props => [rowId];
+}
+
+class UpdateAllLocalAmountsEvent extends SaleInvoiceEvent {
+  const UpdateAllLocalAmountsEvent();
+}
 
 class UpdateSaleReceivePaymentEvent extends SaleInvoiceEvent {
   final double payment;
@@ -143,20 +170,6 @@ class UpdateItemDiscountTypeEvent extends SaleInvoiceEvent {
   List<Object?> get props => [rowId, discountType];
 }
 
-class UpdateExchangeRateEvent extends SaleInvoiceEvent {
-  final double rate;
-  final String fromCurrency;
-  final String toCurrency;
-
-  const UpdateExchangeRateEvent({
-    required this.rate,
-    required this.fromCurrency,
-    required this.toCurrency,
-  });
-
-  @override
-  List<Object?> get props => [rate, fromCurrency, toCurrency];
-}
 
 class UpdateItemDiscountValueEvent extends SaleInvoiceEvent {
   final String rowId;

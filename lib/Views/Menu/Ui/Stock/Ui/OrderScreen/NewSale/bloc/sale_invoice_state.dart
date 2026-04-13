@@ -26,13 +26,12 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final double payment;
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
-
-  // New fields for general discount
   final double generalDiscount;
-  final double exchangeRate;
+  final double exchangeRate; // Exchange rate from base to account currency
   final DiscountType generalDiscountType;
-  final String? fromCurrency;
-  final String? toCurrency;
+  final String? fromCurrency; // Base currency
+  final String? toCurrency; // Account currency
+
   const SaleInvoiceLoaded({
     required this.items,
     this.customer,
@@ -58,32 +57,30 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
         accountCurrency != baseCurr;
   }
 
-  // Local amount for display (total in account currency)
+  // Total local amount for all items (in account currency)
   double get totalLocalAmount {
     if (!needsExchangeRate) return grandTotal;
-    return items.fold(0.0, (sum, item) =>
-    sum + (item.totalSale * exchangeRate));
+    return items.fold(0.0, (sum, item) => sum + item.totalLocalAmount);
   }
 
-  // Total sale amount before discount
+  // Subtotal before any discounts (in base currency)
   double get subtotal {
     return items.fold(0.0, (sum, item) => sum + (item.qty * (item.salePrice ?? 0)));
   }
 
-  // Total item discount amount
+  // Total item discount amount (in base currency)
   double get totalItemDiscount {
     return items.fold(0.0, (sum, item) => sum + item.discountAmount);
   }
 
-  // Total after item discounts but before general discount
+  // Total after item discounts (in base currency)
   double get totalAfterItemDiscount {
     return items.fold(0.0, (sum, item) => sum + item.totalSale);
   }
 
-  // General discount amount
+  // General discount amount (in base currency)
   double get generalDiscountAmount {
     if (generalDiscount <= 0) return 0;
-
     if (generalDiscountType == DiscountType.percentage) {
       return totalAfterItemDiscount * (generalDiscount / 100);
     } else {
@@ -91,10 +88,17 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     }
   }
 
-  // Grand total (after all discounts)
+  // Grand total after all discounts (in base currency)
   double get grandTotal {
     return totalAfterItemDiscount - generalDiscountAmount;
   }
+
+  // Grand total in local currency (for display)
+  double get grandTotalLocal {
+    if (!needsExchangeRate) return grandTotal;
+    return grandTotal * exchangeRate;
+  }
+
 
   double get totalPurchaseCost {
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);

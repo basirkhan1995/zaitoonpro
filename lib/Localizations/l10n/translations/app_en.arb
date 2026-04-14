@@ -1072,5 +1072,7 @@
   "afterItemDiscount": "After Item Discount",
   "generalDiscount": "General Discount",
   "deselectAll": "Deselect All",
-  "productSpecification": "Product Specifications"
+  "productSpecification": "Product Specifications",
+  "extraCharges": "Extra Charges",
+  "generalDiscountAmount": "Discount Amount"
 }

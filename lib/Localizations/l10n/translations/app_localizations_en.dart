@@ -3245,4 +3245,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productSpecification => 'Product Specifications';
+
+  @override
+  String get extraCharges => 'Extra Charges';
+
+  @override
+  String get generalDiscountAmount => 'Discount Amount';
 }

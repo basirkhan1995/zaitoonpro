@@ -27,11 +27,12 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
   final double generalDiscount;
-  final double exchangeRate; // Exchange rate from base to account currency
+  final double? exchangeRate;
   final DiscountType generalDiscountType;
   final String? fromCurrency; // Base currency
   final String? toCurrency; // Account currency
   final double extraCharges;
+
   const SaleInvoiceLoaded({
     required this.items,
     this.customer,
@@ -40,13 +41,12 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     this.paymentMode = PaymentMode.cash,
     this.storages,
     this.generalDiscount = 0.0,
-    this.exchangeRate = 1.0,
+    this.exchangeRate,
     this.extraCharges = 0.0,
     this.generalDiscountType = DiscountType.percentage,
     this.fromCurrency,
     this.toCurrency,
   });
-
 
   // Helper to check if currency conversion is needed
   bool get needsExchangeRate {
@@ -57,11 +57,14 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
         baseCurr.isNotEmpty &&
         accountCurrency != baseCurr;
   }
-  double get grandTotal => totalAfterItemDiscount - generalDiscountAmount + extraCharges;
-  // Total local amount for all items (in account currency)
-  double get totalLocalAmount {
-    if (!needsExchangeRate) return grandTotal;
-    return items.fold(0.0, (sum, item) => sum + item.totalLocalAmount) + (extraCharges * exchangeRate);
+
+  // Check if exchange rate is loading
+  bool get isExchangeRateLoading => exchangeRate != null && exchangeRate! < 0;
+
+  // Safe exchange rate getter (default to 1.0)
+  double get safeExchangeRate {
+    if (exchangeRate == null || exchangeRate! <= 0) return 1.0;
+    return exchangeRate!;
   }
 
   // Subtotal before any discounts (in base currency)
@@ -89,12 +92,33 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     }
   }
 
+  // Grand total (in base currency)
+  double get grandTotal => totalAfterItemDiscount - generalDiscountAmount + extraCharges;
+
   // Grand total in local currency (for display)
   double get grandTotalLocal {
     if (!needsExchangeRate) return grandTotal;
-    return grandTotal * exchangeRate;
+    return grandTotal * safeExchangeRate;
   }
 
+  // Total local amount for all items (in account currency)
+  double get totalLocalAmount {
+    if (!needsExchangeRate) return grandTotal;
+    final rate = safeExchangeRate;
+    return items.fold(0.0, (sum, item) => sum + (item.totalSale * rate)) + (extraCharges * rate);
+  }
+
+  // Cash payment in local currency
+  double get cashPaymentLocal {
+    if (!needsExchangeRate) return cashPayment;
+    return cashPayment * safeExchangeRate;
+  }
+
+  // Credit amount in local currency
+  double get creditAmountLocal {
+    if (!needsExchangeRate) return creditAmount;
+    return creditAmount * safeExchangeRate;
+  }
 
   double get totalPurchaseCost {
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
@@ -211,6 +235,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     storages,
     generalDiscount,
     generalDiscountType,
+    exchangeRate,
     fromCurrency,
     toCurrency,
     extraCharges,

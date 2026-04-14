@@ -6417,6 +6417,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Product Specifications'**
   String get productSpecification;
+
+  /// No description provided for @extraCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra Charges'**
+  String get extraCharges;
+
+  /// No description provided for @generalDiscountAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount Amount'**
+  String get generalDiscountAmount;
 }
 
 class _AppLocalizationsDelegate

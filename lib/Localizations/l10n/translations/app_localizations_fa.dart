@@ -3235,4 +3235,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get productSpecification => 'خصوصیات کالا';
+
+  @override
+  String get extraCharges => 'هزینه اضافه';
+
+  @override
+  String get generalDiscountAmount => ' مبلغ تخفیف';
 }

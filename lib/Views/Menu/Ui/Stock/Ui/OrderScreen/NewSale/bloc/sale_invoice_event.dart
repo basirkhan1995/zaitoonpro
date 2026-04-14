@@ -185,6 +185,19 @@ class UpdateItemDiscountTypeEvent extends SaleInvoiceEvent {
   List<Object?> get props => [rowId, discountType];
 }
 
+// Add these events
+class UpdateExchangeRateForInvoiceEvent extends SaleInvoiceEvent {
+  final String fromCurrency;
+  final String toCurrency;
+
+  const UpdateExchangeRateForInvoiceEvent({
+    required this.fromCurrency,
+    required this.toCurrency,
+  });
+
+  @override
+  List<Object?> get props => [fromCurrency, toCurrency];
+}
 
 class UpdateItemDiscountValueEvent extends SaleInvoiceEvent {
   final String rowId;

@@ -5,6 +5,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/indiv
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/model/sale_invoice_items.dart';
 import '../../../../../../../../Services/localization_services.dart';
 import '../../../../../../../../Services/repositories.dart';
+import '../../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../../Settings/Ui/Company/Storage/model/storage_model.dart';
 import '../../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 
@@ -13,6 +14,9 @@ part 'sale_invoice_state.dart';
 
 class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
   final Repositories repo;
+// Add this to your SaleInvoiceBloc class
+  late final ExchangeRateBloc _exchangeRateBloc;
+  StreamSubscription? _exchangeRateSubscription;
 
   SaleInvoiceBloc(this.repo) : super(SaleInvoiceInitial()) {
     on<InitializeSaleInvoiceEvent>(_onInitialize);
@@ -35,6 +39,24 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateExtraChargesEvent>(_onUpdateExtraCharges);
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
   }
+
+  void setExchangeRateBloc(ExchangeRateBloc exchangeRateBloc) {
+    _exchangeRateBloc = exchangeRateBloc;
+    _exchangeRateSubscription = _exchangeRateBloc.stream.listen((state) {
+      if (state is ExchangeRateLoadedState && this.state is SaleInvoiceLoaded) {
+        // Update local amounts when exchange rate changes
+        add(UpdateAllLocalAmountsEvent());
+      }
+    });
+  }
+
+  @override
+  Future<void> close() {
+    _exchangeRateSubscription?.cancel();
+    return super.close();
+  }
+
+
   void _onUpdateExchangeRateManually(UpdateExchangeRateManuallyEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -151,6 +173,37 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       payment: 0.0,
       paymentMode: PaymentMode.cash,
     ));
+  }
+
+
+  Future<void> fetchExchangeRate(String fromCurrency, String toCurrency) async {
+    try {
+      // Update state to loading
+      add(UpdateExchangeRateEvent(
+        rate: -1,
+        fromCurrency: fromCurrency,
+        toCurrency: toCurrency,
+      ));
+
+      final rateStr = await repo.getSingleRate(
+        fromCcy: fromCurrency,
+        toCcy: toCurrency,
+      );
+
+      final parsedRate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
+
+      add(UpdateExchangeRateEvent(
+        rate: parsedRate,
+        fromCurrency: fromCurrency,
+        toCurrency: toCurrency,
+      ));
+    } catch (e) {
+      add(UpdateExchangeRateEvent(
+        rate: 1.0,
+        fromCurrency: fromCurrency,
+        toCurrency: toCurrency,
+      ));
+    }
   }
 
   void _onSelectCustomerAccount(SelectCustomerAccountEvent event, Emitter<SaleInvoiceState> emit) {

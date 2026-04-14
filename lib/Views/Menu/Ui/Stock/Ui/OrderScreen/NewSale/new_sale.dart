@@ -76,8 +76,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _localeAmountControllers = {};
   int? _selectedAccountNumber;
-
   Timer? _debounce;
+  bool toggleProfit = true;
 
   // ====================== Exchange Rate Methods ======================
 
@@ -104,7 +104,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       }
     });
   }
-
   Future<void> _fetchExchangeRate(String fromCurrency, String toCurrency) async {
     try {
       // Show loading state
@@ -143,14 +142,35 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       }
     }
   }
+  void _updateControllersFromState(SaleInvoiceState state) {
+    if (state is SaleInvoiceLoaded) {
+      // Update exchange rate controller if needed
+      if (state.exchangeRate != null && state.exchangeRate! > 0) {
+        if (_exchangeRateController.text != state.exchangeRate!.toStringAsFixed(4)) {
+          _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
+        }
+      }
+
+      // Update local amount controllers for each item
+      for (var i = 0; i < state.items.length; i++) {
+        final item = state.items[i];
+        if (item.localAmount != null && item.localAmount! > 0) {
+          final controller = _localeAmountControllers[item.rowId];
+          if (controller != null && controller.text != item.localAmount!.toAmount()) {
+            controller.text = item.localAmount!.toAmount();
+          }
+        }
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
 
-    final companyState = context.read<AuthBloc>().state;
-    if (companyState is AuthenticatedState) {
-      final auth = companyState.loginData;
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthenticatedState) {
+      final auth = authState.loginData;
       baseCurrency = auth.company?.comLocalCcy ?? "";
       company.comName = auth.company?.comName ?? "";
       company.comAddress = auth.company?.comAddress ?? "";
@@ -215,27 +235,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     super.dispose();
   }
 
-  void _updateControllersFromState(SaleInvoiceState state) {
-    if (state is SaleInvoiceLoaded) {
-      // Update exchange rate controller if needed
-      if (state.exchangeRate != null && state.exchangeRate! > 0) {
-        if (_exchangeRateController.text != state.exchangeRate!.toStringAsFixed(4)) {
-          _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
-        }
-      }
 
-      // Update local amount controllers for each item
-      for (var i = 0; i < state.items.length; i++) {
-        final item = state.items[i];
-        if (item.localAmount != null && item.localAmount! > 0) {
-          final controller = _localeAmountControllers[item.rowId];
-          if (controller != null && controller.text != item.localAmount!.toAmount()) {
-            controller.text = item.localAmount!.toAmount();
-          }
-        }
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1079,6 +1079,87 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     });
   }
 
+  Widget _buildProfitSection({
+    required dynamic current,
+    required String baseCurr,
+    required String profitLabel,
+  }) {
+    final isProfit = current.totalProfit >= 0;
+    final color = isProfit ? Colors.green : Colors.red;
+
+    return Container(
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        color: color.withValues(alpha: .05),
+        border: Border.all(color: color.withValues(alpha: .2)),
+      ),
+      child: Column(
+        children: [
+          /// 🔹 Header (Label + Toggle)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                profitLabel,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+              InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () {
+                  setState(() {
+                    toggleProfit = !toggleProfit;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Icon(
+                    toggleProfit ? Icons.visibility_off : Icons.visibility,
+                    size: 18,
+                    color: Colors.grey,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          /// 🔹 Amount + Percentage
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              /// Amount
+              Text(
+                toggleProfit
+                    ? "••••••"
+                    : "${current.totalProfit.toStringAsFixed(2)} $baseCurr",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+
+              /// Percentage
+              Text(
+                toggleProfit
+                    ? "••••"
+                    : "${current.profitPercentage.toStringAsFixed(1)}%",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
@@ -1096,9 +1177,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           final String accountCurr = current.customerAccount?.actCurrency ?? '';
 
           return ZCover(
-            padding: const EdgeInsets.all(12),
-            radius: 8,
-            borderColor: Theme.of(context).colorScheme.primary,
+            padding: const EdgeInsets.all(15),
+            radius: 10,
+            borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: .5),
             color: Theme.of(context).colorScheme.surface,
             child: IntrinsicHeight(
               child: Row(
@@ -1227,6 +1308,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               ],
                             ),
 
+                          ///Extra Charges
                           Row(
                             children: [
                               Expanded(child: Text(tr.extraCharges, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
@@ -1281,7 +1363,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
 
-
                           Text(tr.paymentDetails.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                           const SizedBox(height: 8),
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
@@ -1333,17 +1414,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                           if (visibility.benefit && current.totalPurchaseCost > 0) ...[
                             const SizedBox(height: 8),
-                            Text(tr.profitSummary.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                            const SizedBox(height: 8),
-                            Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                            const SizedBox(height: 4),
-                            _buildSummaryRow(label: tr.profit, value: current.totalProfit, fontSize: 16, color: current.totalProfit >= 0 ? Colors.green : Colors.red, currency: baseCurr),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('${tr.profit} %', style: TextStyle(fontSize: 14)),
-                                Text('${current.profitPercentage.toStringAsFixed(1)}%', style: TextStyle(fontSize: 16, color: current.totalProfit >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.w500)),
-                              ],
+                            _buildProfitSection(
+                              current: current,
+                              baseCurr: baseCurr,
+                              profitLabel: tr.profitSummary.toUpperCase(),
                             ),
                           ],
                         ],
@@ -1379,7 +1453,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  _buildSummaryRow(label: tr.currentBalance, value: current.currentBalance, fontSize: 17, currency: accountCurr),
+                                  _buildSummaryRow(label: tr.currentBalance, value: current.totalLocalAmount, fontSize: 17, currency: accountCurr),
                                   const SizedBox(height: 5),
                                   Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                                   const SizedBox(height: 2),
@@ -1401,7 +1475,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-// Update _buildSummaryRow to accept currency parameter
   Widget _buildSummaryRow({
     required String label,
     required double value,

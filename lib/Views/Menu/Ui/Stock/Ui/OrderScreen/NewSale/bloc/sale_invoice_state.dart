@@ -164,6 +164,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     return currentBalance + creditAmount;
   }
 
+
+
   bool get isFormValid {
     if (customer == null) return false;
 

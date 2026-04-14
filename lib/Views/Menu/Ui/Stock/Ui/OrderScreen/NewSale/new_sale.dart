@@ -680,7 +680,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           SizedBox(width: 80, child: Text(locale.unit, style: title)),
           SizedBox(width: 120, child: Text("${locale.unitPrice} ($baseCurrency)", style: title)),
           if (_needsLocalConversion(context))
-            SizedBox(width: 120, child: Text("${locale.localAmount} (${_getAccountCurrency(context)})", style: title)),
+            SizedBox(width: 120, child: Text("${locale.unitPrice} (${_getAccountCurrency(context)})", style: title)),
           SizedBox(width: 140, child: Text(locale.discountTitle, style: title)),
           SizedBox(width: 140, child: Text("${locale.totalTitle} ($baseCurrency)", style: title)),
           SizedBox(width: 60, child: Text(locale.actions, style: title)),
@@ -738,6 +738,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     void onProductSelected(ProductsStockModel? product) {
       if (product != null) {
         final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
+        final averagePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
+
         context.read<SaleInvoiceBloc>().add(
           UpdateSaleItemEvent(
             rowId: item.rowId,
@@ -745,7 +747,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             productName: product.proName ?? '',
             storageId: product.stkStorage,
             storageName: product.stgName ?? '',
-            purPrice: double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0,
+            purPrice: averagePrice,
             salePrice: salePrice,
             batch: product.stkQtyInBatch ?? 0,
           ),
@@ -1238,7 +1240,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     hintText: '0',
                                     border: InputBorder.none,
                                     isDense: true,
-                                    suffixText: baseCurr,
+                                    suffixText: accountCurr,
                                   ),
                                   textAlign: TextAlign.end,
                                   style: TextStyle(fontSize: 14),
@@ -1278,22 +1280,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (visibility.benefit && current.totalPurchaseCost > 0) ...[
-                            const SizedBox(height: 4),
-                            _buildSummaryRow(label: tr.profit, value: current.totalProfit, fontSize: 16, color: current.totalProfit >= 0 ? Colors.green : Colors.red, currency: baseCurr),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text('${tr.profit} %', style: TextStyle(fontSize: 14)),
-                                Text('${current.profitPercentage.toStringAsFixed(1)}%', style: TextStyle(fontSize: 16, color: current.totalProfit >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.w500)),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                            const SizedBox(height: 8),
-                          ],
 
-                          Text(tr.paymentDetails, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+
+                          Text(tr.paymentDetails.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                          const SizedBox(height: 8),
+                          Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                           const SizedBox(height: 8),
 
                           if (current.paymentMode == PaymentMode.cash) ...[
@@ -1312,8 +1303,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               _buildSummaryRow(
                                 label: '${tr.accountPayment} (${current.toCurrency})',
                                 value: current.creditAmountLocal,
-                                fontSize: 12,
-                                color: Colors.orange.withValues(alpha: .7),
+                                color: Colors.orange,
+                                fontSize: 15,
                                 currency: current.toCurrency ?? '',
                               ),
                           ] else if (current.paymentMode == PaymentMode.mixed) ...[
@@ -1326,18 +1317,34 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               _buildSummaryRow(
                                 label: '${tr.accountPayment} (${current.toCurrency})',
                                 value: current.creditAmountLocal,
-                                fontSize: 12,
+                                fontSize: 15,
                                 color: Colors.orange.withValues(alpha: .7),
                                 currency: current.toCurrency ?? '',
                               ),
                               _buildSummaryRow(
                                 label: '${tr.cashPayment} (${current.toCurrency})',
                                 value: current.cashPaymentLocal,
-                                fontSize: 12,
+                                fontSize: 15,
                                 color: Colors.green.withValues(alpha: .7),
                                 currency: current.toCurrency ?? '',
                               ),
                             ],
+                          ],
+
+                          if (visibility.benefit && current.totalPurchaseCost > 0) ...[
+                            const SizedBox(height: 8),
+                            Text(tr.profitSummary.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            const SizedBox(height: 8),
+                            Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                            const SizedBox(height: 4),
+                            _buildSummaryRow(label: tr.profit, value: current.totalProfit, fontSize: 16, color: current.totalProfit >= 0 ? Colors.green : Colors.red, currency: baseCurr),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('${tr.profit} %', style: TextStyle(fontSize: 14)),
+                                Text('${current.profitPercentage.toStringAsFixed(1)}%', style: TextStyle(fontSize: 16, color: current.totalProfit >= 0 ? Colors.green : Colors.red, fontWeight: FontWeight.w500)),
+                              ],
+                            ),
                           ],
                         ],
                       ),
@@ -1356,7 +1363,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(tr.accountInformation, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text(tr.accountInformation.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                             const SizedBox(height: 8),
                             Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                             const SizedBox(height: 1),
@@ -1367,13 +1374,16 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text('${current.customerAccount!.accName}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                                      Text('#${current.customerAccount!.accNumber}', style: TextStyle(fontSize: 14, color: color.outline)),
+                                      Text('${current.customerAccount!.accName}', style: TextStyle(fontSize: 15)),
+                                      Text('#${current.customerAccount!.accNumber}', style: TextStyle(fontSize: 17, color: color.outline)),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
-                                  _buildSummaryRow(label: tr.currentBalance, value: current.currentBalance, fontSize: 18, currency: accountCurr),
-                                  _buildSummaryRow(label: tr.newBalance, value: current.newBalance, isBold: true, color: _getBalanceColor(current.newBalance), fontSize: 22, currency: accountCurr),
+                                  const SizedBox(height: 2),
+                                  _buildSummaryRow(label: tr.currentBalance, value: current.currentBalance, fontSize: 17, currency: accountCurr),
+                                  const SizedBox(height: 5),
+                                  Divider(height: 1, color: color.outline.withValues(alpha: .5)),
+                                  const SizedBox(height: 2),
+                                  _buildSummaryRow(label: tr.newBalance, value: current.newBalance, isBold: true, color: _getBalanceColor(current.newBalance), fontSize: 20, currency: accountCurr),
                                 ],
                               ),
                             ),
@@ -1645,10 +1655,23 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         orderName: "Sale",
         ordPersonal: state.customer!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        remark: _remarkController.text.isNotEmpty ? _remarkController.text : null,
+        extraCharges: state.extraCharges,
+        cashCcy: _getCashCurrency(state),
+        orderDiscount: state.generalDiscountAmount,
         items: state.items,
         completer: completer,
       ),
     );
+  }
+
+  String _getCashCurrency(SaleInvoiceLoaded state) {
+    // For cash payment, use base currency
+    if (state.paymentMode == PaymentMode.cash) {
+      return baseCurrency ?? '';
+    }
+    // For credit or mixed, cash part uses base currency
+    return baseCurrency ?? '';
   }
 
   void _onSalePrint({String? invoiceNumber}) {

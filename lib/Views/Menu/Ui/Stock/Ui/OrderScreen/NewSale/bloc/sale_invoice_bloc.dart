@@ -393,8 +393,9 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
+    // Validation
     if (current.customer == null) {
-      emit(SaleInvoiceError('Please select a supplier'));
+      emit(SaleInvoiceError('Please select a customer'));
       emit(savedState);
       event.completer.complete('');
       return;
@@ -421,8 +422,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         event.completer.complete('');
         return;
       }
-      if (item.purPrice == null || item.purPrice! <= 0) {
-        emit(SaleInvoiceError('Please enter a valid price for item ${i + 1}'));
+      if (item.salePrice == null || item.salePrice! <= 0) {
+        emit(SaleInvoiceError('Please enter a valid sale price for item ${i + 1}'));
         emit(savedState);
         event.completer.complete('');
         return;
@@ -437,7 +438,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
     if (current.paymentMode == PaymentMode.credit || current.paymentMode == PaymentMode.mixed) {
       if (current.customerAccount == null) {
-        emit(SaleInvoiceError('Please select a supplier account for credit payment'));
+        emit(SaleInvoiceError('Please select a customer account for credit payment'));
         emit(savedState);
         event.completer.complete('');
         return;
@@ -471,51 +472,74 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     try {
       int? accountNumber;
       double amountToSend;
+      String? cashCurrency;
 
       switch (current.paymentMode) {
         case PaymentMode.cash:
           accountNumber = 0;
           amountToSend = 0.0;
+          cashCurrency = current.fromCurrency ?? "";
           break;
-
         case PaymentMode.credit:
           accountNumber = current.customerAccount!.accNumber;
-          amountToSend = current.grandTotal; // All amount as credit
+          amountToSend = current.grandTotal;
+          cashCurrency = current.customerAccount!.actCurrency;
           break;
-
         case PaymentMode.mixed:
           accountNumber = current.customerAccount!.accNumber;
           amountToSend = current.creditAmount;
+          cashCurrency = current.fromCurrency ?? "";
           break;
       }
 
       final records = current.items.map((item) {
+        // Calculate discount amount (convert percentage to amount if needed)
+        double discountAmount = 0.0;
+        if (item.discount != null && item.discount! > 0) {
+          if (item.discountType == DiscountType.percentage) {
+            // Calculate percentage discount as amount
+            final subtotal = item.qty * (item.salePrice ?? 0);
+            discountAmount = subtotal * (item.discount! / 100);
+          } else {
+            // Fixed amount discount
+            discountAmount = item.discount!;
+          }
+        }
+
         return SaleInvoiceRecord(
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           batch: item.batch?.toDouble() ?? 0.0,
-          discount: item.discountAmount, // Send calculated discount amount
-          pPrice: item.purPrice,
-          sPrice: item.salePrice,
+          discount: discountAmount, // Send calculated discount amount
+          pPrice: item.purPrice ?? 0.0, // Average price
+          sPrice: item.salePrice ?? 0.0,
         );
       }).toList();
 
-      // general discount to the invoice data
-      // final generalDiscountAmount = current.generalDiscountAmount;
-      // final generalDiscountPercent = current.generalDiscountType == DiscountType.percentage
-      //     ? current.generalDiscount
-      //     : 0.0;
-
       final xRef = event.xRef ?? '';
 
+      // Get general discount amount (convert percentage to amount if needed)
+      double orderDiscountAmount = 0.0;
+      if (current.generalDiscount > 0) {
+        if (current.generalDiscountType == DiscountType.percentage) {
+          orderDiscountAmount = current.totalAfterItemDiscount * (current.generalDiscount / 100);
+        } else {
+          orderDiscountAmount = current.generalDiscount;
+        }
+      }
+
       final response = await repo.addSaleInvoice(
-        orderName: "Sale",
         usrName: event.usrName,
         perID: event.ordPersonal,
         xRef: xRef,
+        orderName: event.orderName,
         account: accountNumber,
         amount: amountToSend,
+        remark: event.remark,
+        extraCharges: current.extraCharges,
+        currencyCash: cashCurrency,
+        orderDiscount: orderDiscountAmount,
         records: records,
       );
 
@@ -524,26 +548,11 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       if (message.toLowerCase().contains('success') || message.toLowerCase().contains('authorized')) {
         final invoiceNumber = response['ordID']?.toString() ?? 'No Order Id';
-
-        // FIX: Create a copy of the current state to preserve for printing
         final invoiceData = current.copyWith();
-
-        // Emit saved state WITH the invoice data
-        emit(SaleInvoiceSaved(
-          true,
-          invoiceNumber: invoiceNumber,
-          invoiceData: invoiceData, // Pass the preserved data
-        ));
-
-        // Complete the completer with invoice number
+        emit(SaleInvoiceSaved(true, invoiceNumber: invoiceNumber, invoiceData: invoiceData));
         event.completer.complete(invoiceNumber);
-
-        // Reset the form after a short delay to allow UI to handle printing
-        // Using a microtask to ensure the saved state is processed first
         Future.microtask(() {
-          if (!emit.isDone) {
-            add(ResetSaleInvoiceEvent());
-          }
+          if (!emit.isDone) add(ResetSaleInvoiceEvent());
         });
       }
       else if (message.toLowerCase().contains('not enough')) {
@@ -555,23 +564,17 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       else {
         String errorMessage;
         final msgLower = message.toLowerCase();
-
         if (msgLower.contains('over limit')) {
           errorMessage = tr.overLimitMessage;
         } else if (msgLower.contains('block')) {
           errorMessage = tr.accountBlockedMessage;
         } else if (msgLower.contains('not found')) {
           errorMessage = 'Invalid product or storage ID';
-        } else if (msgLower.contains('unavailable')) {
-          errorMessage = message;
-        } else if (msgLower.contains('large')) {
-          errorMessage = 'Payment amount exceeds total bill amount';
         } else if (msgLower.contains('failed')) {
           errorMessage = 'Invoice creation failed. Please try again.';
         } else {
           errorMessage = message;
         }
-
         emit(SaleInvoiceError(errorMessage));
         emit(savedState);
         event.completer.complete('');
@@ -581,7 +584,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       if (errorMessage.contains('DioException')) {
         errorMessage = 'Network error: Please check your connection';
       }
-
       emit(SaleInvoiceError(errorMessage));
       emit(savedState);
       event.completer.complete('');

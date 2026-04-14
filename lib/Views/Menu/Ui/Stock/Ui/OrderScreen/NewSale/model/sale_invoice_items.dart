@@ -140,7 +140,7 @@ class SaleInvoiceRecord {
     'stkQtyInBatch':batch,
     'stkDiscount':discount,
     'stkPurPrice': pPrice, // Average Price
-    'stkSalePrice': sPrice, // Default Or edited Sale Price
+    'stkSalePrice': sPrice, // Default Unit Price Or edited Sale Price
     'stkSalePercentage': "0"
   };
 }

@@ -138,6 +138,10 @@ class SaveSaleInvoiceEvent extends SaleInvoiceEvent {
   final String orderName;
   final int ordPersonal;
   final String? xRef;
+  final String? remark;
+  final double? extraCharges;
+  final String? cashCcy;
+  final double? orderDiscount;
   final List<SaleInvoiceItem> items;
   final Completer<String> completer;
 
@@ -146,12 +150,27 @@ class SaveSaleInvoiceEvent extends SaleInvoiceEvent {
     required this.ordPersonal,
     required this.orderName,
     this.xRef,
+    this.remark,
+    this.extraCharges,
+    this.cashCcy,
+    this.orderDiscount,
     required this.items,
     required this.completer,
   });
 
   @override
-  List<Object?> get props => [usrName, ordPersonal, orderName, xRef, items, completer];
+  List<Object?> get props => [
+    usrName,
+    ordPersonal,
+    orderName,
+    xRef,
+    remark,
+    extraCharges,
+    cashCcy,
+    orderDiscount,
+    items,
+    completer
+  ];
 }
 class ClearCustomerAccountEvent extends SaleInvoiceEvent {
   const ClearCustomerAccountEvent();

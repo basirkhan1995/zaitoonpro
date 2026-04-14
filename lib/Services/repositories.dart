@@ -1849,11 +1849,13 @@ class Repositories {
         : {'msg': 'Invalid response format'};
   }
 
+
   Future<Map<String, dynamic>> addSaleInvoice({
     required String usrName,
     required int perID,
     required String? xRef,
     required String orderName,
+    double? exchangeRate,
     int? account,
     double? amount,
     String? remark,
@@ -1870,10 +1872,12 @@ class Repositories {
       "account": account ?? 0, // Customer Account Number
       "amount": amount ?? 0.0, // Amount
       "oRemark": remark,
+      "exRate": exchangeRate ?? "0.0",
       "extraCharges": extraCharges, // Extra charges
       "cashCcy" : currencyCash, // In case when payment is cash or mixed, currency must be selected, by default pass the account currency,
       "orderDiscount": orderDiscount, // General Discount
       "records": records.map((r) => r.toJson()).toList(),
+      "expenses": [],
     };
 
     final response = await api.post(

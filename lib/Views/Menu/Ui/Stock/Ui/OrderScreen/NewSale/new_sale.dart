@@ -1125,7 +1125,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ),
                           const SizedBox(height: 8),
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 4),
 
                           if (needsConversion && !isLoading) ...[
                             Container(
@@ -1170,7 +1170,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 children: [
                                   const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
                                   const SizedBox(width: 8),
-                                  Text('Fetching exchange rate...', style: TextStyle(fontSize: 12, color: color.primary)),
+                                  Text(tr.loading, style: TextStyle(fontSize: 12, color: color.primary)),
                                 ],
                               ),
                             ),
@@ -1215,7 +1215,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           if (current.totalItemDiscount > 0)
                             _buildSummaryRow(label: tr.afterItemDiscount, value: current.totalAfterItemDiscount, isBold: true, currency: baseCurr),
 
-                          const SizedBox(height: 4),
 
                           if (current.generalDiscountAmount > 0)
                             Row(
@@ -1357,7 +1356,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Account Information", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            Text(tr.accountInformation, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                             const SizedBox(height: 8),
                             Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                             const SizedBox(height: 1),

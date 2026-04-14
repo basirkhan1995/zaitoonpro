@@ -14,7 +14,6 @@ part 'sale_invoice_state.dart';
 
 class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
   final Repositories repo;
-// Add this to your SaleInvoiceBloc class
   late final ExchangeRateBloc _exchangeRateBloc;
   StreamSubscription? _exchangeRateSubscription;
 
@@ -30,7 +29,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<ResetSaleInvoiceEvent>(_onReset);
     on<SaveSaleInvoiceEvent>(_onSaveInvoice);
     on<ClearCustomerAccountEvent>(_onClearSupplierAccount);
-
     on<UpdateItemDiscountTypeEvent>(_onUpdateItemDiscountType);
     on<UpdateItemDiscountValueEvent>(_onUpdateItemDiscountValue);
     on<UpdateGeneralDiscountEvent>(_onUpdateGeneralDiscount);
@@ -55,7 +53,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     _exchangeRateSubscription?.cancel();
     return super.close();
   }
-
 
   void _onUpdateExchangeRateManually(UpdateExchangeRateManuallyEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
@@ -497,7 +494,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
-          batch: item.batch?.toDouble() ?? 0.0, // Make sure batch is included
+          batch: item.batch?.toDouble() ?? 0.0,
           discount: item.discountAmount, // Send calculated discount amount
           pPrice: item.purPrice,
           sPrice: item.salePrice,

@@ -1856,6 +1856,10 @@ class Repositories {
     required String orderName,
     int? account,
     double? amount,
+    String? remark,
+    double? extraCharges,
+    String? currencyCash,
+    double? orderDiscount,
     required List<SaleInvoiceRecord> records,
   }) async {
     final data = {
@@ -1863,8 +1867,12 @@ class Repositories {
       "ordName": orderName,
       "ordPersonal": perID,
       "ordxRef": xRef ?? "",
-      "account": account ?? 0,
-      "amount": amount ?? 0.0,
+      "account": account ?? 0, // Customer Account Number
+      "amount": amount ?? 0.0, // Amount
+      "oRemark": remark,
+      "extraCharges": extraCharges, // Extra charges
+      "cashCcy" : currencyCash, // In case when payment is cash or mixed, currency must be selected, by default pass the account currency,
+      "orderDiscount": orderDiscount, // General Discount
       "records": records.map((r) => r.toJson()).toList(),
     };
 

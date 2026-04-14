@@ -11,10 +11,10 @@ class SaleInvoiceItem {
   DiscountType discountType;
   double? purPrice;
   double? salePrice;
-  double? localAmount; // Amount in account currency
+  double? localAmount;
   int storageId;
   String storageName;
-  double? exchangeRate; // Store exchange rate for this item
+  double? exchangeRate;
   String? unit;
 
   SaleInvoiceItem({
@@ -36,7 +36,7 @@ class SaleInvoiceItem {
   // Single item local amount (unit price * exchange rate)
   double get singleLocalAmount {
     final rate = exchangeRate ?? 1.0;
-    if (rate <= 0) return 0; // Handle loading
+    if (rate <= 0) return 0;
     return (salePrice ?? 0) * rate;
   }
 
@@ -71,8 +71,6 @@ class SaleInvoiceItem {
     }
     return 0;
   }
-
-
 
   void updateLocalAmount(double? exchangeRateValue) {
     exchangeRate = exchangeRateValue;
@@ -139,9 +137,10 @@ class SaleInvoiceRecord {
     'stkProduct': proID,
     'stkStorage': stgID,
     'stkQuantity': quantity,
-    'pcs':batch,
-    'discount':discount,
-    'stkPurPrice': pPrice,
-    'stkSalePrice': sPrice,
+    'stkQtyInBatch':batch,
+    'stkDiscount':discount,
+    'stkPurPrice': pPrice, // Average Price
+    'stkSalePrice': sPrice, // Default Or edited Sale Price
+    'stkSalePercentage': "0"
   };
 }

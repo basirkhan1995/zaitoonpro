@@ -727,6 +727,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final color = Theme.of(context).colorScheme;
 
     final productController = TextEditingController(text: item.productName);
+    final headerProductController = TextEditingController(text: item.productName);
+
     final qtyController = _qtyControllers.putIfAbsent(
       item.rowId,
           () => TextEditingController(text: item.qty > 0 ? item.qty.toString() : ''),
@@ -803,6 +805,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               Expanded(
                 child: ProductSearchField<ProductsStockModel, ProductsBloc, ProductsState>(
                   controller: productController,
+                  headerSearchController:headerProductController,
                   hintText: tr.products,
                   bloc: context.read<ProductsBloc>(),
                   searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
@@ -896,7 +899,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
               ),
               if (_needsLocalConversion(context))
-                SizedBox(
+              SizedBox(
                   width: 120,
                   child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                     builder: (context, state) {
@@ -1070,7 +1073,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         FocusNode(), // Discount (index 3)
       ]);
     }
-
     while (_rowFocusNodes.length > itemCount) {
       final removed = _rowFocusNodes.removeLast();
       for (final node in removed) {

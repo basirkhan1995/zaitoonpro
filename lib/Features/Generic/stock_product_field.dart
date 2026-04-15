@@ -699,53 +699,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
   Widget _buildProductDetailsPanel() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(
-                  Icons.inventory_2_rounded,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppLocalizations.of(context)!.productDetails,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    Text(
-                      AppLocalizations.of(context)!.completeInformation,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.outline,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: SingleChildScrollView(
-              child: widget.customDetailsBuilder != null
-                  ? widget.customDetailsBuilder!(context, _currentHighlightedItem as T)
-                  : _buildDefaultDetails(_currentHighlightedItem as T),
-            ),
-          ),
-        ],
+      padding: const EdgeInsets.all(15),
+      child: Expanded(
+        child: SingleChildScrollView(
+          child: widget.customDetailsBuilder != null
+              ? widget.customDetailsBuilder!(context, _currentHighlightedItem as T)
+              : _buildDefaultDetails(_currentHighlightedItem as T),
+        ),
       ),
     );
   }
@@ -841,16 +801,9 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
           width: double.infinity,
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Theme.of(context).colorScheme.primary.withValues(alpha: .01),
-                Theme.of(context).colorScheme.surface,
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: .03),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .2)),
+            border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .3)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -867,7 +820,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         Text(
-                          '${tr.codeTitle}: ${widget.getProductCode(product) ?? 'N/A'}',
+                          widget.getProductCode(product) ?? 'N/A',
                           style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                         ),
                       ],

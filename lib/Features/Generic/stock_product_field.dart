@@ -240,7 +240,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       _overlaySearchController.text = headerText;
     }
 
-    _triggerSearch(headerText);
+    // Only trigger search if header text changed and is not empty
+    // Add a small delay to prevent rapid triggers
+    if (headerText != _currentSearchQuery) {
+      _triggerSearch(headerText);
+    }
 
     _isSyncingFromHeader = false;
   }
@@ -305,8 +309,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     _setLoading(true);
     _currentSearchQuery = query;
 
-    // Show overlay immediately when typing
-    _showOverlay();
+    // Only show overlay if the field has focus
+    if (_focusNode.hasFocus) {
+      _showOverlay();
+    }
 
     // Debounce the actual search
     _debounce = Timer(const Duration(milliseconds: 500), () {
@@ -350,7 +356,9 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         _firstFocus = false;
       }
 
-      if (_currentSuggestions.isNotEmpty || _isLoading || widget.controller.text.isNotEmpty || widget.openOverlayOnFocus) {
+      // Only show overlay if we have content or explicitly asked to
+      if ((_currentSuggestions.isNotEmpty || _isLoading || widget.controller.text.isNotEmpty || widget.openOverlayOnFocus) &&
+          widget.controller.text.isNotEmpty) {  // Added condition: only show if text is not empty
         _showOverlay();
       }
     } else {

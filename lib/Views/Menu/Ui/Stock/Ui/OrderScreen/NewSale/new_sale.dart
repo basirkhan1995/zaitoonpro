@@ -1285,9 +1285,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 ],
                               ),
                             ),
-
                           _buildSummaryRow(label: tr.subtotal, fontSize: 18, value: current.subtotal, currency: baseCurr),
-
                           Row(
                             children: [
                               Expanded(child: Text(tr.generalDiscount, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
@@ -1459,6 +1457,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     SizedBox(width: 12),
                   ],
 
+                  // Replace the account information section (around line 1160-1185) with:
+
                   if (hasCreditAccount)
                     Expanded(
                       child: SingleChildScrollView(
@@ -1481,11 +1481,34 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  _buildSummaryRow(label: tr.currentBalance, value: current.totalLocalAmount, fontSize: 17, currency: accountCurr),
+                                  // Current Balance - always in account currency
+                                  _buildSummaryRow(
+                                    label: tr.currentBalance,
+                                    value: current.currentBalance,
+                                    fontSize: 17,
+                                    currency: accountCurr,
+                                  ),
                                   const SizedBox(height: 5),
                                   Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                                   const SizedBox(height: 2),
-                                  _buildSummaryRow(label: tr.newBalance, value: current.newBalance, isBold: true, color: _getBalanceColor(current.newBalance), fontSize: 20, currency: accountCurr),
+                                  // Invoice Amount - always in account currency (converted if needed)
+                                  _buildSummaryRow(
+                                    label: tr.invoiceAmount,
+                                    value: current.creditAmountLocal, // Use converted credit amount
+                                    fontSize: 16,
+                                    color: Colors.orange,
+                                    currency: accountCurr,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // New Balance - current balance + invoice amount (both in account currency)
+                                  _buildSummaryRow(
+                                    label: tr.newBalance,
+                                    value: current.currentBalance + current.creditAmountLocal,
+                                    isBold: true,
+                                    color: _getBalanceColor(current.currentBalance + current.creditAmountLocal),
+                                    fontSize: 20,
+                                    currency: accountCurr,
+                                  ),
                                 ],
                               ),
                             ),

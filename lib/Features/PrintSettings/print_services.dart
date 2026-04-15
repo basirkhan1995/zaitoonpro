@@ -1902,6 +1902,41 @@ abstract class PrintServices {
         'fa': 'نقدی',
         'ar': 'نقدی',
       },
+      "subtotal": {
+        "en": "Subtotal",
+        "fa": "جمع جزء",
+        "ar": "لنډ مجموع"
+      },
+      "totalDiscount": {
+        "en": "Total Discounts",
+        "fa": "مجموعه تخفیف",
+        "ar": "تول تخفیف"
+      },
+      "afterItemDiscount": {
+        "en": "After Item Discount",
+        "fa": "بعد از تخفیف اقلام",
+        "ar": "د توکو له تخفیف وروسته"
+      },
+      "generalDiscount": {
+        "en": "General Discount",
+        "fa": "تخفیف عمومی",
+        "ar": "عمومي تخفیف"
+      },
+      "generalDiscountAmount": {
+        "en": "General Discount Amount",
+        "fa": "مقدار تخفیف عمومی",
+        "ar": "د عمومي تخفیف اندازه"
+      },
+      "extraCharges": {
+        "en": "Extra Charges",
+        "fa": "هزینه‌های اضافی",
+        "ar": "اضافي لګښتونه"
+      },
+      "creditPayment": {
+        "en": "Credit Payment",
+        "fa": "پرداخت اعتباری",
+        "ar": "پور تادیه"
+      },
 
 
 

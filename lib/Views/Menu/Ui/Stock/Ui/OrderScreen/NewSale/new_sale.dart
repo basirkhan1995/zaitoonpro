@@ -1821,7 +1821,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         quantity: item.qty.toDouble(),
         unitPrice: item.salePrice ?? 0.0,
         total: item.totalSale,
-        batch: 1,
+        batch: item.batch ?? 0,
         storageName: item.storageName,
         purchasePrice: item.purPrice ?? 0.0,
         profit: (item.salePrice ?? 0.0) - (item.purPrice ?? 0.0),
@@ -1857,6 +1857,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             totalLocalAmount: needsConversion ? current.totalLocalAmount : null,
             localCurrency: needsConversion ? current.toCurrency : null,
             exchangeRate: needsConversion ? current.safeExchangeRate : null,
+            subtotal: current.subtotal,
+            totalItemDiscount: current.totalItemDiscount,
+            generalDiscount: current.generalDiscountAmount,
+            extraCharges: current.extraCharges,
           );
         },
         onPrint: ({required data, required language, required orientation, required pageFormat, required selectedPrinter, required copies, required pages}) {
@@ -1882,6 +1886,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             totalLocalAmount: needsConversion ? current.totalLocalAmount : null,
             localCurrency: needsConversion ? current.toCurrency : null,
             exchangeRate: needsConversion ? current.safeExchangeRate : null,
+            subtotal: current.subtotal,
+            totalItemDiscount: current.totalItemDiscount,
+            generalDiscount: current.generalDiscountAmount,
+            extraCharges: current.extraCharges,
           );
         },
         onSave: ({required data, required language, required orientation, required pageFormat}) {
@@ -1905,6 +1913,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             totalLocalAmount: needsConversion ? current.totalLocalAmount : null,
             localCurrency: needsConversion ? current.toCurrency : null,
             exchangeRate: needsConversion ? current.safeExchangeRate : null,
+            subtotal: current.subtotal,
+            totalItemDiscount: current.totalItemDiscount,
+            generalDiscount: current.generalDiscountAmount,
+            extraCharges: current.extraCharges,
           );
         },
       ),
@@ -3091,7 +3103,6 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
 
   void _onSalePrint({String? invoiceNumber}) {
     final state = context.read<SaleInvoiceBloc>().state;
-
     SaleInvoiceLoaded? current;
 
     if (state is SaleInvoiceLoaded) {
@@ -3101,13 +3112,11 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
     }
 
     if (current == null) {
-      Utils.showOverlayMessage(
-        context,
-        message: 'Cannot print: No invoice data available',
-        isError: true,
-      );
+      Utils.showOverlayMessage(context, message: 'Cannot print: No invoice data available', isError: true);
       return;
     }
+
+    final needsConversion = current.needsExchangeRate;
 
     final List<InvoiceItem> invoiceItems = current.items.map((item) {
       return SaleInvoiceItemForPrint(
@@ -3115,10 +3124,13 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
         quantity: item.qty.toDouble(),
         unitPrice: item.salePrice ?? 0.0,
         total: item.totalSale,
-        batch: 1,
+        batch: item.batch ?? 0,
         storageName: item.storageName,
         purchasePrice: item.purPrice ?? 0.0,
         profit: (item.salePrice ?? 0.0) - (item.purPrice ?? 0.0),
+        localAmount: needsConversion ? item.singleLocalAmount : null,
+        localCurrency: needsConversion ? current?.toCurrency : null,
+        exchangeRate: needsConversion ? current?.safeExchangeRate : null,
       );
     }).toList();
 
@@ -3127,89 +3139,89 @@ class _MobileNewSaleViewState extends State<_MobileNewSaleView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview:
-            ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return InvoicePrintService().printInvoicePreview(
-                invoiceType: "Sale",
-                invoiceNumber: invoiceNumber ?? "",
-                reference: _xRefController.text,
-                invoiceDate: DateTime.now(),
-                customerSupplierName: current!.customer?.perName ?? "",
-                items: invoiceItems,
-                grandTotal: current.grandTotal,
-                cashPayment: current.cashPayment,
-                creditAmount: current.creditAmount,
-                account: current.customerAccount,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-                currency: baseCurrency,
-                isSale: true,
-              );
-            },
-        onPrint:
-            ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-              required selectedPrinter,
-              required copies,
-              required pages,
-            }) {
-              return InvoicePrintService().printInvoiceDocument(
-                invoiceType: "Sale",
-                invoiceNumber: invoiceNumber ?? "",
-                reference: _xRefController.text,
-                invoiceDate: DateTime.now(),
-                customerSupplierName: current!.customer?.perName ?? "",
-                items: invoiceItems,
-                grandTotal: current.grandTotal,
-                cashPayment: current.cashPayment,
-                creditAmount: current.creditAmount,
-                account: current.customerAccount,
-                language: language,
-                orientation: orientation,
-                company: company,
-                selectedPrinter: selectedPrinter,
-                pageFormat: pageFormat,
-                copies: copies,
-                currency: baseCurrency,
-                isSale: true,
-              );
-            },
-        onSave:
-            ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return InvoicePrintService().createInvoiceDocument(
-                invoiceType: "Sale",
-                invoiceNumber: invoiceNumber ?? "",
-                reference: _xRefController.text,
-                invoiceDate: DateTime.now(),
-                customerSupplierName: current!.customer?.perName ?? "",
-                items: invoiceItems,
-                grandTotal: current.grandTotal,
-                cashPayment: current.cashPayment,
-                creditAmount: current.creditAmount,
-                account: current.customerAccount,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-                currency: baseCurrency,
-                isSale: true,
-              );
-            },
+        buildPreview: ({required data, required language, required orientation, required pageFormat}) {
+          return InvoicePrintService().printInvoicePreview(
+            invoiceType: "Sale",
+            invoiceNumber: invoiceNumber ?? "",
+            reference: _xRefController.text,
+            invoiceDate: DateTime.now(),
+            customerSupplierName: current!.customer?.perName ?? "",
+            items: invoiceItems,
+            grandTotal: current.grandTotal,
+            cashPayment: current.cashPayment,
+            creditAmount: current.creditAmount,
+            account: current.customerAccount,
+            language: language,
+            orientation: orientation,
+            company: company,
+            pageFormat: pageFormat,
+            currency: baseCurrency,
+            isSale: true,
+            totalLocalAmount: needsConversion ? current.totalLocalAmount : null,
+            localCurrency: needsConversion ? current.toCurrency : null,
+            exchangeRate: needsConversion ? current.safeExchangeRate : null,
+            subtotal: current.subtotal,
+            totalItemDiscount: current.totalItemDiscount,
+            generalDiscount: current.generalDiscountAmount,
+            extraCharges: current.extraCharges,
+          );
+        },
+        onPrint: ({required data, required language, required orientation, required pageFormat, required selectedPrinter, required copies, required pages}) {
+          return InvoicePrintService().printInvoiceDocument(
+            invoiceType: "Sale",
+            invoiceNumber: invoiceNumber ?? "",
+            reference: _xRefController.text,
+            invoiceDate: DateTime.now(),
+            customerSupplierName: current!.customer?.perName ?? "",
+            items: invoiceItems,
+            grandTotal: current.grandTotal,
+            cashPayment: current.cashPayment,
+            creditAmount: current.creditAmount,
+            account: current.customerAccount,
+            language: language,
+            orientation: orientation,
+            company: company,
+            selectedPrinter: selectedPrinter,
+            pageFormat: pageFormat,
+            copies: copies,
+            currency: baseCurrency,
+            isSale: true,
+            totalLocalAmount: needsConversion ? current.totalLocalAmount : null,
+            localCurrency: needsConversion ? current.toCurrency : null,
+            exchangeRate: needsConversion ? current.safeExchangeRate : null,
+            subtotal: current.subtotal,
+            totalItemDiscount: current.totalItemDiscount,
+            generalDiscount: current.generalDiscountAmount,
+            extraCharges: current.extraCharges,
+          );
+        },
+        onSave: ({required data, required language, required orientation, required pageFormat}) {
+          return InvoicePrintService().createInvoiceDocument(
+            invoiceType: "Sale",
+            invoiceNumber: invoiceNumber ?? "",
+            reference: _xRefController.text,
+            invoiceDate: DateTime.now(),
+            customerSupplierName: current!.customer?.perName ?? "",
+            items: invoiceItems,
+            grandTotal: current.grandTotal,
+            cashPayment: current.cashPayment,
+            creditAmount: current.creditAmount,
+            account: current.customerAccount,
+            language: language,
+            orientation: orientation,
+            company: company,
+            pageFormat: pageFormat,
+            currency: baseCurrency,
+            isSale: true,
+            totalLocalAmount: needsConversion ? current.totalLocalAmount : null,
+            localCurrency: needsConversion ? current.toCurrency : null,
+            exchangeRate: needsConversion ? current.safeExchangeRate : null,
+            subtotal: current.subtotal,
+            totalItemDiscount: current.totalItemDiscount,
+            generalDiscount: current.generalDiscountAmount,
+            extraCharges: current.extraCharges,
+          );
+        },
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
@@ -501,7 +502,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   autofocus: true,
                                   decoration: InputDecoration(
                                     hintText: AppLocalizations.of(context)!.searchProducts,
-                                    prefixIcon: Icon(Icons.search, color: Theme.of(context).colorScheme.primary),
+                                    prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass, color: Theme.of(context).colorScheme.primary),
                                     suffixIcon: _overlaySearchController.text.isNotEmpty
                                         ? IconButton(
                                       icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.outline),
@@ -540,7 +541,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   children: [
                                     Expanded(child: Text(tr.nameAndDescription,style: titleStyle,)),
                                     SizedBox(
-                                        width: 120,
+                                        width: 100,
                                         child: Text(tr.unit,
                                             textAlign: TextAlign.center,
                                             style: titleStyle)),
@@ -727,7 +728,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
             spacing: 8,
             children: [
               SizedBox(
-                width: 80,
+                width: 60,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [

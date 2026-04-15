@@ -3241,4 +3241,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get generalDiscountAmount => ' مبلغ تخفیف';
+
+  @override
+  String get stockPaper => 'سند انبار';
 }

@@ -481,184 +481,239 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(5),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Left panel - product list
                         Flexible(
                           flex: 5,
-                          child: Column(
-                            children: [
-                              // Search TextField inside overlay
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
-                                  border: Border(
-                                    bottom: BorderSide(
-                                      color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
+                          child: Container(
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: .05),
+                                  blurRadius: 8,
+                                  offset: const Offset(-2, 0),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                // Search TextField inside overlay - REMOVED the background color
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      bottom: BorderSide(
+                                        color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
+                                      ),
                                     ),
                                   ),
-                                ),
-                                child: TextField(
-                                  controller: _overlaySearchController,
-                                  autofocus: true,
-                                  decoration: InputDecoration(
-                                    hintText: AppLocalizations.of(context)!.searchProducts,
-                                    prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass, color: Theme.of(context).colorScheme.primary),
-                                    suffixIcon: _overlaySearchController.text.isNotEmpty
-                                        ? IconButton(
-                                      icon: Icon(Icons.clear, color: Theme.of(context).colorScheme.outline),
-                                      onPressed: () {
-                                        _overlaySearchController.clear();
-                                        _triggerSearch('');
-                                      },
-                                    )
-                                        : null,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(5),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    filled: true,
-                                    fillColor: Theme.of(context).colorScheme.surface,
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  ),
-                                  onSubmitted: (_) {
-                                    // Handle Enter in overlay search
-                                    if (_highlightedIndex >= 0 && _highlightedIndex < _currentSuggestions.length) {
-                                      _handleItemSelection(_currentSuggestions[_highlightedIndex]);
-                                    } else if (_currentSuggestions.isNotEmpty) {
-                                      _handleItemSelection(_currentSuggestions.first);
-                                    }
-                                  },
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                margin: const EdgeInsets.symmetric(horizontal: 1),
-                                decoration: BoxDecoration(
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-
-                                child: Row(
-                                  children: [
-                                    Expanded(child: Text(tr.nameAndDescription,style: titleStyle,)),
-                                    SizedBox(
-                                        width: 100,
-                                        child: Text(tr.unit,
-                                            textAlign: TextAlign.center,
-                                            style: titleStyle)),
-                                    SizedBox(
-                                        width: 100,
-                                        child: Text(tr.batchTitle,
-                                            textAlign: isRTL? TextAlign.left : TextAlign.right,
-                                            style: titleStyle)),
-                                    SizedBox(
-                                        width: 100,
-                                        child: Text(tr.available,
-                                            textAlign: isRTL? TextAlign.left : TextAlign.right,
-                                            style: titleStyle)),
-                                    SizedBox(
-                                        width: 100,
-                                        child: Text(tr.unitPrice,
-                                            textAlign: isRTL? TextAlign.left : TextAlign.right,
-                                            style: titleStyle)),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                child: _isLoading
-                                    ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        AppLocalizations.of(context)!.loading,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  child: TextField(
+                                    controller: _overlaySearchController,
+                                    autofocus: true,
+                                    decoration: InputDecoration(
+                                      hintText: AppLocalizations.of(context)!.searchProducts,
+                                      prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        size: 18,
+                                      ),
+                                      suffixIcon: _overlaySearchController.text.isNotEmpty
+                                          ? IconButton(
+                                        icon: Icon(Icons.clear,
                                           color: Theme.of(context).colorScheme.outline,
+                                          size: 18,
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                    : _currentSuggestions.isEmpty
-                                    ? Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.search_off, size: 48, color: Theme.of(context).colorScheme.outline.withValues(alpha: .5)),
-                                      const SizedBox(height: 16),
-                                      Text(
-                                        widget.noResultsText,
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          color: Theme.of(context).colorScheme.outline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                                    : ListView.builder(
-                                  controller: _scrollController,
-                                  padding: const EdgeInsets.symmetric(vertical: 8),
-                                  itemCount: _currentSuggestions.length,
-                                  itemBuilder: (context, index) {
-                                    final item = _currentSuggestions[index];
-                                    final isHighlighted = index == _highlightedIndex;
-                                    final isRTL = Directionality.of(context) == TextDirection.rtl;
-
-                                    return Container(
-                                      decoration: BoxDecoration(
-                                        color: isHighlighted
-                                            ? Theme.of(context).colorScheme.primary.withValues(alpha: .08)
-                                            : Colors.transparent,
-                                        border: Border(
-                                          // Bottom border for EVERY item
-                                          bottom: BorderSide(
-                                            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-                                            width: 0.5,
-                                          ),
-                                          // Left/right borders for highlighted item (existing logic)
-                                          left: isHighlighted && !isRTL
-                                              ? BorderSide(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            width: 3,
-                                          )
-                                              : BorderSide.none,
-                                          right: isHighlighted && isRTL
-                                              ? BorderSide(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            width: 3,
-                                          )
-                                              : BorderSide.none,
-                                        ),
-                                      ),
-                                      child: InkWell(
-                                        onTap: () => _handleItemSelection(item),
-                                        onHover: (hovered) {
-                                          if (hovered && mounted) {
-                                            setState(() {
-                                              _highlightedIndex = index;
-                                              _currentHighlightedItem = item;
-                                            });
-                                            _refreshOverlay();
-                                          }
+                                        onPressed: () {
+                                          _overlaySearchController.clear();
+                                          _triggerSearch('');
                                         },
-                                        child: widget.customListItemBuilder != null
-                                            ? widget.customListItemBuilder!(context, item)
-                                            : _buildDefaultListItem(item),
+                                      )
+                                          : null,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                        borderSide: BorderSide(
+                                          color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+                                        ),
                                       ),
-                                    );
-                                  },
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                        borderSide: BorderSide(
+                                          color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+                                        ),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(5),
+                                        borderSide: BorderSide(
+                                          color: Theme.of(context).colorScheme.primary,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Theme.of(context).colorScheme.surface,
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    ),
+                                    onSubmitted: (_) {
+                                      // Handle Enter in overlay search
+                                      if (_highlightedIndex >= 0 && _highlightedIndex < _currentSuggestions.length) {
+                                        _handleItemSelection(_currentSuggestions[_highlightedIndex]);
+                                      } else if (_currentSuggestions.isNotEmpty) {
+                                        _handleItemSelection(_currentSuggestions.first);
+                                      }
+                                    },
+                                  ),
                                 ),
-                              ),
-                              if (!_isLoading && _currentSuggestions.isNotEmpty)
-                                _buildKeyboardHints(),
-                            ],
+                                // Header row - keep as is but adjust colors
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primary,
+                                    borderRadius: BorderRadius.zero,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(child: Text(tr.nameAndDescription, style: titleStyle)),
+                                        SizedBox(width: 60,
+                                          child: Text(tr.unit,
+                                              textAlign: TextAlign.center,
+                                              style: titleStyle)),
+                                        SizedBox(width: 100,
+                                          child: Text(tr.batchTitle,
+                                              textAlign: isRTL ? TextAlign.left : TextAlign.right,
+                                              style: titleStyle)),
+                                        SizedBox(width: 100,
+                                          child: Text(tr.available,
+                                              textAlign: isRTL ? TextAlign.left : TextAlign.right,
+                                              style: titleStyle)),
+                                        SizedBox(width: 100,
+                                          child: Text(tr.unitPrice,
+                                              textAlign: isRTL ? TextAlign.left : TextAlign.right,
+                                              style: titleStyle)),
+                                    ],
+                                  ),
+                                ),
+                                Expanded(
+                                  child: _isLoading
+                                      ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        CircularProgressIndicator(color: Theme.of(context).colorScheme.primary),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          AppLocalizations.of(context)!.loading,
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: Theme.of(context).colorScheme.outline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                      : _currentSuggestions.isEmpty
+                                      ? Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(Icons.search_off, size: 48,
+                                            color: Theme.of(context).colorScheme.outline.withValues(alpha: .5)),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          widget.noResultsText,
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: Theme.of(context).colorScheme.outline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                      : ListView.builder(
+                                    controller: _scrollController,
+                                    padding: const EdgeInsets.symmetric(vertical: 8),
+                                    itemCount: _currentSuggestions.length,
+                                    itemBuilder: (context, index) {
+                                      final item = _currentSuggestions[index];
+                                      final isHighlighted = index == _highlightedIndex;
+                                      final isRTL = Directionality.of(context) == TextDirection.rtl;
+
+                                      return Container(
+                                        decoration: BoxDecoration(
+                                          color: isHighlighted
+                                              ? Theme.of(context).colorScheme.primary.withValues(alpha: .08)
+                                              : Colors.transparent,
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                                              width: 0.5,
+                                            ),
+                                            left: isHighlighted && !isRTL
+                                                ? BorderSide(
+                                              color: Theme.of(context).colorScheme.primary,
+                                              width: 3,
+                                            )
+                                                : BorderSide.none,
+                                            right: isHighlighted && isRTL
+                                                ? BorderSide(
+                                              color: Theme.of(context).colorScheme.primary,
+                                              width: 3,
+                                            )
+                                                : BorderSide.none,
+                                          ),
+                                        ),
+                                        child: InkWell(
+                                          onTap: () => _handleItemSelection(item),
+                                          onHover: (hovered) {
+                                            if (hovered && mounted) {
+                                              setState(() {
+                                                _highlightedIndex = index;
+                                                _currentHighlightedItem = item;
+                                              });
+                                              _refreshOverlay();
+                                            }
+                                          },
+                                          child: widget.customListItemBuilder != null
+                                              ? widget.customListItemBuilder!(context, item)
+                                              : _buildDefaultListItem(item),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                                if (!_isLoading && _currentSuggestions.isNotEmpty)
+                                  _buildKeyboardHints(),
+                              ],
+                            ),
                           ),
                         ),
+                        // Right panel - details with rounded border
                         if (_currentHighlightedItem != null && !_isLoading && _currentSuggestions.isNotEmpty)
-                          Flexible(
-                            flex: 2,
-                            child: _buildProductDetailsPanel(),
+                          Container(
+                            width: 350,
+                            height: double.infinity,
+                            margin: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: .05),
+                                  blurRadius: 8,
+                                  offset: const Offset(-2, 0),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: _buildProductDetailsPanel(),
+                            ),
                           ),
                       ],
                     ),

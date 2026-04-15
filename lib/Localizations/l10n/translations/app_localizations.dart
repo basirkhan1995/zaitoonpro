@@ -6429,6 +6429,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Discount Amount'**
   String get generalDiscountAmount;
+
+  /// No description provided for @stockPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Stock Paper'**
+  String get stockPaper;
 }
 
 class _AppLocalizationsDelegate

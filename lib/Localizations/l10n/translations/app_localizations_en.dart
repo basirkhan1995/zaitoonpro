@@ -3251,4 +3251,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get generalDiscountAmount => 'Discount Amount';
+
+  @override
+  String get stockPaper => 'Stock Paper';
 }

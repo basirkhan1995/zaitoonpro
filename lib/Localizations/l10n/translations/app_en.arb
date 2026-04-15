@@ -1074,5 +1074,6 @@
   "deselectAll": "Deselect All",
   "productSpecification": "Product Specifications",
   "extraCharges": "Extra Charges",
-  "generalDiscountAmount": "Discount Amount"
+  "generalDiscountAmount": "Discount Amount",
+  "stockPaper": "Stock Paper"
 }

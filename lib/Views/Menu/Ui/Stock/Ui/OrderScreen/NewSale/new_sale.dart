@@ -331,11 +331,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ),
               const SizedBox(width: 8),
               ZOutlineButton(
+                icon: Icons.content_copy_rounded,
+                onPressed: () => _onSalePrint(invoiceNumber: null),
+                label: Text(tr.stockPaper),
+              ),
+              const SizedBox(width: 8),
+              ZOutlineButton(
                 icon: FontAwesomeIcons.solidFilePdf,
                 onPressed: () => _onSalePrint(invoiceNumber: null),
                 label: Text("PDF"),
               ),
               const SizedBox(width: 8),
+
               BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                 builder: (context, state) {
                   if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {

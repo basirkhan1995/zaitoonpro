@@ -1075,5 +1075,6 @@
   "productSpecification": "خصوصیات کالا",
   "extraCharges": "هزینه اضافه",
   "generalDiscountAmount": " مبلغ تخفیف",
-  "stockPaper": "سند انبار"
+  "stockPaper": "سند انبار",
+  "bol": "بارنامه"
 }

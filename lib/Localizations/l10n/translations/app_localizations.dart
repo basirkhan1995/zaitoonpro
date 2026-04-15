@@ -6435,6 +6435,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Stock Paper'**
   String get stockPaper;
+
+  /// No description provided for @bol.
+  ///
+  /// In en, this message translates to:
+  /// **'Bill of Lading'**
+  String get bol;
 }
 
 class _AppLocalizationsDelegate

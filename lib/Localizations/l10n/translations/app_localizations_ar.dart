@@ -3247,4 +3247,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stockPaper => 'سند انبار';
+
+  @override
+  String get bol => 'د بار وړلو سند';
 }

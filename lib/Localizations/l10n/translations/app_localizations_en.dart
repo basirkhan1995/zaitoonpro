@@ -3254,4 +3254,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockPaper => 'Stock Paper';
+
+  @override
+  String get bol => 'Bill of Lading';
 }

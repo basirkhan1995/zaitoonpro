@@ -1075,5 +1075,6 @@
   "productSpecification": "Product Specifications",
   "extraCharges": "Extra Charges",
   "generalDiscountAmount": "Discount Amount",
-  "stockPaper": "Stock Paper"
+  "stockPaper": "Stock Paper",
+  "bol": "Bill of Lading"
 }

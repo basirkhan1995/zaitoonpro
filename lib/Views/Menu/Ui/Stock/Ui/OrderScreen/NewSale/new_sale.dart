@@ -561,11 +561,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   title: tr.exchangeRate,
                                   hint: isLoading ? "Fetching rate..." : "Enter exchange rate",
                                   isEnabled: !isLoading,
+                                  compactMode: true,
                                   onSubmit: _onExchangeRateChanged,
-                                  end: isLoading
-                                      ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
+                                  trailing: isLoading
+                                      ? Container(
+                                    padding: EdgeInsets.all(2),
+                                    width: 18,
+                                    height: 18,
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   )
                                       : null,
@@ -659,7 +661,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     _discountControllers.clear();
     _localeAmountControllers.clear();
   }
-
+  String _getAccountCurrency(BuildContext context) {
+    final state = context.read<SaleInvoiceBloc>().state;
+    if (state is SaleInvoiceLoaded && state.customerAccount != null) {
+      return state.customerAccount!.actCurrency ?? '';
+    }
+    return '';
+  }
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
@@ -673,28 +681,39 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       ),
       child: Row(
         children: [
-          SizedBox(width: 25, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 5.0), child: Text('#', style: title))),
+          // # column - matches item row (SizedBox width: 30)
+          SizedBox(width: 30, child: Text('#', textAlign: TextAlign.center, style: title)),
+
+          // Products column - matches Expanded in item row
           Expanded(child: Text(locale.products, style: title)),
+
+          // Qty column - matches SizedBox(width: 80)
           SizedBox(width: 80, child: Text(locale.qty, style: title)),
+
+          // Batch column - matches SizedBox(width: 80)
           SizedBox(width: 80, child: Text(locale.batchTitle, style: title)),
+
+          // Unit column - matches SizedBox(width: 80)
           SizedBox(width: 80, child: Text(locale.unit, style: title)),
+
+          // Unit Price (Base) - matches SizedBox(width: 120)
           SizedBox(width: 120, child: Text("${locale.unitPrice} ($baseCurrency)", style: title)),
+
+          // Unit Price (Local) - only if needed, matches SizedBox(width: 120)
           if (_needsLocalConversion(context))
             SizedBox(width: 120, child: Text("${locale.unitPrice} (${_getAccountCurrency(context)})", style: title)),
+
+          // Discount column - matches SizedBox(width: 140)
           SizedBox(width: 140, child: Text(locale.discountTitle, style: title)),
+
+          // Total column - matches SizedBox(width: 140)
           SizedBox(width: 140, child: Text("${locale.totalTitle} ($baseCurrency)", style: title)),
-          SizedBox(width: 60, child: Text(locale.actions, style: title)),
+
+          // Actions column - matches SizedBox(width: 60)
+          SizedBox(width: 60, child: Text(locale.actions, textAlign: TextAlign.center, style: title)),
         ],
       ),
     );
-  }
-
-  String _getAccountCurrency(BuildContext context) {
-    final state = context.read<SaleInvoiceBloc>().state;
-    if (state is SaleInvoiceLoaded && state.customerAccount != null) {
-      return state.customerAccount!.actCurrency ?? '';
-    }
-    return '';
   }
 
   Widget _buildItemRow({
@@ -957,7 +976,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
               ),
               SizedBox(
-                width: 60,
+                width: 67,
                 child: IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   onPressed: () {

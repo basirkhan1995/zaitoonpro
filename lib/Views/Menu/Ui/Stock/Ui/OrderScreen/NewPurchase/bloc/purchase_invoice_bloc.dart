@@ -13,7 +13,7 @@ part 'purchase_invoice_state.dart';
 
 class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceState> {
   final Repositories repo;
-  late final ExchangeRateBloc _exchangeRateBloc;
+  ExchangeRateBloc? _exchangeRateBloc;
   StreamSubscription? _exchangeRateSubscription;
 
   PurchaseInvoiceBloc(this.repo) : super(PurchaseInvoiceInitial()) {
@@ -58,15 +58,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(newState);
 
       // Immediately trigger UI update for local amounts
-      // No need to call UpdateAllLocalAmountsEvent since getters calculate on the fly
     }
   }
 
   void setExchangeRateBloc(ExchangeRateBloc exchangeRateBloc) {
+    _exchangeRateSubscription?.cancel();
+
     _exchangeRateBloc = exchangeRateBloc;
-    _exchangeRateSubscription = _exchangeRateBloc.stream.listen((state) {
+    _exchangeRateSubscription = _exchangeRateBloc!.stream.listen((state) {
       if (state is ExchangeRateLoadedState && this.state is PurchaseInvoiceLoaded) {
-        // Update local amounts when exchange rate changes
         add(UpdateAllLocalAmountsEvent());
       }
     });

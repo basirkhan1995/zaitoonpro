@@ -1076,5 +1076,6 @@
   "extraCharges": "Extra Charges",
   "generalDiscountAmount": "Discount Amount",
   "stockPaper": "Stock Paper",
-  "bol": "Bill of Lading"
+  "bol": "Bill of Lading",
+  "description": "Description"
 }

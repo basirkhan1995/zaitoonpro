@@ -3247,4 +3247,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get bol => 'بارنامه';
+
+  @override
+  String get description => 'تفصیلات';
 }

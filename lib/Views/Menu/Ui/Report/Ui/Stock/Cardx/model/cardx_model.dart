@@ -81,7 +81,7 @@ class StockRecordModel {
     storageName: json["storageName"],
     entryType: json["entryType"],
     entryDate: json["entryDate"] == null ? null : DateTime.parse(json["entryDate"]),
-    quantity: json["quantity"],
+    quantity: json["quantity"]?.toString(),
     price: json["price"],
     runningQuantity: json["runningQuantity"],
   );

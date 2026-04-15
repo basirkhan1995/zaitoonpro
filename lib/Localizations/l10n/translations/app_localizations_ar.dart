@@ -3250,4 +3250,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get bol => 'د بار وړلو سند';
+
+  @override
+  String get description => 'تفصیلات';
 }

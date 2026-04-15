@@ -488,25 +488,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                           flex: 5,
                           child: Container(
                             margin: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(5),
-                              border: Border.all(
-                                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: .05),
-                                  blurRadius: 8,
-                                  offset: const Offset(-2, 0),
-                                ),
-                              ],
-                            ),
                             child: Column(
                               children: [
                                 // Search TextField inside overlay - REMOVED the background color
                                 Container(
-                                  padding: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
                                     border: Border(
                                       bottom: BorderSide(
@@ -517,6 +503,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   child: TextField(
                                     controller: _overlaySearchController,
                                     autofocus: true,
+                                    showCursor: true,
+
                                     decoration: InputDecoration(
                                       hintText: AppLocalizations.of(context)!.searchProducts,
                                       prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass,
@@ -536,19 +524,19 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                       )
                                           : null,
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(5),
+                                        borderRadius: BorderRadius.circular(3),
                                         borderSide: BorderSide(
                                           color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
                                         ),
                                       ),
                                       enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(5),
+                                        borderRadius: BorderRadius.circular(3),
                                         borderSide: BorderSide(
                                           color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
                                         ),
                                       ),
                                       focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(5),
+                                        borderRadius: BorderRadius.circular(3),
                                         borderSide: BorderSide(
                                           color: Theme.of(context).colorScheme.primary,
                                           width: 1,
@@ -556,7 +544,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                       ),
                                       filled: true,
                                       fillColor: Theme.of(context).colorScheme.surface,
-                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                     ),
                                     onSubmitted: (_) {
                                       // Handle Enter in overlay search
@@ -578,8 +566,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   ),
                                   child: Row(
                                     children: [
-                                      Expanded(child: Text(tr.nameAndDescription, style: titleStyle)),
-                                        SizedBox(width: 60,
+                                      Expanded(child: Text(tr.description, style: titleStyle)),
+                                        SizedBox(width: 90,
                                           child: Text(tr.unit,
                                               textAlign: TextAlign.center,
                                               style: titleStyle)),
@@ -756,12 +744,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   Widget _buildProductDetailsPanel() {
     return Container(
       padding: const EdgeInsets.all(15),
-      child: Expanded(
-        child: SingleChildScrollView(
-          child: widget.customDetailsBuilder != null
-              ? widget.customDetailsBuilder!(context, _currentHighlightedItem as T)
-              : _buildDefaultDetails(_currentHighlightedItem as T),
-        ),
+      child: SingleChildScrollView(
+        child: widget.customDetailsBuilder != null
+            ? widget.customDetailsBuilder!(context, _currentHighlightedItem as T)
+            : _buildDefaultDetails(_currentHighlightedItem as T),
       ),
     );
   }

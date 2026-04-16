@@ -537,7 +537,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         amount: amountToSend,
         remark: event.remark,
         extraCharges: current.extraCharges,
-        currencyCash: cashCurrency,
+        cashCurrency: cashCurrency,
         orderDiscount: orderDiscountAmount,
         records: records,
       );

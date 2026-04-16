@@ -243,6 +243,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     extraCharges,
   ];
 }
+
 class SaleInvoiceSaving extends SaleInvoiceLoaded {
   const SaleInvoiceSaving({
     required super.items,

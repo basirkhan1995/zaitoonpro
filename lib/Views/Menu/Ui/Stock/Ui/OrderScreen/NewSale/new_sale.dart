@@ -1726,7 +1726,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ZTextFieldEntitled(
-                title: "Account (Credit) Payment Amount",
+                title: "Credit Amount",
                 controller: controller,
                 hint: "Enter amount to add to account as credit",
                 inputFormat: [SmartThousandsDecimalFormatter()],

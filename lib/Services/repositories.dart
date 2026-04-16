@@ -1860,7 +1860,7 @@ class Repositories {
     double? amount,
     String? remark,
     double? extraCharges,
-    String? currencyCash,
+    String? cashCurrency,
     double? orderDiscount,
     required List<SaleInvoiceRecord> records,
   }) async {
@@ -1874,7 +1874,7 @@ class Repositories {
       "oRemark": remark,
       "exRate": exchangeRate ?? "0.0",
       "extraCharges": extraCharges, // Extra charges
-      "cashCcy" : currencyCash, // In case when payment is cash or mixed, currency must be selected, by default pass the account currency,
+      "cashCcy" : cashCurrency,
       "orderDiscount": orderDiscount, // General Discount
       "records": records.map((r) => r.toJson()).toList(),
       "expenses": [],

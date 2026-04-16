@@ -23,8 +23,6 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
       emit(OrdersErrorState(e.toString()));
     }
   }
-
-
   Future<void> _onUpdateOrdersStatus(UpdateOrdersStatusEvent event, Emitter<OrdersState> emit,) async {
     emit(OrdersStatusUpdatingState());
 

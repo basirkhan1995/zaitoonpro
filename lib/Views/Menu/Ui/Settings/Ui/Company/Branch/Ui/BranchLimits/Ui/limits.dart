@@ -214,52 +214,6 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
     }
   }
 
-  // Build table header for different screen sizes
-  Widget _buildTableHeader(AppLocalizations locale, TextTheme textTheme, ColorScheme color) {
-    if (widget.isMobile) {
-      // Mobile card view doesn't need a table header
-      return const SizedBox.shrink();
-    } else if (widget.isTablet) {
-      // Tablet table header
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 60,
-              child: Text(locale.branchId, style: textTheme.titleSmall),
-            ),
-            Expanded(
-              child: Text(locale.currencyTitle, style: textTheme.titleSmall),
-            ),
-            SizedBox(
-              width: 120,
-              child: Text(locale.amount, style: textTheme.titleSmall, textAlign: TextAlign.right),
-            ),
-          ],
-        ),
-      );
-    } else {
-      // Desktop table header
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Row(
-          children: [
-            SizedBox(
-              width: 60,
-              child: Text(locale.branchId, style: textTheme.titleSmall),
-            ),
-            Text(locale.currencyTitle, style: textTheme.titleSmall),
-            const Spacer(),
-            SizedBox(
-              width: 150,
-              child: Text(locale.amount, style: textTheme.titleSmall, textAlign: TextAlign.right),
-            ),
-          ],
-        ),
-      );
-    }
-  }
 
   // Helper method to safely parse amount
   num _parseAmount(dynamic amount) {
@@ -310,33 +264,12 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
                 Row(
                   children: [
                     // ID Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            color.primary.withValues(alpha: .8),
-                            color.primary,
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: color.primary.withValues(alpha: .2),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        "#${limit.balId}",
-                        style: textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
+                    Text(
+                      "#${limit.balId}",
+                      style: textTheme.labelMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
                       ),
                     ),
 
@@ -346,19 +279,6 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
                     Expanded(
                       child: Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: color.primary.withValues(alpha: .1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.currency_exchange,
-                              size: 16,
-                              color: color.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               limit.balCurrency?.toUpperCase() ?? "N/A",
@@ -511,19 +431,6 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
                 Expanded(
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: color.primary.withValues(alpha: .1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.currency_exchange,
-                          size: 14,
-                          color: color.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           limit.balCurrency?.toUpperCase() ?? "N/A",
@@ -588,13 +495,8 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
             child: Row(
               children: [
                 // ID with badge
-                Container(
-                  width: 60,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.primary.withValues(alpha: .1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+                SizedBox(
+                  width: 30,
                   child: Text(
                     limit.balId.toString(),
                     style: textTheme.bodySmall?.copyWith(
@@ -609,19 +511,6 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
                 Expanded(
                   child: Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: color.primary.withValues(alpha: .1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.currency_exchange,
-                          size: 16,
-                          color: color.primary,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
                       ZCover(
                         child: Text(
                           limit.balCurrency?.toUpperCase() ?? "N/A",
@@ -637,7 +526,6 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
 
                 // Amount with styling
                 Container(
-                  width: 150,
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -720,18 +608,6 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
         children: [
           // Header Section
           _buildHeaderRow(locale),
-
-          if (!widget.isMobile) ...[
-            const SizedBox(height: 5),
-            // Table Header
-            _buildTableHeader(locale, textTheme, color),
-            Divider(
-              color: color.primary,
-              indent: widget.isTablet ? 12 : 15,
-              endIndent: widget.isTablet ? 12 : 15,
-            ),
-          ],
-
           // Limits List
           Expanded(
             child: BlocConsumer<BranchLimitBloc, BranchLimitState>(

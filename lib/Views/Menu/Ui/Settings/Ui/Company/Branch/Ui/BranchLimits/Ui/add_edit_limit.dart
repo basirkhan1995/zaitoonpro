@@ -49,7 +49,7 @@ class _BaseBranchLimitAddEdit extends StatefulWidget {
 class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
   // Controllers
   final TextEditingController amountLimit = TextEditingController();
-  String currencyCode = "USD";
+  String currencyCode = "";
   bool isUnlimited = false;
   String unlimitedAmount = "9999999999999";
   final formKey = GlobalKey<FormState>();
@@ -286,7 +286,7 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
                                       onMultiChanged: (_) {},
                                       onSingleChanged: (value) {
                                         setState(() {
-                                          currencyCode = value?.ccyCode ?? "USD";
+                                          currencyCode = value?.ccyCode ?? "";
                                         });
                                       },
                                       title: locale.currencyTitle,
@@ -435,7 +435,7 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
                             onMultiChanged: (_) {},
                             onSingleChanged: (value) {
                               setState(() {
-                                currencyCode = value?.ccyCode ?? "USD";
+                                currencyCode = value?.ccyCode ?? "";
                               });
                             },
                             title: locale.currencyTitle,
@@ -557,7 +557,7 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
                           onMultiChanged: (_) {},
                           onSingleChanged: (value) {
                             setState(() {
-                              currencyCode = value?.ccyCode ?? "USD";
+                              currencyCode = value?.ccyCode ?? "";
                             });
                           },
                           title: locale.currencyTitle,

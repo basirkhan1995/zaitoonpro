@@ -1175,28 +1175,57 @@ class _DesktopState extends State<_Desktop> {
                   mainAxisSize: MainAxisSize.min,
                   spacing: 8,
                   children: [
+                    // Profile Image with Edit Badge (Circular, same as profile view)
                     if (isEdit)
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          ImageHelper.stakeholderProfile(
-                            imageName: imageName,
-                            localImageBytes: selectedImageBytes,
-                            size: 115,
-                            border: Border.all(
-                              color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+                          Center(
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 20,
+                                        spreadRadius: 2,
+                                        color: theme.primary.withValues(alpha: .15),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ImageHelper.stakeholderProfile(
+                                    imageName: imageName,
+                                    localImageBytes: selectedImageBytes,
+                                    size: 120,
+                                    border: Border.all(
+                                      color: theme.outline.withValues(alpha: .3),
+                                      width: 2,
+                                    ),
+                                    shapeStyle: ShapeStyle.circle,
+                                    onImageTap: () => ImageHelper.showImageViewer(
+                                      context: context,
+                                      imageName: imageName,
+                                      localImageBytes: selectedImageBytes,
+                                      heroTag: 'profile_image_${widget.model!.perId}',
+                                    ),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () => pickAndCropImage(widget.model!.perId!),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: theme.primary,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: theme.surface, width: 2),
+                                    ),
+                                    child: const Icon(Icons.edit, size: 16, color: Colors.white),
+                                  ),
+                                ),
+                              ],
                             ),
-                            shapeStyle: ShapeStyle.roundedRectangle,
-                            showCameraIcon: true,
-
-                            onCameraTap: () => pickAndCropImage(widget.model!.perId!),
-                            onImageTap: () => ImageHelper.showImageViewer(
-                              context: context,
-                              imageName: imageName,
-                              localImageBytes: selectedImageBytes,
-                              heroTag: 'profile_image_${widget.model!.perId}',
-                            ),
-                          )
+                          ),
                         ],
                       ),
                     const SizedBox(height: 5),

@@ -1879,7 +1879,6 @@ class Repositories {
       "records": records.map((r) => r.toJson()).toList(),
       "expenses": [],
     };
-
     final response = await api.post(
       endpoint: "/inventory/salePurchase.php",
       data: data,

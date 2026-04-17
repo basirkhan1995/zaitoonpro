@@ -16,6 +16,39 @@ class UniversalShimmer {
     );
   }
 
+  /// Profile details shimmer - Perfect for stakeholder/individual profile pages
+  /// Features: Profile image, name, contact info, and detailed information sections
+  static Widget profileDetails({
+    bool showImage = true,
+    bool showName = true,
+    bool showContact = true,
+    bool showInfoSections = true,
+    int numberOfInfoSections = 4,
+    double imageSize = 120,
+  }) {
+    return _ProfileDetailsShimmerContent(
+      showImage: showImage,
+      showName: showName,
+      showContact: showContact,
+      showInfoSections: showInfoSections,
+      numberOfInfoSections: numberOfInfoSections,
+      imageSize: imageSize,
+    );
+  }
+
+  /// Compact profile card shimmer (for sidebars or quick views)
+  static Widget profileCard({
+    bool showImage = true,
+    bool showStats = false,
+    double imageSize = 80,
+  }) {
+    return _ProfileCardShimmerContent(
+      showImage: showImage,
+      showStats: showStats,
+      imageSize: imageSize,
+    );
+  }
+
   // ==================== DATA LIST SHIMMER (NEW) ====================
 
   /// Data list shimmer - Perfect for orders, invoices, transactions, etc.
@@ -893,6 +926,243 @@ class _ShimmerGrid extends StatelessWidget {
   }
 }
 
+// ==================== PROFILE DETAILS SHIMMER (WITH THEME COLORS) ====================
+
+class _ProfileDetailsShimmerContent extends StatelessWidget {
+  final bool showImage;
+  final bool showName;
+  final bool showContact;
+  final bool showInfoSections;
+  final int numberOfInfoSections;
+  final double imageSize;
+
+  const _ProfileDetailsShimmerContent({
+    required this.showImage,
+    required this.showName,
+    required this.showContact,
+    required this.showInfoSections,
+    required this.numberOfInfoSections,
+    required this.imageSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Shimmer.fromColors(
+            baseColor: baseColor,
+            highlightColor: highlightColor,
+            period: const Duration(milliseconds: 1200),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Profile Image
+                if (showImage) ...[
+                  Container(
+                    width: imageSize,
+                    height: imageSize,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: colorScheme.surfaceContainerHighest,
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          color: Colors.black.withValues(alpha: 0.1),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Name Section
+                if (showName) ...[
+                  Container(
+                    height: 28,
+                    width: 200,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
+                // Contact Info
+                if (showContact) ...[
+                  Container(
+                    height: 32,
+                    width: 140,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // Divider
+                Container(
+                  height: 1,
+                  width: double.infinity,
+                  color: colorScheme.outline.withValues(alpha: 0.3),
+                ),
+                const SizedBox(height: 20),
+
+                // Info Sections
+                if (showInfoSections) ...[
+                  // Section Title
+                  Container(
+                    height: 16,
+                    width: 120,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+
+                  // Info Items
+                  ...List.generate(numberOfInfoSections, (index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Icon placeholder
+                          Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+
+                          // Text placeholders
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 12,
+                                  width: 60,
+                                  color: colorScheme.surfaceContainerHighest,
+                                ),
+                                const SizedBox(height: 6),
+                                Container(
+                                  height: 16,
+                                  width: double.infinity,
+                                  color: colorScheme.surfaceContainerHighest,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ==================== PROFILE CARD SHIMMER (WITH THEME COLORS) ====================
+
+class _ProfileCardShimmerContent extends StatelessWidget {
+  final bool showImage;
+  final bool showStats;
+  final double imageSize;
+
+  const _ProfileCardShimmerContent({
+    required this.showImage,
+    required this.showStats,
+    required this.imageSize,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+
+    return SingleChildScrollView(
+      child: Shimmer.fromColors(
+        baseColor: baseColor,
+        highlightColor: highlightColor,
+        period: const Duration(milliseconds: 1200),
+        child: Column(
+          children: [
+            if (showImage) ...[
+              Container(
+                width: imageSize,
+                height: imageSize,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorScheme.surfaceContainerHighest,
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Name placeholder
+            Container(
+              height: 20,
+              width: 150,
+              color: colorScheme.surfaceContainerHighest,
+            ),
+            const SizedBox(height: 8),
+
+            // Role/Title placeholder
+            Container(
+              height: 14,
+              width: 100,
+              color: colorScheme.surfaceContainerHighest,
+            ),
+
+            if (showStats) ...[
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildStatPlaceholder(colorScheme),
+                  _buildStatPlaceholder(colorScheme),
+                  _buildStatPlaceholder(colorScheme),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatPlaceholder(ColorScheme colorScheme) {
+    return Column(
+      children: [
+        Container(height: 20, width: 50, color: colorScheme.surfaceContainerHighest),
+        const SizedBox(height: 4),
+        Container(height: 12, width: 40, color: colorScheme.surfaceContainerHighest),
+      ],
+    );
+  }
+}
+
 class _ShimmerHorizontalList extends StatelessWidget {
   final int itemCount;
   final double itemWidth;
@@ -932,7 +1202,7 @@ class _ShimmerHorizontalList extends StatelessWidget {
               width: itemWidth,
               margin: EdgeInsets.only(right: spacing),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(borderRadius),
               ),
             ),

@@ -135,88 +135,83 @@ class _Desktop extends StatelessWidget {
     final login = state.loginData;
 
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.only(top: 5.0),
-        child: BlocBuilder<IndividualDetailTabBloc, IndividualDetailTabState>(
-          builder: (context, state) {
-            final tabs = <ZTabItem<IndividualDetailTabName>>[
-              if (login.hasPermission(33) ?? false)
-                ZTabItem(
-                  value: IndividualDetailTabName.accounts,
-                  label: AppLocalizations.of(context)!.accounts,
-                  screen: AccountsByPerIdView(ind: ind),
-                ),
-              if (login.hasPermission(34) ?? false)
-                ZTabItem(
-                  value: IndividualDetailTabName.users,
-                  label: AppLocalizations.of(context)!.users,
-                  screen: UsersByPerIdView(perId: ind.perId!),
-                ),
-            ];
+      body: BlocBuilder<IndividualDetailTabBloc, IndividualDetailTabState>(
+        builder: (context, state) {
+          final tabs = <ZTabItem<IndividualDetailTabName>>[
+            if (login.hasPermission(33) ?? false)
+              ZTabItem(
+                value: IndividualDetailTabName.accounts,
+                label: AppLocalizations.of(context)!.accounts,
+                screen: AccountsByPerIdView(ind: ind),
+              ),
+            if (login.hasPermission(34) ?? false)
+              ZTabItem(
+                value: IndividualDetailTabName.users,
+                label: AppLocalizations.of(context)!.users,
+                screen: UsersByPerIdView(perId: ind.perId!),
+              ),
+          ];
 
-            // 🟢 FIX: Handle empty tabs case
-            if (tabs.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.no_accounts_rounded,
-                      size: 48,
-                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .3),
+          // 🟢 FIX: Handle empty tabs case
+          if (tabs.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.no_accounts_rounded,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .3),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    AppLocalizations.of(context)!.accessDenied,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .5),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      AppLocalizations.of(context)!.accessDenied,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .5),
-                      ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Please contact administrator",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .4),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Please contact administrator",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .4),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            // 🟢 FIX: Safely get selected tab with fallback
-            final available = tabs.map((t) => t.value).toList();
-            final selected = available.contains(state.tab)
-                ? state.tab
-                : tabs.first.value; // Use tabs.first.value instead of available.first
-
-            return ZTabContainer<IndividualDetailTabName>(
-              /// Tab data
-              tabs: tabs,
-              selectedValue: selected,
-
-              /// Bloc update
-              onChanged: (val) => context
-                  .read<IndividualDetailTabBloc>()
-                  .add(IndOnChangedEvent(val)),
-
-              /// Colors for underline style
-              style: ZTabStyle.rounded,
-              tabBarPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-
-              borderRadius: 0,
-              title: AppLocalizations.of(context)!.accountsAndUsers,
-              selectedColor: Theme.of(context).colorScheme.primary,
-              description: AppLocalizations.of(context)!.stakeholderManage,
-              unselectedTextColor: Theme.of(context).colorScheme.secondary,
-              selectedTextColor: Theme.of(context).colorScheme.surface,
-              tabContainerColor: Theme.of(context).colorScheme.surface,
+                  ),
+                ],
+              ),
             );
-          },
-        ),
+          }
+
+          // 🟢 FIX: Safely get selected tab with fallback
+          final available = tabs.map((t) => t.value).toList();
+          final selected = available.contains(state.tab)
+              ? state.tab
+              : tabs.first.value; // Use tabs.first.value instead of available.first
+
+          return ZTabContainer<IndividualDetailTabName>(
+            /// Tab data
+            tabs: tabs,
+            selectedValue: selected,
+
+            /// Bloc update
+            onChanged: (val) => context.read<IndividualDetailTabBloc>().add(IndOnChangedEvent(val)),
+
+            /// Colors for underline style
+            style: ZTabStyle.underline,
+            tabBarPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+
+            borderRadius: 0,
+            title: AppLocalizations.of(context)!.accountsAndUsers,
+            selectedColor: Theme.of(context).colorScheme.primary,
+            description: AppLocalizations.of(context)!.stakeholderManage,
+            unselectedTextColor: Theme.of(context).colorScheme.secondary,
+            selectedTextColor: Theme.of(context).colorScheme.surface,
+            tabContainerColor: Theme.of(context).colorScheme.surface,
+          );
+        },
       ),
     );
   }

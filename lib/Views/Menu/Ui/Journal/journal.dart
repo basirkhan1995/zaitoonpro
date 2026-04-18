@@ -20,6 +20,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Journal/bloc/transaction_tab_bloc.dart'
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/model/acc_model.dart';
 import '../../../../Features/Date/z_generic_date.dart';
+import '../../../../Features/Generic/complex_textfield.dart';
 import '../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../Features/Generic/tab_bar.dart';
 import '../../../../Features/Other/cover.dart';
@@ -2945,98 +2946,77 @@ class _DesktopViewState extends State<_DesktopView> {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 5,
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
-                                    showAllOnFocus: true,
-                                    controller: accountController,
-                                    title: locale.accounts,
-                                    hintText: locale.accNameOrNumber,
-                                    isRequired: true,
-                                    bloc: context.read<AccountsBloc>(),
-                                    fetchAllFunction: (bloc) => bloc.add(
-                                      LoadAccountsFilterEvent(include: '9,10',ccy: baseCurrency,exclude: ""),
-                                    ),
-                                    searchFunction: (bloc, query) => bloc.add(
-                                      LoadAccountsFilterEvent(
-                                          include: "9,10",
-                                          ccy: baseCurrency,
-                                          input: query,
-                                          exclude: ""
-                                      ),
-                                    ),
-                                    validator: (value) {
-                                      if (value.isEmpty) {
-                                        return locale.required(locale.accounts);
-                                      }
-                                      return null;
-                                    },
-                                    itemBuilder: (context, account) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 5,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "${account.accNumber} | ${account.accName}",
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyLarge,
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
-                                    stateToLoading: (state) => state is AccountLoadingState,
-                                    loadingBuilder: (context) => const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 3),
-                                    ),
-                                    stateToItems: (state) {
-                                      if (state is AccountLoadedState) {
-                                        return state.accounts;
-                                      }
-                                      return [];
-                                    },
-                                    onSelected: (value) {
-                                      setState(() {
-                                        accNumber = value.accNumber;
-                                        availableBalance = value.accAvailBalance;
-                                        accountController.text = value.accName?? "";
-                                        accCategory = value.accCategory;
-                                        accStatus = value.accStatus;
-                                      });
-                                    },
-                                    noResultsText: locale.noDataFound,
-                                    showClearButton: true,
-                                  ),
+                            GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              showAllOnFocus: true,
+                              controller: accountController,
+                              title: locale.accounts,
+                              hintText: locale.accNameOrNumber,
+                              isRequired: true,
+                              bloc: context.read<AccountsBloc>(),
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(include: '9,10',ccy: baseCurrency,exclude: ""),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                    include: "9,10",
+                                    ccy: baseCurrency,
+                                    input: query,
+                                    exclude: ""
                                 ),
-                                Expanded(
-                                  flex: 2,
-                                  child: CurrencyDropdown(
-                                      initiallySelectedSingle: CurrenciesModel(ccyCode: baseCurrency),
-                                      title: locale.currencyTitle,
-                                      isMulti: false,
-                                      onSingleChanged: (e){
-                                        trnCurrency = e?.ccyCode ?? baseCurrency;
-                                      },
-                                      onMultiChanged: (e){}),
-                                )
-                              ],
+                              ),
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return locale.required(locale.accounts);
+                                }
+                                return null;
+                              },
+                              itemBuilder: (context, account) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 5,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${account.accNumber} | ${account.accName}",
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
+                              stateToLoading: (state) => state is AccountLoadingState,
+                              loadingBuilder: (context) => const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 3),
+                              ),
+                              stateToItems: (state) {
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                setState(() {
+                                  accNumber = value.accNumber;
+                                  availableBalance = value.accAvailBalance;
+                                  accountController.text = value.accName?? "";
+                                  accCategory = value.accCategory;
+                                  accStatus = value.accStatus;
+                                });
+                              },
+                              noResultsText: locale.noDataFound,
+                              showClearButton: true,
                             ),
-
                             if(accNumber != null)...[
                               accountDetailsView(AccountsModel(
                                   accNumber: accNumber,
@@ -3047,38 +3027,36 @@ class _DesktopViewState extends State<_DesktopView> {
                               )),
                             ],
 
-                            ZTextFieldEntitled(
-                              isRequired: true,
-                              keyboardInputType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormat: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9.,]*'),
-                                ),
-                                SmartThousandsDecimalFormatter(),
-                              ],
+                            ZGenericTextField(
+                              controller: amount,
+                              title: locale.amount,
+                              defaultCurrencyCode: baseCurrency,
+                              fieldType: ZTextFieldType.currencyWithAmount,
+                              useThousandSeparator: true,
+                              decimalPlaces: 2,
+                              onCurrencyAmountChanged: (data) {
+                                final (currency, amount) = data;
+                                trnCurrency = currency?.ccyCode ?? baseCurrency;
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return locale.required(locale.exchangeRate);
                                 }
 
-                                // Remove formatting (e.g. commas)
-                                final clean = value.replaceAll(
-                                  RegExp(r'[^\d.]'),
-                                  '',
-                                );
-                                final amount = double.tryParse(clean);
-
-                                if (amount == null || amount <= 0.0) {
+                                // Clean value already passed, but you can also use helper
+                                final amountValue = getAmountValue(value);
+                                if (amountValue == null || amountValue <= 0.0) {
                                   return locale.amountGreaterZero;
                                 }
 
                                 return null;
                               },
-                              controller: amount,
-                              title: locale.amount,
+                              showFlag: true,
+                              showClearButton: true,
+                              showSymbol: false,
+                              isRequired: true,
                             ),
+
                             ZTextFieldEntitled(
                               keyboardInputType: TextInputType.multiline,
                               controller: narration,
@@ -3184,93 +3162,73 @@ class _DesktopViewState extends State<_DesktopView> {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 8,
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
-                                    showAllOnFocus: true,
-                                    controller: accountController,
-                                    title: locale.accounts,
-                                    hintText: locale.accNameOrNumber,
-                                    isRequired: true,
-                                    bloc: context.read<AccountsBloc>(),
-                                    fetchAllFunction: (bloc) => bloc.add(
-                                      LoadAccountsFilterEvent(include: "11,12",ccy: baseCurrency,exclude: ""),
-                                    ),
-                                    searchFunction: (bloc, query) => bloc.add(
-                                      LoadAccountsFilterEvent(
-                                          include: "11,12",
-                                          ccy: baseCurrency,
-                                          input: query, exclude: ""
-                                      ),
-                                    ),
-                                    validator: (value) {
-                                      if (value.isEmpty) {
-                                        return locale.required(locale.accounts);
-                                      }
-                                      return null;
-                                    },
-                                    itemBuilder: (context, account) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 5,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "${account.accNumber} | ${account.accName}",
-                                                style: Theme.of(context).textTheme.bodyLarge,
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
-                                    stateToLoading: (state) => state is AccountLoadingState,
-                                    loadingBuilder: (context) => const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 3),
-                                    ),
-                                    stateToItems: (state) {
-                                      if (state is AccountLoadedState) {
-                                        return state.accounts;
-                                      }
-                                      return [];
-                                    },
-                                    onSelected: (value) {
-                                      setState(() {
-                                        accNumber = value.accNumber;
-                                        availableBalance = value.accAvailBalance;
-                                        accCategory = value.accCategory;
-                                        accStatus = value.accStatus;
-                                        accName = value.accName;
-                                      });
-                                    },
-                                    noResultsText: locale.noDataFound,
-                                    showClearButton: true,
-                                  ),
+                            GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              showAllOnFocus: true,
+                              controller: accountController,
+                              title: locale.accounts,
+                              hintText: locale.accNameOrNumber,
+                              isRequired: true,
+                              bloc: context.read<AccountsBloc>(),
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(include: "11,12",ccy: baseCurrency,exclude: ""),
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                    include: "11,12",
+                                    ccy: baseCurrency,
+                                    input: query, exclude: ""
                                 ),
-                                Expanded(
-                                  flex: 2,
-                                  child: CurrencyDropdown(
-                                      initiallySelectedSingle: CurrenciesModel(ccyCode: baseCurrency),
-                                      title: locale.currencyTitle,
-                                      isMulti: false,
-                                      onSingleChanged: (e){
-                                        trnCurrency = e?.ccyCode ?? baseCurrency;
-                                      },
-                                      onMultiChanged: (e){}),
-                                )
-                              ],
+                              ),
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return locale.required(locale.accounts);
+                                }
+                                return null;
+                              },
+                              itemBuilder: (context, account) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 5,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${account.accNumber} | ${account.accName}",
+                                          style: Theme.of(context).textTheme.bodyLarge,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
+                              stateToLoading: (state) => state is AccountLoadingState,
+                              loadingBuilder: (context) => const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 3),
+                              ),
+                              stateToItems: (state) {
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                setState(() {
+                                  accNumber = value.accNumber;
+                                  availableBalance = value.accAvailBalance;
+                                  accCategory = value.accCategory;
+                                  accStatus = value.accStatus;
+                                  accName = value.accName;
+                                });
+                              },
+                              noResultsText: locale.noDataFound,
+                              showClearButton: true,
                             ),
 
                             if(accNumber !=null)...[
@@ -3283,38 +3241,36 @@ class _DesktopViewState extends State<_DesktopView> {
                               ))
                             ],
 
-                            ZTextFieldEntitled(
-                              isRequired: true,
-                              keyboardInputType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormat: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9.,]*'),
-                                ),
-                                SmartThousandsDecimalFormatter(),
-                              ],
+                            ZGenericTextField(
+                              controller: amount,
+                              title: locale.amount,
+                              defaultCurrencyCode: baseCurrency,
+                              fieldType: ZTextFieldType.currencyWithAmount,
+                              useThousandSeparator: true,
+                              decimalPlaces: 2,
+                              onCurrencyAmountChanged: (data) {
+                                final (currency, amount) = data;
+                                trnCurrency = currency?.ccyCode ?? baseCurrency;
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return locale.required(locale.exchangeRate);
                                 }
 
-                                // Remove formatting (e.g. commas)
-                                final clean = value.replaceAll(
-                                  RegExp(r'[^\d.]'),
-                                  '',
-                                );
-                                final amount = double.tryParse(clean);
-
-                                if (amount == null || amount <= 0.0) {
+                                // Clean value already passed, but you can also use helper
+                                final amountValue = getAmountValue(value);
+                                if (amountValue == null || amountValue <= 0.0) {
                                   return locale.amountGreaterZero;
                                 }
 
                                 return null;
                               },
-                              controller: amount,
-                              title: locale.amount,
+                              showFlag: true,
+                              showClearButton: true,
+                              showSymbol: false,
+                              isRequired: true,
                             ),
+
                             ZTextFieldEntitled(
                               keyboardInputType: TextInputType.multiline,
                               controller: narration,
@@ -3421,103 +3377,83 @@ class _DesktopViewState extends State<_DesktopView> {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              spacing: 8,
-                              children: [
-                                Expanded(
-                                  flex: 5,
-                                  child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
-                                    showAllOnFocus: true,
-                                    controller: accountController,
-                                    title: locale.accounts,
-                                    hintText: locale.accNameOrNumber,
-                                    isRequired: true,
-                                    bloc: context.read<AccountsBloc>(),
-                                    fetchAllFunction: (bloc) => bloc.add(
-                                      LoadAccountsFilterEvent(
-                                        include: '1,2,3,4,5,6,7',
-                                        ccy: baseCurrency,
-                                        exclude: "10101010,10101011",
-                                      ),
-                                    ),
-                                    searchFunction: (bloc, query) => bloc.add(
-                                      LoadAccountsFilterEvent(
-                                        include: '1,2,3,4,5,6,7',
-                                        ccy: baseCurrency,
-                                        input: query,
-                                        exclude: "10101010,10101011",
-                                      ),
-                                    ),
-                                    validator: (value) {
-                                      if (value.isEmpty) {
-                                        return locale.required(locale.accounts);
-                                      }
-                                      return null;
-                                    },
-                                    itemBuilder: (context, account) => Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 5,
-                                        vertical: 5,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "${account.accNumber} | ${account.accName}",
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.bodyLarge,
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    itemToString: (acc) =>
-                                    "${acc.accNumber} | ${acc.accName}",
-                                    stateToLoading: (state) =>
-                                    state is AccountLoadingState,
-                                    loadingBuilder: (context) => const SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(strokeWidth: 3),
-                                    ),
-                                    stateToItems: (state) {
-                                      if (state is AccountLoadedState) {
-                                        return state.accounts;
-                                      }
-                                      return [];
-                                    },
-                                    onSelected: (value) {
-                                      setState(() {
-                                        accNumber = value.accNumber;
-                                        availableBalance = value.accAvailBalance;
-                                        accName = value.accName?? "";
-                                        accCategory = value.accCategory;
-                                        accStatus = value.accStatus;
-                                      });
-                                    },
-                                    noResultsText: locale.noDataFound,
-                                    showClearButton: true,
-                                  ),
+                            GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              showAllOnFocus: true,
+                              controller: accountController,
+                              title: locale.accounts,
+                              hintText: locale.accNameOrNumber,
+                              isRequired: true,
+                              bloc: context.read<AccountsBloc>(),
+                              fetchAllFunction: (bloc) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  include: '1,2,3,4,5,6,7',
+                                  ccy: baseCurrency,
+                                  exclude: "10101010,10101011",
                                 ),
-                                Expanded(
-                                  flex: 2,
-                                  child: CurrencyDropdown(
-                                      initiallySelectedSingle: CurrenciesModel(ccyCode: baseCurrency),
-                                      title: locale.currencyTitle,
-                                      isMulti: false,
-                                      onSingleChanged: (e){
-                                        trnCurrency = e?.ccyCode ?? baseCurrency;
-                                      },
-                                      onMultiChanged: (e){}),
-                                )
-                              ],
+                              ),
+                              searchFunction: (bloc, query) => bloc.add(
+                                LoadAccountsFilterEvent(
+                                  include: '1,2,3,4,5,6,7',
+                                  ccy: baseCurrency,
+                                  input: query,
+                                  exclude: "10101010,10101011",
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value.isEmpty) {
+                                  return locale.required(locale.accounts);
+                                }
+                                return null;
+                              },
+                              itemBuilder: (context, account) => Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 5,
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          "${account.accNumber} | ${account.accName}",
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              itemToString: (acc) =>
+                              "${acc.accNumber} | ${acc.accName}",
+                              stateToLoading: (state) =>
+                              state is AccountLoadingState,
+                              loadingBuilder: (context) => const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(strokeWidth: 3),
+                              ),
+                              stateToItems: (state) {
+                                if (state is AccountLoadedState) {
+                                  return state.accounts;
+                                }
+                                return [];
+                              },
+                              onSelected: (value) {
+                                setState(() {
+                                  accNumber = value.accNumber;
+                                  availableBalance = value.accAvailBalance;
+                                  accName = value.accName?? "";
+                                  accCategory = value.accCategory;
+                                  accStatus = value.accStatus;
+                                });
+                              },
+                              noResultsText: locale.noDataFound,
+                              showClearButton: true,
                             ),
                             if(accNumber !=null)...[
                               accountDetailsView(AccountsModel(
@@ -3528,38 +3464,34 @@ class _DesktopViewState extends State<_DesktopView> {
                                 accStatus: accStatus,
                               ))
                             ],
-                            ZTextFieldEntitled(
-                              isRequired: true,
-                              // onSubmit: (_)=> onSubmit(),
-                              keyboardInputType: TextInputType.numberWithOptions(
-                                decimal: true,
-                              ),
-                              inputFormat: [
-                                FilteringTextInputFormatter.allow(
-                                  RegExp(r'[0-9.,]*'),
-                                ),
-                                SmartThousandsDecimalFormatter(),
-                              ],
+                            ZGenericTextField(
+                              controller: amount,
+                              title: locale.amount,
+                              defaultCurrencyCode: baseCurrency,
+                              fieldType: ZTextFieldType.currencyWithAmount,
+                              useThousandSeparator: true,
+                              decimalPlaces: 2,
+                              onCurrencyAmountChanged: (data) {
+                                final (currency, amount) = data;
+                                trnCurrency = currency?.ccyCode ?? baseCurrency;
+                              },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
                                   return locale.required(locale.exchangeRate);
                                 }
 
-                                // Remove formatting (e.g. commas)
-                                final clean = value.replaceAll(
-                                  RegExp(r'[^\d.]'),
-                                  '',
-                                );
-                                final amount = double.tryParse(clean);
-
-                                if (amount == null || amount <= 0.0) {
+                                // Clean value already passed, but you can also use helper
+                                final amountValue = getAmountValue(value);
+                                if (amountValue == null || amountValue <= 0.0) {
                                   return locale.amountGreaterZero;
                                 }
 
                                 return null;
                               },
-                              controller: amount,
-                              title: locale.amount,
+                              showFlag: true,
+                              showClearButton: true,
+                              showSymbol: false,
+                              isRequired: true,
                             ),
                             ZTextFieldEntitled(
                               keyboardInputType: TextInputType.multiline,

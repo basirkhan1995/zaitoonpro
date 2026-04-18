@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flag/flag_widget.dart';
+import 'package:zaitoonpro/Features/Other/extensions.dart';
 import '../../Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/bloc/currencies_bloc.dart';
 import '../../Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 
@@ -63,6 +64,95 @@ class CurrencyItem {
 }
 
 // ============================================
+// THOUSAND SEPARATOR FORMATTER
+// ============================================
+class _ThousandSeparatorFormatter extends TextInputFormatter {
+  final int decimalPlaces;
+
+  _ThousandSeparatorFormatter({this.decimalPlaces = 2});
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    // If the new value is empty, return it
+    if (newValue.text.isEmpty) {
+      return newValue;
+    }
+
+    // Remove existing separators
+    final rawText = newValue.text.replaceAll(',', '');
+
+    // Allow empty or just decimal point
+    if (rawText.isEmpty || rawText == '.') {
+      return newValue;
+    }
+
+    // Check if it matches the decimal pattern
+    final decimalRegex = RegExp(r'^\d*\.?\d{0,' + decimalPlaces.toString() + r'}$');
+    if (!decimalRegex.hasMatch(rawText)) {
+      // If invalid, return the old value
+      return oldValue;
+    }
+
+    // Format with thousand separators
+    String formattedText;
+    if (rawText.contains('.')) {
+      final parts = rawText.split('.');
+      final integerPart = parts[0];
+      final decimalPart = parts.length > 1 ? parts[1] : '';
+
+      // Format integer part with commas
+      String formattedInteger = integerPart;
+      if (integerPart.isNotEmpty) {
+        final intValue = int.tryParse(integerPart);
+        if (intValue != null) {
+          formattedInteger = _formatWithCommas(intValue);
+        }
+      }
+
+      formattedText = decimalPart.isNotEmpty
+          ? '$formattedInteger.$decimalPart'
+          : formattedInteger;
+    } else {
+      final intValue = int.tryParse(rawText);
+      formattedText = intValue != null ? _formatWithCommas(intValue) : rawText;
+    }
+
+    // Preserve cursor position at the end
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: formattedText.length),
+    );
+  }
+
+  String _formatWithCommas(int value) {
+    final chars = value.toString().split('');
+    final result = StringBuffer();
+    for (int i = 0; i < chars.length; i++) {
+      if (i > 0 && (chars.length - i) % 3 == 0) {
+        result.write(',');
+      }
+      result.write(chars[i]);
+    }
+    return result.toString();
+  }
+}
+
+// Helper function to clean amount (remove commas and formatting)
+String cleanAmount(String formattedAmount) {
+  if (formattedAmount.isEmpty) return '';
+  return formattedAmount.replaceAll(',', '');
+}
+
+// Helper function to get double value from formatted amount
+double? getAmountValue(String formattedAmount) {
+  final clean = cleanAmount(formattedAmount);
+  return double.tryParse(clean);
+}
+
+// ============================================
 // MAIN WIDGET
 // ============================================
 class ZGenericTextField extends StatefulWidget {
@@ -100,7 +190,7 @@ class ZGenericTextField extends StatefulWidget {
   final ValueChanged<(CurrenciesModel?, String)>? onCurrencyAmountChanged;
   final String? defaultCurrencyCode;
   final bool showFlag;
-  final bool showSymbol; // Control symbol visibility
+  final bool showSymbol;
   final int decimalPlaces;
   final String? fixedCurrencySymbol;
   final bool showCurrencySymbol;
@@ -110,6 +200,9 @@ class ZGenericTextField extends StatefulWidget {
   final double? minValue;
   final double? maxValue;
   final bool allowNegative;
+
+  // Thousand separator feature
+  final bool useThousandSeparator; // NEW: Enable thousand separator
 
   // Email/Phone specific
   final String? countryCode;
@@ -149,7 +242,7 @@ class ZGenericTextField extends StatefulWidget {
     this.onCurrencyAmountChanged,
     this.defaultCurrencyCode,
     this.showFlag = true,
-    this.showSymbol = true, // Default to true
+    this.showSymbol = true,
     this.decimalPlaces = 2,
     this.fixedCurrencySymbol,
     this.showCurrencySymbol = true,
@@ -159,6 +252,9 @@ class ZGenericTextField extends StatefulWidget {
     this.minValue,
     this.maxValue,
     this.allowNegative = false,
+
+    // Thousand separator
+    this.useThousandSeparator = false, // Default to false
 
     // Phone params
     this.countryCode,
@@ -204,7 +300,9 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
 
   void _onAmountChanged() {
     if (widget.onCurrencyAmountChanged != null && _selectedCurrency != null) {
-      widget.onCurrencyAmountChanged!((_selectedCurrency, _controller.text));
+      // Send clean amount without commas
+      final cleanAmount = _controller.text.cleanAmount;
+      widget.onCurrencyAmountChanged!((_selectedCurrency, cleanAmount));
     }
   }
 
@@ -220,9 +318,15 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
 
       case ZTextFieldType.amount:
       case ZTextFieldType.currencyWithAmount:
-        _formatters.add(
-          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,' + widget.decimalPlaces.toString() + r'}')),
-        );
+      // Add thousand separator formatter if enabled
+        if (widget.useThousandSeparator) {
+          _formatters.add(_ThousandSeparatorFormatter(decimalPlaces: widget.decimalPlaces));
+        } else {
+          _formatters.add(
+            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,' + widget.decimalPlaces.toString() + r'}')),
+          );
+        }
+
         if (widget.minValue != null || widget.maxValue != null) {
           _formatters.add(_NumericRangeFormatter(
             minValue: widget.minValue,
@@ -314,6 +418,60 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
     return currencies.first;
   }
 
+  String? _validateInput(String? value) {
+    if (widget.validator != null) {
+      return widget.validator!(value);
+    }
+
+    if (widget.isRequired && (value == null || value.isEmpty)) {
+      return 'This field is required';
+    }
+
+    if (value != null && value.isNotEmpty) {
+      // Clean the value for validation (remove commas)
+      final cleanValue = cleanAmount(value);
+
+      switch (widget.fieldType) {
+        case ZTextFieldType.numeric:
+          if (double.tryParse(cleanValue) == null) {
+            return 'Please enter a valid number';
+          }
+          break;
+
+        case ZTextFieldType.amount:
+        case ZTextFieldType.currencyWithAmount:
+          final amount = double.tryParse(cleanValue);
+          if (amount == null) {
+            return 'Please enter a valid amount';
+          }
+          if (widget.minValue != null && amount < widget.minValue!) {
+            return 'Amount must be at least ${widget.minValue}';
+          }
+          if (widget.maxValue != null && amount > widget.maxValue!) {
+            return 'Amount must not exceed ${widget.maxValue}';
+          }
+          break;
+
+        case ZTextFieldType.email:
+          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+            return 'Please enter a valid email address';
+          }
+          break;
+
+        case ZTextFieldType.phone:
+          if (value.length < 8) {
+            return 'Please enter a valid phone number';
+          }
+          break;
+
+        default:
+          break;
+      }
+    }
+
+    return null;
+  }
+
   Widget _buildCurrencyContent(List<CurrenciesModel> currencies) {
     _isLoading = false;
 
@@ -344,7 +502,8 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
           widget.onCurrencyChanged!(newCurrency);
         }
         if (widget.onCurrencyAmountChanged != null && _controller.text.isNotEmpty) {
-          widget.onCurrencyAmountChanged!((newCurrency, _controller.text));
+          final cleanAmount = _controller.text.cleanAmount;
+          widget.onCurrencyAmountChanged!((newCurrency, cleanAmount));
         }
       },
     );
@@ -390,12 +549,15 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
                 validator: _validateInput,
                 onChanged: (text) {
                   if (widget.onChanged != null) {
-                    widget.onChanged!(text);
+                    // Send clean amount without commas
+                    final cleanText = cleanAmount(text);
+                    widget.onChanged!(cleanText);
                   }
                   if (widget.fieldType == ZTextFieldType.currencyWithAmount &&
                       widget.onCurrencyAmountChanged != null &&
                       _selectedCurrency != null) {
-                    widget.onCurrencyAmountChanged!((_selectedCurrency, text));
+                    final cleanAmount = text.cleanAmount;
+                    widget.onCurrencyAmountChanged!((_selectedCurrency, cleanAmount));
                   }
                 },
                 onFieldSubmitted: widget.onSubmit,
@@ -508,7 +670,6 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
       CurrencyItem? selectedCurrencyItem,
       Function(CurrencyItem)? onCurrencySelected,
       ) {
-    // Show loading indicator in currency selector area only
     if (_isLoading && (widget.fieldType == ZTextFieldType.currency ||
         widget.fieldType == ZTextFieldType.currencyWithAmount)) {
       return Container(
@@ -521,7 +682,6 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
       );
     }
 
-    // Only show currency selector in prefix for currency type
     if (widget.fieldType == ZTextFieldType.currency && currencyItems != null) {
       return _buildCurrencySelector(currencyItems, selectedCurrencyItem, onCurrencySelected);
     }
@@ -530,10 +690,9 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
       return _buildCurrencySelector(currencyItems, selectedCurrencyItem, onCurrencySelected);
     }
 
-    // Show symbol for amount type
     if ((widget.fieldType == ZTextFieldType.amount) &&
         widget.showCurrencySymbol &&
-        widget.showSymbol && // Use showSymbol flag
+        widget.showSymbol &&
         (widget.fixedCurrencySymbol != null || selectedCurrencyItem != null) &&
         widget.currencyPosition == CurrencyPosition.prefix) {
       final symbol = selectedCurrencyItem?.symbol ?? widget.fixedCurrencySymbol;
@@ -561,7 +720,6 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
       CurrencyItem? selectedCurrencyItem,
       Function(CurrencyItem)? onCurrencySelected,
       ) {
-    // DON'T show currency selector in suffix for currency type
     if (widget.fieldType == ZTextFieldType.currency) {
       return null;
     }
@@ -570,10 +728,9 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
       return null;
     }
 
-    // Show symbol for amount type in suffix position
     if ((widget.fieldType == ZTextFieldType.amount) &&
         widget.showCurrencySymbol &&
-        widget.showSymbol && // Use showSymbol flag
+        widget.showSymbol &&
         (widget.fixedCurrencySymbol != null || selectedCurrencyItem != null) &&
         widget.currencyPosition == CurrencyPosition.suffix) {
       final symbol = selectedCurrencyItem?.symbol ?? widget.fixedCurrencySymbol;
@@ -686,57 +843,6 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
     );
   }
 
-  String? _validateInput(String? value) {
-    if (widget.validator != null) {
-      return widget.validator!(value);
-    }
-
-    if (widget.isRequired && (value == null || value.isEmpty)) {
-      return 'This field is required';
-    }
-
-    if (value != null && value.isNotEmpty) {
-      switch (widget.fieldType) {
-        case ZTextFieldType.numeric:
-          if (double.tryParse(value) == null) {
-            return 'Please enter a valid number';
-          }
-          break;
-
-        case ZTextFieldType.amount:
-        case ZTextFieldType.currencyWithAmount:
-          final amount = double.tryParse(value);
-          if (amount == null) {
-            return 'Please enter a valid amount';
-          }
-          if (widget.minValue != null && amount < widget.minValue!) {
-            return 'Amount must be at least ${widget.minValue}';
-          }
-          if (widget.maxValue != null && amount > widget.maxValue!) {
-            return 'Amount must not exceed ${widget.maxValue}';
-          }
-          break;
-
-        case ZTextFieldType.email:
-          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-            return 'Please enter a valid email address';
-          }
-          break;
-
-        case ZTextFieldType.phone:
-          if (value.length < 8) {
-            return 'Please enter a valid phone number';
-          }
-          break;
-
-        default:
-          break;
-      }
-    }
-
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     if (widget.fieldType == ZTextFieldType.currency ||
@@ -746,8 +852,6 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
           if (state is CurrenciesLoadedState) {
             return _buildCurrencyContent(state.ccy);
           }
-
-          // Show text field with loading indicator in prefix only
           return _buildTextField();
         },
       );

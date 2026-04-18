@@ -366,7 +366,7 @@ class _DesktopState extends State<_Desktop> {
           builder: (context, state) {
             return Column(
               mainAxisSize: MainAxisSize.min,
-              spacing: 8,
+              spacing: 12,
               children: [
                 ZGenericTextField(
                   controller: accName,
@@ -390,6 +390,7 @@ class _DesktopState extends State<_Desktop> {
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
                     SmartThousandsDecimalFormatter(),
                   ],
+
                   title: tr.accountLimit,
                   controller: accountLimit,
                 ),

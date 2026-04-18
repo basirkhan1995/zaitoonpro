@@ -127,7 +127,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-
         /// Tabs & Others ......................................................
         BlocProvider(create: (context) => ThemeBloc()),
         BlocProvider(create: (context) => LocalizationBloc()),

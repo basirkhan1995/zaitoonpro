@@ -29,21 +29,5 @@ class CurrenciesBloc extends Bloc<CurrenciesEvent, CurrenciesState> {
         emit(CurrenciesErrorState(e.toString()));
       }
     });
-    on<AddCcyEvent>((event, emit) async{
-      emit(CurrenciesLoadingState());
-      try{
-
-      }catch(e){
-        emit(CurrenciesErrorState(e.toString()));
-      }
-    });
-    on<UpdateCcyEvent>((event, emit) async{
-      emit(CurrenciesLoadingState());
-      try{
-
-      }catch(e){
-        emit(CurrenciesErrorState(e.toString()));
-      }
-    });
   }
 }

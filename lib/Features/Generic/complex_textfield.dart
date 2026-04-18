@@ -161,6 +161,7 @@ class ZGenericTextField extends StatefulWidget {
   final String? hint;
   final ZTextFieldType fieldType;
   final bool isRequired;
+  final int? currencyStatus;
   final bool isEnabled;
   final bool readOnly;
   final double? vertical;
@@ -211,6 +212,7 @@ class ZGenericTextField extends StatefulWidget {
     super.key,
     required this.title,
     this.hint,
+    this.currencyStatus = 1,
     this.fieldType = ZTextFieldType.text,
     this.isRequired = false,
     this.isEnabled = true,
@@ -847,6 +849,13 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
         widget.fieldType == ZTextFieldType.currencyWithAmount) {
       return BlocBuilder<CurrenciesBloc, CurrenciesState>(
         builder: (context, state) {
+          if (state is CurrenciesInitial ||
+              (state is CurrenciesLoadedState && state.ccy.isEmpty)) {
+            // Only dispatch if we need to load currencies
+            context.read<CurrenciesBloc>().add(
+                LoadCurrenciesEvent(status: 1)
+            );
+          }
           if (state is CurrenciesLoadedState) {
             return _buildCurrencyContent(state.ccy);
           }

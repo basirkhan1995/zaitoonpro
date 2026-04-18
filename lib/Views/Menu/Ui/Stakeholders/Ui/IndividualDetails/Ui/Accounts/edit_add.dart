@@ -8,8 +8,9 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/model/acc_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
+import '../../../../../../../../Features/Generic/complex_textfield.dart';
 import '../../../../../../../../Features/Other/thousand_separator.dart';
-import '../../../../../../../../Features/Widgets/textfield_entitled.dart';
+import '../../../../../../../../Features/Widgets/textfield_entitled.dart' hide ZTextFieldBorderType;
 import '../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../Finance/Ui/Currency/features/currency_drop.dart';
 
@@ -367,41 +368,20 @@ class _DesktopState extends State<_Desktop> {
               mainAxisSize: MainAxisSize.min,
               spacing: 8,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  spacing: 5,
-                  children: [
-                    Expanded(
-                      child: ZTextFieldEntitled(
-                        controller: accName,
-                        isRequired: true,
-                        title: tr.accountName,
-                        onSubmit: (_) => onSubmit(),
-                        validator: (value) {
-                          if (value.isEmpty) {
-                            return tr.required(tr.accountName);
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                    SizedBox(
-                      width: 120,
-                      child: CurrencyDropdown(
-                        height: 40,
-                        disableAction: widget.model != null,
-                        title: tr.currencyTitle,
-                        isMulti: false,
-                        initiallySelectedSingle: CurrenciesModel(ccyCode: defaultCcy),
-                        onMultiChanged: (_) {},
-                        onSingleChanged: (value) {
-                          ccyCode = value;
-                        },
-                      ),
-                    ),
-                  ],
+                ZGenericTextField(
+                  controller: accName,
+                  title: tr.accountName,
+                  hint: "e.g Ahmad",
+                  defaultCurrencyCode: widget.model?.actCurrency,
+                  fieldType: ZTextFieldType.currency,
+                  onCurrencyChanged: (currency) {
+                    ccyCode = currency;
+                  },
+                  showFlag: true,
+                  showClearButton: true,
+                  showSymbol: false,
+                  isRequired: true,
                 ),
-
                 ZTextFieldEntitled(
                   onSubmit: (_) => onSubmit(),
                   keyboardInputType:

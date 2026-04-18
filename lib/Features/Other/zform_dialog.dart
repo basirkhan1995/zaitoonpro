@@ -144,7 +144,7 @@ class _ZFormDialogState extends State<ZFormDialog> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      widget.icon !=null? Icon(widget.icon,color: Theme.of(context).colorScheme.secondary,size: 20) : SizedBox(),
+                      widget.icon !=null? Icon(widget.icon,color: Theme.of(context).colorScheme.secondary,size: 24) : SizedBox(),
                       widget.icon !=null?  const SizedBox(width: 8) : SizedBox(),
                       Text(
                         widget.title,

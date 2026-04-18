@@ -340,9 +340,9 @@ class _DesktopState extends State<_Desktop> {
 
     return ZFormDialog(
       icon: Icons.account_circle,
-      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
       width: 500,
-      title: isEdit ? tr.update : tr.newKeyword,
+      title: isEdit ? tr.update.toUpperCase() : tr.newKeyword,
       actionLabel:
       (context.watch<AccountsBloc>().state is AccountLoadingState)
           ? SizedBox(

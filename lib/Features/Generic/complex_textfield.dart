@@ -749,11 +749,7 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
     return null;
   }
 
-  Widget _buildCurrencySelector(
-      List<CurrencyItem> currencyItems,
-      CurrencyItem? selectedCurrencyItem,
-      Function(CurrencyItem)? onCurrencySelected,
-      ) {
+  Widget _buildCurrencySelector(List<CurrencyItem> currencyItems, CurrencyItem? selectedCurrencyItem, Function(CurrencyItem)? onCurrencySelected) {
     if (currencyItems.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -763,8 +759,8 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(4),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(0),
         border: Border.all(
           color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
         ),
@@ -796,6 +792,7 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
                     currency.code,
                     style: TextStyle(
                       fontSize: 12,
+                      fontWeight: FontWeight.bold,
                       color: Theme.of(context).colorScheme.outline,
                     ),
                   ),
@@ -803,6 +800,7 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
               ),
             );
           }).toList(),
+
           onChanged: (CurrencyItem? newCurrency) {
             if (newCurrency != null && onCurrencySelected != null) {
               onCurrencySelected(newCurrency);
@@ -814,7 +812,7 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
             color: Theme.of(context).colorScheme.onSurface,
           ),
           icon: Icon(
-            Icons.arrow_drop_down,
+            Icons.arrow_drop_down_rounded,
             size: 20,
             color: Theme.of(context).colorScheme.outline,
           ),

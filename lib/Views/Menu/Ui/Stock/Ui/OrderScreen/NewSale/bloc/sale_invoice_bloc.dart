@@ -389,7 +389,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
-    // Validation
+    // Validation (keep existing validation)
     if (current.customer == null) {
       emit(SaleInvoiceError('Please select a customer'));
       emit(savedState);
@@ -491,36 +491,55 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final xRef = event.xRef ?? '';
 
+      // Get the base currency (fromCurrency)
+      final baseCurrency = current.fromCurrency ?? '';
+      // Get the account currency if account is selected
+      final accountCurrency = current.customerAccount?.actCurrency ?? '';
+      // Check if currencies are different
+      final needsConversion = accountCurrency.isNotEmpty &&
+          baseCurrency.isNotEmpty &&
+          accountCurrency != baseCurrency;
+
       final List<SalePaymentRecord> apiPayments = [];
 
+      // 1. Add extra charges (always in base currency, cash account)
       if (current.extraCharges > 0) {
         apiPayments.add(SalePaymentRecord(
-          accountNumber: 10101010,
+          accountNumber: 10101010, // Cash account
           amount: current.extraCharges,
-          currency: current.fromCurrency ?? '',
+          currency: baseCurrency,
           exRate: 1.0,
           narration: "Extra charges",
         ));
       }
 
+      // 2. Add customer credit payment (account payment)
+      // This is the amount that goes to the customer's account
+      // It should be in the account's currency with exchange rate applied
       if (current.paymentMode != PaymentMode.cash && current.customerAccount != null) {
-        final creditAmount = current.creditAmount;
+        final creditAmount = current.creditAmount; // This is in base currency
         if (creditAmount > 0) {
+          // Convert to account currency if needed
+          final convertedAmount = needsConversion
+              ? creditAmount * current.safeExchangeRate
+              : creditAmount;
+
           apiPayments.add(SalePaymentRecord(
             accountNumber: current.customerAccount!.accNumber!,
-            amount: creditAmount,
-            currency: current.customerAccount!.actCurrency ?? '',
-            exRate: current.safeExchangeRate,
+            amount: convertedAmount, // Amount in account's currency
+            currency: accountCurrency,
+            exRate: needsConversion ? current.safeExchangeRate : 1.0,
             narration: "Customer account payment",
           ));
         }
       }
 
+      // 3. Add cash payment (always in base currency)
       if (current.cashPayment > 0) {
         apiPayments.add(SalePaymentRecord(
-          accountNumber: 10101010,
+          accountNumber: 10101010, // Cash account
           amount: current.cashPayment,
-          currency: current.fromCurrency ?? '',
+          currency: baseCurrency,
           exRate: 1.0,
           narration: "Cash payment",
         ));

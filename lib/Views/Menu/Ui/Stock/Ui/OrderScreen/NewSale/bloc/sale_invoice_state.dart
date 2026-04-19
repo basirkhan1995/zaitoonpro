@@ -140,7 +140,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   }
 
   double get newBalance {
-    return currentBalance + creditAmountLocal;
+    return currentBalance - creditAmountLocal;
   }
 
   bool get isFormValid {

@@ -25,6 +25,7 @@ import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
+
 import '../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart';
@@ -1629,6 +1630,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     return Colors.grey;
   }
 }
+
 class SalePaymentDialog extends StatefulWidget {
   final SaleInvoiceLoaded state;
 
@@ -1637,6 +1639,7 @@ class SalePaymentDialog extends StatefulWidget {
   @override
   State<SalePaymentDialog> createState() => _SalePaymentDialogState();
 }
+
 class _SalePaymentDialogState extends State<SalePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;
@@ -1646,6 +1649,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   @override
   void initState() {
     super.initState();
+
     _cashPaymentController = TextEditingController(
       text: widget.state.cashPayment > 0 ? widget.state.cashPayment.toString() : '',
     );
@@ -1701,7 +1705,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final color = Theme.of(context).colorScheme;
     final needsConversion = widget.state.needsExchangeRate;
     final grandTotal = widget.state.grandTotal;
-    final cashPayment = widget.state.cashPayment;
     final creditAmount = widget.state.creditAmount;
 
     return ZFormDialog(
@@ -1718,7 +1721,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SectionTitle(title: tr.orderSummary.toUpperCase()),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ZCover(
                 padding: const EdgeInsets.all(12),
                 radius: 8,
@@ -1737,16 +1740,13 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         currency: widget.state.fromCurrency ?? '',
                         color: Colors.red,
                       ),
-
-                    if(widget.state.totalAfterItemDiscount != widget.state.subtotal)
-                    _infoRow(
-                      label: tr.afterItemDiscount,
-                      value: widget.state.totalAfterItemDiscount,
-                      currency: widget.state.fromCurrency ?? '',
-                      isBold: true,
-                    ),
-
-                    // General Discount
+                    if (widget.state.totalAfterItemDiscount != widget.state.subtotal)
+                      _infoRow(
+                        label: tr.afterItemDiscount,
+                        value: widget.state.totalAfterItemDiscount,
+                        currency: widget.state.fromCurrency ?? '',
+                        isBold: true,
+                      ),
                     if (widget.state.generalDiscount > 0)
                       _infoRow(
                         label: "${tr.generalDiscount} (${widget.state.generalDiscountType == DiscountType.percentage ? '%' : widget.state.fromCurrency})",
@@ -1754,7 +1754,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         currency: widget.state.fromCurrency ?? '',
                         color: Colors.red,
                       ),
-
                     // Extra Charges - Editable
                     Row(
                       children: [
@@ -1781,7 +1780,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             textAlign: TextAlign.end,
                             onChanged: (value) {
                               final charges = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                             _updateExtraCharges(charges);
+                              _updateExtraCharges(charges);
                             },
                           ),
                         ),
@@ -1795,7 +1794,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       isBold: true,
                       fontSize: 20,
                     ),
-
                     if (needsConversion && widget.state.exchangeRate != null && widget.state.exchangeRate! > 0)
                       _infoRow(
                         label: "${tr.grandTotal} (${widget.state.toCurrency})",
@@ -1808,6 +1806,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                 ),
               ),
               const SizedBox(height: 10),
+
               // Payment Section
               SectionTitle(title: tr.payment),
               const SizedBox(height: 10),
@@ -1816,35 +1815,26 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ZGenericTextField(
-                          controller: _cashPaymentController,
-                          title: tr.cashAmount,
-                          hint: "0.00",
-                          defaultCurrencyCode: widget.state.fromCurrency ?? '',
-                          fieldType: ZTextFieldType.currency,
-                          onCurrencyChanged: (currency) {
-                           // widget.state.fromCurrency = currency;
-                          },
-                          inputFormat: [
-                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
-                          ],
-                          onChanged: (value) {
-                            final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                            _updateCashPayment(amount);
-                          },
-                          showFlag: true,
-                          showClearButton: true,
-                          showSymbol: false,
-                          isRequired: true,
-                        ),
-                      ),
-
+                  ZGenericTextField(
+                    controller: _cashPaymentController,
+                    title: tr.cashAmount,
+                    hint: "0.00",
+                    defaultCurrencyCode: widget.state.fromCurrency ?? '',
+                    fieldType: ZTextFieldType.currency,
+                    inputFormat: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
                     ],
+                    onChanged: (value) {
+                      final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      _updateCashPayment(amount);
+                    },
+                    showFlag: true,
+                    showClearButton: true,
+                    showSymbol: false,
+                    isRequired: true,
                   ),
                   const SizedBox(height: 8),
+
                   // Exchange Rate Section (if needed)
                   if (needsConversion) ...[
                     Row(
@@ -1880,7 +1870,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                               Text(
                                 "${widget.state.fromCurrency} → ${widget.state.customerAccount?.actCurrency}",
                                 style: const TextStyle(fontSize: 12),
-                              )
+                              ),
+                              if (widget.state.exchangeRate != null && widget.state.exchangeRate! > 0)
+                                Text(
+                                  "1 = ${widget.state.exchangeRate!.toStringAsFixed(4)}",
+                                  style: const TextStyle(fontSize: 10),
+                                ),
                             ],
                           ),
                         ),
@@ -1922,13 +1917,14 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(tr.creditAmount, style: const TextStyle(fontWeight: FontWeight.bold),),
+                          Text(tr.creditAmount, style: const TextStyle(fontWeight: FontWeight.bold)),
                           Text(
                             "${creditAmount.toAmount()} ${widget.state.fromCurrency}",
-                            style: const TextStyle(fontWeight: FontWeight.bold,fontSize: 15),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                         ],
                       ),
+                      // Show converted amount in account currency
                       if (needsConversion && creditAmount > 0)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1963,59 +1959,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     ],
                   ),
                 ),
-
-              // const SizedBox(height: 20),
-              // const Divider(),
-              // const SizedBox(height: 16),
-              //
-              // // Payment Summary
-              // _sectionHeader(tr.summary, Icons.summarize),
-              // const SizedBox(height: 8),
-              // Container(
-              //   padding: const EdgeInsets.all(12),
-              //   decoration: BoxDecoration(
-              //     color: color.primary.withValues(alpha: .05),
-              //     borderRadius: BorderRadius.circular(8),
-              //   ),
-              //   child: Column(
-              //     children: [
-              //       _infoRow(
-              //         label: tr.grandTotal,
-              //         value: grandTotal,
-              //         currency: widget.state.fromCurrency ?? '',
-              //       ),
-              //       if (widget.state.extraCharges > 0)
-              //         _infoRow(
-              //           label: tr.extraCharges,
-              //           value: widget.state.extraCharges,
-              //           currency: widget.state.fromCurrency ?? '',
-              //           color: Colors.orange,
-              //         ),
-              //       if (cashPayment > 0)
-              //         _infoRow(
-              //           label: tr.cashPayment,
-              //           value: cashPayment,
-              //           currency: widget.state.fromCurrency ?? '',
-              //           color: Colors.green,
-              //         ),
-              //       if (creditAmount > 0)
-              //         _infoRow(
-              //           label: tr.creditTitle,
-              //           value: creditAmount,
-              //           currency: widget.state.fromCurrency ?? '',
-              //           color: Colors.blue,
-              //         ),
-              //       if (needsConversion && widget.state.creditAmountLocal > 0)
-              //         _infoRow(
-              //           label: "${tr.creditTitle} (${widget.state.toCurrency})",
-              //           value: widget.state.creditAmountLocal,
-              //           currency: widget.state.toCurrency ?? '',
-              //           fontSize: 12,
-              //           color: Colors.blue.withValues(alpha: .7),
-              //         ),
-              //     ],
-              //   ),
-              // ),
             ],
           ),
         ),

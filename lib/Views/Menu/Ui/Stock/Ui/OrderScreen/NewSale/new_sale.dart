@@ -1468,7 +1468,15 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     showDialog(
       context: context,
       builder: (_) => SalePaymentDialog(state: current),
-    );
+    ).then((_) {
+      // After dialog closes, check the state
+      final updatedState = context.read<SaleInvoiceBloc>().state;
+      if (updatedState is SaleInvoiceLoaded) {
+        debugPrint('=== AFTER DIALOG CLOSE ===');
+        debugPrint('Cash Currency: ${updatedState.cashCurrency}');
+        debugPrint('Cash Exchange Rate: ${updatedState.cashExchangeRate}');
+      }
+    });
   }
 
   String _getPaymentModeLabel(PaymentMode mode) {
@@ -1656,11 +1664,17 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   void initState() {
     super.initState();
 
-    // Initialize with existing cash currency or base currency
-    _selectedCashCurrency = (widget.state.cashCurrency!.isNotEmpty
-        ? widget.state.cashCurrency
-        : (widget.state.fromCurrency ?? ''))!;
-    _cashExchangeRate = 1.0;
+    // Initialize with existing cash currency from state or base currency
+    _selectedCashCurrency = (widget.state.cashCurrency != null && widget.state.cashCurrency!.isNotEmpty)
+        ? widget.state.cashCurrency!
+        : (widget.state.fromCurrency ?? '');
+    _cashExchangeRate = widget.state.cashExchangeRate;
+
+    debugPrint('=== DIALOG INIT ===');
+    debugPrint('Initial cashCurrency from state: ${widget.state.cashCurrency}');
+    debugPrint('Selected cash currency: $_selectedCashCurrency');
+    debugPrint('Cash exchange rate: $_cashExchangeRate');
+    debugPrint('==================');
 
     _cashPaymentController = TextEditingController(
       text: widget.state.cashPayment > 0 ? widget.state.cashPayment.toString() : '',
@@ -1670,7 +1684,9 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
           ? widget.state.exchangeRate!.toStringAsFixed(4)
           : '',
     );
-    _cashExchangeRateController = TextEditingController(text: '1.0000');
+    _cashExchangeRateController = TextEditingController(
+      text: _cashExchangeRate.toStringAsFixed(4),
+    );
     _extraChargesController = TextEditingController(
       text: widget.state.extraCharges > 0 ? widget.state.extraCharges.toString() : '',
     );
@@ -1706,26 +1722,32 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   }
 
   void _updateCashCurrencyAndRate(String currency, double rate) {
+    debugPrint('=== UPDATING CASH CURRENCY ===');
+    debugPrint('New currency: $currency');
+    debugPrint('New rate: $rate');
+
+    // Update local state
     setState(() {
       _selectedCashCurrency = currency;
       _cashExchangeRate = rate;
+      _cashExchangeRateController.text = rate.toStringAsFixed(4);
     });
-    // Update the BLoC state with the selected cash currency
+
+    // Update the BLoC state with the selected cash currency AND exchange rate
     context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
       currency: currency,
       exchangeRate: rate,
     ));
+
+    debugPrint('UpdateCashCurrencyEvent dispatched');
   }
 
   void _updateCashExchangeRate(double rate) {
+    debugPrint('Manual exchange rate update: $rate');
     setState(() {
       _cashExchangeRate = rate;
     });
-    // Update the BLoC state with the new exchange rate
-    context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
-      currency: _selectedCashCurrency,
-      exchangeRate: rate,
-    ));
+    _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
   }
 
   void _updateExtraCharges(double value) {
@@ -1737,51 +1759,67 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   }
 
   void _onCashCurrencyChanged(CurrenciesModel? currency) {
+    debugPrint('=== CURRENCY CHANGED ===');
+    debugPrint('Selected currency: ${currency?.ccyCode}');
+    debugPrint('Current selected: $_selectedCashCurrency');
+
     if (currency != null && currency.ccyCode != _selectedCashCurrency) {
+      final newCurrency = currency.ccyCode!;
       setState(() {
-        _selectedCashCurrency = currency.ccyCode ?? '';
+        _selectedCashCurrency = newCurrency;
         _isLoadingCashRate = true;
       });
 
       final baseCurrency = widget.state.fromCurrency ?? '';
-      if (baseCurrency.isNotEmpty && _selectedCashCurrency != baseCurrency) {
-        _fetchCashExchangeRate(baseCurrency, _selectedCashCurrency);
+      debugPrint('Base currency: $baseCurrency');
+      debugPrint('New currency: $newCurrency');
+
+      if (baseCurrency.isNotEmpty && newCurrency != baseCurrency) {
+        _fetchCashExchangeRate(baseCurrency, newCurrency);
       } else {
+        debugPrint('Same as base currency, setting rate to 1.0');
         setState(() {
           _cashExchangeRate = 1.0;
           _cashExchangeRateController.text = '1.0000';
           _isLoadingCashRate = false;
         });
-        _updateCashCurrencyAndRate(_selectedCashCurrency, 1.0);
+        _updateCashCurrencyAndRate(newCurrency, 1.0);
       }
     }
   }
 
   Future<void> _fetchCashExchangeRate(String fromCurrency, String toCurrency) async {
+    debugPrint('=== FETCHING EXCHANGE RATE ===');
+    debugPrint('From: $fromCurrency, To: $toCurrency');
+
     try {
       final rateStr = await context.read<SaleInvoiceBloc>().repo.getSingleRate(
         fromCcy: fromCurrency,
         toCcy: toCurrency,
       );
       final rate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
+      debugPrint('Fetched rate: $rate');
+
       setState(() {
         _cashExchangeRate = rate;
         _cashExchangeRateController.text = rate.toStringAsFixed(4);
         _isLoadingCashRate = false;
       });
-      _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
+      _updateCashCurrencyAndRate(toCurrency, rate);
     } catch (e) {
+      debugPrint('Error fetching rate: $e');
       setState(() {
         _cashExchangeRate = 1.0;
         _cashExchangeRateController.text = '1.0000';
         _isLoadingCashRate = false;
       });
-      _updateCashCurrencyAndRate(_selectedCashCurrency, 1.0);
+      _updateCashCurrencyAndRate(toCurrency, 1.0);
     }
   }
 
   double get _convertedCashAmount {
-    return (double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0) * _cashExchangeRate;
+    final amount = double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0;
+    return amount * _cashExchangeRate;
   }
 
   @override
@@ -1803,7 +1841,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
       icon: Icons.payment,
       width: 550,
       actionLabel: Text(tr.confirm),
-      onAction: () => Navigator.pop(context),
+      onAction: () {
+        debugPrint('=== DIALOG CLOSING ===');
+        debugPrint('Final cash currency: $_selectedCashCurrency');
+        debugPrint('Final exchange rate: $_cashExchangeRate');
+        Navigator.pop(context);
+      },
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -1924,6 +1967,15 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     showClearButton: true,
                     showSymbol: false,
                     isRequired: true,
+                  ),
+
+                  // Show selected currency info
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      "Selected cash currency: $_selectedCashCurrency",
+                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                    ),
                   ),
 
                   // Exchange Rate Section for Cash (if different currency selected)
@@ -2052,7 +2104,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           ),
                         ],
                       ),
-                      // Show converted amount in account currency
                       if (needsConversion && creditAmount > 0)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

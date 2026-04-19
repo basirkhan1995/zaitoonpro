@@ -191,6 +191,7 @@ class UpdateItemUnitEvent extends SaleInvoiceEvent {
   @override
   List<Object?> get props => [rowId, unit];
 }
+
 class UpdateCashCurrencyEvent extends SaleInvoiceEvent {
   final String currency;
   final double exchangeRate;

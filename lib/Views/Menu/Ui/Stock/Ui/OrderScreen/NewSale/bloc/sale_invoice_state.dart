@@ -33,6 +33,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final double extraCharges;
   final double cashPayment;
   final String? cashCurrency;
+  final double cashExchangeRate;
 
   const SaleInvoiceLoaded({
     required this.items,
@@ -49,6 +50,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     this.toCurrency,
     this.cashPayment = 0.0,
     this.cashCurrency,
+    this.cashExchangeRate = 1.0,
   });
 
   bool get needsExchangeRate {
@@ -188,6 +190,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     double? extraCharges,
     double? cashPayment,
     String? cashCurrency,
+    double? cashExchangeRate,
   }) {
     return SaleInvoiceLoaded(
       items: items ?? this.items,
@@ -203,7 +206,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       toCurrency: toCurrency ?? this.toCurrency,
       extraCharges: extraCharges ?? this.extraCharges,
       cashPayment: cashPayment ?? this.cashPayment,
-      cashCurrency: cashCurrency ?? this.cashCurrency
+      cashCurrency: cashCurrency ?? this.cashCurrency,
+      cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
     );
   }
 

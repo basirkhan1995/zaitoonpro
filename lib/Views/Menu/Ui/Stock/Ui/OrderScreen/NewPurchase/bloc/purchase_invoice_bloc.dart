@@ -491,16 +491,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             narration: expense.narration!.isNotEmpty ? expense.narration : 'Expense: ${expense.accountNumber}',
             isExpense: true, // This marks it as an expense transaction
           ));
-
-          // Entry 2: CREDIT the cash account (records cash payment)
-          apiPayments.add(PurchasePaymentRecord(
-            accountNumber: 10101010, // Cash account
-            amount: -expense.amount, // NEGATIVE amount for credit
-            currency: baseCurrency,
-            exRate: 1.0,
-            narration: 'Cash payment for expense: ${expense.narration}',
-            isExpense: false,
-          ));
         }
       }
 
@@ -555,7 +545,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           // CREDIT cash account for payment to supplier
           apiPayments.add(PurchasePaymentRecord(
             accountNumber: 10101010, // Cash account
-            amount: -cashAmount, // NEGATIVE amount for credit
+            amount: cashAmount,
             currency: baseCurrency,
             exRate: 1.0,
             narration: 'Cash payment to supplier',

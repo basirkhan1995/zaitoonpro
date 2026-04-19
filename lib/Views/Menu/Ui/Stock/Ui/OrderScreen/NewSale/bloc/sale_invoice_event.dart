@@ -191,3 +191,13 @@ class UpdateItemUnitEvent extends SaleInvoiceEvent {
   @override
   List<Object?> get props => [rowId, unit];
 }
+class UpdateCashCurrencyEvent extends SaleInvoiceEvent {
+  final String currency;
+  final double exchangeRate;
+  const UpdateCashCurrencyEvent({
+    required this.currency,
+    required this.exchangeRate,
+  });
+  @override
+  List<Object?> get props => [currency, exchangeRate];
+}

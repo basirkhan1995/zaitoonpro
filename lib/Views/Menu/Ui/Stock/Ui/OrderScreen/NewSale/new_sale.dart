@@ -26,6 +26,7 @@ import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
 
+import '../../../../Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import '../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart';
@@ -1644,11 +1645,22 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;
   late TextEditingController _extraChargesController;
+  late TextEditingController _cashExchangeRateController;
   Timer? _debounce;
+
+  String _selectedCashCurrency = '';
+  double _cashExchangeRate = 1.0;
+  bool _isLoadingCashRate = false;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize with existing cash currency or base currency
+    _selectedCashCurrency = (widget.state.cashCurrency!.isNotEmpty
+        ? widget.state.cashCurrency
+        : (widget.state.fromCurrency ?? ''))!;
+    _cashExchangeRate = 1.0;
 
     _cashPaymentController = TextEditingController(
       text: widget.state.cashPayment > 0 ? widget.state.cashPayment.toString() : '',
@@ -1658,6 +1670,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
           ? widget.state.exchangeRate!.toStringAsFixed(4)
           : '',
     );
+    _cashExchangeRateController = TextEditingController(text: '1.0000');
     _extraChargesController = TextEditingController(
       text: widget.state.extraCharges > 0 ? widget.state.extraCharges.toString() : '',
     );
@@ -1668,6 +1681,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     _debounce?.cancel();
     _cashPaymentController.dispose();
     _exchangeRateController.dispose();
+    _cashExchangeRateController.dispose();
     _extraChargesController.dispose();
     super.dispose();
   }
@@ -1691,12 +1705,83 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     }
   }
 
+  void _updateCashCurrencyAndRate(String currency, double rate) {
+    setState(() {
+      _selectedCashCurrency = currency;
+      _cashExchangeRate = rate;
+    });
+    // Update the BLoC state with the selected cash currency
+    context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
+      currency: currency,
+      exchangeRate: rate,
+    ));
+  }
+
+  void _updateCashExchangeRate(double rate) {
+    setState(() {
+      _cashExchangeRate = rate;
+    });
+    // Update the BLoC state with the new exchange rate
+    context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
+      currency: _selectedCashCurrency,
+      exchangeRate: rate,
+    ));
+  }
+
   void _updateExtraCharges(double value) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 300), () {
       context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(value));
     });
     setState(() {});
+  }
+
+  void _onCashCurrencyChanged(CurrenciesModel? currency) {
+    if (currency != null && currency.ccyCode != _selectedCashCurrency) {
+      setState(() {
+        _selectedCashCurrency = currency.ccyCode ?? '';
+        _isLoadingCashRate = true;
+      });
+
+      final baseCurrency = widget.state.fromCurrency ?? '';
+      if (baseCurrency.isNotEmpty && _selectedCashCurrency != baseCurrency) {
+        _fetchCashExchangeRate(baseCurrency, _selectedCashCurrency);
+      } else {
+        setState(() {
+          _cashExchangeRate = 1.0;
+          _cashExchangeRateController.text = '1.0000';
+          _isLoadingCashRate = false;
+        });
+        _updateCashCurrencyAndRate(_selectedCashCurrency, 1.0);
+      }
+    }
+  }
+
+  Future<void> _fetchCashExchangeRate(String fromCurrency, String toCurrency) async {
+    try {
+      final rateStr = await context.read<SaleInvoiceBloc>().repo.getSingleRate(
+        fromCcy: fromCurrency,
+        toCcy: toCurrency,
+      );
+      final rate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
+      setState(() {
+        _cashExchangeRate = rate;
+        _cashExchangeRateController.text = rate.toStringAsFixed(4);
+        _isLoadingCashRate = false;
+      });
+      _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
+    } catch (e) {
+      setState(() {
+        _cashExchangeRate = 1.0;
+        _cashExchangeRateController.text = '1.0000';
+        _isLoadingCashRate = false;
+      });
+      _updateCashCurrencyAndRate(_selectedCashCurrency, 1.0);
+    }
+  }
+
+  double get _convertedCashAmount {
+    return (double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0) * _cashExchangeRate;
   }
 
   @override
@@ -1706,6 +1791,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final needsConversion = widget.state.needsExchangeRate;
     final grandTotal = widget.state.grandTotal;
     final creditAmount = widget.state.creditAmount;
+    final baseCurrency = widget.state.fromCurrency ?? '';
+
+    // Check if cash currency is different from base currency
+    final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&
+        baseCurrency.isNotEmpty &&
+        _selectedCashCurrency != baseCurrency;
 
     return ZFormDialog(
       title: tr.payment.toUpperCase(),
@@ -1811,7 +1902,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
               SectionTitle(title: tr.payment),
               const SizedBox(height: 10),
 
-              // Cash Payment
+              // Cash Payment with Currency Selection
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -1819,8 +1910,9 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     controller: _cashPaymentController,
                     title: tr.cashAmount,
                     hint: "0.00",
-                    defaultCurrencyCode: widget.state.fromCurrency ?? '',
+                    defaultCurrencyCode: baseCurrency,
                     fieldType: ZTextFieldType.currency,
+                    onCurrencyChanged: _onCashCurrencyChanged,
                     inputFormat: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
                     ],
@@ -1833,17 +1925,63 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     showSymbol: false,
                     isRequired: true,
                   ),
-                  const SizedBox(height: 8),
 
-                  // Exchange Rate Section (if needed)
+                  // Exchange Rate Section for Cash (if different currency selected)
+                  if (needsCashConversion) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: ZTextFieldEntitled(
+                            controller: _cashExchangeRateController,
+                            title: "${tr.exchangeRate} ($baseCurrency → $_selectedCashCurrency)",
+                            hint: "1 $baseCurrency = ?",
+                            inputFormat: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
+                            ],
+                            onChanged: (value) {
+                              final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                              if (rate > 0) {
+                                _updateCashExchangeRate(rate);
+                              }
+                            },
+                            trailing: _isLoadingCashRate
+                                ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.all(11),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
+                            color: color.primary.withValues(alpha: .03),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            "≈ ${_convertedCashAmount.toAmount()} $_selectedCashCurrency",
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  // Exchange Rate Section for Account Payment (if needed)
                   if (needsConversion) ...[
+                    const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: _exchangeRateController,
-                            title: tr.exchangeRate,
+                            title: "${tr.exchangeRate} (${widget.state.fromCurrency} → ${widget.state.toCurrency})",
                             hint: "1 ${widget.state.fromCurrency} = ?",
                             inputFormat: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
@@ -1864,19 +2002,9 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             color: color.primary.withValues(alpha: .03),
                             borderRadius: BorderRadius.circular(3),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "${widget.state.fromCurrency} → ${widget.state.customerAccount?.actCurrency}",
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              if (widget.state.exchangeRate != null && widget.state.exchangeRate! > 0)
-                                Text(
-                                  "1 = ${widget.state.exchangeRate!.toStringAsFixed(4)}",
-                                  style: const TextStyle(fontSize: 10),
-                                ),
-                            ],
+                          child: Text(
+                            "${widget.state.creditAmountLocal.toAmount()} ${widget.state.toCurrency}",
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                         ),
                       ],

@@ -36,6 +36,16 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateExchangeRateEvent>(_onUpdateExchangeRate);
     on<UpdateExtraChargesEvent>(_onUpdateExtraCharges);
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
+    on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
+  }
+
+  void _onUpdateCashCurrency(UpdateCashCurrencyEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      emit(current.copyWith(
+        cashCurrency: event.currency,
+      ));
+    }
   }
 
   void setExchangeRateBloc(ExchangeRateBloc exchangeRateBloc) {
@@ -194,6 +204,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       paymentMode: PaymentMode.cash,
       extraCharges: 0.0,
       generalDiscount: 0.0,
+      cashCurrency: '', // Add this
     ));
   }
 
@@ -376,6 +387,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       paymentMode: PaymentMode.cash,
       extraCharges: 0.0,
       generalDiscount: 0.0,
+      cashCurrency: '', // Add this
     ));
   }
 
@@ -389,7 +401,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
-    // Validation (keep existing validation)
+    // Validation
     if (current.customer == null) {
       emit(SaleInvoiceError('Please select a customer'));
       emit(savedState);
@@ -491,21 +503,19 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final xRef = event.xRef ?? '';
 
-      // Get the base currency (fromCurrency)
+      // Get currencies
       final baseCurrency = current.fromCurrency ?? '';
-      // Get the account currency if account is selected
       final accountCurrency = current.customerAccount?.actCurrency ?? '';
-      // Check if currencies are different
       final needsConversion = accountCurrency.isNotEmpty &&
           baseCurrency.isNotEmpty &&
           accountCurrency != baseCurrency;
 
       final List<SalePaymentRecord> apiPayments = [];
 
-      // 1. Add extra charges (always in base currency, cash account)
+      // 1. Add extra charges (always in base currency, cash account, exRate = 1)
       if (current.extraCharges > 0) {
         apiPayments.add(SalePaymentRecord(
-          accountNumber: 10101010, // Cash account
+          accountNumber: 10101010,
           amount: current.extraCharges,
           currency: baseCurrency,
           exRate: 1.0,
@@ -514,19 +524,16 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       }
 
       // 2. Add customer credit payment (account payment)
-      // This is the amount that goes to the customer's account
-      // It should be in the account's currency with exchange rate applied
       if (current.paymentMode != PaymentMode.cash && current.customerAccount != null) {
-        final creditAmount = current.creditAmount; // This is in base currency
+        final creditAmount = current.creditAmount;
         if (creditAmount > 0) {
-          // Convert to account currency if needed
           final convertedAmount = needsConversion
               ? creditAmount * current.safeExchangeRate
               : creditAmount;
 
           apiPayments.add(SalePaymentRecord(
             accountNumber: current.customerAccount!.accNumber!,
-            amount: convertedAmount, // Amount in account's currency
+            amount: convertedAmount,
             currency: accountCurrency,
             exRate: needsConversion ? current.safeExchangeRate : 1.0,
             narration: "Customer account payment",
@@ -534,13 +541,32 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // 3. Add cash payment (always in base currency)
+      // 3. Add cash payment with SELECTED CURRENCY
+      // Use cashCurrency from state if set, otherwise use baseCurrency
       if (current.cashPayment > 0) {
+        final cashCurrency = current.cashCurrency!.isNotEmpty
+            ? current.cashCurrency
+            : baseCurrency;
+
+        // Calculate exchange rate if cash currency is different from base currency
+        double cashExRate = 1.0;
+        if (cashCurrency != baseCurrency && cashCurrency!.isNotEmpty) {
+          try {
+            final rateStr = await repo.getSingleRate(
+              fromCcy: baseCurrency,
+              toCcy: cashCurrency,
+            );
+            cashExRate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
+          } catch (e) {
+            cashExRate = 1.0;
+          }
+        }
+
         apiPayments.add(SalePaymentRecord(
-          accountNumber: 10101010, // Cash account
+          accountNumber: 10101010,
           amount: current.cashPayment,
-          currency: baseCurrency,
-          exRate: 1.0,
+          currency: cashCurrency ?? '', // Use selected cash currency
+          exRate: cashExRate, // Exchange rate from base to cash currency
           narration: "Cash payment",
         ));
       }

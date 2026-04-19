@@ -1826,7 +1826,7 @@ class Repositories {
       "ordName": orderName,
       "ordPersonal": perID,
       "ordxRef": xRef ?? "",
-      "ordRemark": remark,
+      "ordRemarks": remark,
       "payments": payment.map((e)=> e.toJson()).toList(),
       "records": records.map((r) => r.toJson()).toList(),
     };

@@ -60,6 +60,8 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
   final double? salePrice;
   final int? storageId;
   final String? storageName;
+  final double? landedPrice;
+  final double? purchasePrice;
   final String? unit;
 
   const UpdateSaleItemEvent({
@@ -76,13 +78,15 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     this.salePrice,
     this.storageId,
     this.storageName,
+    this.landedPrice,
+    this.purchasePrice,
     this.unit,
   });
 
   @override
   List<Object?> get props => [
     rowId, productId, productName, qty, discount, discountType, batch,
-    localeAmount, exchangeRate, purPrice, salePrice, storageId, storageName, unit
+    localeAmount, exchangeRate, purPrice, salePrice, storageId, storageName, landedPrice, purchasePrice, unit
   ];
 }
 
@@ -113,6 +117,7 @@ class SaveSaleInvoiceEvent extends SaleInvoiceEvent {
   final String orderName;
   final int ordPersonal;
   final String? xRef;
+
   final String? remark;
   final Completer<String> completer;
 

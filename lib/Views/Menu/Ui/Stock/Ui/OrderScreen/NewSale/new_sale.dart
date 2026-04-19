@@ -736,6 +736,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       if (product != null) {
         final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
         final averagePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
+        final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount() ?? "0.0") ?? 0.0;
+        final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount() ?? "0.0") ?? 0.0;
 
         context.read<SaleInvoiceBloc>().add(
           UpdateSaleItemEvent(
@@ -746,6 +748,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             storageName: product.stgName ?? '',
             purPrice: averagePrice,
             salePrice: salePrice,
+            landedPrice: landedPrice,
+            purchasePrice: purchasePrice,
             batch: product.stkQtyInBatch ?? 0,
           ),
         );
@@ -1463,20 +1467,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
-  // NEW: Show the SalePaymentDialog instead of the old payment mode dialog
   void _showPaymentDialog(SaleInvoiceLoaded current) {
     showDialog(
       context: context,
       builder: (_) => SalePaymentDialog(state: current),
-    ).then((_) {
-      // After dialog closes, check the state
-      final updatedState = context.read<SaleInvoiceBloc>().state;
-      if (updatedState is SaleInvoiceLoaded) {
-        debugPrint('=== AFTER DIALOG CLOSE ===');
-        debugPrint('Cash Currency: ${updatedState.cashCurrency}');
-        debugPrint('Cash Exchange Rate: ${updatedState.cashExchangeRate}');
-      }
-    });
+    );
   }
 
   String _getPaymentModeLabel(PaymentMode mode) {
@@ -1648,7 +1643,6 @@ class SalePaymentDialog extends StatefulWidget {
   @override
   State<SalePaymentDialog> createState() => _SalePaymentDialogState();
 }
-
 class _SalePaymentDialogState extends State<SalePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;
@@ -1659,146 +1653,103 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   String _selectedCashCurrency = '';
   double _cashExchangeRate = 1.0;
   bool _isLoadingCashRate = false;
+  String _baseCurrency = '';
 
   @override
   void initState() {
     super.initState();
 
-    // Initialize with existing cash currency from state or base currency
-    _selectedCashCurrency = (widget.state.cashCurrency != null && widget.state.cashCurrency!.isNotEmpty)
-        ? widget.state.cashCurrency!
-        : (widget.state.fromCurrency ?? '');
-    _cashExchangeRate = widget.state.cashExchangeRate;
+    // Get base currency from auth state
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthenticatedState) {
+      _baseCurrency = authState.loginData.company?.comLocalCcy ?? 'USD';
+    }
 
-    debugPrint('=== DIALOG INIT ===');
-    debugPrint('Initial cashCurrency from state: ${widget.state.cashCurrency}');
-    debugPrint('Selected cash currency: $_selectedCashCurrency');
-    debugPrint('Cash exchange rate: $_cashExchangeRate');
-    debugPrint('==================');
+    // If still empty, try to get from state
+    if (_baseCurrency.isEmpty) {
+      _baseCurrency = widget.state.fromCurrency ?? 'USD';
+    }
+
+    // Initialize cash currency - ALWAYS start with base currency
+    _selectedCashCurrency = _baseCurrency;
+    _cashExchangeRate = 1.0;
+
+    // Convert stored base amount to selected currency for display
+    final cashPaymentInSelectedCurrency = widget.state.cashPayment * _cashExchangeRate;
 
     _cashPaymentController = TextEditingController(
-      text: widget.state.cashPayment > 0 ? widget.state.cashPayment.toString() : '',
+      text: cashPaymentInSelectedCurrency > 0 ? cashPaymentInSelectedCurrency.toStringAsFixed(2) : '',
     );
+
     _exchangeRateController = TextEditingController(
       text: widget.state.exchangeRate != null && widget.state.exchangeRate! > 0
           ? widget.state.exchangeRate!.toStringAsFixed(4)
           : '',
     );
+
     _cashExchangeRateController = TextEditingController(
       text: _cashExchangeRate.toStringAsFixed(4),
     );
+
     _extraChargesController = TextEditingController(
       text: widget.state.extraCharges > 0 ? widget.state.extraCharges.toString() : '',
     );
   }
 
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _cashPaymentController.dispose();
-    _exchangeRateController.dispose();
-    _cashExchangeRateController.dispose();
-    _extraChargesController.dispose();
-    super.dispose();
-  }
-
-  void _updateCashPayment(double value) {
-    context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(value));
+  void _updateCashPayment(double amountInSelectedCurrency) {
+    // Convert selected currency amount to base currency for storage
+    final amountInBaseCurrency = amountInSelectedCurrency / _cashExchangeRate;
+    context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(amountInBaseCurrency));
     setState(() {});
   }
 
-  void _updateExchangeRate(double rate) {
-    final state = widget.state;
-    if (state.customerAccount != null) {
-      context.read<SaleInvoiceBloc>().add(
-        UpdateExchangeRateManuallyEvent(
-          rate: rate,
-          fromCurrency: state.fromCurrency ?? '',
-          toCurrency: state.customerAccount!.actCurrency ?? '',
-        ),
-      );
-      setState(() {});
-    }
-  }
-
   void _updateCashCurrencyAndRate(String currency, double rate) {
-    debugPrint('=== UPDATING CASH CURRENCY ===');
-    debugPrint('New currency: $currency');
-    debugPrint('New rate: $rate');
-
-    // Update local state
     setState(() {
       _selectedCashCurrency = currency;
       _cashExchangeRate = rate;
       _cashExchangeRateController.text = rate.toStringAsFixed(4);
     });
 
-    // Update the BLoC state with the selected cash currency AND exchange rate
     context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
       currency: currency,
       exchangeRate: rate,
     ));
-
-    debugPrint('UpdateCashCurrencyEvent dispatched');
-  }
-
-  void _updateCashExchangeRate(double rate) {
-    debugPrint('Manual exchange rate update: $rate');
-    setState(() {
-      _cashExchangeRate = rate;
-    });
-    _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
-  }
-
-  void _updateExtraCharges(double value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
-      context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(value));
-    });
-    setState(() {});
   }
 
   void _onCashCurrencyChanged(CurrenciesModel? currency) {
-    debugPrint('=== CURRENCY CHANGED ===');
-    debugPrint('Selected currency: ${currency?.ccyCode}');
-    debugPrint('Current selected: $_selectedCashCurrency');
+    if (currency == null) return;
 
-    if (currency != null && currency.ccyCode != _selectedCashCurrency) {
-      final newCurrency = currency.ccyCode!;
+    final newCurrency = currency.ccyCode!;
+
+    // If currency didn't change, do nothing
+    if (newCurrency == _selectedCashCurrency) return;
+
+    setState(() {
+      _selectedCashCurrency = newCurrency;
+      _isLoadingCashRate = true;
+    });
+
+    // If new currency is different from base currency, fetch rate
+    if (_baseCurrency.isNotEmpty && newCurrency != _baseCurrency) {
+      _fetchCashExchangeRate(_baseCurrency, newCurrency);
+    } else {
+      // Same as base currency, rate is 1.0
       setState(() {
-        _selectedCashCurrency = newCurrency;
-        _isLoadingCashRate = true;
+        _cashExchangeRate = 1.0;
+        _cashExchangeRateController.text = '1.0000';
+        _isLoadingCashRate = false;
       });
-
-      final baseCurrency = widget.state.fromCurrency ?? '';
-      debugPrint('Base currency: $baseCurrency');
-      debugPrint('New currency: $newCurrency');
-
-      if (baseCurrency.isNotEmpty && newCurrency != baseCurrency) {
-        _fetchCashExchangeRate(baseCurrency, newCurrency);
-      } else {
-        debugPrint('Same as base currency, setting rate to 1.0');
-        setState(() {
-          _cashExchangeRate = 1.0;
-          _cashExchangeRateController.text = '1.0000';
-          _isLoadingCashRate = false;
-        });
-        _updateCashCurrencyAndRate(newCurrency, 1.0);
-      }
+      _updateCashCurrencyAndRate(newCurrency, 1.0);
     }
   }
 
   Future<void> _fetchCashExchangeRate(String fromCurrency, String toCurrency) async {
-    debugPrint('=== FETCHING EXCHANGE RATE ===');
-    debugPrint('From: $fromCurrency, To: $toCurrency');
-
     try {
       final rateStr = await context.read<SaleInvoiceBloc>().repo.getSingleRate(
         fromCcy: fromCurrency,
         toCcy: toCurrency,
       );
       final rate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
-      debugPrint('Fetched rate: $rate');
 
       setState(() {
         _cashExchangeRate = rate;
@@ -1807,7 +1758,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
       });
       _updateCashCurrencyAndRate(toCurrency, rate);
     } catch (e) {
-      debugPrint('Error fetching rate: $e');
       setState(() {
         _cashExchangeRate = 1.0;
         _cashExchangeRateController.text = '1.0000';
@@ -1818,35 +1768,28 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   }
 
   double get _convertedCashAmount {
-    final amount = double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0;
-    return amount * _cashExchangeRate;
+    final amountInSelectedCurrency = double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0;
+    return amountInSelectedCurrency / _cashExchangeRate;
   }
 
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    final needsConversion = widget.state.needsExchangeRate;
+    final needsAccountConversion = widget.state.needsExchangeRate;
     final grandTotal = widget.state.grandTotal;
-    final creditAmount = widget.state.creditAmount;
-    final baseCurrency = widget.state.fromCurrency ?? '';
 
     // Check if cash currency is different from base currency
     final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&
-        baseCurrency.isNotEmpty &&
-        _selectedCashCurrency != baseCurrency;
+        _baseCurrency.isNotEmpty &&
+        _selectedCashCurrency != _baseCurrency;
 
     return ZFormDialog(
       title: tr.payment.toUpperCase(),
       icon: Icons.payment,
       width: 550,
       actionLabel: Text(tr.confirm),
-      onAction: () {
-        debugPrint('=== DIALOG CLOSING ===');
-        debugPrint('Final cash currency: $_selectedCashCurrency');
-        debugPrint('Final exchange rate: $_cashExchangeRate');
-        Navigator.pop(context);
-      },
+      onAction: () => Navigator.pop(context),
       child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -1854,6 +1797,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Order Summary Section
               SectionTitle(title: tr.orderSummary.toUpperCase()),
               const SizedBox(height: 8),
               ZCover(
@@ -1864,31 +1808,30 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     _infoRow(
                       label: tr.subtotal.toUpperCase(),
                       value: widget.state.subtotal,
-                      currency: widget.state.fromCurrency ?? '',
+                      currency: _baseCurrency,
                       isBold: true,
                     ),
                     if (widget.state.totalItemDiscount > 0)
                       _infoRow(
                         label: tr.itemDiscounts,
                         value: -widget.state.totalItemDiscount,
-                        currency: widget.state.fromCurrency ?? '',
+                        currency: _baseCurrency,
                         color: Colors.red,
                       ),
                     if (widget.state.totalAfterItemDiscount != widget.state.subtotal)
                       _infoRow(
                         label: tr.afterItemDiscount,
                         value: widget.state.totalAfterItemDiscount,
-                        currency: widget.state.fromCurrency ?? '',
+                        currency: _baseCurrency,
                         isBold: true,
                       ),
                     if (widget.state.generalDiscount > 0)
                       _infoRow(
-                        label: "${tr.generalDiscount} (${widget.state.generalDiscountType == DiscountType.percentage ? '%' : widget.state.fromCurrency})",
+                        label: "${tr.generalDiscount} (${widget.state.generalDiscountType == DiscountType.percentage ? '%' : _baseCurrency})",
                         value: -widget.state.generalDiscountAmount,
-                        currency: widget.state.fromCurrency ?? '',
+                        currency: _baseCurrency,
                         color: Colors.red,
                       ),
-                    // Extra Charges - Editable
                     Row(
                       children: [
                         Expanded(
@@ -1909,7 +1852,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                               hintText: '0',
                               border: InputBorder.none,
                               isDense: true,
-                              suffixText: widget.state.fromCurrency,
+                              suffixText: _baseCurrency,
                             ),
                             textAlign: TextAlign.end,
                             onChanged: (value) {
@@ -1924,15 +1867,16 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     _infoRow(
                       label: tr.grandTotal,
                       value: grandTotal,
-                      currency: widget.state.fromCurrency ?? '',
+                      currency: _baseCurrency,
                       isBold: true,
                       fontSize: 20,
                     ),
-                    if (needsConversion && widget.state.exchangeRate != null && widget.state.exchangeRate! > 0)
+                    // Account conversion summary (if account is selected)
+                    if (needsAccountConversion && widget.state.exchangeRate != null && widget.state.exchangeRate! > 0 && widget.state.toCurrency != null)
                       _infoRow(
                         label: "${tr.grandTotal} (${widget.state.toCurrency})",
                         value: grandTotal * widget.state.safeExchangeRate,
-                        currency: widget.state.toCurrency ?? '',
+                        currency: widget.state.toCurrency!,
                         fontSize: 15,
                         color: color.outline.withValues(alpha: .7),
                       ),
@@ -1945,23 +1889,23 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
               SectionTitle(title: tr.payment),
               const SizedBox(height: 10),
 
-              // Cash Payment with Currency Selection
+              // Cash Payment Section - ALWAYS visible, starts with base currency
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ZGenericTextField(
                     controller: _cashPaymentController,
-                    title: tr.cashAmount,
+                    title: "${tr.cashAmount} ($_baseCurrency)",
                     hint: "0.00",
-                    defaultCurrencyCode: baseCurrency,
+                    defaultCurrencyCode: _baseCurrency,
                     fieldType: ZTextFieldType.currency,
                     onCurrencyChanged: _onCashCurrencyChanged,
                     inputFormat: [
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
                     ],
                     onChanged: (value) {
-                      final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                      _updateCashPayment(amount);
+                      final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      _updateCashPayment(amountInSelectedCurrency);
                     },
                     showFlag: true,
                     showClearButton: true,
@@ -1969,16 +1913,16 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     isRequired: true,
                   ),
 
-                  // Show selected currency info
+                  // Show current selected currency info
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       "Selected cash currency: $_selectedCashCurrency",
-                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
                     ),
                   ),
 
-                  // Exchange Rate Section for Cash (if different currency selected)
+                  // Exchange Rate Section for Cash (if currency changed from base)
                   if (needsCashConversion) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -1987,8 +1931,8 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: _cashExchangeRateController,
-                            title: "${tr.exchangeRate} ($baseCurrency → $_selectedCashCurrency)",
-                            hint: "1 $baseCurrency = ?",
+                            title: "${tr.exchangeRate} (1 $_baseCurrency = ? $_selectedCashCurrency)",
+                            hint: "1 $_baseCurrency = ?",
                             inputFormat: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
                             ],
@@ -2015,17 +1959,27 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             color: color.primary.withValues(alpha: .03),
                             borderRadius: BorderRadius.circular(3),
                           ),
-                          child: Text(
-                            "≈ ${_convertedCashAmount.toAmount()} $_selectedCashCurrency",
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "≈ ${_convertedCashAmount.toStringAsFixed(2)} $_baseCurrency",
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                              ),
+                              if (_convertedCashAmount > 0 && grandTotal > 0)
+                                Text(
+                                  "(${(_convertedCashAmount / grandTotal * 100).toStringAsFixed(1)}% of total)",
+                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ],
 
-                  // Exchange Rate Section for Account Payment (if needed)
-                  if (needsConversion) ...[
+                  // Account Payment Exchange Rate Section (only if account is selected)
+                  if (needsAccountConversion && widget.state.toCurrency != null) ...[
                     const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -2033,8 +1987,8 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: _exchangeRateController,
-                            title: "${tr.exchangeRate} (${widget.state.fromCurrency} → ${widget.state.toCurrency})",
-                            hint: "1 ${widget.state.fromCurrency} = ?",
+                            title: "${tr.exchangeRate} ($_baseCurrency → ${widget.state.toCurrency})",
+                            hint: "1 $_baseCurrency = ?",
                             inputFormat: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
                             ],
@@ -2055,7 +2009,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             borderRadius: BorderRadius.circular(3),
                           ),
                           child: Text(
-                            "${widget.state.creditAmountLocal.toAmount()} ${widget.state.toCurrency}",
+                            "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
                             style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
                           ),
                         ),
@@ -2067,7 +2021,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
               const SizedBox(height: 12),
 
-              // Credit Payment (Account) - Only if customer account is selected
+              // Credit Account Section (only if account is selected)
               if (widget.state.customerAccount != null)
                 ZCover(
                   padding: const EdgeInsets.all(12),
@@ -2099,19 +2053,19 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         children: [
                           Text(tr.creditAmount, style: const TextStyle(fontWeight: FontWeight.bold)),
                           Text(
-                            "${creditAmount.toAmount()} ${widget.state.fromCurrency}",
+                            "${widget.state.creditAmount.toStringAsFixed(2)} $_baseCurrency",
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                           ),
                         ],
                       ),
-                      if (needsConversion && creditAmount > 0)
+                      if (needsAccountConversion && widget.state.creditAmount > 0 && widget.state.toCurrency != null)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text("${tr.amount} (${widget.state.toCurrency})",
                                 style: const TextStyle(fontSize: 14)),
                             Text(
-                              "${widget.state.creditAmountLocal.toAmount()} ${widget.state.toCurrency}",
+                              "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
                               style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.primary),
                             ),
                           ],
@@ -2123,13 +2077,13 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         _infoRow(
                           label: tr.currentBalance,
                           value: widget.state.currentBalance,
-                          currency: widget.state.customerAccount!.actCurrency ?? '',
+                          currency: widget.state.customerAccount!.actCurrency ?? _baseCurrency,
                           fontSize: 15,
                         ),
                         _infoRow(
                           label: tr.newBalance,
                           value: widget.state.newBalance,
-                          currency: widget.state.customerAccount!.actCurrency ?? '',
+                          currency: widget.state.customerAccount!.actCurrency ?? _baseCurrency,
                           isBold: true,
                           fontSize: 17,
                           color: widget.state.newBalance < 0 ? Colors.red : Colors.green,
@@ -2143,6 +2097,36 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
         ),
       ),
     );
+  }
+
+  void _updateExchangeRate(double rate) {
+    final state = widget.state;
+    if (state.customerAccount != null) {
+      context.read<SaleInvoiceBloc>().add(
+        UpdateExchangeRateManuallyEvent(
+          rate: rate,
+          fromCurrency: _baseCurrency,
+          toCurrency: state.customerAccount!.actCurrency ?? '',
+        ),
+      );
+      setState(() {});
+    }
+  }
+
+  void _updateCashExchangeRate(double rate) {
+    setState(() {
+      _cashExchangeRate = rate;
+      _cashExchangeRateController.text = rate.toStringAsFixed(4);
+    });
+    _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
+  }
+
+  void _updateExtraCharges(double value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(value));
+    });
+    setState(() {});
   }
 
   Widget _infoRow({
@@ -2161,7 +2145,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
         children: [
           Text(label, style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
           Text(
-            "${value.toAmount()} $currency",
+            "${value.toStringAsFixed(2)} $currency",
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               fontSize: fontSize,

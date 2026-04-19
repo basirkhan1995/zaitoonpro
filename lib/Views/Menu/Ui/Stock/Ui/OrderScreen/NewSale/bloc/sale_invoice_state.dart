@@ -70,15 +70,18 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   }
 
   double get subtotal {
-    return items.fold(0.0, (sum, item) => sum + (item.qty * (item.salePrice ?? 0)));
+    return items.fold(0.0, (sum, item) => sum + (item.effectiveQty * (item.salePrice ?? 0)));
   }
-
   double get totalItemDiscount {
     return items.fold(0.0, (sum, item) => sum + item.discountAmount);
   }
 
   double get totalAfterItemDiscount {
     return items.fold(0.0, (sum, item) => sum + item.totalSale);
+  }
+
+  double get totalPurchaseCost {
+    return items.fold(0.0, (sum, item) => sum + (item.effectiveQty * (item.purPrice ?? 0)));
   }
 
   double get generalDiscountAmount {
@@ -110,10 +113,6 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   double get creditAmountLocal {
     if (!needsExchangeRate) return creditAmount;
     return creditAmount * safeExchangeRate;
-  }
-
-  double get totalPurchaseCost {
-    return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
   }
 
   double get totalProfit {
@@ -215,7 +214,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   List<Object?> get props => [
     items, payments, customer, customerAccount, paymentMode, storages,
     generalDiscount, generalDiscountType, exchangeRate, fromCurrency,
-    toCurrency, extraCharges, cashPayment,
+    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate,
   ];
 }
 

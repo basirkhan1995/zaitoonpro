@@ -14,6 +14,7 @@ class SaleInvoiceItem {
   int storageId;
   String storageName;
   double? exchangeRate;
+  double? landedPrice;
   String? unit;
 
   SaleInvoiceItem({
@@ -30,6 +31,7 @@ class SaleInvoiceItem {
     required this.storageName,
     required this.storageId,
     this.exchangeRate,
+    this.landedPrice,
     this.unit,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -44,11 +46,17 @@ class SaleInvoiceItem {
     if (rate <= 0) return 0;
     return totalSale * rate;
   }
-
+  // Get effective quantity (qty * batch, or just qty if no batch)
+  num get effectiveQty {
+    if (batch != null && batch! > 0) {
+      return qty * batch!;
+    }
+    return qty.toDouble();
+  }
   double get totalPurchase => qty * (purPrice ?? 0);
 
   double get totalSale {
-    double subtotal = qty * (salePrice ?? 0);
+    double subtotal = effectiveQty * (salePrice ?? 0);
     if (discount != null && discount! > 0) {
       if (discountType == DiscountType.percentage) {
         subtotal = subtotal * (1 - discount! / 100);
@@ -60,7 +68,7 @@ class SaleInvoiceItem {
   }
 
   double get discountAmount {
-    double subtotal = qty * (salePrice ?? 0);
+    double subtotal = effectiveQty * (salePrice ?? 0);
     if (discount != null && discount! > 0) {
       if (discountType == DiscountType.percentage) {
         return subtotal * (discount! / 100);
@@ -93,6 +101,7 @@ class SaleInvoiceItem {
     int? storageId,
     String? storageName,
     double? exchangeRate,
+    double? landedPrice,
     String? unit,
   }) {
     return SaleInvoiceItem(
@@ -109,6 +118,7 @@ class SaleInvoiceItem {
       storageId: storageId ?? this.storageId,
       storageName: storageName ?? this.storageName,
       exchangeRate: exchangeRate ?? this.exchangeRate,
+      landedPrice: landedPrice ?? this.landedPrice,
       unit: unit ?? this.unit,
     );
   }

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/model/sale_invoice_items.dart';
 import '../../../../../../../../Services/localization_services.dart';
@@ -357,6 +356,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
             discount: event.discount ?? item.discount,
             discountType: event.discountType ?? item.discountType,
             localAmount: event.localeAmount,
+            landedPrice: event.landedPrice ?? item.landedPrice,
             exchangeRate: event.exchangeRate ?? current.exchangeRate,
             purPrice: event.purPrice ?? item.purPrice,
             salePrice: event.salePrice ?? item.salePrice,
@@ -395,8 +395,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     }
   }
 
-
-
   Future<void> _onSaveInvoice(SaveSaleInvoiceEvent event, Emitter<SaleInvoiceState> emit) async {
     final tr = localizationService.loc;
     if (state is! SaleInvoiceLoaded) {
@@ -407,8 +405,54 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
-    // Validation (keep existing validation)
-    // ... validation code ...
+    // Validation
+    if (current.customer == null) {
+      emit(SaleInvoiceError("pleaseSelectCustomer"));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    if (current.paymentMode != PaymentMode.cash && current.customerAccount == null) {
+      emit(SaleInvoiceError(tr.selectCreditAccountMsg));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    if (current.items.isEmpty) {
+      emit(SaleInvoiceError("pleaseAddItems"));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    for (var item in current.items) {
+      if (item.productId.isEmpty || item.productName.isEmpty) {
+        emit(SaleInvoiceError("pleaseSelectProduct"));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+      if (item.storageId == 0 || item.storageName.isEmpty) {
+        emit(SaleInvoiceError("pleaseSelectStorage"));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+      if (item.salePrice == null || item.salePrice! <= 0) {
+        emit(SaleInvoiceError("pleaseEnterValidPrice"));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+      if (item.qty <= 0) {
+        emit(SaleInvoiceError("pleaseEnterValidQuantity"));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+    }
 
     emit(SaleInvoiceSaving(
       items: current.items,
@@ -439,13 +483,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           batch: item.batch?.toDouble() ?? 0.0,
           discount: discountAmount,
           purchaseAveragePrice: item.purPrice ?? 0.0,
+          landedPrice: item.landedPrice,
+          purchasePrice: item.purPrice,
           salePrice: item.salePrice ?? 0.0,
         );
       }).toList();
 
       final xRef = event.xRef ?? '';
 
-      // Get currencies
       final baseCurrency = current.fromCurrency ?? '';
       final accountCurrency = current.customerAccount?.actCurrency ?? '';
       final needsConversion = accountCurrency.isNotEmpty &&
@@ -454,7 +499,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final List<SalePaymentRecord> apiPayments = [];
 
-      // 1. Add extra charges (always in base currency, cash account, exRate = 1)
       if (current.extraCharges > 0) {
         apiPayments.add(SalePaymentRecord(
           accountNumber: 10101010,
@@ -465,7 +509,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         ));
       }
 
-      // 2. Add customer credit payment (account payment)
       if (current.paymentMode != PaymentMode.cash && current.customerAccount != null) {
         final creditAmount = current.creditAmount;
         if (creditAmount > 0) {
@@ -490,21 +533,18 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
             ? current.cashCurrency!
             : baseCurrency;
 
-        // Use the exchange rate stored in state
+        // Use the exchange rate stored in state (1 baseCurrency = X cashCurrency)
         final cashExRate = (cashCurrency != baseCurrency)
             ? current.cashExchangeRate
             : 1.0;
 
-        debugPrint('=== CASH PAYMENT DEBUG ===');
-        debugPrint('Cash Payment Amount: ${current.cashPayment}');
-        debugPrint('Cash Currency from State: $cashCurrency');
-        debugPrint('Cash Exchange Rate: $cashExRate');
-        debugPrint('Base Currency: $baseCurrency');
-        debugPrint('==========================');
+        // current.cashPayment is already in base currency (USD)
+        // We need to send the amount in the cash currency (AFN)
+        final amountInCashCurrency = current.cashPayment * cashExRate;
 
         apiPayments.add(SalePaymentRecord(
           accountNumber: 10101010,
-          amount: current.cashPayment,
+          amount: amountInCashCurrency,
           currency: cashCurrency,
           exRate: cashExRate,
           narration: "Cash payment",
@@ -523,8 +563,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final message = response['msg']?.toString() ?? 'No response message';
       final sp = response['specific']?.toString() ?? '';
-
-      debugPrint('API Response: $message');
 
       if (message.toLowerCase().contains('success') || message.toLowerCase().contains('authorized')) {
         final invoiceNumber = response['ordID']?.toString() ?? 'No Order Id';

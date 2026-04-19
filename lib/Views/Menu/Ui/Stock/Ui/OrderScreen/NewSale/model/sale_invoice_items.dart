@@ -1,4 +1,3 @@
-
 enum DiscountType { percentage, amount }
 
 class SaleInvoiceItem {
@@ -33,19 +32,19 @@ class SaleInvoiceItem {
     this.exchangeRate,
     this.unit,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
-  // Single item local amount (unit price * exchange rate)
+
   double get singleLocalAmount {
     final rate = exchangeRate ?? 1.0;
     if (rate <= 0) return 0;
     return (salePrice ?? 0) * rate;
   }
 
-  // Total local amount for this item
   double get totalLocalAmount {
     final rate = exchangeRate ?? 1.0;
-    if (rate <= 0) return 0; // Handle loading
+    if (rate <= 0) return 0;
     return totalSale * rate;
   }
+
   double get totalPurchase => qty * (purPrice ?? 0);
 
   double get totalSale {
@@ -114,14 +113,17 @@ class SaleInvoiceItem {
     );
   }
 }
+
 class SaleInvoiceRecord {
   final int proID;
   final int stgID;
   final double quantity;
   final double? batch;
   final double? discount;
-  final double? pPrice;
-  final double? sPrice;
+  final double? purchasePrice;
+  final double? purchaseAveragePrice;
+  final double? salePrice;
+  final double? landedPrice;
 
   SaleInvoiceRecord({
     required this.proID,
@@ -129,18 +131,61 @@ class SaleInvoiceRecord {
     required this.quantity,
     this.batch,
     this.discount,
-    this.pPrice,
-    this.sPrice,
+    this.purchasePrice,
+    this.purchaseAveragePrice,
+    this.salePrice,
+    this.landedPrice
   });
 
   Map<String, dynamic> toJson() => {
     'stkProduct': proID,
     'stkStorage': stgID,
     'stkQuantity': quantity,
-    'stkQtyInBatch':batch,
-    'stkDiscount':discount,
-    'stkPurPrice': pPrice, // Average Price
-    'stkSalePrice': sPrice, // Default Unit Price Or edited Sale Price
-    'stkSalePercentage': "0"
+    'stkQtyInBatch': batch,
+    'stkDiscount': discount,
+    'stkAveragePurPrice': purchaseAveragePrice,
+    'stkSalePrice': salePrice,
+    'stkPurPrice': purchasePrice,
+    'stkLandedPurPrice': landedPrice
   };
+}
+
+class SalePaymentRecord {
+  final int accountNumber;
+  final double amount;
+  final String currency;
+  final double exRate;
+  final String? narration;
+
+  SalePaymentRecord({
+    required this.accountNumber,
+    required this.amount,
+    required this.currency,
+    required this.exRate,
+    this.narration,
+  });
+
+  Map<String, dynamic> toJson() => {
+    "account": accountNumber,
+    "amount": amount,
+    "currency": currency,
+    "exRate": exRate,
+    "narration": narration ?? "",
+  };
+
+  SalePaymentRecord copyWith({
+    int? accountNumber,
+    double? amount,
+    String? currency,
+    double? exRate,
+    String? narration,
+  }) {
+    return SalePaymentRecord(
+      accountNumber: accountNumber ?? this.accountNumber,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      exRate: exRate ?? this.exRate,
+      narration: narration ?? this.narration,
+    );
+  }
 }

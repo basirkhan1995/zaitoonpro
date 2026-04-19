@@ -29,7 +29,7 @@ class PurchaseInvoiceItem {
 
   double get totalQty => qty.toDouble() * stkBatch;
 
-  double get purchasePrice => (purPrice??0);
+  double get purchasePrice => (purPrice ?? 0);
 
   double get totalPurchase => totalQty * (purPrice ?? 0);
 
@@ -86,7 +86,6 @@ class PurchaseInvoiceRecord {
   final double? sellPercentage;
   final int stkQtyInBatch;
   final double? pPrice;
-
   PurchaseInvoiceRecord({
     required this.proID,
     required this.stgID,
@@ -95,7 +94,6 @@ class PurchaseInvoiceRecord {
     this.sellPercentage,
     this.pPrice,
   });
-
   Map<String, dynamic> toJson() => {
     'stkProduct': proID,
     'stkStorage': stgID,
@@ -103,9 +101,51 @@ class PurchaseInvoiceRecord {
     'stkQtyInBatch': stkQtyInBatch,
     'stkSalePercentage': sellPercentage,
     'stkPurPrice': (pPrice ?? 0.0).toString(),
-    'stkSalePrice': "0.0000",
-    'stkDiscount': "0.0000"
   };
+}
+
+class PurchasePaymentRecord {
+  final int accountNumber;
+  final double amount;
+  final String currency;
+  final double exRate;
+  final String? narration;
+  final bool isExpense;
+
+  PurchasePaymentRecord({
+    required this.accountNumber,
+    required this.amount,
+    required this.currency,
+    required this.exRate,
+    this.narration,
+    this.isExpense = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+    "account": accountNumber,
+    "amount": amount,
+    "currency": currency,
+    "exRate": exRate,
+    "narration": narration,
+  };
+
+  PurchasePaymentRecord copyWith({
+    int? accountNumber,
+    double? amount,
+    String? currency,
+    double? exRate,
+    String? narration,
+    bool? isExpense,
+  }) {
+    return PurchasePaymentRecord(
+      accountNumber: accountNumber ?? this.accountNumber,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      exRate: exRate ?? this.exRate,
+      narration: narration ?? this.narration,
+      isExpense: isExpense ?? this.isExpense,
+    );
+  }
 }
 
 class PurExpenseRecord {

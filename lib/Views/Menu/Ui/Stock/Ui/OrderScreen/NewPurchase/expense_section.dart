@@ -21,7 +21,7 @@ class ExpensesDialog extends StatelessWidget {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded) {
-          return _ExpensesDialogContent(expenses: state.expenses);
+          return _ExpensesDialogContent(payments: state.expenses);
         }
         return const Center(child: CircularProgressIndicator());
       },
@@ -30,19 +30,15 @@ class ExpensesDialog extends StatelessWidget {
 }
 
 class _ExpensesDialogContent extends StatelessWidget {
-  final List<PurExpenseRecord> expenses;
+  final List<PurchasePaymentRecord> payments;
 
-  const _ExpensesDialogContent({required this.expenses});
+  const _ExpensesDialogContent({required this.payments});
 
   @override
   Widget build(BuildContext context) {
-    final totalExpenses = expenses.fold(0.0, (sum, e) => sum + e.amount);
-    String? baseCurrency;
+    final totalExpenses = payments.fold(0.0, (sum, e) => sum + e.amount);
     final tr = AppLocalizations.of(context)!;
-    final authState = context.read<AuthBloc>().state;
-    if(authState is AuthenticatedState){
-      baseCurrency = authState.loginData.company?.comLocalCcy;
-    }
+
     return ZFormDialog(
       title: tr.manageExpenses,
       icon: Icons.outbond_outlined,
@@ -56,99 +52,58 @@ class _ExpensesDialogContent extends StatelessWidget {
           // Header with Add Button
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                "${tr.expenses} (${payments.length})",
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              Row(
-                spacing: 8,
-                children: [
-                  if(totalExpenses > 0)
-                  ZOutlineButton(
-                    onPressed: () {
-                      context.read<PurchaseInvoiceBloc>().add(UpdateAllLandedPricesEvent());
-                    },
-                    icon: Icons.calculate,
-                    label: Text(tr.recalculate),
-                  ),
-                  ZOutlineButton(
-                    onPressed: () {
-                      context.read<PurchaseInvoiceBloc>().add(AddExpenseEvent());
-                    },
-                    icon: Icons.add,
-                    isActive: true,
-                    label: Text(tr.addItem),
-                  ),
-                ],
-              )
+              ZOutlineButton(
+                onPressed: () {
+                  context.read<PurchaseInvoiceBloc>().add(const AddPaymentEvent(isExpense: true));
+                },
+                icon: Icons.add,
+                isActive: true,
+                label: Text(tr.addItem),
+              ),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Expenses List - Show empty state if no expenses
+          // Expenses List
           Expanded(
-            child: expenses.isEmpty
+            child: payments.isEmpty
                 ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.receipt_long_outlined,
-                    size: 64,
-                    color: Colors.grey[400],
-                  ),
+                  Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
-                  Text(
-                    'No expenses added',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Click "Add Expense" to add expenses',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
+                  Text('No expenses added', style: TextStyle(color: Colors.grey[600])),
                 ],
               ),
             )
                 : ListView.builder(
               shrinkWrap: true,
-              itemCount: expenses.length,
+              itemCount: payments.length,
               itemBuilder: (context, index) {
-                final expense = expenses[index];
+                final payment = payments[index];
                 return _ExpenseRow(
-                  key: ValueKey(expense.rowId),
-                  expense: expense,
+                  key: ValueKey(index),
+                  index: index,
+                  payment: payment,
                 );
               },
             ),
           ),
 
-          // Only show total and divider if there are expenses
-          if (expenses.isNotEmpty) ...[
+          if (payments.isNotEmpty) ...[
             const Divider(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                Text(tr.totalExpense, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Text(
-                  tr.totalExpense,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  "${totalExpenses.toAmount()} $baseCurrency",
+                  totalExpenses.toAmount(),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -160,17 +115,20 @@ class _ExpensesDialogContent extends StatelessWidget {
           ],
         ],
       ),
-      onAction: () {
-        Navigator.pop(context);
-      },
+      onAction: () => Navigator.pop(context),
     );
   }
 }
 
 class _ExpenseRow extends StatefulWidget {
-  final PurExpenseRecord expense;
+  final int index;
+  final PurchasePaymentRecord payment;
 
-  const _ExpenseRow({required this.expense, super.key});
+  const _ExpenseRow({
+    required this.index,
+    required this.payment,
+    super.key,
+  });
 
   @override
   State<_ExpenseRow> createState() => _ExpenseRowState();
@@ -185,25 +143,30 @@ class _ExpenseRowState extends State<_ExpenseRow> {
   bool _isUpdating = false;
 
   String? baseCurrency;
+
   @override
   void initState() {
     super.initState();
 
     final authState = context.read<AuthBloc>().state;
-    if(authState is AuthenticatedState){
+    if (authState is AuthenticatedState) {
       baseCurrency = authState.loginData.company?.comLocalCcy;
     }
-    _narrationController =
-        TextEditingController(text: widget.expense.narration);
 
+    _narrationController = TextEditingController(text: widget.payment.narration ?? '');
     _amountController = TextEditingController(
-      text: widget.expense.amount > 0
-          ? widget.expense.amount.toString()
-          : '',
+      text: widget.payment.amount > 0 ? widget.payment.amount.toString() : '',
     );
+    _accountController = TextEditingController(
+      text: _getAccountDisplayText(),
+    );
+  }
 
-    _accountController =
-        TextEditingController(text: widget.expense.accountName);
+  String _getAccountDisplayText() {
+    if (widget.payment.accountNumber != 0) {
+      return widget.payment.accountNumber.toString();
+    }
+    return '';
   }
 
   @override
@@ -212,32 +175,28 @@ class _ExpenseRowState extends State<_ExpenseRow> {
 
     if (_isUpdating) return;
 
-    // Narration (ONLY update if different)
-    if (_narrationController.text != widget.expense.narration) {
+    // Narration
+    final newNarration = widget.payment.narration ?? '';
+    if (_narrationController.text != newNarration) {
       _narrationController.value = TextEditingValue(
-        text: widget.expense.narration,
-        selection: TextSelection.collapsed(
-          offset: widget.expense.narration.length,
-        ),
+        text: newNarration,
+        selection: TextSelection.collapsed(offset: newNarration.length),
       );
     }
 
     // Amount
-    final newAmount =
-    widget.expense.amount > 0 ? widget.expense.amount.toString() : '';
-
+    final newAmount = widget.payment.amount > 0 ? widget.payment.amount.toString() : '';
     if (_amountController.text != newAmount) {
       _amountController.value = TextEditingValue(
         text: newAmount,
-        selection: TextSelection.collapsed(
-          offset: newAmount.length,
-        ),
+        selection: TextSelection.collapsed(offset: newAmount.length),
       );
     }
 
     // Account
-    if (_accountController.text != widget.expense.accountName) {
-      _accountController.text = widget.expense.accountName;
+    final newAccountText = _getAccountDisplayText();
+    if (_accountController.text != newAccountText) {
+      _accountController.text = newAccountText;
     }
   }
 
@@ -253,18 +212,21 @@ class _ExpenseRowState extends State<_ExpenseRow> {
   void _updateExpense({
     String? narration,
     double? amount,
-    int? account,
-    String? accountName,
+    int? accountNumber,
+    double? exRate,
+    String? currency,
   }) {
     _isUpdating = true;
 
     context.read<PurchaseInvoiceBloc>().add(
-      UpdateExpenseEvent(
-        rowId: widget.expense.rowId,
+      UpdatePaymentEvent(
+        index: widget.index,
         narration: narration,
         amount: amount,
-        account: account,
-        accountName: accountName,
+        accountNumber: accountNumber,
+        exRate: exRate ?? widget.payment.exRate,
+        currency: currency ?? widget.payment.currency,
+        isExpense: true,
       ),
     );
 
@@ -273,7 +235,6 @@ class _ExpenseRowState extends State<_ExpenseRow> {
     });
   }
 
-  // ✅ Debounce handler
   void _debounceUpdate(VoidCallback action) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), action);
@@ -281,25 +242,29 @@ class _ExpenseRowState extends State<_ExpenseRow> {
 
   @override
   Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+
     return ZCover(
       margin: const EdgeInsets.only(bottom: 4),
       child: Padding(
         padding: const EdgeInsets.all(2.0),
         child: Row(
           children: [
-            /// Account
+            /// Account Selection
             Expanded(
               flex: 2,
-              child: GenericTextfield<AccountsModel, AccountsBloc,
-                  AccountsState>(
+              child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
                 title: "",
                 textFieldStyle: TextFieldStyle.noBorder,
-                hintText: AppLocalizations.of(context)!.accounts,
+                hintText: tr.accounts,
                 controller: _accountController,
                 bloc: context.read<AccountsBloc>(),
                 fetchAllFunction: (bloc) => bloc.add(
                   LoadAccountsFilterEvent(
-                      include: "11,12", ccy: baseCurrency, exclude: ""),
+                    include: "11,12", // Expense account types
+                    ccy: baseCurrency,
+                    exclude: "",
+                  ),
                 ),
                 searchFunction: (bloc, query) => bloc.add(
                   LoadAccountsFilterEvent(
@@ -310,16 +275,13 @@ class _ExpenseRowState extends State<_ExpenseRow> {
                   ),
                 ),
                 itemBuilder: (context, account) => Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 5, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                   child: Text(
                     "${account.accNumber} | ${account.accName}",
                   ),
                 ),
-                itemToString: (acc) =>
-                "${acc.accNumber} | ${acc.accName}",
-                stateToLoading: (state) =>
-                state is AccountLoadingState,
+                itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
+                stateToLoading: (state) => state is AccountLoadingState,
                 stateToItems: (state) {
                   if (state is AccountLoadedState) {
                     return state.accounts;
@@ -328,9 +290,8 @@ class _ExpenseRowState extends State<_ExpenseRow> {
                 },
                 onSelected: (account) {
                   _updateExpense(
-                    account: account.accNumber,
-                    accountName:
-                    '${account.accName} (${account.accNumber})',
+                    accountNumber: account.accNumber,
+                    currency: account.actCurrency ?? baseCurrency ?? '',
                   );
                 },
                 showClearButton: true,
@@ -345,7 +306,7 @@ class _ExpenseRowState extends State<_ExpenseRow> {
               child: TextField(
                 controller: _narrationController,
                 decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context)!.narration,
+                  hintText: tr.narration,
                   border: InputBorder.none,
                   isDense: true,
                 ),
@@ -364,30 +325,27 @@ class _ExpenseRowState extends State<_ExpenseRow> {
               flex: 1,
               child: TextField(
                 controller: _amountController,
-                keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: InputDecoration(
-                  hintText: AppLocalizations.of(context)!.amount,
+                  hintText: tr.amount,
                   border: InputBorder.none,
                   isDense: true,
                 ),
                 onChanged: (value) {
                   _debounceUpdate(() {
-                    final amount = double.tryParse(
-                        value.replaceAll(',', '')) ??
-                        0;
+                    final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     _updateExpense(amount: amount);
                   });
                 },
               ),
             ),
 
-            /// Delete
+            /// Delete Button
             IconButton(
               icon: const Icon(Icons.delete_outline, size: 18),
               onPressed: () {
                 context.read<PurchaseInvoiceBloc>().add(
-                  RemoveExpenseEvent(widget.expense.rowId),
+                  RemovePaymentEvent(widget.index, wasExpense: true),
                 );
               },
             ),

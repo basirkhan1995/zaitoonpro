@@ -14,6 +14,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/bloc/storag
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/model/storage_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
+import '../../../../../../../Features/Generic/complex_textfield.dart';
 import '../../../../../../../Features/Generic/purchase_product_field.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Generic/underline_searchable_textfield.dart';
@@ -65,23 +66,28 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _exchangeRateController = TextEditingController();
   final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   void _showExpensesDialog(BuildContext context) {
     final state = context.read<PurchaseInvoiceBloc>().state;
     if (state is PurchaseInvoiceLoaded) {
       showDialog(
         context: context,
-        builder: (context) => StatefulBuilder(
-          builder: (context, setState) {
-            return ExpensesDialog();
-          },
-        ),
+        builder: (context) => const ExpensesDialog(),
       );
     }
   }
 
+  void _showPaymentDialog(PurchaseInvoiceLoaded state) {
+    showDialog(
+      context: context,
+      builder: (context) => PaymentDialog(state: state),
+    );
+  }
+
   String? _userName;
-  String? baseCurrency="";
+  String? baseCurrency = "";
   int? signatory;
+
   void _updateControllersFromState(PurchaseInvoiceState state) {
     if (state is PurchaseInvoiceLoaded) {
       // Update exchange rate controller if needed
@@ -103,6 +109,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       }
     }
   }
+
   final Map<String, TextEditingController> _purchasePriceControllers = {};
   final Map<String, TextEditingController> _costPriceControllers = {};
   final Map<String, TextEditingController> _sellPriceControllers = {};
@@ -122,9 +129,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         final state = context.read<PurchaseInvoiceBloc>().state;
 
         if (state is PurchaseInvoiceLoaded && state.supplierAccount != null) {
-          // Only update if rate is actually different
           if (state.exchangeRate != rate) {
-            // Update the exchange rate immediately
             context.read<PurchaseInvoiceBloc>().add(
               UpdateExchangeRateManuallyEvent(
                 rate: rate,
@@ -137,32 +142,26 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       }
     });
   }
+
   @override
   void initState() {
     super.initState();
     final authState = context.read<AuthBloc>().state;
-    if(authState is AuthenticatedState){
+    if (authState is AuthenticatedState) {
       baseCurrency = authState.loginData.company?.comLocalCcy;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
-
-      // IMPORTANT: Always initialize fresh when entering the screen
       purchaseBloc.add(InitializePurchaseInvoiceEvent());
-
-      // Clear all controllers
       _clearAllControllers();
     });
   }
 
   @override
   void dispose() {
-    // Clear all controllers on dispose
     _clearAllControllers();
-
     for (final row in _rowFocusNodes) {
       for (final node in row) {
         node.dispose();
@@ -174,7 +173,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _remark.dispose();
     _exchangeRateController.dispose();
 
-    // Dispose all price and qty controllers
     for (final controller in _purchasePriceControllers.values) {
       controller.dispose();
     }
@@ -205,7 +203,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _remark.clear();
     _exchangeRateController.clear();
 
-    // Clear all item controllers
     _purchasePriceControllers.clear();
     _costPriceControllers.clear();
     _sellPriceControllers.clear();
@@ -213,7 +210,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _batchControllers.clear();
     _localeAmountControllers.clear();
 
-    // Clear focus nodes
     for (final row in _rowFocusNodes) {
       for (final node in row) {
         node.unfocus();
@@ -221,11 +217,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     }
     _rowFocusNodes.clear();
   }
+
   void _resetForm() {
     _clearAllControllers();
     context.read<PurchaseInvoiceBloc>().add(ResetPurchaseInvoiceEvent());
-
-    // Also reset any other necessary state
     _rowFocusNodes.clear();
     _purchasePriceControllers.clear();
     _qtyControllers.clear();
@@ -233,27 +228,23 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     _sellPriceControllers.clear();
     _localeAmountControllers.clear();
     _costPriceControllers.clear();
-
-    // Re-initialize
     context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
   }
+
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
-
-    // In the build method, after getting the state, add:
     final purchaseState = context.watch<PurchaseInvoiceBloc>().state;
     final needsConversion = purchaseState is PurchaseInvoiceLoaded
         ? purchaseState.needsExchangeRate
         : false;
 
-    final state = context.watch<AuthBloc>().state;
-
-    if (state is! AuthenticatedState) {
+    final authState = context.watch<AuthBloc>().state;
+    if (authState is! AuthenticatedState) {
       return const SizedBox();
     }
 
-    final login = state.loginData;
+    final login = authState.loginData;
     _userName = login.usrName ?? "";
 
     return BlocListener<AuthBloc, AuthState>(
@@ -265,35 +256,46 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       child: BlocListener<PurchaseInvoiceBloc, PurchaseInvoiceState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceError) {
-            ToastManager.show(context: context, title: tr.operationFailedTitle, message: state.message, type: ToastType.error);
-
+            ToastManager.show(
+              context: context,
+              title: tr.operationFailedTitle,
+              message: state.message,
+              type: ToastType.error,
+            );
           }
           if (state is PurchaseInvoiceSaved) {
             Navigator.of(context).pop();
             if (state.success) {
               String? savedInvoiceNumber = state.invoiceNumber;
-              ToastManager.show(context: context, title: tr.successTitle, message: tr.successPurchaseInvoiceMsg, type: ToastType.success);
-
-              WidgetsBinding.instance.addPostFrameCallback((_) async{
-                if (savedInvoiceNumber != null &&
-                    savedInvoiceNumber.isNotEmpty) {
-                   _onPrint(invoiceNumber: savedInvoiceNumber);
+              ToastManager.show(
+                context: context,
+                title: tr.successTitle,
+                message: tr.successPurchaseInvoiceMsg,
+                type: ToastType.success,
+              );
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                  _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
             } else {
-              ToastManager.show(context: context, title: tr.operationFailedTitle, message: "Failed to create invoice", type: ToastType.error);
-            }  // Add loading state handling
-            if (state is PurchaseInvoiceInitial || state is PurchaseInvoiceLoaded) {
-              // Ensure controllers are updated when state changes
-              _updateControllersFromState(state);
+              ToastManager.show(
+                context: context,
+                title: tr.operationFailedTitle,
+                message: "Failed to create invoice",
+                type: ToastType.error,
+              );
             }
+          }
+          if (state is PurchaseInvoiceInitial || state is PurchaseInvoiceLoaded) {
+            _updateControllersFromState(state);
           }
         },
         child: Scaffold(
           appBar: AppBar(
             title: Text(tr.purchaseEntry),
             titleSpacing: 0,
-            actionsPadding: EdgeInsets.symmetric(horizontal: 12),
+            actionsPadding: const EdgeInsets.symmetric(horizontal: 12),
             actions: [
               ZOutlineButton(
                 icon: Icons.lock_reset_outlined,
@@ -313,11 +315,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 label: Text("PDF"),
               ),
               const SizedBox(width: 8),
-              //Save Button
               BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                 builder: (context, state) {
-                  if (state is PurchaseInvoiceLoaded ||
-                      state is PurchaseInvoiceSaving) {
+                  if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
                     final current = state is PurchaseInvoiceSaving
                         ? state
                         : (state as PurchaseInvoiceLoaded);
@@ -331,13 +331,14 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           : () => _saveInvoice(context, current),
                       label: isSaving
                           ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Theme.of(context).colorScheme.surface,
-                              ),
-                            ) : Text(tr.saveTitle),
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.surface,
+                        ),
+                      )
+                          : Text(tr.saveTitle),
                     );
                   }
                   return const SizedBox();
@@ -360,53 +361,43 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     children: [
                       Expanded(
                         flex: 2,
-                        child:
-                            GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
-                              key: const ValueKey('person_field'),
-                              controller: _personController,
-                              title: tr.supplier,
-                              hintText: tr.supplier,
-                              isRequired: true,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return tr.required(tr.supplier);
-                                }
-                                return null;
-                              },
-                              bloc: context.read<IndividualsBloc>(),
-                              fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                              searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
-                              itemBuilder: (context, ind) => Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: Text(
-                                  "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
-                                ),
-                              ),
-                              itemToString: (individual) =>
-                                  "${individual.perName} ${individual.perLastName}",
-                              stateToLoading: (state) =>
-                                  state is IndividualLoadingState,
-                              stateToItems: (state) {
-                                if (state is IndividualLoadedState) {
-                                  return state.individuals;
-                                }
-                                return [];
-                              },
-                              onSelected: (value) {
-                                _personController.text =
-                                    "${value.perName} ${value.perLastName}";
-                                context.read<PurchaseInvoiceBloc>().add(
-                                  SelectSupplierEvent(value),
-                                );
-                                context.read<AccountsBloc>().add(
-                                  LoadAccountsEvent(ownerId: value.perId),
-                                );
-                                setState(() {
-                                  signatory = value.perId;
-                                });
-                              },
-                              showClearButton: true,
-                            ),
+                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                          key: const ValueKey('person_field'),
+                          controller: _personController,
+                          title: tr.supplier,
+                          hintText: tr.supplier,
+                          isRequired: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return tr.required(tr.supplier);
+                            }
+                            return null;
+                          },
+                          bloc: context.read<IndividualsBloc>(),
+                          fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
+                          searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
+                          itemBuilder: (context, ind) => Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                          ),
+                          itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
+                          stateToLoading: (state) => state is IndividualLoadingState,
+                          stateToItems: (state) {
+                            if (state is IndividualLoadedState) {
+                              return state.individuals;
+                            }
+                            return [];
+                          },
+                          onSelected: (value) {
+                            _personController.text = "${value.perName} ${value.perLastName}";
+                            context.read<PurchaseInvoiceBloc>().add(SelectSupplierEvent(value));
+                            context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
+                            setState(() {
+                              signatory = value.perId;
+                            });
+                          },
+                          showClearButton: true,
+                        ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -428,20 +419,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   return null;
                                 },
                                 bloc: context.read<AccountsBloc>(),
-                                fetchAllFunction: (bloc) => bloc.add(
-                                  LoadAccountsEvent(ownerId: signatory),
-                                ),
-                                searchFunction: (bloc, query) => bloc.add(
-                                  LoadAccountsEvent(ownerId: signatory),
-                                ),
+                                fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
                                 itemBuilder: (context, account) => ListTile(
-                                  visualDensity: VisualDensity(
-                                    vertical: -4,
-                                    horizontal: -4,
-                                  ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                  ),
+                                  visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                                   title: Text(account.accName ?? ''),
                                   subtitle: Text('${account.accNumber}'),
                                   trailing: Text(
@@ -456,45 +438,35 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   }
                                   return [];
                                 },
-
                                 onSelected: (value) {
                                   _accountController.text = '${value.accName} (${value.accNumber})';
                                   setState(() {
                                     accountCcy = value.actCurrency;
                                   });
-                                  // First select the account
-                                  context.read<PurchaseInvoiceBloc>().add(
-                                    SelectSupplierAccountEvent(value),
-                                  );
+                                  context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
 
-                                  // Then check and fetch exchange rate if needed
                                   final companyState = context.read<CompanyProfileBloc>().state;
                                   if (companyState is CompanyProfileLoadedState) {
                                     final baseCurr = companyState.company.comLocalCcy ?? '';
                                     final accountCurrency = value.actCurrency ?? '';
 
-                                    if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty &&
-                                        baseCurr != accountCurrency) {
-                                      // Fetch exchange rate
+                                    if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
                                       context.read<PurchaseInvoiceBloc>().add(
-                                          UpdateExchangeRateForInvoiceEvent(
-                                            fromCurrency: baseCurr,
-                                            toCurrency: accountCurrency,
-                                          )
+                                        UpdateExchangeRateForInvoiceEvent(
+                                          fromCurrency: baseCurr,
+                                          toCurrency: accountCurrency,
+                                        ),
                                       );
                                     } else {
-                                      // Same currency, no conversion needed
                                       context.read<PurchaseInvoiceBloc>().add(
-                                          UpdateExchangeRateManuallyEvent(
-                                            rate: 1.0,
-                                            fromCurrency: baseCurr,
-                                            toCurrency: accountCurrency,
-                                          )
+                                        UpdateExchangeRateManuallyEvent(
+                                          rate: 1.0,
+                                          fromCurrency: baseCurr,
+                                          toCurrency: accountCurrency,
+                                        ),
                                       );
                                     }
                                   }
-
-                                  // Clear and set exchange rate controller
                                   _exchangeRateController.clear();
                                 },
                                 showClearButton: true,
@@ -508,17 +480,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               isRequired: false,
                               bloc: context.read<AccountsBloc>(),
                               fetchAllFunction: (bloc) => bloc.add(
-                                LoadAccountsFilterEvent(
-                                  include: '8',
-                                  exclude: '',
-                                ),
+                                LoadAccountsFilterEvent(include: '8', exclude: ''),
                               ),
                               searchFunction: (bloc, query) => bloc.add(
-                                LoadAccountsFilterEvent(
-                                  input: query,
-                                  include: '8',
-                                  exclude: '',
-                                ),
+                                LoadAccountsFilterEvent(input: query, include: '8', exclude: ''),
                               ),
                               itemBuilder: (context, account) => ListTile(
                                 title: Text(account.accName ?? ''),
@@ -536,15 +501,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 return [];
                               },
                               onSelected: (value) {
-                                // selected account currency | if require for exchange rate
                                 setState(() {
                                   accountCcy = value.actCurrency;
                                 });
-
                                 _accountController.text = '${value.accName} (${value.accNumber})';
-                                context.read<PurchaseInvoiceBloc>().add(
-                                  SelectSupplierAccountEvent(value),
-                                );
+                                context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
                               },
                               showClearButton: true,
                             );
@@ -558,7 +519,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           title: tr.invoiceNumber,
                         ),
                       ),
-                      // Exchange Rate Field - Only show when needed
                       if (needsConversion) ...[
                         const SizedBox(width: 4),
                         Expanded(
@@ -567,7 +527,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             builder: (context, state) {
                               if (state is PurchaseInvoiceLoaded) {
                                 final isLoading = state.exchangeRate == null;
-
                                 return ZTextFieldEntitled(
                                   showClearButton: true,
                                   controller: _exchangeRateController,
@@ -584,7 +543,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   )
                                       : null,
-                                  isEnabled: !isLoading, // Disable while loading
+                                  isEnabled: !isLoading,
                                 );
                               }
                               return const SizedBox();
@@ -602,63 +561,46 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 8),
-                  // Items Header
                   _buildItemsHeader(context),
                   const SizedBox(height: 8),
-                  // In your build method, replace the Expanded child that contains the ListView
                   Expanded(
-                    child:
-                        BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                          builder: (context, state) {
-                            if (state is PurchaseInvoiceLoaded ||
-                                state is PurchaseInvoiceSaving) {
-                              final current = state is PurchaseInvoiceSaving
-                                  ? state
-                                  : (state as PurchaseInvoiceLoaded);
-                              _synchronizeFocusNodes(current.items.length);
-
-                              return SingleChildScrollView(
-                                child: Column(
-                                  children: [
-                                    // Items List
-                                    ListView.builder(
-                                      shrinkWrap: true,
-                                      physics: const NeverScrollableScrollPhysics(),
-                                      itemCount: current.items.length,
-                                      itemBuilder: (context, index) {
-                                        final item = current.items[index];
-                                        final isLastRow = index == current.items.length - 1;
-                                        final nodes = _rowFocusNodes[index];
-                                        return _buildItemRow(
-                                          item: item,
-                                          nodes: nodes,
-                                          isLastRow: isLastRow,
-                                          context: context,
-                                        );
-                                      },
-                                    ),
-
-                                    const SizedBox(height: 16),
-
-                                    // Payment Summary Section
-                                    Row(
-                                      children: [_buildSummarySection(context)],
-                                    ),
-                                  ],
+                    child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                      builder: (context, state) {
+                        if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
+                          final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
+                          _synchronizeFocusNodes(current.items.length);
+                          return SingleChildScrollView(
+                            child: Column(
+                              children: [
+                                ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: current.items.length,
+                                  itemBuilder: (context, index) {
+                                    final item = current.items[index];
+                                    final isLastRow = index == current.items.length - 1;
+                                    final nodes = _rowFocusNodes[index];
+                                    return _buildItemRow(
+                                      item: item,
+                                      nodes: nodes,
+                                      isLastRow: isLastRow,
+                                      context: context,
+                                    );
+                                  },
                                 ),
-                              );
-                            }
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          },
-                        ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [_buildSummarySection(context)],
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                    ),
                   ),
-
-                  // Summary Section
-                  //_buildSummarySection(context),
                 ],
               ),
             ),
@@ -671,9 +613,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    TextStyle? title = Theme.of(
-      context,
-    ).textTheme.titleSmall?.copyWith(color: color.surface);
+    TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -683,34 +623,30 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ),
       child: Row(
         children: [
-          SizedBox(
-            width: 40,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text('#', style: title),
-            ),
-          ),
+          const SizedBox(width: 40, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: Text('#'))),
           Expanded(child: Text(locale.products, style: title)),
-          SizedBox(width: 100, child: Text(locale.qty, style: title)),
-          SizedBox(width: 100, child: Text(locale.batchTitle, style: title)),
-          SizedBox(width: 100, child: Text(locale.totalQty, style: title)),
-          SizedBox(width: 150, child: Text("${locale.unitPrice} ($baseCurrency)", style: title)),
-          SizedBox(width: 150, child: Text("${locale.amount} (${accountCcy??baseCurrency})", style: title)),
-          SizedBox(width: 150, child: Text(locale.salePercentage, style: title),),
-          SizedBox(width: 150, child: Text("${locale.landedPrice} ($baseCurrency)", style: title)),
-          SizedBox(width: 180, child: Text(locale.storage, style: title)),
-          SizedBox(width: 60, child: Text(locale.actions, style: title)),
-        ],
+          const SizedBox(width: 100, child: Text('Qty')),
+          const SizedBox(width: 100, child: Text('Batch')),
+          const SizedBox(width: 100, child: Text('Total Qty')),
+          SizedBox(width: 150, child: Text("${locale.unitPrice} ($baseCurrency)")),
+          SizedBox(width: 150, child: Text("${locale.amount} (${accountCcy ?? baseCurrency})")),
+          const SizedBox(width: 150, child: Text('Sale %')),
+          SizedBox(width: 150, child: Text("${locale.landedPrice} ($baseCurrency)")),
+          const SizedBox(width: 180, child: Text('Storage')),
+          const SizedBox(width: 60, child: Text('Actions')),
+        ].map((child) => DefaultTextStyle(style: title!, child: child)).toList(),
       ),
     );
   }
+
   void _setupRowFocus(int rowIndex) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (rowIndex < _rowFocusNodes.length && _rowFocusNodes[rowIndex].isNotEmpty) {
-        _rowFocusNodes[rowIndex][0].requestFocus(); // Focus product field
+        _rowFocusNodes[rowIndex][0].requestFocus();
       }
     });
   }
+
   Widget _buildItemRow({
     required BuildContext context,
     required PurchaseInvoiceItem item,
@@ -786,18 +722,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-          final current = state is PurchaseInvoiceSaving
-              ? state
-              : (state as PurchaseInvoiceLoaded);
-
-          final totalExpenses = current.expenses.fold(
-            0.0,
-                (sum, expense) => sum + expense.amount,
-          );
-
+          final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
+          final totalExpenses = current.totalExpenses;
           final needsConversion = current.needsExchangeRate;
 
-          // Update exchange rate controller if needed
           if (needsConversion && current.exchangeRate != null) {
             if (_exchangeRateController.text != current.exchangeRate.toString()) {
               _exchangeRateController.text = current.exchangeRate!.toStringAsFixed(4);
@@ -814,31 +742,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             ),
             child: Column(
               children: [
-                // Payment method row (existing code)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      tr.paymentMethod.toUpperCase(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
-                    ),
+                    Text(tr.paymentMethod.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
                     InkWell(
-                      onTap: () => _showPaymentModeDialog(current),
+                      onTap: () => _showPaymentDialog(current),
                       child: Row(
                         children: [
-                          Text(
-                            _getPaymentModeLabel(current.paymentMode),
-                            style: TextStyle(color: color.primary),
-                          ),
+                          Text(_getPaymentModeLabel(current.paymentMode), style: TextStyle(color: color.primary)),
                           const SizedBox(width: 4),
-                          Icon(
-                            Icons.more_vert_rounded,
-                            size: 20,
-                            color: color.primary,
-                          ),
+                          Icon(Icons.more_vert_rounded, size: 20, color: color.primary),
                         ],
                       ),
                     ),
@@ -848,60 +762,39 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 Divider(color: color.outline.withValues(alpha: .2)),
                 const SizedBox(height: 4),
 
-                // Show exchange rate info
                 if (needsConversion) ...[
                   ZCover(
-                    padding: const EdgeInsets.symmetric(horizontal: 6,vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                     radius: 4,
                     margin: const EdgeInsets.only(bottom: 8),
                     color: color.primary.withValues(alpha: .03),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(tr.exchangeRate,style: Theme.of(context).textTheme.titleSmall),
+                        Text(tr.exchangeRate, style: Theme.of(context).textTheme.titleSmall),
                         Directionality(
                           textDirection: TextDirection.ltr,
                           child: Text(
                             current.exchangeRate != null
                                 ? '1 ${current.fromCurrency} = ${current.exchangeRate?.toAmount(decimal: 6)} ${current.toCurrency}'
                                 : tr.loadingTitle,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                           ),
                         ),
                         if (current.exchangeRate == null)
-                          const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
+                          const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
                       ],
                     ),
                   ),
                 ],
 
-                // Expenses
                 if (totalExpenses > 0) ...[
-                  _buildSummaryRow(
-                    label: tr.totalExpense,
-                    value: totalExpenses,
-                    color: Colors.red,
-                    currency: baseCurrency,
-                  ),
+                  _buildSummaryRow(label: tr.totalExpense, value: totalExpenses, color: Colors.red, currency: baseCurrency),
                   const SizedBox(height: 4),
                 ],
 
-                // Grand Total
-                _buildSummaryRow(
-                  label: tr.grandTotal,
-                  value: current.grandTotal,
-                  isBold: true,
-                  currency: baseCurrency,
-                ),
+                _buildSummaryRow(label: tr.grandTotal, value: current.grandTotal, isBold: true, currency: baseCurrency),
 
-                // Local Amount - ALWAYS show if account is selected and has currency
                 if (current.supplierAccount != null && current.supplierAccount!.actCurrency != null && current.supplierAccount!.actCurrency!.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Divider(color: color.outline.withValues(alpha: .2)),
@@ -915,7 +808,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                 ],
 
-                // Total Cost with Expenses
                 if (totalExpenses > 0) ...[
                   const SizedBox(height: 4),
                   _buildSummaryRow(
@@ -927,14 +819,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                 ],
 
-                // Payment breakdown
                 if (current.paymentMode == PaymentMode.cash) ...[
-                  _buildSummaryRow(
-                    label: tr.cashPayment,
-                    value: current.cashPayment,
-                    color: Colors.green,
-                    currency: baseCurrency,
-                  ),
+                  _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
                   if (current.supplierAccount != null && current.exchangeRate != null)
                     _buildSummaryRow(
                       label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
@@ -953,18 +839,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       fontSize: 13,
                     ),
                 ] else if (current.paymentMode == PaymentMode.mixed) ...[
-                  _buildSummaryRow(
-                    label: tr.accountPayment,
-                    value: current.creditAmount,
-                    color: Colors.orange,
-                    currency: baseCurrency,
-                  ),
-                  _buildSummaryRow(
-                    label: tr.cashPayment,
-                    value: current.cashPayment,
-                    color: Colors.green,
-                    currency: baseCurrency,
-                  ),
+                  _buildSummaryRow(label: tr.accountPayment, value: current.creditAmount, color: Colors.orange, currency: baseCurrency),
+                  _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
                   if (current.supplierAccount != null && current.exchangeRate != null) ...[
                     const SizedBox(height: 4),
                     Divider(color: color.outline.withValues(alpha: .2)),
@@ -985,7 +861,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ],
                 ],
 
-                // Account Information
                 if (current.supplierAccount != null) ...[
                   const SizedBox(height: 4),
                   Divider(color: color.outline.withValues(alpha: .2)),
@@ -997,29 +872,18 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       children: [
                         Text(
                           '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                         ),
-                        Text(
-                          current.supplierAccount!.actCurrency ?? '',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                          ),
-                        ),
+                        Text(current.supplierAccount!.actCurrency ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                       ],
                     ),
                   ),
-
                   _buildSummaryRow(
                     label: tr.currentBalance,
                     value: current.currentBalance,
                     color: _getBalanceColor(current.currentBalance),
                     currency: current.supplierAccount!.actCurrency,
                   ),
-
                   if (current.creditAmountLocal > 0) ...[
                     const SizedBox(height: 4),
                     _buildSummaryRow(
@@ -1048,26 +912,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   }
 
   Color _getBalanceColor(double balance) {
-    if (balance < 0) {
-      return Colors.red; // Negative = Debtor (supplier owes us)
-    } else if (balance > 0) {
-      return Colors.green; // Positive = Creditor (we owe supplier)
-    } else {
-      return Colors.grey; // Zero balance
-    }
+    if (balance < 0) return Colors.red;
+    if (balance > 0) return Colors.green;
+    return Colors.grey;
   }
 
   String _getBalanceStatus(double balance) {
-    if (balance < 0) {
-      return AppLocalizations.of(context)!.debtor; // Supplier owes us
-    } else if (balance > 0) {
-      return AppLocalizations.of(context)!.creditor; // We owe supplier
-    } else {
-      return AppLocalizations.of(context)!.noAccountsFound;
-    }
+    if (balance < 0) return AppLocalizations.of(context)!.debtor;
+    if (balance > 0) return AppLocalizations.of(context)!.creditor;
+    return AppLocalizations.of(context)!.noAccountsFound;
   }
 
-  // Update _buildSummaryRow to accept custom currency and font size
   Widget _buildSummaryRow({
     required String label,
     required double value,
@@ -1079,13 +934,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: fontSize,
-          ),
-        ),
+        Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, fontSize: fontSize)),
         Text(
           "${value.toAmount()} ${currency ?? ''}",
           style: TextStyle(
@@ -1097,16 +946,16 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       ],
     );
   }
+
   void _synchronizeFocusNodes(int itemCount) {
-    // Each row needs 6 focus nodes (Product, Qty, Batch, UnitPrice, SellPrice, Storage)
     while (_rowFocusNodes.length < itemCount) {
       _rowFocusNodes.add([
-        FocusNode(), // 0: Product
-        FocusNode(), // 1: Qty
-        FocusNode(), // 2: Batch
-        FocusNode(), // 3: Unit Price
-        FocusNode(), // 4: Sell Price
-        FocusNode(), // 5: Storage
+        FocusNode(), // Product
+        FocusNode(), // Qty
+        FocusNode(), // Batch
+        FocusNode(), // Unit Price
+        FocusNode(), // Sell Price
+        FocusNode(), // Storage
       ]);
     }
     while (_rowFocusNodes.length > itemCount) {
@@ -1115,252 +964,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         node.dispose();
       }
     }
-  }
-
-  void _showPaymentModeDialog(PurchaseInvoiceLoaded current) {
-    final tr = AppLocalizations.of(context)!;
-    final color = Theme.of(context).colorScheme;
-
-    showDialog(
-      context: context,
-      builder: (context) => ZFormDialog(
-        isActionTrue: false,
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-        title: tr.selectPaymentMethod,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _paymentCard(
-              title: tr.cashPayment,
-              subtitle: tr.cashPaymentSubtitle,
-              icon: Icons.payments_rounded,
-              selected: current.paymentMode == PaymentMode.cash,
-              color: color,
-              onTap: () {
-                Navigator.pop(context);
-                _accountController.clear();
-                context.read<PurchaseInvoiceBloc>().add(
-                  ClearSupplierAccountEvent(),
-                );
-              },
-            ),
-
-            _paymentCard(
-              title: tr.accountCredit,
-              subtitle: tr.accountCreditSubtitle,
-              icon: Icons.account_balance_wallet_rounded,
-              selected: current.paymentMode == PaymentMode.credit,
-              color: color,
-              onTap: () {
-                Navigator.pop(context);
-                context.read<PurchaseInvoiceBloc>().add(
-                  UpdatePurchasePaymentEvent(0),
-                );
-                setState(() {});
-              },
-            ),
-
-            _paymentCard(
-              title: tr.combinedPayment,
-              subtitle: tr.combinedPaymentSubtitle,
-              icon: Icons.sync_alt_rounded,
-              selected: current.paymentMode == PaymentMode.mixed,
-              color: color,
-              onTap: () {
-                Navigator.pop(context);
-                _showMixedPaymentDialog(context, current);
-              },
-            ),
-          ],
-        ),
-        onAction: () => Navigator.pop(context),
-      ),
-    );
-  }
-
-  void _showMixedPaymentDialog(
-    BuildContext context,
-    PurchaseInvoiceLoaded current,
-  ) {
-    final controller = TextEditingController();
-    final tr = AppLocalizations.of(context)!;
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            double credit =
-                double.tryParse(controller.text.replaceAll(',', '')) ?? 0;
-
-            double cash = current.grandTotal - credit;
-
-            return ZFormDialog(
-              title: tr.combinedPayment,
-              padding: EdgeInsets.all(12),
-              actionLabel: Text(tr.submit),
-
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ZTextFieldEntitled(
-                    title: tr.creditAmount,
-                    controller: controller,
-                    hint: tr.amount,
-                    inputFormat: [SmartThousandsDecimalFormatter()],
-                    onChanged: (_) => setState(() {}),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  ZCover(
-                    padding: const EdgeInsets.all(14),
-                    radius: 8,
-                    child: Column(
-                      children: [
-                        _amountRow(tr.grandTotal, current.grandTotal),
-
-                        const Divider(height: 20),
-
-                        _amountRow(tr.creditTitle, credit, color: Colors.orange),
-
-                        const SizedBox(height: 6),
-
-                        _amountRow(tr.cashPayment, cash, color: Colors.green),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              onAction: () {
-                if (credit <= 0) {
-                  Utils.showOverlayMessage(
-                    context,
-                    message: 'Enter valid credit amount',
-                    isError: true,
-                  );
-                  return;
-                }
-
-                if (credit >= current.grandTotal) {
-                  Utils.showOverlayMessage(
-                    context,
-                    message: 'Credit must be less than total',
-                    isError: true,
-                  );
-                  return;
-                }
-
-                context.read<PurchaseInvoiceBloc>().add(
-                  UpdatePurchasePaymentEvent(credit, isCreditAmount: true),
-                );
-
-                Navigator.pop(context);
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _paymentCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required bool selected,
-    required ColorScheme color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.symmetric(vertical: 6),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selected
-                ? color.primary
-                : color.outline.withValues(alpha: .3),
-            width: selected ? 1.5 : 1,
-          ),
-          color: selected
-              ? color.primary.withValues(alpha: .06)
-              : color.surface,
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              backgroundColor: color.primary.withValues(alpha: .1),
-              child: Icon(
-                icon,
-                size: 22,
-                color: selected ? color.primary : color.outline,
-              ),
-            ),
-
-            const SizedBox(width: 14),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: color.onSurface.withValues(alpha: .6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              child: selected
-                  ? Icon(
-                      Icons.check_circle,
-                      color: color.primary,
-                      key: const ValueKey(1),
-                    )
-                  : const SizedBox(key: ValueKey(2)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _amountRow(String label, double value, {Color? color}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 16)),
-
-        Text(
-          value.toAmount(),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-            color: color,
-          ),
-        ),
-      ],
-    );
   }
 
   String _getPaymentModeLabel(PaymentMode mode) {
@@ -1391,7 +994,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   }
 
   void _saveInvoice(BuildContext context, PurchaseInvoiceLoaded state) {
-    // Additional validation
     if (!state.isFormValid) {
       Utils.showOverlayMessage(
         context,
@@ -1406,13 +1008,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     context.read<PurchaseInvoiceBloc>().add(
       SavePurchaseInvoiceEvent(
         usrName: _userName ?? '',
-        expenses: state.expenses,
         orderName: "Purchase",
-        remark: _remark.text,
-        rate: double.tryParse(_exchangeRateController.text),
         ordPersonal: state.supplier!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-        items: state.items,
+        remark: _remark.text,
         completer: completer,
       ),
     );
@@ -1420,7 +1019,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
   void _onPrint({String? invoiceNumber}) {
     final state = context.read<PurchaseInvoiceBloc>().state;
-
     PurchaseInvoiceLoaded? current;
 
     if (state is PurchaseInvoiceLoaded) {
@@ -1438,13 +1036,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return;
     }
 
-    // Now current is not null, we can safely use it
-    // Check if currency conversion is needed
     final needsConversion = current.supplierAccount?.actCurrency != null &&
         baseCurrency != null &&
         baseCurrency != current.supplierAccount!.actCurrency;
 
-    // Get company info
     final companyState = context.read<CompanyProfileBloc>().state;
     if (companyState is! CompanyProfileLoadedState) {
       Utils.showOverlayMessage(
@@ -1463,17 +1058,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       statementDate: DateTime.now().toFullDateTime,
     );
 
-    // Get company logo
     final base64Logo = companyState.company.comLogo;
     if (base64Logo != null && base64Logo.isNotEmpty) {
       try {
         company.comLogo = base64Decode(base64Logo);
       } catch (e) {
-        // Handle error silently
+        "";
       }
     }
 
-    // Prepare invoice items for print with local amount
     final List<InvoiceItem> invoiceItems = current.items.map((item) {
       return PurchaseInvoiceItemForPrint(
         productName: item.productName,
@@ -1482,13 +1075,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         batch: item.stkBatch,
         total: item.totalPurchase,
         storageName: item.storageName,
-        localAmount: item.singleLocalAmount, // Single item local amount (unit price * exchange rate)
+        localAmount: item.singleLocalAmount,
         localCurrency: current?.supplierAccount?.actCurrency ?? current?.toCurrency,
-        exchangeRate: current?.exchangeRate, // Pass exchange rate
+        exchangeRate: current?.exchangeRate,
       );
     }).toList();
 
-    // Calculate total local amount
     final totalLocalAmount = current.totalLocalAmount;
 
     showDialog(
@@ -1589,6 +1181,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     );
   }
 }
+
 class _PurchaseItemRow extends StatefulWidget {
   final PurchaseInvoiceItem item;
   final List<FocusNode> nodes;
@@ -1780,6 +1373,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final productController = TextEditingController(
       text: widget.item.productName,
     );
+    final headerProductController = TextEditingController(
+      text: widget.item.productName,
+    );
     final qtyController = widget.qtyControllers.putIfAbsent(
       widget.item.rowId,
           () => TextEditingController(
@@ -1829,6 +1425,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               Expanded(
                 child: PurchaseProductSearchField(
                   controller: productController,
+                  headerSearchController: headerProductController, // Optional: for header sync
                   focusNode: safeNode(0),
                   bloc: context.read<ProductsBloc>(),
                   onProductSelected: (product) {
@@ -1838,7 +1435,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         product.proId.toString(),
                         product.proName ?? '',
                       );
-                      // After product is selected, move to Qty field
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
                           focusNext(1);
@@ -1847,7 +1443,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     }
                   },
                   onSubmitted: () {
-                    // When Enter is pressed without selection
                     Future.delayed(const Duration(milliseconds: 50), () {
                       if (mounted && widget.item.productId.isNotEmpty) {
                         focusNext(1);
@@ -1856,6 +1451,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   },
                   hintText: AppLocalizations.of(context)!.products,
                   showAllOnFocus: true,
+                  openOverlayOnFocus: true, // Opens overlay when field gets focus
                 ),
               ),
 
@@ -2090,6 +1686,291 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               ],
             ),
           ),
+      ],
+    );
+  }
+}
+
+class PaymentDialog extends StatefulWidget {
+  final PurchaseInvoiceLoaded state;
+
+  const PaymentDialog({super.key, required this.state});
+
+  @override
+  State<PaymentDialog> createState() => _PaymentDialogState();
+}
+class _PaymentDialogState extends State<PaymentDialog> {
+  late TextEditingController _cashPaymentController;
+  late TextEditingController _exchangeRateController;
+
+  @override
+  void initState() {
+    super.initState();
+    _cashPaymentController = TextEditingController(
+      text: widget.state.cashPayment > 0 ? widget.state.cashPayment.toString() : '',
+    );
+    _exchangeRateController = TextEditingController(
+      text: widget.state.exchangeRate?.toStringAsFixed(4) ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _cashPaymentController.dispose();
+    _exchangeRateController.dispose();
+    super.dispose();
+  }
+
+  void _updateCashPayment(double value) {
+    context.read<PurchaseInvoiceBloc>().add(UpdateCashPaymentEvent(value));
+    setState(() {});
+  }
+
+  void _updateExchangeRate(double rate) {
+    final state = widget.state;
+    if (state.supplierAccount != null) {
+      context.read<PurchaseInvoiceBloc>().add(
+        UpdateExchangeRateManuallyEvent(
+          rate: rate,
+          fromCurrency: state.fromCurrency ?? '',
+          toCurrency: state.supplierAccount!.actCurrency ?? '',
+        ),
+      );
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+    final color = Theme.of(context).colorScheme;
+    final needsConversion = widget.state.needsExchangeRate;
+
+    return ZFormDialog(
+      title: tr.payment.toUpperCase(),
+      icon: Icons.payment,
+      width: 500,
+      onAction: () => Navigator.of(context).pop(),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Grand Total Display
+              _infoRow(
+                label: tr.grandTotal,
+                value: widget.state.grandTotal,
+                currency: widget.state.fromCurrency ?? '',
+                fontSize: 20,
+                isBold: true,
+              ),
+
+              const SizedBox(height: 5),
+              const Divider(),
+              const SizedBox(height: 5),
+
+              // Cash Payment Section
+              Row(
+                children: [
+
+                  Expanded(
+                    child: ZGenericTextField(
+                      controller: _cashPaymentController,
+                      title: tr.cashAmount,
+                      hint: "0.00",
+                      defaultCurrencyCode: widget.state.fromCurrency ?? '',
+                      fieldType: ZTextFieldType.currency,
+                      onCurrencyChanged: (currency) {
+                        // widget.state.fromCurrency = currency;
+                      },
+                      inputFormat: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                      ],
+                      onChanged: (value) {
+                        final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                        _updateCashPayment(amount);
+                      },
+                      showFlag: true,
+                      showClearButton: true,
+                      showSymbol: false,
+                      isRequired: true,
+                    ),
+                  ),
+
+                ],
+              ),
+
+              // Exchange Rate Section (if needed)
+              if (needsConversion) ...[
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: ZTextFieldEntitled(
+                        controller: _exchangeRateController,
+                        title: tr.exchangeRate,
+                        hint: "1 ${widget.state.fromCurrency} = ?",
+                        inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
+                        onChanged: (value) {
+                          final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                          _updateExchangeRate(rate);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.all(11),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
+                        color: color.primary.withValues(alpha: .03),
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "${widget.state.fromCurrency} → ${widget.state.supplierAccount?.actCurrency}",
+                            style: const TextStyle(fontSize: 12),
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              const SizedBox(height: 16),
+              const Divider(),
+              const SizedBox(height: 16),
+
+              // Payment Summary
+              _sectionHeader(tr.summary, Icons.summarize),
+              const SizedBox(height: 8),
+
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color.primary.withValues(alpha: .05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  children: [
+                    _infoRow(
+                      label: tr.grandTotal,
+                      value: widget.state.grandTotal,
+                      isBold: true,
+                      fontSize: 17,
+                      currency: widget.state.fromCurrency ?? '',
+                    ),
+                    if (widget.state.cashPayment > 0) ...[
+                      const SizedBox(height: 8),
+                      _infoRow(
+                        label: tr.cashPayment,
+                        value: widget.state.cashPayment,
+                        currency: widget.state.fromCurrency ?? '',
+                        color: Colors.green,
+                      ),
+                    ],
+                    if (widget.state.creditAmount > 0) ...[
+                      const SizedBox(height: 8),
+                      _infoRow(
+                        label: tr.creditTitle,
+                        value: widget.state.creditAmount,
+                        currency: widget.state.fromCurrency ?? '',
+                        color: Colors.orange,
+                      ),
+                      if (needsConversion && widget.state.exchangeRate != null) ...[
+                        const SizedBox(height: 4),
+                        _infoRow(
+                          label: "${tr.creditTitle} (${widget.state.supplierAccount?.actCurrency})",
+                          value: widget.state.creditAmountLocal,
+                          currency: widget.state.supplierAccount?.actCurrency ?? '',
+                          fontSize: 12,
+                          color: Colors.orange.shade300,
+                        ),
+                      ],
+                    ],
+                  ],
+                ),
+              ),
+
+              // Account Balance Info (if credit payment)
+              if (widget.state.paymentMode != PaymentMode.cash &&
+                  widget.state.supplierAccount != null) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: .05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      _infoRow(
+                        label: tr.currentBalance,
+                        value: widget.state.currentBalance,
+                        fontSize: 15,
+                        currency: widget.state.supplierAccount!.actCurrency ?? '',
+                      ),
+                      const SizedBox(height: 4),
+                      _infoRow(
+                        label: tr.newBalance,
+                        value: widget.state.newBalance,
+                        currency: widget.state.supplierAccount!.actCurrency ?? '',
+                        isBold: true,
+                        fontSize: 20,
+                        color: widget.state.newBalance < 0 ? Colors.red : Colors.green,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _infoRow({
+    required String label,
+    required double value,
+    required String currency,
+    bool isBold = false,
+    Color? color,
+    double fontSize = 14,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+        Text(
+          "${value.toAmount()} $currency",
+          style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            fontSize: fontSize,
+            color: color ?? Theme.of(context).colorScheme.primary,
+          ),
+        ),
       ],
     );
   }
@@ -3007,9 +2888,9 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   : null,
               onTap: () {
                 Navigator.pop(context);
-                context.read<PurchaseInvoiceBloc>().add(
-                  UpdatePurchasePaymentEvent(0),
-                );
+                // context.read<PurchaseInvoiceBloc>().add(
+                //   UpdatePurchasePaymentEvent(0),
+                // );
                 setState(() {});
               },
             ),
@@ -3099,9 +2980,9 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 return;
               }
 
-              context.read<PurchaseInvoiceBloc>().add(
-                UpdatePurchasePaymentEvent(creditPayment, isCreditAmount: true),
-              );
+              // context.read<PurchaseInvoiceBloc>().add(
+              //   UpdatePurchasePaymentEvent(creditPayment, isCreditAmount: true),
+              // );
               Navigator.pop(context);
             },
             child: Text(tr.submit),
@@ -3164,10 +3045,10 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
       SavePurchaseInvoiceEvent(
         usrName: _userName ?? '',
         orderName: "Purchase",
-        expenses: state.expenses,
+
         ordPersonal: state.supplier!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-        items: state.items,
+
         completer: completer,
       ),
     );
@@ -4255,9 +4136,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                   : null,
               onTap: () {
                 Navigator.pop(context);
-                context.read<PurchaseInvoiceBloc>().add(
-                  UpdatePurchasePaymentEvent(0),
-                );
+                // context.read<PurchaseInvoiceBloc>().add(
+                //   UpdatePurchasePaymentEvent(0),
+                // );
                 setState(() {});
               },
             ),
@@ -4353,9 +4234,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 return;
               }
 
-              context.read<PurchaseInvoiceBloc>().add(
-                UpdatePurchasePaymentEvent(creditPayment, isCreditAmount: true),
-              );
+              // context.read<PurchaseInvoiceBloc>().add(
+              //   UpdatePurchasePaymentEvent(creditPayment, isCreditAmount: true),
+              // );
               Navigator.pop(context);
             },
             child: Text(tr.submit),
@@ -4418,10 +4299,8 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
       SavePurchaseInvoiceEvent(
         usrName: _userName ?? '',
         orderName: "Purchase",
-        expenses: state.expenses,
         ordPersonal: state.supplier!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-        items: state.items,
         completer: completer,
       ),
     );

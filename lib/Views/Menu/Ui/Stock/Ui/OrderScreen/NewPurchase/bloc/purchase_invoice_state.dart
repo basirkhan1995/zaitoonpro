@@ -14,72 +14,60 @@ class PurchaseInvoiceInitial extends PurchaseInvoiceState {
 class PurchaseInvoiceError extends PurchaseInvoiceState {
   final String message;
   const PurchaseInvoiceError(this.message);
-
   @override
   List<Object> get props => [message];
 }
 
-
 class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final List<PurchaseInvoiceItem> items;
-  final List<PurExpenseRecord> expenses;
+  final List<PurchasePaymentRecord> payments;
   final AccountsModel? supplierAccount;
   final IndividualsModel? supplier;
-  final double payment;
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
-
-  // New fields for exchange rate handling
   final double? exchangeRate;
   final String? fromCurrency;
   final String? toCurrency;
+  final double cashPayment;
 
   const PurchaseInvoiceLoaded({
     required this.items,
-    required this.expenses,
+    required this.payments,
     this.supplier,
     this.supplierAccount,
-    required this.payment,
     this.paymentMode = PaymentMode.cash,
     this.storages,
     this.exchangeRate,
     this.fromCurrency,
     this.toCurrency,
+    this.cashPayment = 0.0,
   });
+
+  List<PurchasePaymentRecord> get expenses =>
+      payments.where((p) => p.isExpense).toList();
+
+  PurchasePaymentRecord? get supplierPayment =>
+      payments.where((p) => !p.isExpense).isEmpty
+          ? null
+          : payments.where((p) => !p.isExpense).first;
 
   double get grandTotal {
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
   }
 
-  // Total local amount (in account currency)
-  double get totalLocalAmount {
-    // If no exchange rate or exchange rate is 1, return grand total
-    if (exchangeRate == null || exchangeRate == 1.0) return grandTotal;
-
-    // Calculate directly from items using current exchange rate
-    // Don't rely on stored localAmount as it might be stale
-    return items.fold(0.0, (sum, item) => sum + (item.totalPurchase * exchangeRate!));
+  double get totalExpenses {
+    return expenses.fold(0.0, (sum, expense) => sum + expense.amount);
   }
 
-  double get cashPayment {
-    if (paymentMode == PaymentMode.cash) {
-      return grandTotal;
-    } else if (paymentMode == PaymentMode.mixed) {
-      return payment;
-    }
-    return 0.0;
-  }
-
-  double get cashPaymentLocal {
-    if (exchangeRate == null || exchangeRate == 0) return cashPayment;
-    return cashPayment * exchangeRate!;
+  double get totalWithExpenses {
+    return grandTotal + totalExpenses;
   }
 
   double get creditAmount {
     if (paymentMode == PaymentMode.credit) {
-      return grandTotal;
+      return totalWithExpenses;
     } else if (paymentMode == PaymentMode.mixed) {
-      return grandTotal - payment;
+      return totalWithExpenses - cashPayment;
     }
     return 0.0;
   }
@@ -87,6 +75,16 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   double get creditAmountLocal {
     if (exchangeRate == null || exchangeRate == 0) return creditAmount;
     return creditAmount * exchangeRate!;
+  }
+
+  double get cashPaymentLocal {
+    if (exchangeRate == null || exchangeRate == 0) return cashPayment;
+    return cashPayment * exchangeRate!;
+  }
+
+  double get totalLocalAmount {
+    if (exchangeRate == null || exchangeRate == 1.0) return totalWithExpenses;
+    return totalWithExpenses * exchangeRate!;
   }
 
   double get currentBalance {
@@ -97,14 +95,12 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   }
 
   double get newBalance {
-    return currentBalance + creditAmountLocal; // Use local amount for balance
+    return currentBalance + creditAmountLocal;
   }
 
   bool get isFormValid {
     if (supplier == null) return false;
-
     if (paymentMode != PaymentMode.cash && supplierAccount == null) return false;
-
     if (items.isEmpty) return false;
 
     for (var item in items) {
@@ -120,7 +116,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     }
 
     if (paymentMode == PaymentMode.mixed) {
-      if (payment <= 0 || payment >= grandTotal) return false;
+      if (cashPayment <= 0 || cashPayment >= totalWithExpenses) return false;
     }
 
     return true;
@@ -137,52 +133,52 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
 
   PurchaseInvoiceLoaded copyWith({
     List<PurchaseInvoiceItem>? items,
-    List<PurExpenseRecord>? expenses,
+    List<PurchasePaymentRecord>? payments,
     AccountsModel? supplierAccount,
     IndividualsModel? supplier,
-    double? payment,
     PaymentMode? paymentMode,
     List<StorageModel>? storages,
     double? exchangeRate,
     String? fromCurrency,
     String? toCurrency,
+    double? cashPayment,
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
-      expenses: expenses ?? this.expenses,
+      payments: payments ?? this.payments,
       supplier: supplier ?? this.supplier,
       supplierAccount: supplierAccount ?? this.supplierAccount,
-      payment: payment ?? this.payment,
       paymentMode: paymentMode ?? this.paymentMode,
       storages: storages ?? this.storages,
       exchangeRate: exchangeRate ?? this.exchangeRate,
       fromCurrency: fromCurrency ?? this.fromCurrency,
       toCurrency: toCurrency ?? this.toCurrency,
+      cashPayment: cashPayment ?? this.cashPayment,
     );
   }
 
   @override
   List<Object?> get props => [
     items,
-    expenses,
+    payments,
     supplier,
     supplierAccount,
-    payment,
     paymentMode,
     storages,
     exchangeRate,
     fromCurrency,
     toCurrency,
+    cashPayment,
   ];
 }
 
 class PurchaseInvoiceSaving extends PurchaseInvoiceLoaded {
   const PurchaseInvoiceSaving({
     required super.items,
-    required super.expenses,
+    required super.payments,
     super.supplier,
     super.supplierAccount,
-    required super.payment,
+    required super.cashPayment,
     super.paymentMode,
     super.storages,
   });
@@ -192,9 +188,7 @@ class PurchaseInvoiceSaved extends PurchaseInvoiceState {
   final bool success;
   final String? invoiceNumber;
   final PurchaseInvoiceLoaded? invoiceData;
-
   const PurchaseInvoiceSaved(this.success, {this.invoiceNumber, this.invoiceData});
-
   @override
-  List<Object?> get props => [success, invoiceNumber, invoiceData ?? const []];
+  List<Object?> get props => [success, invoiceNumber, invoiceData];
 }

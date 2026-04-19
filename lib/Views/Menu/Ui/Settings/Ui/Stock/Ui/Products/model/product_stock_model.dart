@@ -24,6 +24,7 @@ class ProductsStockModel {
   final String? stgName;
   final int? stkQtyInBatch;
   final String? available;
+  final String? availableItem;
   final String? recentPurPrice;
   final String? recentLandedPurPrice;
   final String? averagePrice;
@@ -45,6 +46,7 @@ class ProductsStockModel {
     this.stgName,
     this.stkQtyInBatch,
     this.available,
+    this.availableItem,
     this.recentPurPrice,
     this.recentLandedPurPrice,
     this.averagePrice,
@@ -67,6 +69,7 @@ class ProductsStockModel {
     String? stgName,
     int? stkQtyInBatch,
     String? available,
+    String? availableItem,
     String? recentPurPrice,
     String? recentLandedPurPrice,
     String? averagePrice,
@@ -88,6 +91,7 @@ class ProductsStockModel {
         stgName: stgName ?? this.stgName,
         stkQtyInBatch: stkQtyInBatch ?? this.stkQtyInBatch,
         available: available ?? this.available,
+        availableItem: availableItem ?? this.availableItem,
         recentPurPrice: recentPurPrice ?? this.recentPurPrice,
         recentLandedPurPrice: recentLandedPurPrice ?? this.recentLandedPurPrice,
         averagePrice: averagePrice ?? this.averagePrice,
@@ -110,6 +114,7 @@ class ProductsStockModel {
     stgName: json["stgName"],
     stkQtyInBatch: json["stkQtyInBatch"],
     available: json["available"],
+    availableItem: json["available_Item"],
     recentPurPrice: json["recent_PurPrice"],
     recentLandedPurPrice: json["recent_landedPurPrice"],
     averagePrice: json["average_price"],
@@ -132,6 +137,7 @@ class ProductsStockModel {
     "stgName": stgName,
     "stkQtyInBatch": stkQtyInBatch,
     "available": available,
+    "available_Item": availableItem,
     "recent_PurPrice": recentPurPrice,
     "recent_landedPurPrice": recentLandedPurPrice,
     "average_price": averagePrice,

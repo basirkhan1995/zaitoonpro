@@ -14,30 +14,30 @@ class SaleInvoiceInitial extends SaleInvoiceState {
 class SaleInvoiceError extends SaleInvoiceState {
   final String message;
   const SaleInvoiceError(this.message);
-
   @override
   List<Object> get props => [message];
 }
 
 class SaleInvoiceLoaded extends SaleInvoiceState {
   final List<SaleInvoiceItem> items;
+  final List<SalePaymentRecord> payments;
   final AccountsModel? customerAccount;
   final IndividualsModel? customer;
-  final double payment;
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
   final double generalDiscount;
   final double? exchangeRate;
   final DiscountType generalDiscountType;
-  final String? fromCurrency; // Base currency
-  final String? toCurrency; // Account currency
+  final String? fromCurrency;
+  final String? toCurrency;
   final double extraCharges;
+  final double cashPayment;
 
   const SaleInvoiceLoaded({
     required this.items,
+    required this.payments,
     this.customer,
     this.customerAccount,
-    required this.payment,
     this.paymentMode = PaymentMode.cash,
     this.storages,
     this.generalDiscount = 0.0,
@@ -46,9 +46,9 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     this.generalDiscountType = DiscountType.percentage,
     this.fromCurrency,
     this.toCurrency,
+    this.cashPayment = 0.0,
   });
 
-  // Helper to check if currency conversion is needed
   bool get needsExchangeRate {
     if (customerAccount == null) return false;
     final accountCurrency = customerAccount!.actCurrency ?? '';
@@ -58,31 +58,25 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
         accountCurrency != baseCurr;
   }
 
-  // Check if exchange rate is loading
   bool get isExchangeRateLoading => exchangeRate != null && exchangeRate! < 0;
 
-  // Safe exchange rate getter (default to 1.0)
   double get safeExchangeRate {
     if (exchangeRate == null || exchangeRate! <= 0) return 1.0;
     return exchangeRate!;
   }
 
-  // Subtotal before any discounts (in base currency)
   double get subtotal {
     return items.fold(0.0, (sum, item) => sum + (item.qty * (item.salePrice ?? 0)));
   }
 
-  // Total item discount amount (in base currency)
   double get totalItemDiscount {
     return items.fold(0.0, (sum, item) => sum + item.discountAmount);
   }
 
-  // Total after item discounts (in base currency)
   double get totalAfterItemDiscount {
     return items.fold(0.0, (sum, item) => sum + item.totalSale);
   }
 
-  // General discount amount (in base currency)
   double get generalDiscountAmount {
     if (generalDiscount <= 0) return 0;
     if (generalDiscountType == DiscountType.percentage) {
@@ -92,29 +86,23 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     }
   }
 
-  // Grand total (in base currency)
   double get grandTotal => totalAfterItemDiscount - generalDiscountAmount + extraCharges;
 
-  // Grand total in local currency (for display)
   double get grandTotalLocal {
     if (!needsExchangeRate) return grandTotal;
     return grandTotal * safeExchangeRate;
   }
 
-  // Total local amount for all items (in account currency)
   double get totalLocalAmount {
     if (!needsExchangeRate) return grandTotal;
-    final rate = safeExchangeRate;
-    return items.fold(0.0, (sum, item) => sum + (item.totalSale * rate)) + (extraCharges * rate);
+    return grandTotal * safeExchangeRate;
   }
 
-  // Cash payment in local currency
   double get cashPaymentLocal {
     if (!needsExchangeRate) return cashPayment;
     return cashPayment * safeExchangeRate;
   }
 
-  // Credit amount in local currency
   double get creditAmountLocal {
     if (!needsExchangeRate) return creditAmount;
     return creditAmount * safeExchangeRate;
@@ -135,20 +123,11 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     return 0.0;
   }
 
-  double get cashPayment {
-    if (paymentMode == PaymentMode.cash) {
-      return grandTotal;
-    } else if (paymentMode == PaymentMode.mixed) {
-      return payment;
-    }
-    return 0.0;
-  }
-
   double get creditAmount {
     if (paymentMode == PaymentMode.credit) {
       return grandTotal;
     } else if (paymentMode == PaymentMode.mixed) {
-      return grandTotal - payment;
+      return grandTotal - cashPayment;
     }
     return 0.0;
   }
@@ -161,16 +140,12 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   }
 
   double get newBalance {
-    return currentBalance + creditAmount;
+    return currentBalance + creditAmountLocal;
   }
-
-
 
   bool get isFormValid {
     if (customer == null) return false;
-
     if (paymentMode != PaymentMode.cash && customerAccount == null) return false;
-
     if (items.isEmpty) return false;
 
     for (var item in items) {
@@ -186,10 +161,9 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     }
 
     if (paymentMode == PaymentMode.mixed) {
-      if (payment <= 0 || payment >= grandTotal) return false;
+      if (cashPayment <= 0 || cashPayment >= grandTotal) return false;
     }
 
-    // Validate general discount
     if (generalDiscountType == DiscountType.amount && generalDiscount > grandTotal + generalDiscountAmount) {
       return false;
     }
@@ -199,9 +173,9 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
 
   SaleInvoiceLoaded copyWith({
     List<SaleInvoiceItem>? items,
+    List<SalePaymentRecord>? payments,
     AccountsModel? customerAccount,
     IndividualsModel? customer,
-    double? payment,
     PaymentMode? paymentMode,
     List<StorageModel>? storages,
     double? generalDiscount,
@@ -210,12 +184,13 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     String? fromCurrency,
     String? toCurrency,
     double? extraCharges,
+    double? cashPayment,
   }) {
     return SaleInvoiceLoaded(
       items: items ?? this.items,
+      payments: payments ?? this.payments,
       customer: customer ?? this.customer,
       customerAccount: customerAccount ?? this.customerAccount,
-      payment: payment ?? this.payment,
       paymentMode: paymentMode ?? this.paymentMode,
       storages: storages ?? this.storages,
       generalDiscount: generalDiscount ?? this.generalDiscount,
@@ -224,32 +199,25 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       fromCurrency: fromCurrency ?? this.fromCurrency,
       toCurrency: toCurrency ?? this.toCurrency,
       extraCharges: extraCharges ?? this.extraCharges,
+      cashPayment: cashPayment ?? this.cashPayment,
     );
   }
 
   @override
   List<Object?> get props => [
-    items,
-    customer,
-    customerAccount,
-    payment,
-    paymentMode,
-    storages,
-    generalDiscount,
-    generalDiscountType,
-    exchangeRate,
-    fromCurrency,
-    toCurrency,
-    extraCharges,
+    items, payments, customer, customerAccount, paymentMode, storages,
+    generalDiscount, generalDiscountType, exchangeRate, fromCurrency,
+    toCurrency, extraCharges, cashPayment,
   ];
 }
 
 class SaleInvoiceSaving extends SaleInvoiceLoaded {
   const SaleInvoiceSaving({
     required super.items,
+    required super.payments,
     super.customer,
     super.customerAccount,
-    required super.payment,
+    required super.cashPayment,
     super.paymentMode,
     super.storages,
   });
@@ -259,9 +227,7 @@ class SaleInvoiceSaved extends SaleInvoiceState {
   final bool success;
   final String? invoiceNumber;
   final SaleInvoiceLoaded? invoiceData;
-
   const SaleInvoiceSaved(this.success, {this.invoiceNumber, this.invoiceData});
-
   @override
-  List<Object?> get props => [success, invoiceNumber, invoiceData ?? const []];
+  List<Object?> get props => [success, invoiceNumber, invoiceData];
 }

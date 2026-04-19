@@ -1077,5 +1077,6 @@
   "generalDiscountAmount": " مبلغ تخفیف",
   "stockPaper": "سند انبار",
   "bol": "د بار وړلو سند",
-  "description": "تفصیلات"
+  "description": "تفصیلات",
+  "orderSummary": "جزئیات فرمایش"
 }

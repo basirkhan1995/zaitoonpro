@@ -25,10 +25,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<AddNewSaleItemEvent>(_onAddNewItem);
     on<RemoveSaleItemEvent>(_onRemoveItem);
     on<UpdateSaleItemEvent>(_onUpdateItem);
-    on<UpdateSaleReceivePaymentEvent>(_onUpdateReceivePayment);
+    on<UpdateCashPaymentEvent>(_onUpdateCashPayment);
     on<ResetSaleInvoiceEvent>(_onReset);
     on<SaveSaleInvoiceEvent>(_onSaveInvoice);
-    on<ClearCustomerAccountEvent>(_onClearSupplierAccount);
+    on<ClearCustomerAccountEvent>(_onClearCustomerAccount);
     on<UpdateItemDiscountTypeEvent>(_onUpdateItemDiscountType);
     on<UpdateItemDiscountValueEvent>(_onUpdateItemDiscountValue);
     on<UpdateGeneralDiscountEvent>(_onUpdateGeneralDiscount);
@@ -39,10 +39,19 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
   }
 
   void setExchangeRateBloc(ExchangeRateBloc exchangeRateBloc) {
+    _exchangeRateSubscription?.cancel();
     _exchangeRateBloc = exchangeRateBloc;
-    _exchangeRateSubscription = _exchangeRateBloc!.stream.listen((state) {
-      if (state is ExchangeRateLoadedState && this.state is SaleInvoiceLoaded) {
-        add(UpdateAllLocalAmountsEvent());
+    _exchangeRateSubscription = _exchangeRateBloc!.stream.listen((exchangeState) {
+      if (exchangeState is ExchangeRateLoadedState && state is SaleInvoiceLoaded) {
+        final current = state as SaleInvoiceLoaded;
+        if (current.fromCurrency != null && current.toCurrency != null) {
+          final rate = double.tryParse(exchangeState.rate ?? "1.0") ?? 1.0;
+          add(UpdateExchangeRateEvent(
+            rate: rate,
+            fromCurrency: current.fromCurrency!,
+            toCurrency: current.toCurrency!,
+          ));
+        }
       }
     });
   }
@@ -56,24 +65,33 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
   void _onUpdateExchangeRateManually(UpdateExchangeRateManuallyEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
+      final updatedItems = current.items.map((item) {
+        return item.copyWith(
+          exchangeRate: event.rate,
+          localAmount: item.totalSale * event.rate,
+        );
+      }).toList();
+
       emit(current.copyWith(
+        items: updatedItems,
         exchangeRate: event.rate,
         fromCurrency: event.fromCurrency,
         toCurrency: event.toCurrency,
       ));
     }
   }
+
   void _onUpdateExtraCharges(UpdateExtraChargesEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
       emit(current.copyWith(extraCharges: event.charges));
     }
   }
+
   void _onUpdateExchangeRate(UpdateExchangeRateEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is! SaleInvoiceLoaded) return;
     final current = state as SaleInvoiceLoaded;
 
-    // Handle loading state (negative rate)
     if (event.rate < 0) {
       emit(current.copyWith(
         exchangeRate: event.rate,
@@ -83,11 +101,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       return;
     }
 
-    // Update all items with new exchange rate
     final updatedItems = current.items.map((item) {
       return item.copyWith(
         exchangeRate: event.rate,
-        localAmount: item.totalSale * event.rate, // Use totalSale (after discount)
+        localAmount: item.totalSale * event.rate,
       );
     }).toList();
 
@@ -98,6 +115,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       toCurrency: event.toCurrency,
     ));
   }
+
   void _onUpdateItemDiscountType(UpdateItemDiscountTypeEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -110,6 +128,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(items: updatedItems));
     }
   }
+
   void _onUpdateItemDiscountValue(UpdateItemDiscountValueEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -122,6 +141,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(items: updatedItems));
     }
   }
+
   void _onUpdateGeneralDiscount(UpdateGeneralDiscountEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -131,6 +151,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       ));
     }
   }
+
   void _onUpdateItemUnit(UpdateItemUnitEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -143,16 +164,18 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(items: updatedItems));
     }
   }
-  void _onClearSupplierAccount(ClearCustomerAccountEvent event, Emitter<SaleInvoiceState> emit) {
+
+  void _onClearCustomerAccount(ClearCustomerAccountEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
       emit(current.copyWith(
         customerAccount: null,
-        payment: current.grandTotal,
+        cashPayment: current.grandTotal,
         paymentMode: PaymentMode.cash,
       ));
     }
   }
+
   void _onInitialize(InitializeSaleInvoiceEvent event, Emitter<SaleInvoiceState> emit) {
     emit(SaleInvoiceLoaded(
       items: [SaleInvoiceItem(
@@ -166,15 +189,16 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         storageName: '',
         storageId: 0,
       )],
-      payment: 0.0,
+      payments: [],
+      cashPayment: 0.0,
       paymentMode: PaymentMode.cash,
+      extraCharges: 0.0,
+      generalDiscount: 0.0,
     ));
   }
 
-
   Future<void> fetchExchangeRate(String fromCurrency, String toCurrency) async {
     try {
-      // Update state to loading
       add(UpdateExchangeRateEvent(
         rate: -1,
         fromCurrency: fromCurrency,
@@ -205,19 +229,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
   void _onSelectCustomerAccount(SelectCustomerAccountEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
-
       PaymentMode newPaymentMode;
-
-      if (current.payment == 0) {
+      if (current.cashPayment <= 0) {
         newPaymentMode = PaymentMode.credit;
-      } else if (current.payment >= current.grandTotal) {
+      } else if (current.cashPayment >= current.grandTotal) {
         newPaymentMode = PaymentMode.cash;
-      } else if (current.payment > 0 && current.payment < current.grandTotal) {
-        newPaymentMode = PaymentMode.mixed;
       } else {
-        newPaymentMode = PaymentMode.credit;
+        newPaymentMode = PaymentMode.mixed;
       }
-
       emit(current.copyWith(
         customerAccount: event.customer,
         paymentMode: newPaymentMode,
@@ -238,6 +257,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(current.copyWith(
         customer: null,
         customerAccount: null,
+        cashPayment: current.grandTotal,
         paymentMode: PaymentMode.cash,
       ));
     }
@@ -262,6 +282,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final updatedItems = List<SaleInvoiceItem>.from(current.items)..add(newItem);
     emit(current.copyWith(items: updatedItems));
   }
+
   void _onRemoveItem(RemoveSaleItemEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -275,6 +296,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           batch: 0,
           discount: 0,
           purPrice: 0,
+          salePrice: 0,
           storageName: '',
           storageId: 0,
         ));
@@ -296,12 +318,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
             qty: event.qty ?? item.qty,
             batch: event.batch ?? item.batch,
             discount: event.discount ?? item.discount,
+            discountType: event.discountType ?? item.discountType,
             localAmount: event.localeAmount,
-            exchangeRate: event.exchangeRate,
+            exchangeRate: event.exchangeRate ?? current.exchangeRate,
             purPrice: event.purPrice ?? item.purPrice,
             salePrice: event.salePrice ?? item.salePrice,
             storageName: event.storageName ?? item.storageName,
             storageId: event.storageId ?? item.storageId,
+            unit: event.unit ?? item.unit,
           );
         }
         return item;
@@ -311,59 +335,29 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     }
   }
 
-  void _onUpdateReceivePayment(UpdateSaleReceivePaymentEvent event, Emitter<SaleInvoiceState> emit) {
+  void _onUpdateCashPayment(UpdateCashPaymentEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
+      double newCashPayment = event.cashPayment;
+      PaymentMode newMode;
 
-      double cashPayment;
-      double creditAmount;
-      PaymentMode newPaymentMode;
-
-      if (event.isCreditAmount) {
-        // When setting credit amount (from mixed payment)
-        creditAmount = event.payment;
-        cashPayment = current.grandTotal - creditAmount;
-
-        if (creditAmount <= 0) {
-          newPaymentMode = PaymentMode.cash;
-          cashPayment = current.grandTotal;
-          creditAmount = 0;
-        } else if (creditAmount >= current.grandTotal) {
-          newPaymentMode = PaymentMode.credit;
-          cashPayment = 0;
-          creditAmount = current.grandTotal;
-        } else {
-          newPaymentMode = PaymentMode.mixed;
-        }
+      if (newCashPayment <= 0) {
+        newMode = PaymentMode.credit;
+        newCashPayment = 0;
+      } else if (newCashPayment >= current.grandTotal) {
+        newMode = PaymentMode.cash;
+        newCashPayment = current.grandTotal;
       } else {
-        // When setting cash payment
-        cashPayment = event.payment;
-        creditAmount = current.grandTotal - cashPayment;
-
-        if (cashPayment == 0) {
-          newPaymentMode = PaymentMode.credit;
-          creditAmount = current.grandTotal;
-          cashPayment = 0;
-          // Don't clear account here - account is required for credit
-        } else if (cashPayment >= current.grandTotal) {
-          newPaymentMode = PaymentMode.cash;
-          cashPayment = current.grandTotal;
-          creditAmount = 0;
-          // Clear account when switching to full cash
-        } else {
-          newPaymentMode = PaymentMode.mixed;
-          // Account should still be selected for mixed
-        }
+        newMode = PaymentMode.mixed;
       }
 
       emit(current.copyWith(
-        payment: cashPayment,
-        paymentMode: newPaymentMode,
-        // Clear customerAccount only when switching to full cash
-        customerAccount: newPaymentMode == PaymentMode.cash ? null : current.customerAccount,
+        cashPayment: newCashPayment,
+        paymentMode: newMode,
       ));
     }
   }
+
   void _onReset(ResetSaleInvoiceEvent event, Emitter<SaleInvoiceState> emit) {
     emit(SaleInvoiceLoaded(
       items: [SaleInvoiceItem(
@@ -377,8 +371,11 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         storageName: '',
         storageId: 0,
       )],
-      payment: 0.0,
+      payments: [],
+      cashPayment: 0.0,
       paymentMode: PaymentMode.cash,
+      extraCharges: 0.0,
+      generalDiscount: 0.0,
     ));
   }
 
@@ -445,13 +442,13 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     }
 
     if (current.paymentMode == PaymentMode.mixed) {
-      if (current.payment <= 0) {
+      if (current.cashPayment <= 0) {
         emit(SaleInvoiceError('For mixed payment, cash payment must be greater than 0'));
         emit(savedState);
         event.completer.complete('');
         return;
       }
-      if (current.payment >= current.grandTotal) {
+      if (current.cashPayment >= current.grandTotal) {
         emit(SaleInvoiceError('For mixed payment, cash payment must be less than total amount'));
         emit(savedState);
         event.completer.complete('');
@@ -461,46 +458,22 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
     emit(SaleInvoiceSaving(
       items: current.items,
+      payments: current.payments,
       customer: current.customer,
       customerAccount: current.customerAccount,
-      payment: current.payment,
+      cashPayment: current.cashPayment,
       paymentMode: current.paymentMode,
       storages: current.storages,
     ));
 
     try {
-      int? accountNumber;
-      double amountToSend;
-      String? cashCurrency;
-
-      switch (current.paymentMode) {
-        case PaymentMode.cash:
-          accountNumber = 0;
-          amountToSend = 0.0;
-          cashCurrency = current.fromCurrency ?? "";
-          break;
-        case PaymentMode.credit:
-          accountNumber = current.customerAccount!.accNumber;
-          amountToSend = current.grandTotal;
-          cashCurrency = current.customerAccount!.actCurrency;
-          break;
-        case PaymentMode.mixed:
-          accountNumber = current.customerAccount!.accNumber;
-          amountToSend = current.creditAmount;
-          cashCurrency = current.fromCurrency ?? "";
-          break;
-      }
-
       final records = current.items.map((item) {
-        // Calculate discount amount (convert percentage to amount if needed)
         double discountAmount = 0.0;
         if (item.discount != null && item.discount! > 0) {
           if (item.discountType == DiscountType.percentage) {
-            // Calculate percentage discount as amount
             final subtotal = item.qty * (item.salePrice ?? 0);
             discountAmount = subtotal * (item.discount! / 100);
           } else {
-            // Fixed amount discount
             discountAmount = item.discount!;
           }
         }
@@ -510,22 +483,47 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           batch: item.batch?.toDouble() ?? 0.0,
-          discount: discountAmount, // Send calculated discount amount
-          pPrice: item.purPrice ?? 0.0, // Average price
-          sPrice: item.salePrice ?? 0.0,
+          discount: discountAmount,
+          purchaseAveragePrice: item.purPrice ?? 0.0,
+          salePrice: item.salePrice ?? 0.0,
         );
       }).toList();
 
       final xRef = event.xRef ?? '';
 
-      // Get general discount amount (convert percentage to amount if needed)
-      double orderDiscountAmount = 0.0;
-      if (current.generalDiscount > 0) {
-        if (current.generalDiscountType == DiscountType.percentage) {
-          orderDiscountAmount = current.totalAfterItemDiscount * (current.generalDiscount / 100);
-        } else {
-          orderDiscountAmount = current.generalDiscount;
+      final List<SalePaymentRecord> apiPayments = [];
+
+      if (current.extraCharges > 0) {
+        apiPayments.add(SalePaymentRecord(
+          accountNumber: 10101010,
+          amount: current.extraCharges,
+          currency: current.fromCurrency ?? '',
+          exRate: 1.0,
+          narration: "Extra charges",
+        ));
+      }
+
+      if (current.paymentMode != PaymentMode.cash && current.customerAccount != null) {
+        final creditAmount = current.creditAmount;
+        if (creditAmount > 0) {
+          apiPayments.add(SalePaymentRecord(
+            accountNumber: current.customerAccount!.accNumber!,
+            amount: creditAmount,
+            currency: current.customerAccount!.actCurrency ?? '',
+            exRate: current.safeExchangeRate,
+            narration: "Customer account payment",
+          ));
         }
+      }
+
+      if (current.cashPayment > 0) {
+        apiPayments.add(SalePaymentRecord(
+          accountNumber: 10101010,
+          amount: current.cashPayment,
+          currency: current.fromCurrency ?? '',
+          exRate: 1.0,
+          narration: "Cash payment",
+        ));
       }
 
       final response = await repo.addSaleInvoice(
@@ -533,17 +531,13 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         perID: event.ordPersonal,
         xRef: xRef,
         orderName: event.orderName,
-        account: accountNumber,
-        amount: amountToSend,
         remark: event.remark,
-        extraCharges: current.extraCharges,
-        cashCurrency: cashCurrency,
-        orderDiscount: orderDiscountAmount,
+        payment: apiPayments,
         records: records,
       );
 
       final message = response['msg']?.toString() ?? 'No response message';
-      final sp = response['specific']?.toString() ?? 'No response message';
+      final sp = response['specific']?.toString() ?? '';
 
       if (message.toLowerCase().contains('success') || message.toLowerCase().contains('authorized')) {
         final invoiceNumber = response['ordID']?.toString() ?? 'No Order Id';
@@ -553,14 +547,12 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         Future.microtask(() {
           if (!emit.isDone) add(ResetSaleInvoiceEvent());
         });
-      }
-      else if (message.toLowerCase().contains('not enough')) {
+      } else if (message.toLowerCase().contains('not enough')) {
         String errorMessage = '${tr.notEnoughMsg} $sp';
         emit(SaleInvoiceError(errorMessage));
         emit(savedState);
         event.completer.complete('');
-      }
-      else {
+      } else {
         String errorMessage;
         final msgLower = message.toLowerCase();
         if (msgLower.contains('over limit')) {
@@ -588,5 +580,4 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       event.completer.complete('');
     }
   }
-
 }

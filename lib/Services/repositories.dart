@@ -1815,28 +1815,20 @@ class Repositories {
   Future<Map<String, dynamic>> addPurchaseInvoice({
     required String usrName,
     required int perID,
-    required String? xRef,
+    String? xRef,
     required String orderName, //Purchase or Sale
-    int? account,
     String? remark,
-    String? currency,
-    double? amount,
-    double? exRate,
     required List<PurchaseInvoiceRecord> records,
-    required List<PurExpenseRecord> expRecord,
+    required List<PurchasePaymentRecord> payment,
   }) async {
     final data = {
       "usrName": usrName,
       "ordName": orderName,
       "ordPersonal": perID,
       "ordxRef": xRef ?? "",
-      "exRate": exRate,
-      "oRemark": remark,
-      "currency": currency,
-      "account": account ?? 0,
-      "amount": amount ?? 0.0,
+      "ordRemark": remark,
+      "payments": payment.map((e)=> e.toJson()).toList(),
       "records": records.map((r) => r.toJson()).toList(),
-      "expenses": expRecord.map((r) => r.toJson()).toList(),
     };
 
     final response = await api.post(
@@ -1853,31 +1845,20 @@ class Repositories {
   Future<Map<String, dynamic>> addSaleInvoice({
     required String usrName,
     required int perID,
-    required String? xRef,
+    String? xRef,
     required String orderName,
-    double? exchangeRate,
-    int? account,
-    double? amount,
     String? remark,
-    double? extraCharges,
-    String? cashCurrency,
-    double? orderDiscount,
+    required List<SalePaymentRecord> payment,
     required List<SaleInvoiceRecord> records,
   }) async {
     final data = {
       "usrName": usrName,
       "ordName": orderName,
       "ordPersonal": perID,
-      "ordxRef": xRef ?? "",
-      "account": account ?? 0, // Customer Account Number
-      "amount": amount ?? 0.0, // Amount
-      "oRemark": remark,
-      "exRate": exchangeRate ?? "0.0",
-      "extraCharges": extraCharges, // Extra charges
-      "cashCcy" : cashCurrency,
-      "orderDiscount": orderDiscount, // General Discount
+      "ordxRef": xRef,
+      "ordRemarks": remark,
+      "payments": payment.map((e)=> e.toJson()).toList(),
       "records": records.map((r) => r.toJson()).toList(),
-      "expenses": [],
     };
     final response = await api.post(
       endpoint: "/inventory/salePurchase.php",

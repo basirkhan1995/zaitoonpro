@@ -2,7 +2,6 @@ part of 'purchase_invoice_bloc.dart';
 
 abstract class PurchaseInvoiceEvent extends Equatable {
   const PurchaseInvoiceEvent();
-
   @override
   List<Object?> get props => [];
 }
@@ -12,7 +11,6 @@ class InitializePurchaseInvoiceEvent extends PurchaseInvoiceEvent {}
 class SelectSupplierEvent extends PurchaseInvoiceEvent {
   final IndividualsModel supplier;
   const SelectSupplierEvent(this.supplier);
-
   @override
   List<Object?> get props => [supplier];
 }
@@ -20,7 +18,6 @@ class SelectSupplierEvent extends PurchaseInvoiceEvent {
 class SelectSupplierAccountEvent extends PurchaseInvoiceEvent {
   final AccountsModel supplier;
   const SelectSupplierAccountEvent(this.supplier);
-
   @override
   List<Object?> get props => [supplier];
 }
@@ -32,7 +29,6 @@ class AddNewPurchaseItemEvent extends PurchaseInvoiceEvent {}
 class RemovePurchaseItemEvent extends PurchaseInvoiceEvent {
   final String rowId;
   const RemovePurchaseItemEvent(this.rowId);
-
   @override
   List<Object?> get props => [rowId];
 }
@@ -47,7 +43,6 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
   final double? sellPriceAmount;
   final int? storageId;
   final String? storageName;
-
   const UpdatePurchaseItemEvent({
     required this.rowId,
     this.productId,
@@ -59,29 +54,15 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
     this.storageId,
     this.storageName,
   });
-
   @override
-  List<Object?> get props => [
-    rowId,
-    productId,
-    productName,
-    qty,
-    batch,
-    purPrice,
-    sellPriceAmount,
-    storageId,
-    storageName,
-  ];
+  List<Object?> get props => [rowId, productId, productName, qty, batch, purPrice, sellPriceAmount, storageId, storageName];
 }
 
-class UpdatePurchasePaymentEvent extends PurchaseInvoiceEvent {
-  final double payment;
-  final bool isCreditAmount;
-
-  const UpdatePurchasePaymentEvent(this.payment, {this.isCreditAmount = false});
-
+class UpdateCashPaymentEvent extends PurchaseInvoiceEvent {
+  final double cashPayment;
+  const UpdateCashPaymentEvent(this.cashPayment);
   @override
-  List<Object?> get props => [payment, isCreditAmount];
+  List<Object?> get props => [cashPayment];
 }
 
 class ResetPurchaseInvoiceEvent extends PurchaseInvoiceEvent {}
@@ -91,74 +72,66 @@ class SavePurchaseInvoiceEvent extends PurchaseInvoiceEvent {
   final String orderName;
   final int ordPersonal;
   final String? xRef;
-  final String? invoiceCcy;
   final String? remark;
-  final double? rate;
-  final List<PurchaseInvoiceItem> items;
-  final List<PurExpenseRecord> expenses;
   final Completer<String> completer;
-
   const SavePurchaseInvoiceEvent({
     required this.usrName,
     required this.ordPersonal,
     required this.orderName,
     this.xRef,
-    this.rate,
-    this.invoiceCcy,
     this.remark,
-    required this.items,
-    required this.expenses,
     required this.completer,
   });
-
   @override
-  List<Object?> get props => [usrName, ordPersonal, orderName, xRef,invoiceCcy,remark, items, completer];
+  List<Object?> get props => [usrName, ordPersonal, orderName, xRef, remark, completer];
 }
 
 class ClearSupplierAccountEvent extends PurchaseInvoiceEvent {
   const ClearSupplierAccountEvent();
-  @override
-  List<Object?> get props => [];
 }
 
 class LoadPurchaseStoragesEvent extends PurchaseInvoiceEvent {
   final int productId;
   const LoadPurchaseStoragesEvent(this.productId);
-
   @override
   List<Object?> get props => [productId];
 }
 
-
-class AddExpenseEvent extends PurchaseInvoiceEvent {
-  const AddExpenseEvent();
-}
-
-class RemoveExpenseEvent extends PurchaseInvoiceEvent {
-  final String rowId;
-  const RemoveExpenseEvent(this.rowId);
-
+// Unified Payment Events
+class AddPaymentEvent extends PurchaseInvoiceEvent {
+  final bool isExpense;
+  const AddPaymentEvent({this.isExpense = true});
   @override
-  List<Object?> get props => [rowId];
+  List<Object?> get props => [isExpense];
 }
 
-class UpdateExpenseEvent extends PurchaseInvoiceEvent {
-  final String rowId;
-  final String? narration;
-  final int? account;
+class RemovePaymentEvent extends PurchaseInvoiceEvent {
+  final int index;
+  final bool wasExpense;
+  const RemovePaymentEvent(this.index, {this.wasExpense = true});
+  @override
+  List<Object?> get props => [index, wasExpense];
+}
+
+class UpdatePaymentEvent extends PurchaseInvoiceEvent {
+  final int index;
+  final int? accountNumber;
   final double? amount;
-  final String? accountName;
-
-  const UpdateExpenseEvent({
-    required this.rowId,
-    this.narration,
-    this.account,
+  final String? currency;
+  final double? exRate;
+  final String? narration;
+  final bool? isExpense;
+  const UpdatePaymentEvent({
+    required this.index,
+    this.accountNumber,
     this.amount,
-    this.accountName,
+    this.currency,
+    this.exRate,
+    this.narration,
+    this.isExpense,
   });
-
   @override
-  List<Object?> get props => [rowId, narration, account, amount, accountName];
+  List<Object?> get props => [index, accountNumber, amount, currency, exRate, narration, isExpense];
 }
 
 class UpdateAllLandedPricesEvent extends PurchaseInvoiceEvent {
@@ -168,40 +141,23 @@ class UpdateAllLandedPricesEvent extends PurchaseInvoiceEvent {
 class UpdateExchangeRateForInvoiceEvent extends PurchaseInvoiceEvent {
   final String fromCurrency;
   final String toCurrency;
-
   const UpdateExchangeRateForInvoiceEvent({
     required this.fromCurrency,
     required this.toCurrency,
   });
-
   @override
   List<Object?> get props => [fromCurrency, toCurrency];
-}
-
-class UpdateItemLocalAmountEvent extends PurchaseInvoiceEvent {
-  final String rowId;
-
-  const UpdateItemLocalAmountEvent(this.rowId);
-
-  @override
-  List<Object?> get props => [rowId];
-}
-
-class UpdateAllLocalAmountsEvent extends PurchaseInvoiceEvent {
-  const UpdateAllLocalAmountsEvent();
 }
 
 class UpdateExchangeRateManuallyEvent extends PurchaseInvoiceEvent {
   final double rate;
   final String fromCurrency;
   final String toCurrency;
-
   const UpdateExchangeRateManuallyEvent({
     required this.rate,
     required this.fromCurrency,
     required this.toCurrency,
   });
-
   @override
   List<Object?> get props => [rate, fromCurrency, toCurrency];
 }

@@ -7,7 +7,16 @@ abstract class PurchaseInvoiceEvent extends Equatable {
 }
 
 class InitializePurchaseInvoiceEvent extends PurchaseInvoiceEvent {}
-
+class UpdateCashCurrencyEvent extends PurchaseInvoiceEvent {
+  final String currency;
+  final double exchangeRate;
+  const UpdateCashCurrencyEvent({
+    required this.currency,
+    required this.exchangeRate,
+  });
+  @override
+  List<Object?> get props => [currency, exchangeRate];
+}
 class SelectSupplierEvent extends PurchaseInvoiceEvent {
   final IndividualsModel supplier;
   const SelectSupplierEvent(this.supplier);

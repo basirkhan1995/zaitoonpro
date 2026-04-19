@@ -39,8 +39,18 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     // Exchange rate handlers
     on<UpdateExchangeRateForInvoiceEvent>(_onUpdateExchangeRate);
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
-  }
 
+    on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
+  }
+  void _onUpdateCashCurrency(UpdateCashCurrencyEvent event, Emitter<PurchaseInvoiceState> emit) {
+    if (state is PurchaseInvoiceLoaded) {
+      final current = state as PurchaseInvoiceLoaded;
+      emit(current.copyWith(
+        cashCurrency: event.currency,
+        cashExchangeRate: event.exchangeRate,
+      ));
+    }
+  }
   void _onUpdateExchangeRateManually(
       UpdateExchangeRateManuallyEvent event,
       Emitter<PurchaseInvoiceState> emit,
@@ -361,8 +371,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
   }
 
-  // Fix the _onSaveInvoice method - Expense handling section
-
   Future<void> _onSaveInvoice(SavePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) async {
     if (state is! PurchaseInvoiceLoaded) {
       event.completer.complete('');
@@ -476,26 +484,23 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final supplierCurrency = current.supplierAccount?.actCurrency ?? baseCurrency;
       final needsConversion = supplierCurrency != baseCurrency;
 
-      // ============ 1. HANDLE EXPENSES (DEBIT expense account, CREDIT cash) ============
-      // For each expense, we need TWO entries:
-      // - Debit: The expense account (selected by user)
-      // - Credit: Cash account (10101010)
+      // ============ 1. HANDLE EXPENSES (DEBIT expense account) ============
+      // Expenses are recorded as debit to expense account (cash is credited separately)
       for (final expense in current.expenses) {
         if (expense.amount > 0 && expense.accountNumber != 0) {
-          // Entry 1: DEBIT the expense account (records the expense)
+          // DEBIT the expense account (records the expense)
           apiPayments.add(PurchasePaymentRecord(
-            accountNumber: expense.accountNumber, // The selected expense account
-            amount: expense.amount, // Amount in base currency
+            accountNumber: expense.accountNumber,
+            amount: expense.amount,
             currency: baseCurrency,
             exRate: 1.0,
             narration: expense.narration!.isNotEmpty ? expense.narration : 'Expense: ${expense.accountNumber}',
-            isExpense: true, // This marks it as an expense transaction
+            isExpense: true,
           ));
         }
       }
 
-      // ============ 2. HANDLE SUPPLIER PAYMENT ============
-      // Calculate supplier payment amount (invoice total only, excluding expenses)
+      // ============ 2. HANDLE SUPPLIER PAYMENT (Credit/Debit to supplier account) ============
       final supplierPaymentAmount = current.grandTotal;
 
       // Add supplier payment if applicable (credit or mixed payment)
@@ -532,7 +537,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
 
       // ============ 3. HANDLE CASH PAYMENT FOR INVOICE ============
-      // This is the cash portion that goes to supplier (if any)
+      // This is the cash portion that goes to supplier
       if (current.cashPayment > 0) {
         double cashAmount = current.cashPayment;
 
@@ -542,12 +547,29 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         }
 
         if (cashAmount > 0) {
-          // CREDIT cash account for payment to supplier
+          // Determine cash currency - use selected cash currency or base currency
+          final cashCurrency = (current.cashCurrency != null && current.cashCurrency!.isNotEmpty)
+              ? current.cashCurrency!
+              : baseCurrency;
+
+          // Determine exchange rate for cash payment
+          double cashExRate;
+          if (cashCurrency != baseCurrency && current.cashExchangeRate > 0) {
+            // User selected a different currency for cash payment
+            cashExRate = current.cashExchangeRate;
+          } else {
+            cashExRate = 1.0;
+          }
+
+          // Convert base amount to cash currency
+          final amountInCashCurrency = cashAmount * cashExRate;
+
+          // CREDIT cash account (positive amount = credit in their API)
           apiPayments.add(PurchasePaymentRecord(
             accountNumber: 10101010, // Cash account
-            amount: cashAmount,
-            currency: baseCurrency,
-            exRate: 1.0,
+            amount: amountInCashCurrency,
+            currency: cashCurrency,
+            exRate: cashExRate,
             narration: 'Cash payment to supplier',
             isExpense: false,
           ));
@@ -623,7 +645,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       event.completer.complete('');
     }
   }
-// Fix the UpdateAllLandedPrices calculation
   void _onUpdateAllLandedPrices(UpdateAllLandedPricesEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;

@@ -24,9 +24,11 @@ import '../../../../../../../Features/Other/zForm_dialog.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
+import '../../../../../../../Features/Widgets/section_title.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
+import '../../../../Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_model.dart';
@@ -80,7 +82,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   void _showPaymentDialog(PurchaseInvoiceLoaded state) {
     showDialog(
       context: context,
-      builder: (context) => PaymentDialog(state: state),
+      builder: (context) => PurchasePaymentDialog(state: state),
     );
   }
 
@@ -724,13 +726,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
           final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
           final totalExpenses = current.totalExpenses;
-          final needsConversion = current.needsExchangeRate;
-
-          if (needsConversion && current.exchangeRate != null) {
-            if (_exchangeRateController.text != current.exchangeRate.toString()) {
-              _exchangeRateController.text = current.exchangeRate!.toStringAsFixed(4);
-            }
-          }
+          final needsAccountConversion = current.needsExchangeRate;
+          final needsCashConversion = current.needsCashConversion;
+          final baseCurrency = current.fromCurrency ?? '';
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -762,7 +760,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 Divider(color: color.outline.withValues(alpha: .2)),
                 const SizedBox(height: 4),
 
-                if (needsConversion) ...[
+                if (needsAccountConversion) ...[
                   ZCover(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
                     radius: 4,
@@ -819,9 +817,18 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                 ],
 
+                // Payment section with currency conversion
                 if (current.paymentMode == PaymentMode.cash) ...[
                   _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
-                  if (current.supplierAccount != null && current.exchangeRate != null)
+                  if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
+                    _buildSummaryRow(
+                      label: '${tr.cashPayment} (${current.cashCurrency})',
+                      value: current.cashPaymentInCashCurrency,
+                      color: Colors.green,
+                      currency: current.cashCurrency!,
+                      fontSize: 12,
+                    ),
+                  if (current.supplierAccount != null && needsAccountConversion)
                     _buildSummaryRow(
                       label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.cashPaymentLocal,
@@ -830,7 +837,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       fontSize: 12,
                     ),
                 ] else if (current.paymentMode == PaymentMode.credit) ...[
-                  if (current.supplierAccount != null && current.exchangeRate != null)
+                  if (current.supplierAccount != null && needsAccountConversion)
                     _buildSummaryRow(
                       label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
                       value: current.creditAmountLocal,
@@ -841,7 +848,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 ] else if (current.paymentMode == PaymentMode.mixed) ...[
                   _buildSummaryRow(label: tr.accountPayment, value: current.creditAmount, color: Colors.orange, currency: baseCurrency),
                   _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
-                  if (current.supplierAccount != null && current.exchangeRate != null) ...[
+
+                  // Show cash payment in selected cash currency if different
+                  if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
+                    _buildSummaryRow(
+                      label: '${tr.cashPayment} (${current.cashCurrency})',
+                      value: current.cashPaymentInCashCurrency,
+                      color: Colors.green,
+                      currency: current.cashCurrency!,
+                      fontSize: 12,
+                    ),
+
+                  // Show converted amounts in account currency
+                  if (current.supplierAccount != null && needsAccountConversion) ...[
                     const SizedBox(height: 4),
                     Divider(color: color.outline.withValues(alpha: .2)),
                     _buildSummaryRow(
@@ -861,6 +880,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ],
                 ],
 
+                // Account balance section
                 if (current.supplierAccount != null) ...[
                   const SizedBox(height: 4),
                   Divider(color: color.outline.withValues(alpha: .2)),
@@ -1691,39 +1711,131 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 }
 
-class PaymentDialog extends StatefulWidget {
+class PurchasePaymentDialog extends StatefulWidget {
   final PurchaseInvoiceLoaded state;
 
-  const PaymentDialog({super.key, required this.state});
+  const PurchasePaymentDialog({super.key, required this.state});
 
   @override
-  State<PaymentDialog> createState() => _PaymentDialogState();
+  State<PurchasePaymentDialog> createState() => _PurchasePaymentDialogState();
 }
-class _PaymentDialogState extends State<PaymentDialog> {
+
+class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;
+  late TextEditingController _cashExchangeRateController;
+
+  String _selectedCashCurrency = '';
+  double _cashExchangeRate = 1.0;
+  bool _isLoadingCashRate = false;
+  String _baseCurrency = '';
 
   @override
   void initState() {
     super.initState();
+
+    // Get base currency from auth state
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthenticatedState) {
+      _baseCurrency = authState.loginData.company?.comLocalCcy ?? 'USD';
+    }
+
+    // If still empty, try to get from state
+    if (_baseCurrency.isEmpty) {
+      _baseCurrency = widget.state.fromCurrency ?? 'USD';
+    }
+
+    // Initialize cash currency - ALWAYS start with base currency
+    _selectedCashCurrency = _baseCurrency;
+    _cashExchangeRate = 1.0;
+
+    // Convert stored base amount to selected currency for display
+    final cashPaymentInSelectedCurrency = widget.state.cashPayment * _cashExchangeRate;
+
     _cashPaymentController = TextEditingController(
-      text: widget.state.cashPayment > 0 ? widget.state.cashPayment.toString() : '',
+      text: cashPaymentInSelectedCurrency > 0 ? cashPaymentInSelectedCurrency.toStringAsFixed(2) : '',
     );
+
     _exchangeRateController = TextEditingController(
-      text: widget.state.exchangeRate?.toStringAsFixed(4) ?? '',
+      text: widget.state.exchangeRate != null && widget.state.exchangeRate! > 0
+          ? widget.state.exchangeRate!.toStringAsFixed(4)
+          : '',
+    );
+
+    _cashExchangeRateController = TextEditingController(
+      text: _cashExchangeRate.toStringAsFixed(4),
     );
   }
 
-  @override
-  void dispose() {
-    _cashPaymentController.dispose();
-    _exchangeRateController.dispose();
-    super.dispose();
+  void _updateCashPayment(double amountInSelectedCurrency) {
+    // Convert selected currency amount to base currency for storage
+    final amountInBaseCurrency = amountInSelectedCurrency / _cashExchangeRate;
+    context.read<PurchaseInvoiceBloc>().add(UpdateCashPaymentEvent(amountInBaseCurrency));
+    setState(() {});
   }
 
-  void _updateCashPayment(double value) {
-    context.read<PurchaseInvoiceBloc>().add(UpdateCashPaymentEvent(value));
-    setState(() {});
+  void _updateCashCurrencyAndRate(String currency, double rate) {
+    setState(() {
+      _selectedCashCurrency = currency;
+      _cashExchangeRate = rate;
+      _cashExchangeRateController.text = rate.toStringAsFixed(4);
+    });
+
+    context.read<PurchaseInvoiceBloc>().add(UpdateCashCurrencyEvent(
+      currency: currency,
+      exchangeRate: rate,
+    ));
+  }
+
+  void _onCashCurrencyChanged(CurrenciesModel? currency) {
+    if (currency == null) return;
+
+    final newCurrency = currency.ccyCode!;
+
+    // If currency didn't change, do nothing
+    if (newCurrency == _selectedCashCurrency) return;
+
+    setState(() {
+      _selectedCashCurrency = newCurrency;
+      _isLoadingCashRate = true;
+    });
+
+    // If new currency is different from base currency, fetch rate
+    if (_baseCurrency.isNotEmpty && newCurrency != _baseCurrency) {
+      _fetchCashExchangeRate(_baseCurrency, newCurrency);
+    } else {
+      // Same as base currency, rate is 1.0
+      setState(() {
+        _cashExchangeRate = 1.0;
+        _cashExchangeRateController.text = '1.0000';
+        _isLoadingCashRate = false;
+      });
+      _updateCashCurrencyAndRate(newCurrency, 1.0);
+    }
+  }
+
+  Future<void> _fetchCashExchangeRate(String fromCurrency, String toCurrency) async {
+    try {
+      final rateStr = await context.read<PurchaseInvoiceBloc>().repo.getSingleRate(
+        fromCcy: fromCurrency,
+        toCcy: toCurrency,
+      );
+      final rate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
+
+      setState(() {
+        _cashExchangeRate = rate;
+        _cashExchangeRateController.text = rate.toStringAsFixed(4);
+        _isLoadingCashRate = false;
+      });
+      _updateCashCurrencyAndRate(toCurrency, rate);
+    } catch (e) {
+      setState(() {
+        _cashExchangeRate = 1.0;
+        _cashExchangeRateController.text = '1.0000';
+        _isLoadingCashRate = false;
+      });
+      _updateCashCurrencyAndRate(toCurrency, 1.0);
+    }
   }
 
   void _updateExchangeRate(double rate) {
@@ -1732,7 +1844,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
       context.read<PurchaseInvoiceBloc>().add(
         UpdateExchangeRateManuallyEvent(
           rate: rate,
-          fromCurrency: state.fromCurrency ?? '',
+          fromCurrency: _baseCurrency,
           toCurrency: state.supplierAccount!.actCurrency ?? '',
         ),
       );
@@ -1740,214 +1852,298 @@ class _PaymentDialogState extends State<PaymentDialog> {
     }
   }
 
+  void _updateCashExchangeRate(double rate) {
+    setState(() {
+      _cashExchangeRate = rate;
+      _cashExchangeRateController.text = rate.toStringAsFixed(4);
+    });
+    _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
+  }
+
+  double get _convertedCashAmount {
+    final amountInSelectedCurrency = double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0;
+    return amountInSelectedCurrency / _cashExchangeRate;
+  }
+
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    final needsConversion = widget.state.needsExchangeRate;
+    final needsAccountConversion = widget.state.needsExchangeRate;
+    final grandTotal = widget.state.grandTotal;
+
+    // Check if cash currency is different from base currency
+    final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&
+        _baseCurrency.isNotEmpty &&
+        _selectedCashCurrency != _baseCurrency;
 
     return ZFormDialog(
       title: tr.payment.toUpperCase(),
       icon: Icons.payment,
-      width: 500,
-      onAction: () => Navigator.of(context).pop(),
+      width: 550,
+      actionLabel: Text(tr.confirm),
+      onAction: () => Navigator.pop(context),
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(10.0),
+          padding: const EdgeInsets.all(8.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Grand Total Display
-              _infoRow(
-                label: tr.grandTotal,
-                value: widget.state.grandTotal,
-                currency: widget.state.fromCurrency ?? '',
-                fontSize: 20,
-                isBold: true,
-              ),
-
-              const SizedBox(height: 5),
-              const Divider(),
-              const SizedBox(height: 5),
-
-              // Cash Payment Section
-              Row(
-                children: [
-
-                  Expanded(
-                    child: ZGenericTextField(
-                      controller: _cashPaymentController,
-                      title: tr.cashAmount,
-                      hint: "0.00",
-                      defaultCurrencyCode: widget.state.fromCurrency ?? '',
-                      fieldType: ZTextFieldType.currency,
-                      onCurrencyChanged: (currency) {
-                        // widget.state.fromCurrency = currency;
-                      },
-                      inputFormat: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
-                      ],
-                      onChanged: (value) {
-                        final amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                        _updateCashPayment(amount);
-                      },
-                      showFlag: true,
-                      showClearButton: true,
-                      showSymbol: false,
-                      isRequired: true,
-                    ),
-                  ),
-
-                ],
-              ),
-
-              // Exchange Rate Section (if needed)
-              if (needsConversion) ...[
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: ZTextFieldEntitled(
-                        controller: _exchangeRateController,
-                        title: tr.exchangeRate,
-                        hint: "1 ${widget.state.fromCurrency} = ?",
-                        inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
-                        onChanged: (value) {
-                          final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
-                          _updateExchangeRate(rate);
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.all(11),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
-                        color: color.primary.withValues(alpha: .03),
-                        borderRadius: BorderRadius.circular(3),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "${widget.state.fromCurrency} → ${widget.state.supplierAccount?.actCurrency}",
-                            style: const TextStyle(fontSize: 12),
-                          )
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              const SizedBox(height: 16),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              // Payment Summary
-              _sectionHeader(tr.summary, Icons.summarize),
+              // Order Summary Section
+              SectionTitle(title: tr.orderSummary.toUpperCase()),
               const SizedBox(height: 8),
-
-              Container(
+              ZCover(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: color.primary.withValues(alpha: .05),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                radius: 8,
                 child: Column(
                   children: [
                     _infoRow(
                       label: tr.grandTotal,
-                      value: widget.state.grandTotal,
+                      value: grandTotal,
+                      currency: _baseCurrency,
                       isBold: true,
-                      fontSize: 17,
-                      currency: widget.state.fromCurrency ?? '',
+                      fontSize: 20,
                     ),
-                    if (widget.state.cashPayment > 0) ...[
-                      const SizedBox(height: 8),
+                    if (widget.state.totalExpenses > 0)
                       _infoRow(
-                        label: tr.cashPayment,
-                        value: widget.state.cashPayment,
-                        currency: widget.state.fromCurrency ?? '',
-                        color: Colors.green,
+                        label: tr.totalExpense,
+                        value: widget.state.totalExpenses,
+                        currency: _baseCurrency,
+                        color: Colors.red,
                       ),
-                    ],
-                    if (widget.state.creditAmount > 0) ...[
-                      const SizedBox(height: 8),
+                    if (widget.state.totalExpenses > 0)
                       _infoRow(
-                        label: tr.creditTitle,
-                        value: widget.state.creditAmount,
-                        currency: widget.state.fromCurrency ?? '',
-                        color: Colors.orange,
+                        label: tr.totalCostPludExpenses,
+                        value: grandTotal + widget.state.totalExpenses,
+                        currency: _baseCurrency,
+                        isBold: true,
                       ),
-                      if (needsConversion && widget.state.exchangeRate != null) ...[
-                        const SizedBox(height: 4),
-                        _infoRow(
-                          label: "${tr.creditTitle} (${widget.state.supplierAccount?.actCurrency})",
-                          value: widget.state.creditAmountLocal,
-                          currency: widget.state.supplierAccount?.actCurrency ?? '',
-                          fontSize: 12,
-                          color: Colors.orange.shade300,
-                        ),
-                      ],
-                    ],
+                    // Account conversion summary (if account is selected)
+                    if (needsAccountConversion && widget.state.exchangeRate != null && widget.state.exchangeRate! > 0 && widget.state.toCurrency != null)
+                      _infoRow(
+                        label: "${tr.grandTotal} (${widget.state.toCurrency})",
+                        value: grandTotal * widget.state.safeExchangeRate,
+                        currency: widget.state.toCurrency!,
+                        fontSize: 15,
+                        color: color.outline.withValues(alpha: .7),
+                      ),
                   ],
                 ),
               ),
+              const SizedBox(height: 10),
 
-              // Account Balance Info (if credit payment)
-              if (widget.state.paymentMode != PaymentMode.cash &&
-                  widget.state.supplierAccount != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: .05),
-                    borderRadius: BorderRadius.circular(8),
+              // Payment Section
+              SectionTitle(title: tr.payment),
+              const SizedBox(height: 10),
+
+              // Cash Payment Section - ALWAYS visible, starts with base currency
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ZGenericTextField(
+                    controller: _cashPaymentController,
+                    title: "${tr.cashAmount} ($_baseCurrency)",
+                    hint: "0.00",
+                    defaultCurrencyCode: _baseCurrency,
+                    fieldType: ZTextFieldType.currency,
+                    onCurrencyChanged: _onCashCurrencyChanged,
+                    inputFormat: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                    ],
+                    onChanged: (value) {
+                      final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      _updateCashPayment(amountInSelectedCurrency);
+                    },
+                    showFlag: true,
+                    showClearButton: true,
+                    showSymbol: false,
+                    isRequired: true,
                   ),
+
+                  // Show current selected currency info
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      "Selected cash currency: $_selectedCashCurrency",
+                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                    ),
+                  ),
+
+                  // Exchange Rate Section for Cash (if currency changed from base)
+                  if (needsCashConversion) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: ZTextFieldEntitled(
+                            controller: _cashExchangeRateController,
+                            title: "${tr.exchangeRate} (1 $_baseCurrency = ? $_selectedCashCurrency)",
+                            hint: "1 $_baseCurrency = ?",
+                            inputFormat: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
+                            ],
+                            onChanged: (value) {
+                              final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                              if (rate > 0) {
+                                _updateCashExchangeRate(rate);
+                              }
+                            },
+                            trailing: _isLoadingCashRate
+                                ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                                : null,
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.all(11),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
+                            color: color.primary.withValues(alpha: .03),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                "≈ ${_convertedCashAmount.toStringAsFixed(2)} $_baseCurrency",
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                              ),
+                              if (_convertedCashAmount > 0 && grandTotal > 0)
+                                Text(
+                                  "(${(_convertedCashAmount / grandTotal * 100).toStringAsFixed(1)}% of total)",
+                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  // Account Payment Exchange Rate Section (only if account is selected)
+                  if (needsAccountConversion && widget.state.toCurrency != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: ZTextFieldEntitled(
+                            controller: _exchangeRateController,
+                            title: "${tr.exchangeRate} ($_baseCurrency → ${widget.state.toCurrency})",
+                            hint: "1 $_baseCurrency = ?",
+                            inputFormat: [
+                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
+                            ],
+                            onChanged: (value) {
+                              final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                              if (rate > 0) {
+                                _updateExchangeRate(rate);
+                              }
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.all(11),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
+                            color: color.primary.withValues(alpha: .03),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
+                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // Credit Account Section (only if account is selected)
+              if (widget.state.supplierAccount != null)
+                ZCover(
+                  padding: const EdgeInsets.all(12),
+                  radius: 8,
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _infoRow(
-                        label: tr.currentBalance,
-                        value: widget.state.currentBalance,
-                        fontSize: 15,
-                        currency: widget.state.supplierAccount!.actCurrency ?? '',
+                      Row(
+                        children: [
+                          Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Text(tr.accountPayment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600)),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      _infoRow(
-                        label: tr.newBalance,
-                        value: widget.state.newBalance,
-                        currency: widget.state.supplierAccount!.actCurrency ?? '',
-                        isBold: true,
-                        fontSize: 20,
-                        color: widget.state.newBalance < 0 ? Colors.red : Colors.green,
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(tr.creditAccount),
+                          Text(
+                            "${widget.state.supplierAccount?.accName} (${widget.state.supplierAccount?.accNumber})",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 3),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(tr.creditAmount, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text(
+                            "${widget.state.creditAmount.toStringAsFixed(2)} $_baseCurrency",
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                        ],
+                      ),
+                      if (needsAccountConversion && widget.state.creditAmount > 0 && widget.state.toCurrency != null)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("${tr.amount} (${widget.state.toCurrency})",
+                                style: const TextStyle(fontSize: 14)),
+                            Text(
+                              "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
+                              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.primary),
+                            ),
+                          ],
+                        ),
+                      if (widget.state.supplierAccount != null) ...[
+                        const SizedBox(height: 8),
+                        Divider(),
+                        const SizedBox(height: 4),
+                        _infoRow(
+                          label: tr.currentBalance,
+                          value: widget.state.currentBalance,
+                          currency: widget.state.supplierAccount!.actCurrency ?? _baseCurrency,
+                          fontSize: 15,
+                        ),
+                        _infoRow(
+                          label: tr.newBalance,
+                          value: widget.state.newBalance,
+                          currency: widget.state.supplierAccount!.actCurrency ?? _baseCurrency,
+                          isBold: true,
+                          fontSize: 17,
+                          color: widget.state.newBalance < 0 ? Colors.red : Colors.green,
+                        ),
+                      ],
                     ],
                   ),
                 ),
-              ],
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _sectionHeader(String title, IconData icon) {
-    return Row(
-      children: [
-        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 
@@ -1959,19 +2155,23 @@ class _PaymentDialogState extends State<PaymentDialog> {
     Color? color,
     double fontSize = 14,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
-        Text(
-          "${value.toAmount()} $currency",
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: fontSize,
-            color: color ?? Theme.of(context).colorScheme.primary,
+    final themeColor = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            "${value.toStringAsFixed(2)} $currency",
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              fontSize: fontSize,
+              color: color ?? themeColor.primary,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

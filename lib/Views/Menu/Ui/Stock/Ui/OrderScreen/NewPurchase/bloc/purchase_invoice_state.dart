@@ -29,6 +29,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final String? fromCurrency;
   final String? toCurrency;
   final double cashPayment;
+  final String? cashCurrency;
+  final double cashExchangeRate;
 
   const PurchaseInvoiceLoaded({
     required this.items,
@@ -41,6 +43,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     this.fromCurrency,
     this.toCurrency,
     this.cashPayment = 0.0,
+    this.cashCurrency,
+    this.cashExchangeRate = 1.0,
   });
 
   List<PurchasePaymentRecord> get expenses =>
@@ -52,26 +56,22 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
           : payments.where((p) => !p.isExpense).first;
 
   double get grandTotal {
-    // This should be invoice total ONLY (product purchases, excluding expenses)
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
   }
 
   double get totalExpenses {
-    // This is for landed price calculation only
     return expenses.fold(0.0, (sum, expense) => sum + expense.amount);
   }
 
   double get totalWithExpenses {
-    // This is total cost including expenses (for reporting only)
     return grandTotal + totalExpenses;
   }
 
   double get creditAmount {
-    // Credit should only be for the invoice amount (grandTotal), NOT including expenses
     if (paymentMode == PaymentMode.credit) {
-      return grandTotal; // Changed: removed totalWithExpenses
+      return grandTotal;
     } else if (paymentMode == PaymentMode.mixed) {
-      return grandTotal - cashPayment; // Changed: removed totalWithExpenses
+      return grandTotal - cashPayment;
     }
     return 0.0;
   }
@@ -84,6 +84,14 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   double get cashPaymentLocal {
     if (exchangeRate == null || exchangeRate == 0) return cashPayment;
     return cashPayment * exchangeRate!;
+  }
+
+  // NEW: Get cash amount in selected cash currency
+  double get cashPaymentInCashCurrency {
+    if (needsCashConversion && cashExchangeRate > 0) {
+      return cashPayment * cashExchangeRate;
+    }
+    return cashPayment;
   }
 
   double get totalLocalAmount {
@@ -100,6 +108,11 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
 
   double get newBalance {
     return currentBalance + creditAmountLocal;
+  }
+
+  double get safeExchangeRate {
+    if (exchangeRate == null || exchangeRate! <= 0) return 1.0;
+    return exchangeRate!;
   }
 
   bool get isFormValid {
@@ -135,6 +148,13 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
         accountCurrency != baseCurrency;
   }
 
+  // NEW: Check if cash currency is different from base currency
+  bool get needsCashConversion {
+    if (cashCurrency == null || cashCurrency!.isEmpty) return false;
+    final baseCurr = fromCurrency ?? '';
+    return baseCurr.isNotEmpty && cashCurrency != baseCurr;
+  }
+
   PurchaseInvoiceLoaded copyWith({
     List<PurchaseInvoiceItem>? items,
     List<PurchasePaymentRecord>? payments,
@@ -146,6 +166,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     String? fromCurrency,
     String? toCurrency,
     double? cashPayment,
+    String? cashCurrency,
+    double? cashExchangeRate,
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
@@ -158,6 +180,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       fromCurrency: fromCurrency ?? this.fromCurrency,
       toCurrency: toCurrency ?? this.toCurrency,
       cashPayment: cashPayment ?? this.cashPayment,
+      cashCurrency: cashCurrency ?? this.cashCurrency,
+      cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
     );
   }
 
@@ -173,6 +197,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     fromCurrency,
     toCurrency,
     cashPayment,
+    cashCurrency,
+    cashExchangeRate,
   ];
 }
 

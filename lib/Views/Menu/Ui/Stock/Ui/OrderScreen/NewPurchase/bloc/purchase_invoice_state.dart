@@ -52,22 +52,26 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
           : payments.where((p) => !p.isExpense).first;
 
   double get grandTotal {
+    // This should be invoice total ONLY (product purchases, excluding expenses)
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
   }
 
   double get totalExpenses {
+    // This is for landed price calculation only
     return expenses.fold(0.0, (sum, expense) => sum + expense.amount);
   }
 
   double get totalWithExpenses {
+    // This is total cost including expenses (for reporting only)
     return grandTotal + totalExpenses;
   }
 
   double get creditAmount {
+    // Credit should only be for the invoice amount (grandTotal), NOT including expenses
     if (paymentMode == PaymentMode.credit) {
-      return totalWithExpenses;
+      return grandTotal; // Changed: removed totalWithExpenses
     } else if (paymentMode == PaymentMode.mixed) {
-      return totalWithExpenses - cashPayment;
+      return grandTotal - cashPayment; // Changed: removed totalWithExpenses
     }
     return 0.0;
   }

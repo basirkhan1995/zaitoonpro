@@ -6471,6 +6471,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mixed'**
   String get mixedTitle;
+
+  /// No description provided for @totalReceivable.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Receivable'**
+  String get totalReceivable;
 }
 
 class _AppLocalizationsDelegate

@@ -2398,7 +2398,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         ],
                         const Divider(height: 12),
                         _infoRow(
-                          label: tr.totalPaid.toUpperCase(),
+                          label: tr.totalReceivable,
                           value: cashAmountInBase + remainingAmountInBase,
                           currency: _baseCurrency,
                           fontSize: 17,

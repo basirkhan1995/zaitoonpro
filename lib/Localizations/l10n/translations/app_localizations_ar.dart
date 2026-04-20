@@ -3265,4 +3265,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mixedTitle => 'نقد و حساب';
+
+  @override
+  String get totalReceivable => 'مجموعه قابل دریافت';
 }

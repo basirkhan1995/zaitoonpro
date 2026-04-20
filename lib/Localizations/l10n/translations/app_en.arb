@@ -1081,5 +1081,6 @@
   "orderSummary": "Order Summary",
   "accountReceivable": "Account Receivable",
   "amountAddedToAR": "Amount Added to Receivable",
-  "mixedTitle": "Mixed"
+  "mixedTitle": "Mixed",
+  "totalReceivable": "Total Receivable"
 }

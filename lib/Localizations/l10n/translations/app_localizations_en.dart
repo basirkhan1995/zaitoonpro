@@ -3272,4 +3272,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mixedTitle => 'Mixed';
+
+  @override
+  String get totalReceivable => 'Total Receivable';
 }

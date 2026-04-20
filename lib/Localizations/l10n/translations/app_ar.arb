@@ -1081,5 +1081,6 @@
   "orderSummary": "جزئیات فرمایش",
   "accountReceivable": "حساب دریافتنی",
   "amountAddedToAR": "مبلغ دریافتنی بل",
-  "mixedTitle": "نقد و حساب"
+  "mixedTitle": "نقد و حساب",
+  "totalReceivable": "مجموعه قابل دریافت"
 }

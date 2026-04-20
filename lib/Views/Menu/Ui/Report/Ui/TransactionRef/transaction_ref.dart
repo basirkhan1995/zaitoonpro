@@ -992,8 +992,9 @@ class _DesktopState extends State<_Desktop> {
                 ZOutlineButton(
                   width: 120,
                   onPressed: onSubmit,
+                  isActive: true,
                   icon: Icons.refresh,
-                  label: Text(tr.submit),
+                  label: Text(tr.submit.toUpperCase()),
                 ),
               ],
             ),
@@ -1162,7 +1163,7 @@ class _DesktopState extends State<_Desktop> {
 
                             return Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
+                                horizontal: 10,
                                 vertical: 8,
                               ),
                               margin: EdgeInsets.symmetric(horizontal: 10),
@@ -1182,7 +1183,7 @@ class _DesktopState extends State<_Desktop> {
                                     width: 100,
                                     child: Text(
                                       record.trdAccount?.toString() ?? "-",
-                                      style: textTheme.bodyMedium,
+                                        style: textTheme.titleSmall
                                     ),
                                   ),
                                   SizedBox(
@@ -1214,7 +1215,7 @@ class _DesktopState extends State<_Desktop> {
                                     width: 150,
                                     child: Text(
                                       "${record.trdAmount?.toAmount() ?? "0.00"} ${record.trdCcy ?? ""}",
-                                      style: textTheme.bodyMedium
+                                      style: textTheme.titleMedium
                                     ),
                                   ),
                                 ],

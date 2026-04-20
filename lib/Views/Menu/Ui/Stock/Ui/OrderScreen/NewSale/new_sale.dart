@@ -2097,67 +2097,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
 
   void _onConfirm() {
-    final remainingInBase = _remainingAmountInBase;
-
-    // If there's remaining amount, ask user what to do
-    if (remainingInBase > 0.01) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text("Remaining Amount"),
-          content: Text(
-            "Remaining amount: ${remainingInBase.toStringAsFixed(2)} $_baseCurrency\n"
-                "(${_remainingAmountInCashCurrency.toStringAsFixed(2)} $_selectedCashCurrency)\n\n"
-                "How would you like to handle this?",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  _onConfirm();
-                });
-              },
-              child: const Text("Add as Discount"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ToastManager.show(
-                  context: context,
-                  title: "Incomplete Payment",
-                  message: "Please enter the full payment amount",
-                  type: ToastType.error,
-                );
-              },
-              child: const Text("Cancel"),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
-    // Update the cash payment
+    // Update the cash payment with the entered amount
     final finalCashAmount = _cashAmountInBase;
     context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(finalCashAmount));
-    Navigator.pop(context);
 
-    // Now save the invoice
-    final state = _currentState;
-    final completer = Completer<String>();
-    context.read<SaleInvoiceBloc>().add(
-      SaveSaleInvoiceEvent(
-        usrName: context.read<AuthBloc>().state is AuthenticatedState
-            ? (context.read<AuthBloc>().state as AuthenticatedState).loginData.usrName ?? ''
-            : '',
-        orderName: "Sale",
-        ordPersonal: state.customer!.perId!,
-        xRef: null,
-        remark: null,
-        completer: completer,
-      ),
-    );
+    // Just close the dialog - user will click main Save button to save invoice
+    Navigator.pop(context);
   }
 
   @override
@@ -2175,12 +2120,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final isPaymentComplete = remainingAmountInBase <= 0.01;
 
     final bool isActionEnabled;
-    if (_currentState.customerAccount != null && paymentMode != PaymentMode.cash) {
-      // Account is selected and it's credit or mixed payment - always allow
-      isActionEnabled = true;
+    if (_currentState.customerAccount == null) {
+      // No account selected - must pay full amount in cash
+      isActionEnabled = _remainingAmountInBase <= 0.01;
     } else {
-      // Cash only mode - require full payment
-      isActionEnabled = remainingAmountInBase <= 0.01;
+      // Account selected - any cash amount is valid
+      isActionEnabled = true;
     }
 
     final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&

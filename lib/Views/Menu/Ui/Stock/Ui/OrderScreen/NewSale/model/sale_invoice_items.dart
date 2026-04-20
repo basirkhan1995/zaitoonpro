@@ -24,7 +24,7 @@ class SaleInvoiceItem {
     required this.qty,
     this.batch,
     this.discount,
-    this.discountType = DiscountType.percentage,
+    this.discountType = DiscountType.amount,
     this.purPrice,
     this.salePrice,
     this.localAmount,

@@ -543,7 +543,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       // Extra charges - use baseCurrency which is now guaranteed non-empty
       if (current.extraCharges > 0) {
         apiPayments.add(SalePaymentRecord(
-          accountNumber: 10101010,
+          accountNumber: 10101018,
           amount: current.extraCharges,
           currency: baseCurrency,
           exRate: 1.0,
@@ -558,7 +558,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           amount: current.generalDiscountAmount,
           currency: baseCurrency,
           exRate: 1.0,
-          narration: "invoice discount on sales",
+          narration: "Discount on sales",
         ));
       }
 
@@ -654,12 +654,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       }
     } catch (e) {
       String errorMessage = e.toString();
-      if (errorMessage.contains('DioException')) {
-        errorMessage = 'Network error: Please check your connection';
-      }
       emit(SaleInvoiceError(errorMessage));
       emit(savedState);
       event.completer.complete('');
     }
   }
+
 }

@@ -25,7 +25,6 @@ import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
-
 import '../../../../Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import '../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
@@ -1262,9 +1261,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ? current.creditAmountLocal
               : 0.0;
 
-          // FIXED: New balance calculation - same as payment dialog
-          // For a SALE, customer owes more, so balance becomes MORE NEGATIVE
-          // New Balance = Current Balance - Invoice Amount (in account currency)
+          // New balance calculation
           final double newBalanceInAccountCurrency = hasCreditAccount
               ? current.currentBalance - remainingAmountInAccountCurrency
               : 0.0;
@@ -1291,7 +1288,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 onTap: () => _showPaymentDialog(current),
                                 child: Row(
                                   children: [
-                                    Text(_getPaymentModeLabel(current.paymentMode).toUpperCase(), style: TextStyle(color: color.primary, fontSize: 16,fontWeight: FontWeight.bold)),
+                                    Text(_getPaymentModeLabel(current.paymentMode).toUpperCase(),
+                                        style: TextStyle(color: color.primary, fontSize: 16, fontWeight: FontWeight.bold)),
                                     const SizedBox(width: 8),
                                     Icon(Icons.more_vert_rounded, size: 18, color: color.primary),
                                   ],
@@ -1302,28 +1300,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           const SizedBox(height: 8),
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                           const SizedBox(height: 4),
-
-                          // if (needsConversion && !isLoading) ...[
-                          //   Container(
-                          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          //     decoration: BoxDecoration(
-                          //       color: color.primary.withValues(alpha: .05),
-                          //       borderRadius: BorderRadius.circular(4),
-                          //       border: Border.all(color: color.primary.withValues(alpha: .2)),
-                          //     ),
-                          //     child: Row(
-                          //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //       children: [
-                          //         Text('${tr.exchangeRate}:', style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
-                          //         Text(
-                          //           '1 ${current.fromCurrency ?? baseCurrency} = ${current.safeExchangeRate.toStringAsFixed(4)} ${current.toCurrency}',
-                          //           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                          //         ),
-                          //       ],
-                          //     ),
-                          //   ),
-                          //   const SizedBox(height: 8),
-                          // ],
 
                           if (needsConversion && isLoading)
                             Container(
@@ -1340,78 +1316,29 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                           _buildSummaryRow(label: tr.subtotal.toUpperCase(), fontSize: 18, value: current.subtotal, currency: baseCurr),
 
-                          Row(
-                            children: [
-                              Expanded(child: Text(tr.generalDiscount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                              IconButton(
-                                icon: Icon(current.generalDiscountType == DiscountType.percentage ? Icons.percent : Icons.attach_money, size: 16),
-                                onPressed: () {
-                                  final newType = current.generalDiscountType == DiscountType.percentage ? DiscountType.amount : DiscountType.percentage;
-                                  context.read<SaleInvoiceBloc>().add(UpdateGeneralDiscountEvent(discountValue: current.generalDiscount, discountType: newType));
-                                },
-                              ),
-                              SizedBox(
-                                width: 100,
-                                child: TextField(
-                                  controller: _generalDiscountController,
-                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
-                                  decoration: InputDecoration(
-                                    hintText: '0',
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    suffixText: current.generalDiscountType == DiscountType.percentage ? '%' : baseCurr,
-                                  ),
-                                  textAlign: TextAlign.end,
-                                  style: const TextStyle(fontSize: 14),
-                                  onChanged: (value) {
-                                    final discount = double.tryParse(value) ?? 0;
-                                    context.read<SaleInvoiceBloc>().add(UpdateGeneralDiscountEvent(discountValue: discount, discountType: current.generalDiscountType));
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-
                           if (current.totalItemDiscount > 0)
                             _buildSummaryRow(label: tr.itemDiscounts, value: -current.totalItemDiscount, color: Colors.red, currency: baseCurr),
+
                           if (current.totalItemDiscount > 0)
                             _buildSummaryRow(label: tr.afterItemDiscount, value: current.totalAfterItemDiscount, isBold: true, currency: baseCurr),
 
+                          // Display general discount as text (not editable)
                           if (current.generalDiscountAmount > 0)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(tr.generalDiscountAmount, style: const TextStyle(fontSize: 13)),
-                                Text('(-${current.generalDiscountAmount.toAmount()} $baseCurr)', style: const TextStyle(fontSize: 14, color: Colors.red)),
-                              ],
+                            _buildSummaryRow(
+                              label: tr.generalDiscount,
+                              value: -current.generalDiscountAmount,
+                              color: Colors.red,
+                              currency: baseCurr,
                             ),
 
-                          Row(
-                            children: [
-                              Expanded(child: Text(tr.extraCharges, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                              SizedBox(
-                                width: 120,
-                                child: TextField(
-                                  controller: _extraChargesController,
-                                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                                  inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$'))],
-                                  decoration: InputDecoration(
-                                    hintText: '0',
-                                    border: InputBorder.none,
-                                    isDense: true,
-                                    suffixText: accountCurr,
-                                  ),
-                                  textAlign: TextAlign.end,
-                                  style: const TextStyle(fontSize: 14),
-                                  onChanged: (value) {
-                                    final charges = double.tryParse(value) ?? 0;
-                                    context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(charges));
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
+                          // Display extra charges as text (not editable)
+                          if (current.extraCharges > 0)
+                            _buildSummaryRow(
+                              label: tr.extraCharges,
+                              value: current.extraCharges,
+                              color: Colors.orange,
+                              currency: baseCurr,
+                            ),
 
                           const SizedBox(height: 8),
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
@@ -1519,7 +1446,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     ),
                   ),
 
-                  // FIXED: Account Information Section - Same logic as payment dialog
+                  // Account Information Section
                   if (hasCreditAccount) ...[
                     SizedBox(width: 12),
                     VerticalDivider(width: 20, thickness: 1, color: color.outline.withValues(alpha: .2)),
@@ -1546,7 +1473,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   ),
                                   const SizedBox(height: 2),
 
-                                  // Current Balance
                                   _buildSummaryRow(
                                     label: tr.currentBalance,
                                     value: current.currentBalance,
@@ -1558,7 +1484,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                                   const SizedBox(height: 2),
 
-                                  // Amount Added to Receivable (Invoice Amount in Account Currency)
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -1573,7 +1498,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     ],
                                   ),
 
-                                  // Show base amount for reference
                                   if (current.creditAmount > 0)
                                     Padding(
                                       padding: const EdgeInsets.only(top: 4),
@@ -1596,8 +1520,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                                   const SizedBox(height: 4),
 
-                                  // FIXED: New Balance = Current Balance - Amount Added
-                                  // Because customer owes more money (balance becomes more negative)
                                   _buildSummaryRow(
                                     label: tr.newBalance,
                                     value: newBalanceInAccountCurrency,
@@ -1903,13 +1825,14 @@ class SalePaymentDialog extends StatefulWidget {
   @override
   State<SalePaymentDialog> createState() => _SalePaymentDialogState();
 }
-
 class _SalePaymentDialogState extends State<SalePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;
   late TextEditingController _extraChargesController;
   late TextEditingController _cashExchangeRateController;
   late TextEditingController _remainingDiscountController;
+  late TextEditingController _generalDiscountController;
+
   Timer? _debounce;
   late StreamSubscription _blocSubscription;
 
@@ -1972,6 +1895,10 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
           : '',
     );
 
+    _generalDiscountController = TextEditingController(
+      text: _currentState.generalDiscount > 0 ? _currentState.generalDiscount.toString() : '',
+    );
+
     _cashExchangeRateController = TextEditingController(
       text: _cashExchangeRate.toStringAsFixed(4),
     );
@@ -2018,6 +1945,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     _exchangeRateController.dispose();
     _extraChargesController.dispose();
     _cashExchangeRateController.dispose();
+    _generalDiscountController.dispose();
     _remainingDiscountController.dispose();
     super.dispose();
   }
@@ -2166,28 +2094,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     });
   }
 
-  // Apply remaining amount as discount to make payment match total
-  void _applyRemainingAsDiscount() {
-    final remainingInBase = _remainingAmountInBase;
-    if (remainingInBase > 0) {
-      // Apply as general discount
-      context.read<SaleInvoiceBloc>().add(UpdateGeneralDiscountEvent(
-        discountValue: _currentState.generalDiscount + remainingInBase,
-        discountType: DiscountType.amount,
-      ));
 
-      // Update cash payment to full amount
-      final fullAmountInSelectedCurrency = _currentState.grandTotal * _cashExchangeRate;
-      _updateCashPayment(fullAmountInSelectedCurrency);
-
-      ToastManager.show(
-        context: context,
-        title: "Discount Applied",
-        message: "Remaining amount ${remainingInBase.toStringAsFixed(2)} $_baseCurrency added as discount",
-        type: ToastType.success,
-      );
-    }
-  }
 
   void _onConfirm() {
     final remainingInBase = _remainingAmountInBase;
@@ -2207,7 +2114,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                _applyRemainingAsDiscount();
                 Future.delayed(const Duration(milliseconds: 100), () {
                   _onConfirm();
                 });
@@ -2268,18 +2174,28 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final paymentMode = _calculatedPaymentMode;
     final isPaymentComplete = remainingAmountInBase <= 0.01;
 
+    final bool isActionEnabled;
+    if (_currentState.customerAccount != null && paymentMode != PaymentMode.cash) {
+      // Account is selected and it's credit or mixed payment - always allow
+      isActionEnabled = true;
+    } else {
+      // Cash only mode - require full payment
+      isActionEnabled = remainingAmountInBase <= 0.01;
+    }
+
     final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&
         _baseCurrency.isNotEmpty &&
         _selectedCashCurrency != _baseCurrency;
 
     final accountCurrency = _currentState.customerAccount?.actCurrency ?? '';
 
+
     return ZFormDialog(
       title: "${tr.payment} - ${_getPaymentModeLabel(paymentMode)}",
       icon: Icons.payment,
       width: 650,
       actionLabel: Text(tr.confirm),
-      isActionTrue: isPaymentComplete,
+      isActionTrue: isActionEnabled,
       onAction: _onConfirm,
       child: SingleChildScrollView(
         child: Padding(
@@ -2291,6 +2207,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
               // Order Summary Section
               SectionTitle(title: tr.orderSummary.toUpperCase()),
               const SizedBox(height: 8),
+
               ZCover(
                 padding: const EdgeInsets.all(12),
                 radius: 8,
@@ -2316,13 +2233,54 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         currency: _baseCurrency,
                         isBold: true,
                       ),
-                    if (_currentState.generalDiscount > 0)
-                      _infoRow(
-                        label: "${tr.generalDiscount} (${_currentState.generalDiscountType == DiscountType.percentage ? '%' : _baseCurrency})",
-                        value: -_currentState.generalDiscountAmount,
-                        currency: _baseCurrency,
-                        color: Colors.red,
-                      ),
+
+                    // General Discount Field
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            tr.generalDiscount,
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(_currentState.generalDiscountType == DiscountType.percentage ? Icons.percent : Icons.attach_money, size: 16),
+                          onPressed: () {
+                            final newType = _currentState.generalDiscountType == DiscountType.percentage
+                                ? DiscountType.amount
+                                : DiscountType.percentage;
+                            context.read<SaleInvoiceBloc>().add(UpdateGeneralDiscountEvent(
+                              discountValue: _currentState.generalDiscount,
+                              discountType: newType,
+                            ));
+                          },
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: TextField(
+                            controller: _generalDiscountController,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
+                            decoration: InputDecoration(
+                              hintText: '0',
+                              border: InputBorder.none,
+                              isDense: true,
+                              suffixText: _currentState.generalDiscountType == DiscountType.percentage ? '%' : _baseCurrency,
+                            ),
+                            textAlign: TextAlign.end,
+                            onChanged: (value) {
+                              final discount = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                              context.read<SaleInvoiceBloc>().add(UpdateGeneralDiscountEvent(
+                                discountValue: discount,
+                                discountType: _currentState.generalDiscountType,
+                              ));
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Extra Charges Field
                     Row(
                       children: [
                         Expanded(
@@ -2331,14 +2289,13 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
+                        const SizedBox(width: 40), // Spacer to align with discount icon
                         SizedBox(
                           width: 120,
                           child: TextField(
                             controller: _extraChargesController,
                             keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
-                            ],
+                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))],
                             decoration: InputDecoration(
                               hintText: '0',
                               border: InputBorder.none,
@@ -2354,7 +2311,8 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         ),
                       ],
                     ),
-                    const Divider(height: 12),
+
+                    const Divider(height: 15),
                     _infoRow(
                       label: tr.grandTotal,
                       value: grandTotal,
@@ -2367,7 +2325,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         label: "${tr.grandTotal} (${_currentState.toCurrency})",
                         value: grandTotal * _currentState.safeExchangeRate,
                         currency: _currentState.toCurrency!,
-                        fontSize: 15,
+                        fontSize: 14,
                         color: color.outline.withValues(alpha: .7),
                       ),
                   ],
@@ -2438,65 +2396,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     Divider(color: Theme.of(context).colorScheme.primary, endIndent: 4, indent: 4, thickness: 1.5),
                   ],
 
-                  // REMAINING AMOUNT SECTION - NEW
-                  if (remainingAmountInBase > 0) ...[
-                    Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.shade300),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 20),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Remaining Amount Due",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: Colors.orange.shade700,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          _infoRow(
-                            label: "Remaining in $_baseCurrency",
-                            value: remainingAmountInBase,
-                            currency: _baseCurrency,
-                            fontSize: 16,
-                            isBold: true,
-                            color: Colors.red,
-                          ),
-                          if (needsCashConversion)
-                            _infoRow(
-                              label: "Remaining in $_selectedCashCurrency",
-                              value: remainingAmountInCashCurrency,
-                              currency: _selectedCashCurrency,
-                              fontSize: 14,
-                              color: Colors.orange.shade700,
-                            ),
-                          const SizedBox(height: 8),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ZOutlineButton(
-                              icon: Icons.local_offer,
-                              label: const Text("Add Remaining as Discount"),
-                              onPressed: _applyRemainingAsDiscount,
-                              backgroundColor: Colors.orange.shade100,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
                   // LIVE PAYMENT SUMMARY
                   ZCover(
                     margin: const EdgeInsets.only(top: 12),
@@ -2536,7 +2435,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
                           const Divider(height: 12),
                           _infoRow(
-                            label: "${tr.accountPayment} (Will be added to Receivable)",
+                            label: "${tr.accountPayment} (Receivable)",
                             value: remainingAmountInBase,
                             currency: _baseCurrency,
                             fontSize: 15,
@@ -2560,14 +2459,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           isBold: true,
                           color: isPaymentComplete ? Colors.green : Colors.red,
                         ),
-                        if (!isPaymentComplete)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8),
-                            child: Text(
-                              "⚠️ Payment incomplete: ${remainingAmountInBase.toStringAsFixed(2)} $_baseCurrency remaining",
-                              style: TextStyle(fontSize: 12, color: Colors.red),
-                            ),
-                          ),
                         if (paymentMode == PaymentMode.mixed)
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
@@ -2592,6 +2483,26 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),
+
+                        if (!isPaymentComplete)...[
+                          const Divider(height: 15),
+                          _infoRow(
+                            label: "Remaining in $_baseCurrency",
+                            value: remainingAmountInBase,
+                            currency: _baseCurrency,
+                            fontSize: 13,
+                            color: Colors.red,
+                          ),
+                          if (needsCashConversion)
+                            _infoRow(
+                              label: "Remaining in $_selectedCashCurrency",
+                              value: remainingAmountInCashCurrency,
+                              currency: _selectedCashCurrency,
+                              fontSize: 13,
+
+                              color: Colors.red,
+                            ),
+                        ],
                       ],
                     ),
                   ),

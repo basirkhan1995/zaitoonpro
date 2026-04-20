@@ -1177,7 +1177,7 @@ abstract class AppLocalizations {
   /// No description provided for @accountInformation.
   ///
   /// In en, this message translates to:
-  /// **'Accounts Information'**
+  /// **'Account Information'**
   String get accountInformation;
 
   /// No description provided for @balance.
@@ -6453,6 +6453,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Order Summary'**
   String get orderSummary;
+
+  /// No description provided for @accountReceivable.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Receivable'**
+  String get accountReceivable;
+
+  /// No description provided for @amountAddedToAR.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount Added to Receivable'**
+  String get amountAddedToAR;
+
+  /// No description provided for @mixedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Mixed'**
+  String get mixedTitle;
 }
 
 class _AppLocalizationsDelegate

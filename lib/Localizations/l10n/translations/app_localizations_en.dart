@@ -554,7 +554,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get zipCode => 'Zip code';
 
   @override
-  String get accountInformation => 'Accounts Information';
+  String get accountInformation => 'Account Information';
 
   @override
   String get balance => 'Balance';
@@ -3263,4 +3263,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get orderSummary => 'Order Summary';
+
+  @override
+  String get accountReceivable => 'Account Receivable';
+
+  @override
+  String get amountAddedToAR => 'Amount Added to Receivable';
+
+  @override
+  String get mixedTitle => 'Mixed';
 }

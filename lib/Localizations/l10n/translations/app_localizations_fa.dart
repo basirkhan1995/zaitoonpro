@@ -553,7 +553,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get zipCode => 'کد پستی';
 
   @override
-  String get accountInformation => 'معلومات حسابها';
+  String get accountInformation => 'معلومات حساب';
 
   @override
   String get balance => 'بیلانس';
@@ -3253,4 +3253,13 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get orderSummary => 'جزئیات فرمایش';
+
+  @override
+  String get accountReceivable => 'حساب دریافتنی';
+
+  @override
+  String get amountAddedToAR => 'مبلغ دریافتنی بل';
+
+  @override
+  String get mixedTitle => 'نقد و حساب';
 }

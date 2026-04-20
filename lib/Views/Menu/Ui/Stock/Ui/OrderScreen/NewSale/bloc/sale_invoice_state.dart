@@ -148,7 +148,19 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
 
   bool get isFormValid {
     if (customer == null) return false;
-    if (paymentMode != PaymentMode.cash && customerAccount == null) return false;
+
+    // Allow cash mode with no account
+    if (paymentMode == PaymentMode.cash && cashPayment > 0) {
+      // Cash mode is valid even without account
+    }
+    // For mixed or credit, account is required
+    else if (paymentMode != PaymentMode.cash && customerAccount == null) {
+      return false;
+    }
+
+    // For cash mode, cash payment must be > 0
+    if (paymentMode == PaymentMode.cash && cashPayment <= 0) return false;
+
     if (items.isEmpty) return false;
 
     for (var item in items) {
@@ -227,6 +239,14 @@ class SaleInvoiceSaving extends SaleInvoiceLoaded {
     required super.cashPayment,
     super.paymentMode,
     super.storages,
+    super.generalDiscount,
+    super.generalDiscountType,
+    super.exchangeRate,
+    super.fromCurrency,
+    super.toCurrency,
+    super.extraCharges,
+    super.cashCurrency,
+    super.cashExchangeRate,
   });
 }
 

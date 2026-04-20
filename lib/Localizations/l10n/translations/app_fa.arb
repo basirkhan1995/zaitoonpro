@@ -199,7 +199,7 @@
   "country": "کشور",
   "isMilling": " آیا آدرس پوستی و آدرس تان یکی است؟",
   "zipCode": "کد پستی",
-  "accountInformation": "معلومات حسابها",
+  "accountInformation": "معلومات حساب",
   "balance": "بیلانس",
   "accNameOrNumber": "نام حساب یا نمبر حساب",
   "usrId": "شناسه کاربر",
@@ -1078,5 +1078,8 @@
   "stockPaper": "سند انبار",
   "bol": "بارنامه",
   "description": "تفصیلات",
-  "orderSummary": "جزئیات فرمایش"
+  "orderSummary": "جزئیات فرمایش",
+  "accountReceivable": "حساب دریافتنی",
+  "amountAddedToAR": "مبلغ دریافتنی بل",
+  "mixedTitle": "نقد و حساب"
 }

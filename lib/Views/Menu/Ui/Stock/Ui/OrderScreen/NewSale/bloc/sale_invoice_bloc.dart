@@ -385,7 +385,16 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         newMode = PaymentMode.cash;
         newCashPayment = current.grandTotal;
       } else {
-        newMode = PaymentMode.mixed;
+        // Only use mixed mode if an account is selected
+        // If no account is selected, default to cash mode with full payment
+        if (current.customerAccount != null) {
+          newMode = PaymentMode.mixed;
+        } else {
+          // No account selected, so this must be a cash sale
+          // Force cash payment to equal grand total
+          newMode = PaymentMode.cash;
+          newCashPayment = current.grandTotal;
+        }
       }
 
       emit(current.copyWith(
@@ -394,6 +403,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       ));
     }
   }
+
 
   Future<void> _onSaveInvoice(SaveSaleInvoiceEvent event, Emitter<SaleInvoiceState> emit) async {
     final tr = localizationService.loc;
@@ -405,9 +415,25 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
+    print('=== SAVING INVOICE ===');
+    print('Customer: ${current.customer?.perName}');
+    print('Payment Mode: ${current.paymentMode}');
+    print('Cash Payment: ${current.cashPayment}');
+    print('Cash Currency: ${current.cashCurrency}');
+    print('Cash Exchange Rate: ${current.cashExchangeRate}');
+    print('Items count: ${current.items.length}');
+    print('Grand Total: ${current.grandTotal}');
+
     // Validation
     if (current.customer == null) {
       emit(SaleInvoiceError("pleaseSelectCustomer"));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    if (current.paymentMode == PaymentMode.cash && current.cashPayment <= 0) {
+      emit(SaleInvoiceError("Please enter cash payment amount"));
       emit(savedState);
       event.completer.complete('');
       return;
@@ -462,6 +488,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       cashPayment: current.cashPayment,
       paymentMode: current.paymentMode,
       storages: current.storages,
+      generalDiscount: current.generalDiscount,
+      generalDiscountType: current.generalDiscountType,
+      exchangeRate: current.exchangeRate,
+      fromCurrency: current.fromCurrency,
+      toCurrency: current.toCurrency,
+      extraCharges: current.extraCharges,
+      cashCurrency: current.cashCurrency,
+      cashExchangeRate: current.cashExchangeRate,
     ));
 
     try {
@@ -499,6 +533,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final List<SalePaymentRecord> apiPayments = [];
 
+      print('Base Currency: $baseCurrency');
+      print('Account Currency: $accountCurrency');
+      print('Needs Conversion: $needsConversion');
+
       if (current.extraCharges > 0) {
         apiPayments.add(SalePaymentRecord(
           accountNumber: 10101010,
@@ -509,6 +547,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         ));
       }
 
+      // Add credit payment
       if (current.paymentMode != PaymentMode.cash && current.customerAccount != null) {
         final creditAmount = current.creditAmount;
         if (creditAmount > 0) {
@@ -526,21 +565,22 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // 3. Add cash payment with SELECTED CURRENCY from state
+      // Add cash payment with selected currency
       if (current.cashPayment > 0) {
-        // Use the cash currency from state (set by dialog)
         final cashCurrency = (current.cashCurrency != null && current.cashCurrency!.isNotEmpty)
             ? current.cashCurrency!
             : baseCurrency;
 
-        // Use the exchange rate stored in state (1 baseCurrency = X cashCurrency)
         final cashExRate = (cashCurrency != baseCurrency)
             ? current.cashExchangeRate
             : 1.0;
 
-        // current.cashPayment is already in base currency (USD)
-        // We need to send the amount in the cash currency (AFN)
         final amountInCashCurrency = current.cashPayment * cashExRate;
+
+        print('Cash Payment in Base: ${current.cashPayment}');
+        print('Cash Currency: $cashCurrency');
+        print('Cash Exchange Rate: $cashExRate');
+        print('Amount in Cash Currency: $amountInCashCurrency');
 
         apiPayments.add(SalePaymentRecord(
           accountNumber: 10101010,
@@ -551,6 +591,9 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         ));
       }
 
+      print('API Payments: ${apiPayments.length}');
+      print('Records: ${records.length}');
+
       final response = await repo.addSaleInvoice(
         usrName: event.usrName,
         perID: event.ordPersonal,
@@ -560,6 +603,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         payment: apiPayments,
         records: records,
       );
+
+      print('Response: $response');
 
       final message = response['msg']?.toString() ?? 'No response message';
       final sp = response['specific']?.toString() ?? '';
@@ -591,11 +636,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         } else {
           errorMessage = message;
         }
+        print('API Error: $errorMessage');
         emit(SaleInvoiceError(errorMessage));
         emit(savedState);
         event.completer.complete('');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('EXCEPTION: $e');
+      print('STACK TRACE: $stackTrace');
       String errorMessage = e.toString();
       if (errorMessage.contains('DioException')) {
         errorMessage = 'Network error: Please check your connection';

@@ -199,7 +199,7 @@
   "country": "Country",
   "isMilling": "Is your mailing address same as your address?",
   "zipCode": "Zip code",
-  "accountInformation": "Accounts Information",
+  "accountInformation": "Account Information",
   "balance": "Balance",
   "accNameOrNumber": "Account Name or Number",
   "usrId": "User ID",
@@ -1078,5 +1078,8 @@
   "stockPaper": "Stock Paper",
   "bol": "Bill of Lading",
   "description": "Description",
-  "orderSummary": "Order Summary"
+  "orderSummary": "Order Summary",
+  "accountReceivable": "Account Receivable",
+  "amountAddedToAR": "Amount Added to Receivable",
+  "mixedTitle": "Mixed"
 }

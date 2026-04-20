@@ -2244,7 +2244,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           ),
                         ),
                         IconButton(
-                          icon: Icon(_currentState.generalDiscountType == DiscountType.percentage ? Icons.percent : Icons.attach_money, size: 16),
+                          icon: Icon(_currentState.generalDiscountType == DiscountType.percentage ? Icons.percent : Icons.monetization_on_outlined, size: 16),
                           onPressed: () {
                             final newType = _currentState.generalDiscountType == DiscountType.percentage
                                 ? DiscountType.amount
@@ -2256,7 +2256,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           },
                         ),
                         SizedBox(
-                          width: 120,
+                          width: 80,
                           child: TextField(
                             controller: _generalDiscountController,
                             keyboardType: TextInputType.number,
@@ -2359,6 +2359,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     showClearButton: true,
                     showSymbol: false,
                     isRequired: true,
+                    onSubmit: (e)=> _onConfirm(),
                   ),
 
                   // Exchange Rate Section for Cash

@@ -187,6 +187,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final saleBloc = context.read<SaleInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
+
+      // Set base currency on bloc
+      if (baseCurrency != null && baseCurrency!.isNotEmpty) {
+        saleBloc.setBaseCurrency(baseCurrency!);
+      }
+
       saleBloc.setExchangeRateBloc(exchangeBloc);
       context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
       _clearAllControllers();

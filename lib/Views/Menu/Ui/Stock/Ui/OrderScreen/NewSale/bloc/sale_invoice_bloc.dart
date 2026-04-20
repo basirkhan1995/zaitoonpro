@@ -16,6 +16,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
   final Repositories repo;
   ExchangeRateBloc? _exchangeRateBloc;
   StreamSubscription? _exchangeRateSubscription;
+  String? _baseCurrency;
 
   SaleInvoiceBloc(this.repo) : super(SaleInvoiceInitial()) {
     on<InitializeSaleInvoiceEvent>(_onInitialize);
@@ -39,6 +40,9 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
   }
 
+  void setBaseCurrency(String currency) {
+    _baseCurrency = currency;
+  }
   void _onUpdateCashCurrency(UpdateCashCurrencyEvent event, Emitter<SaleInvoiceState> emit) {
     if (state is SaleInvoiceLoaded) {
       final current = state as SaleInvoiceLoaded;
@@ -207,6 +211,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       generalDiscount: 0.0,
       cashCurrency: '',
       cashExchangeRate: 1.0,
+      fromCurrency: _baseCurrency, // Use stored base currency
+      toCurrency: _baseCurrency,
     ));
   }
 
@@ -230,6 +236,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       generalDiscount: 0.0,
       cashCurrency: '',
       cashExchangeRate: 1.0,
+      fromCurrency: _baseCurrency,
+      toCurrency: _baseCurrency,
     ));
   }
 
@@ -415,15 +423,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
-    print('=== SAVING INVOICE ===');
-    print('Customer: ${current.customer?.perName}');
-    print('Payment Mode: ${current.paymentMode}');
-    print('Cash Payment: ${current.cashPayment}');
-    print('Cash Currency: ${current.cashCurrency}');
-    print('Cash Exchange Rate: ${current.cashExchangeRate}');
-    print('Items count: ${current.items.length}');
-    print('Grand Total: ${current.grandTotal}');
-
     // Validation
     if (current.customer == null) {
       emit(SaleInvoiceError("pleaseSelectCustomer"));
@@ -525,7 +524,15 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final xRef = event.xRef ?? '';
 
+      // FIX: Ensure baseCurrency is not empty - get from auth state if needed
       final baseCurrency = current.fromCurrency ?? '';
+      if (baseCurrency.isEmpty) {
+        emit(SaleInvoiceError("Base currency not configured. Please contact administrator."));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+
       final accountCurrency = current.customerAccount?.actCurrency ?? '';
       final needsConversion = accountCurrency.isNotEmpty &&
           baseCurrency.isNotEmpty &&
@@ -533,10 +540,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       final List<SalePaymentRecord> apiPayments = [];
 
-      print('Base Currency: $baseCurrency');
-      print('Account Currency: $accountCurrency');
-      print('Needs Conversion: $needsConversion');
-
+      // Extra charges - use baseCurrency which is now guaranteed non-empty
       if (current.extraCharges > 0) {
         apiPayments.add(SalePaymentRecord(
           accountNumber: 10101010,
@@ -544,6 +548,17 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           currency: baseCurrency,
           exRate: 1.0,
           narration: "Extra charges",
+        ));
+      }
+
+      // General discount - use baseCurrency
+      if (current.generalDiscountAmount > 0) {
+        apiPayments.add(SalePaymentRecord(
+          accountNumber: 40404053,
+          amount: current.generalDiscountAmount,
+          currency: baseCurrency,
+          exRate: 1.0,
+          narration: "invoice discount on sales",
         ));
       }
 
@@ -555,10 +570,13 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
               ? creditAmount * current.safeExchangeRate
               : creditAmount;
 
+          // Ensure accountCurrency is valid
+          final validAccountCurrency = accountCurrency.isNotEmpty ? accountCurrency : baseCurrency;
+
           apiPayments.add(SalePaymentRecord(
             accountNumber: current.customerAccount!.accNumber!,
             amount: convertedAmount,
-            currency: accountCurrency,
+            currency: validAccountCurrency,
             exRate: needsConversion ? current.safeExchangeRate : 1.0,
             narration: "Customer account payment",
           ));
@@ -567,20 +585,17 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       // Add cash payment with selected currency
       if (current.cashPayment > 0) {
-        final cashCurrency = (current.cashCurrency != null && current.cashCurrency!.isNotEmpty)
-            ? current.cashCurrency!
-            : baseCurrency;
+        // FIX: Ensure cashCurrency is valid - fallback to baseCurrency
+        String cashCurrency = current.cashCurrency ?? '';
+        if (cashCurrency.isEmpty) {
+          cashCurrency = baseCurrency;
+        }
 
         final cashExRate = (cashCurrency != baseCurrency)
             ? current.cashExchangeRate
             : 1.0;
 
         final amountInCashCurrency = current.cashPayment * cashExRate;
-
-        print('Cash Payment in Base: ${current.cashPayment}');
-        print('Cash Currency: $cashCurrency');
-        print('Cash Exchange Rate: $cashExRate');
-        print('Amount in Cash Currency: $amountInCashCurrency');
 
         apiPayments.add(SalePaymentRecord(
           accountNumber: 10101010,
@@ -591,9 +606,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         ));
       }
 
-      print('API Payments: ${apiPayments.length}');
-      print('Records: ${records.length}');
-
       final response = await repo.addSaleInvoice(
         usrName: event.usrName,
         perID: event.ordPersonal,
@@ -603,8 +615,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         payment: apiPayments,
         records: records,
       );
-
-      print('Response: $response');
 
       final message = response['msg']?.toString() ?? 'No response message';
       final sp = response['specific']?.toString() ?? '';
@@ -633,17 +643,16 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           errorMessage = 'Invalid product or storage ID';
         } else if (msgLower.contains('failed')) {
           errorMessage = 'Invoice creation failed. Please try again.';
+        } else if (msgLower.contains('foreign key') || msgLower.contains('constraint')) {
+          errorMessage = 'Currency configuration error. Please check your currency settings.';
         } else {
           errorMessage = message;
         }
-        print('API Error: $errorMessage');
         emit(SaleInvoiceError(errorMessage));
         emit(savedState);
         event.completer.complete('');
       }
-    } catch (e, stackTrace) {
-      print('EXCEPTION: $e');
-      print('STACK TRACE: $stackTrace');
+    } catch (e) {
       String errorMessage = e.toString();
       if (errorMessage.contains('DioException')) {
         errorMessage = 'Network error: Please check your connection';

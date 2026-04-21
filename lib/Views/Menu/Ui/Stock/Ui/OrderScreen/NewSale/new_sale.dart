@@ -1119,8 +1119,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       if (state.isExchangeRateLoading) return AppLocalizations.of(context)!.loading;
       final rate = state.safeExchangeRate;
       if (rate > 0) {
-        final localAmount = item.totalSale * rate;
-        if (localAmount > 0) return localAmount.toAmount();
+        if(item.salePrice !=null && item.salePrice! > 0){
+          final localAmount = item.salePrice! * rate;
+          if (localAmount > 0) return localAmount.toAmount();
+        }
       }
     }
     return '';

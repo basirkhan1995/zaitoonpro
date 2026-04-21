@@ -21,6 +21,7 @@ import '../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../Features/Other/zForm_dialog.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
+import '../../../../../../../Features/Widgets/amount_display.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -2719,38 +2720,65 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        _infoRow(
-                          label: tr.cashPayment,
-                          value: cashAmountInBase,
-                          currency: _baseCurrency,
-                          fontSize: 15,
+                        AmountDisplay(
+                          title: tr.cashPayment,
+                          baseAmount: cashAmountInBase,
+                          baseCurrency: _baseCurrency,
+
+                          convertedAmount: (needsCashConversion && cashAmountInBase > 0)
+                              ? _currentCashAmountInSelectedCurrency
+                              : null,
+
+                          convertedCurrency:_selectedCashCurrency
                         ),
-                        if (needsCashConversion && cashAmountInBase > 0)
-                          _infoRow(
-                            label: "${tr.cashPayment} ($_selectedCashCurrency)",
-                            value: _currentCashAmountInSelectedCurrency,
-                            currency: _selectedCashCurrency,
-                            fontSize: 13,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
+                        // _infoRow(
+                        //   label: tr.cashPayment,
+                        //   value: cashAmountInBase,
+                        //   currency: _baseCurrency,
+                        //   fontSize: 15,
+                        // ),
+                        // if (needsCashConversion && cashAmountInBase > 0)
+                        //   _infoRow(
+                        //     label: "${tr.cashPayment} ($_selectedCashCurrency)",
+                        //     value: _currentCashAmountInSelectedCurrency,
+                        //     currency: _selectedCashCurrency,
+                        //     fontSize: 13,
+                        //     color: Theme.of(context).colorScheme.outline,
+                        //   ),
+
                         if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
                           const Divider(height: 12),
-                          _infoRow(
-                            label: "${tr.accountPayment} (Receivable)",
-                            value: remainingAmountInBase,
-                            currency: _baseCurrency,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          if (needsAccountConversion && remainingAmountInBase > 0)
-                            _infoRow(
-                              label: "${tr.accountPayment} ($accountCurrency)",
-                              value: remainingAmountInAccountCurrency,
-                              currency: accountCurrency,
-                              fontSize: 13,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
+                          AmountDisplay(
+                          title: tr.accountPayment,
+                          baseAmount: remainingAmountInBase,
+                          baseCurrency: _baseCurrency,
+                          convertedAmount: (needsAccountConversion && remainingAmountInBase > 0)
+                              ? remainingAmountInAccountCurrency
+                              : null,
+
+                          convertedCurrency: accountCurrency,
+                        ),
                         ],
+
+                        // if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
+                        //   const Divider(height: 12),
+                        //   _infoRow(
+                        //     label: "${tr.accountPayment} (Receivable)",
+                        //     value: remainingAmountInBase,
+                        //     currency: _baseCurrency,
+                        //     fontSize: 15,
+                        //     fontWeight: FontWeight.w500,
+                        //   ),
+                        //   if (needsAccountConversion && remainingAmountInBase > 0)
+                        //     _infoRow(
+                        //       label: "${tr.accountPayment} ($accountCurrency)",
+                        //       value: remainingAmountInAccountCurrency,
+                        //       currency: accountCurrency,
+                        //       fontSize: 13,
+                        //       color: Theme.of(context).colorScheme.outline,
+                        //     ),
+                        // ],
+
                         const Divider(height: 12),
                         _infoRow(
                           label: tr.totalReceivable,
@@ -2760,6 +2788,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           isBold: true,
                           color: isPaymentComplete ? Colors.green : Colors.red,
                         ),
+
                         if (paymentMode == PaymentMode.mixed)
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
@@ -2785,25 +2814,40 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             ),
                           ),
 
-                        if (!isPaymentComplete)...[
-                          const Divider(height: 15),
-                          _infoRow(
-                            label: "Remaining in $_baseCurrency",
-                            value: remainingAmountInBase,
-                            currency: _baseCurrency,
-                            fontSize: 13,
-                            color: Colors.red,
-                          ),
-                          if (needsCashConversion)
-                            _infoRow(
-                              label: "Remaining in $_selectedCashCurrency",
-                              value: remainingAmountInCashCurrency,
-                              currency: _selectedCashCurrency,
-                              fontSize: 13,
+                      if (!isPaymentComplete)...[
+                        const Divider(height: 15),
+                        AmountDisplay(
+                          title: tr.remainingToPay,
+                          baseColor: Theme.of(context).colorScheme.error,
+                          baseAmount: remainingAmountInBase,
+                          baseCurrency: _baseCurrency,
+                          convertedAmount: (needsCashConversion)
+                              ? remainingAmountInCashCurrency
+                              : null,
 
-                              color: Colors.red,
-                            ),
-                        ],
+                          convertedCurrency: _selectedCashCurrency,
+                        ),
+                         ],
+
+                        // if (!isPaymentComplete)...[
+                        //   const Divider(height: 15),
+                        //   _infoRow(
+                        //     label: "Remaining in $_baseCurrency",
+                        //     value: remainingAmountInBase,
+                        //     currency: _baseCurrency,
+                        //     fontSize: 13,
+                        //     color: Colors.red,
+                        //   ),
+                        //   if (needsCashConversion)
+                        //     _infoRow(
+                        //       label: "Remaining in $_selectedCashCurrency",
+                        //       value: remainingAmountInCashCurrency,
+                        //       currency: _selectedCashCurrency,
+                        //       fontSize: 13,
+                        //
+                        //       color: Colors.red,
+                        //     ),
+                        // ],
                       ],
                     ),
                   ),

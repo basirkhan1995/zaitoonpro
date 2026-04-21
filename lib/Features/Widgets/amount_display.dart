@@ -34,15 +34,12 @@ class AmountDisplay extends StatelessWidget {
     final hasConversion =
         convertedAmount != null && convertedAmount! > 0;
 
-    final baseTextColor = baseColor ?? color.primary;
+    final baseTextColor = baseColor ?? color.onSurface;
     final convertedTextColor = convertedColor ?? color.outline;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.surfaceContainerHighest.withValues(alpha: .4),
-        borderRadius: BorderRadius.circular(4),
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -52,7 +49,7 @@ class AmountDisplay extends StatelessWidget {
               title!,
               style: TextStyle(
                 fontSize: fontSize,
-                color: color.outline,
+                color: color.onSurface,
               ),
             ),
 

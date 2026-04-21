@@ -1877,6 +1877,12 @@ abstract class PrintServices {
         'ar': 'ټول نغد',
       },
 
+      'packing': {
+        'en': 'Packing',
+        'fa': 'بسته بندی',
+        'ar': 'بسته بندی',
+      },
+
       'totalCard': {
         'en': 'Total Credit',
         'fa': 'مجموع کریدت',
@@ -1901,6 +1907,31 @@ abstract class PrintServices {
         'en': 'Cash',
         'fa': 'نقدی',
         'ar': 'نقدی',
+      },
+      'executedBy': {
+        'en': 'Executed By',
+        'fa': 'اجراء کننده',
+        'ar': 'اجراء کونکی',
+      },
+      'driverName': {
+        'en': 'Driver Name',
+        'fa': 'نام راننده',
+        'ar': 'راننده نوم',
+      },
+      'stockPaper': {
+        'en': 'Stock Paper',
+        'fa': 'سند گدام',
+        'ar': 'گدام سند',
+      },
+      'documentNumber': {
+        'en': 'Document No',
+        'fa': 'نمبر سند',
+        'ar': 'سند شمیره',
+      },
+      'totalBox': {
+        'en': 'Total Items',
+        'fa': 'مجموعه کارتن',
+        'ar': 'کارتن مجموعه',
       },
       "subtotal": {
         "en": "Subtotal",

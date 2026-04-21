@@ -902,118 +902,31 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         showDialog(
           context: context,
           barrierDismissible: false,
+          barrierColor: Colors.black.withValues(alpha: .6),
           builder: (dialogContext) {
             final FocusNode dialogFocusNode = FocusNode();
 
-            // Request focus after dialog is built
             WidgetsBinding.instance.addPostFrameCallback((_) {
               dialogFocusNode.requestFocus();
             });
 
-            return Focus(
-              focusNode: dialogFocusNode,
-              autofocus: true,
-              onKeyEvent: (node, event) {
-                if (event is KeyDownEvent) {
-                  if (event.logicalKey == LogicalKeyboardKey.escape) {
-                    // Cancel - clear product name and return focus to product field
-                    Navigator.pop(dialogContext);
-                    productController.clear();
-                    headerProductController.clear();
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (nodes.isNotEmpty && nodes[0].canRequestFocus) {
-                        nodes[0].requestFocus();
-                      }
-                    });
-                    return KeyEventResult.handled;
-                  } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-                    // Confirm - add product
-                    Navigator.pop(dialogContext);
-                    addProduct(selectedProduct);
-                    return KeyEventResult.handled;
-                  }
-                }
-                return KeyEventResult.ignored;
+            return TweenAnimationBuilder(
+              tween: Tween<double>(begin: 0.8, end: 1.0),
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              builder: (context, scale, child) {
+                return Transform.scale(
+                  scale: scale,
+                  child: child,
+                );
               },
-              child: AlertDialog(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                title: Row(
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      color: Colors.orange.shade700,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                      Expanded(
-                      child: Text(
-                        tr.duplicateEntry.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.orange.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.orange.shade200),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            selectedProduct.proName ?? '',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (batch != null) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              'Batch: $batch',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'This product has already been added to the invoice.',
-                      style: TextStyle(fontSize: 14),
-                    ),
-                    const SizedBox(height: 5),
-                    const Text(
-                      'Do you want to add it again?',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  ZOutlineButton(
-                    onPressed: () {
+              child: Focus(
+                focusNode: dialogFocusNode,
+                autofocus: true,
+                onKeyEvent: (node, event) {
+                  if (event is KeyDownEvent) {
+                    if (event.logicalKey == LogicalKeyboardKey.escape) {
                       Navigator.pop(dialogContext);
-                      // Clear product name and focus back to product field
                       productController.clear();
                       headerProductController.clear();
                       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1021,27 +934,283 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           nodes[0].requestFocus();
                         }
                       });
-                    },
-                    backgroundHover: Theme.of(context).colorScheme.error,
-                    icon: Icons.clear,
-                    label: Text(
-                      tr.cancel.toUpperCase(),
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                  ZOutlineButton(
-                    onPressed: () {
+                      return KeyEventResult.handled;
+                    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
                       Navigator.pop(dialogContext);
                       addProduct(selectedProduct);
-                    },
-                    isActive: true,
-                    icon: Icons.add,
-                    label:Text(
-                      tr.addTitle.toUpperCase(),
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                      return KeyEventResult.handled;
+                    }
+                  }
+                  return KeyEventResult.ignored;
+                },
+                child: AlertDialog(
+                  elevation: 0,
+                  backgroundColor: Colors.transparent,
+                  contentPadding: EdgeInsets.zero,
+                  content: Container(
+                    width: 450,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: .2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Header
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.outline.withValues(alpha: .08),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(8),
+                              topRight: Radius.circular(8),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: .2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.warning_rounded,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Duplicate Product',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'Item already exists in invoice',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Product info card
+                              TweenAnimationBuilder(
+                                tween: Tween<double>(begin: 0, end: 1),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutQuad,
+                                builder: (context, opacity, child) {
+                                  return Opacity(
+                                    opacity: opacity,
+                                    child: child,
+                                  );
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Theme.of(context).colorScheme.primary.withValues(alpha: .2),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            Icons.inventory_2_rounded,
+                                            color: Theme.of(context).colorScheme.primary,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Product Details',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color: Theme.of(context).colorScheme.primary,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        selectedProduct.proName ?? '',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(context).colorScheme.onSurface,
+                                        ),
+                                      ),
+                                      if (batch != null && batch > 0) ...[
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.local_offer_outlined,
+                                                size: 12,
+                                                color: Theme.of(context).colorScheme.primary,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Batch: $batch',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Theme.of(context).colorScheme.primary,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Warning message
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.errorContainer,
+                                  borderRadius: BorderRadius.circular(5),
+                                  border: Border.all(
+                                    color: Theme.of(context).colorScheme.error.withValues(alpha: .2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline_rounded,
+                                      color: Theme.of(context).colorScheme.error,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'This product has already been added to your invoice.',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Theme.of(context).colorScheme.error,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Question text
+                              Text(
+                                'Would you like to add it again?',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+
+                              const SizedBox(height: 20),
+
+                              // Action buttons
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: ZOutlineButton(
+                                      backgroundHover: Theme.of(context).colorScheme.error,
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                        productController.clear();
+                                        headerProductController.clear();
+                                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                                          if (nodes.isNotEmpty && nodes[0].canRequestFocus) {
+                                            nodes[0].requestFocus();
+                                          }
+                                        });
+                                      },
+
+                                      label: Text(
+                                        tr.cancel.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: ZOutlineButton(
+                                      onPressed: () {
+                                        Navigator.pop(dialogContext);
+                                        addProduct(selectedProduct);
+                                      },
+                                      isActive: true,
+                                      label: Text(
+                                        'ADD AGAIN',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             );
           },

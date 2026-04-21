@@ -119,7 +119,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final updatedItems = current.items.map((item) {
       return item.copyWith(
         exchangeRate: event.rate,
-        localAmount: item.totalSale * event.rate,
+        localAmount: item.salePrice! * event.rate,
       );
     }).toList();
 

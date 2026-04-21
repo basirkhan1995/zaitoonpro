@@ -6477,6 +6477,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Total Receivable'**
   String get totalReceivable;
+
+  /// No description provided for @duplicateEntry.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate Product Entry'**
+  String get duplicateEntry;
+
+  /// No description provided for @addTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get addTitle;
 }
 
 class _AppLocalizationsDelegate

@@ -326,6 +326,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -837,44 +838,219 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final unitController = TextEditingController(text: item.unit ?? '');
     final localAmountController = _getLocalAmountController(item);
 
-    void onProductSelected(ProductsStockModel? product) {
-      if (product != null) {
-        final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
-        final averagePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
-        final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount() ?? "0.0") ?? 0.0;
-        final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount() ?? "0.0") ?? 0.0;
+    void addProduct(ProductsStockModel product) {
+      if (!mounted) return;
 
-        context.read<SaleInvoiceBloc>().add(
-          UpdateSaleItemEvent(
-            rowId: item.rowId,
-            productId: product.proId.toString(),
-            productName: product.proName ?? '',
-            storageId: product.stkStorage,
-            storageName: product.stgName ?? '',
-            purPrice: averagePrice,
-            salePrice: salePrice,
-            landedPrice: landedPrice,
-            purchasePrice: purchasePrice,
-            batch: product.stkQtyInBatch ?? 0,
-          ),
-        );
+      final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
+      final averagePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
+      final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount() ?? "0.0") ?? 0.0;
+      final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount() ?? "0.0") ?? 0.0;
+      final batch = product.stkQtyInBatch;
 
-        if (product.proUnit != null && product.proUnit!.isNotEmpty) {
-          context.read<SaleInvoiceBloc>().add(UpdateItemUnitEvent(rowId: item.rowId, unit: product.proUnit!));
-          unitController.text = product.proUnit!;
-        }
+      context.read<SaleInvoiceBloc>().add(
+        UpdateSaleItemEvent(
+          rowId: item.rowId,
+          productId: product.proId.toString(),
+          productName: product.proName ?? '',
+          storageId: product.stkStorage,
+          storageName: product.stgName ?? '',
+          purPrice: averagePrice,
+          salePrice: salePrice,
+          landedPrice: landedPrice,
+          purchasePrice: purchasePrice,
+          batch: batch ?? 0,
+        ),
+      );
 
-        if (product.stkQtyInBatch != null && product.stkQtyInBatch! > 0) {
-          batchController.text = product.stkQtyInBatch.toString();
-        }
-
-        salePriceController.text = salePrice.toAmount();
-        _updateLocalAmountText(item, localAmountController);
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          nodes[1].requestFocus();
-        });
+      if (product.proUnit != null && product.proUnit!.isNotEmpty) {
+        context.read<SaleInvoiceBloc>().add(UpdateItemUnitEvent(rowId: item.rowId, unit: product.proUnit!));
+        unitController.text = product.proUnit!;
       }
+
+      if (batch != null && batch > 0) {
+        batchController.text = batch.toString();
+      }
+
+      salePriceController.text = salePrice.toAmount();
+      _updateLocalAmountText(item, localAmountController);
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (nodes.length > 1 && nodes[1].canRequestFocus) {
+          nodes[1].requestFocus();
+        }
+      });
+    }
+
+    void onProductSelected(ProductsStockModel? product) {
+      if (product == null) return;
+
+      final currentState = context.read<SaleInvoiceBloc>().state;
+      if (currentState is! SaleInvoiceLoaded) return;
+
+      final productId = product.proId.toString();
+      final batch = product.stkQtyInBatch;
+
+      // Check for duplicate
+      final isDuplicate = currentState.items.any((item) =>
+      item.productId == productId && item.batch == batch
+      );
+
+      if (isDuplicate) {
+        // Store the selected product
+        final selectedProduct = product;
+
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (dialogContext) {
+            final FocusNode dialogFocusNode = FocusNode();
+
+            // Request focus after dialog is built
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              dialogFocusNode.requestFocus();
+            });
+
+            return Focus(
+              focusNode: dialogFocusNode,
+              autofocus: true,
+              onKeyEvent: (node, event) {
+                if (event is KeyDownEvent) {
+                  if (event.logicalKey == LogicalKeyboardKey.escape) {
+                    // Cancel - clear product name and return focus to product field
+                    Navigator.pop(dialogContext);
+                    productController.clear();
+                    headerProductController.clear();
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (nodes.isNotEmpty && nodes[0].canRequestFocus) {
+                        nodes[0].requestFocus();
+                      }
+                    });
+                    return KeyEventResult.handled;
+                  } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+                    // Confirm - add product
+                    Navigator.pop(dialogContext);
+                    addProduct(selectedProduct);
+                    return KeyEventResult.handled;
+                  }
+                }
+                return KeyEventResult.ignored;
+              },
+              child: AlertDialog(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                title: Row(
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.orange.shade700,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                      Expanded(
+                      child: Text(
+                        tr.duplicateEntry.toUpperCase(),
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.orange.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            selectedProduct.proName ?? '',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (batch != null) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Batch: $batch',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'This product has already been added to the invoice.',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 5),
+                    const Text(
+                      'Do you want to add it again?',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                actions: [
+                  ZOutlineButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      // Clear product name and focus back to product field
+                      productController.clear();
+                      headerProductController.clear();
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (nodes.isNotEmpty && nodes[0].canRequestFocus) {
+                          nodes[0].requestFocus();
+                        }
+                      });
+                    },
+                    backgroundHover: Theme.of(context).colorScheme.error,
+                    icon: Icons.clear,
+                    label: Text(
+                      tr.cancel.toUpperCase(),
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  ZOutlineButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      addProduct(selectedProduct);
+                    },
+                    isActive: true,
+                    icon: Icons.add,
+                    label:Text(
+                      tr.addTitle.toUpperCase(),
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+        return;
+      }
+
+      // No duplicate - add product directly
+      addProduct(product);
     }
 
     return Column(
@@ -925,6 +1101,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   showAllOnFocus: true,
                 ),
               ),
+              // ... rest of your row widgets (qty, batch, unit, price, etc.)
               SizedBox(
                 width: 80,
                 child: TextField(
@@ -946,7 +1123,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 child: TextField(
                   controller: batchController,
                   readOnly: true,
-                  decoration:   InputDecoration(hintText: tr.batchTitle, border: InputBorder.none, isDense: true),
+                  decoration: InputDecoration(hintText: tr.batchTitle, border: InputBorder.none, isDense: true),
                 ),
               ),
               SizedBox(
@@ -1001,7 +1178,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         controller: localAmountController,
                         readOnly: true,
                         decoration: InputDecoration(
-                          hintText:  tr.localAmount,
+                          hintText: tr.localAmount,
                           border: InputBorder.none,
                           isDense: true,
                         ),
@@ -1099,7 +1276,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       ],
     );
   }
-
   bool _needsLocalConversion(BuildContext context) {
     final state = context.read<SaleInvoiceBloc>().state;
     if (state is SaleInvoiceLoaded && state.customerAccount != null) {
@@ -1119,10 +1295,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       if (state.isExchangeRateLoading) return AppLocalizations.of(context)!.loading;
       final rate = state.safeExchangeRate;
       if (rate > 0) {
-        if(item.salePrice !=null && item.salePrice! > 0){
-          final localAmount = item.salePrice! * rate;
-          if (localAmount > 0) return localAmount.toAmount();
-        }
+        // Use the item's singleLocalAmount which accounts for unit price * exchange rate
+        final localAmount = item.singleLocalAmount;
+        if (localAmount > 0) return localAmount.toAmount();
       }
     }
     return '';
@@ -1148,6 +1323,15 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   }
 
   void _addNewRowAndFocus() {
+    // Check if the last row has a product selected before adding new row
+    final state = context.read<SaleInvoiceBloc>().state;
+    if (state is SaleInvoiceLoaded && state.items.isNotEmpty) {
+      final lastItem = state.items.last;
+      if (lastItem.productId.isEmpty) {
+        // Last row is empty, don't add new row
+        return;
+      }
+    }
     context.read<SaleInvoiceBloc>().add(AddNewSaleItemEvent());
   }
 

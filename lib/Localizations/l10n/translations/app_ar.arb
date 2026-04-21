@@ -1082,5 +1082,7 @@
   "accountReceivable": "حساب دریافتنی",
   "amountAddedToAR": "مبلغ دریافتنی بل",
   "mixedTitle": "نقد و حساب",
-  "totalReceivable": "مجموعه قابل دریافت"
+  "totalReceivable": "مجموعه قابل دریافت",
+  "duplicateEntry": "ورود جنس تکراری",
+  "addTitle": "اضافه کردن"
 }

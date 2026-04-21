@@ -3268,4 +3268,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get totalReceivable => 'مجموعه قابل دریافت';
+
+  @override
+  String get duplicateEntry => 'ورود جنس تکراری';
+
+  @override
+  String get addTitle => 'اضافه کردن';
 }

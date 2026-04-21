@@ -1082,5 +1082,7 @@
   "accountReceivable": "Account Receivable",
   "amountAddedToAR": "Amount Added to Receivable",
   "mixedTitle": "Mixed",
-  "totalReceivable": "Total Receivable"
+  "totalReceivable": "Total Receivable",
+  "duplicateEntry": "Duplicate Product Entry",
+  "addTitle": "Add"
 }

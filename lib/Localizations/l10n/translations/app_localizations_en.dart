@@ -3275,4 +3275,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get totalReceivable => 'Total Receivable';
+
+  @override
+  String get duplicateEntry => 'Duplicate Product Entry';
+
+  @override
+  String get addTitle => 'Add';
 }

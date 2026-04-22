@@ -55,21 +55,28 @@ extension ListExtensions<T> on List<T> {
 
 //Amount Formats
 extension NumberFormatting on Object? {
-  /// Converts string or number to double
-  double toDoubleAmount() {
+  /// Converts string or number to double with optional decimal rounding
+  /// [decimal] - number of decimal places to round to (default: null = no rounding)
+  double toDoubleAmount({int? decimal}) {
     if (this == null) return 0;
 
-    if (this is num) return (this as num).toDouble();
-
-    if (this is String) {
+    double result;
+    if (this is num) {
+      result = (this as num).toDouble();
+    } else if (this is String) {
       final clean = (this as String)
           .replaceAll(',', '')
           .replaceAll(' ', '');
-
-      return double.tryParse(clean) ?? 0;
+      result = double.tryParse(clean) ?? 0;
+    } else {
+      result = 0;
     }
 
-    return 0;
+    // Apply decimal rounding if specified
+    if (decimal != null) {
+      return double.parse(result.toStringAsFixed(decimal));
+    }
+    return result;
   }
 
   /// Formats number with commas and decimals
@@ -85,6 +92,11 @@ extension NumberFormatting on Object? {
     return decimal > 0
         ? '$integerPart.${parts[1]}'
         : integerPart;
+  }
+
+  /// Formats number as integer (no decimals)
+  String toAmountInt() {
+    return toAmount(decimal: 0);
   }
 }
 

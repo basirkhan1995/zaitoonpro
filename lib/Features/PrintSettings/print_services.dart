@@ -174,17 +174,7 @@ abstract class PrintServices {
                       tightBounds: true,
                       fontWeight: pw.FontWeight.bold
                   ),
-                  pw.Row(
-                    children: [
-                      if (report.slogan != null && report.slogan!.isNotEmpty) ...[
-                        zText(
-                          text: report.slogan ?? "",
-                          fontSize: 10,
-                          color: pw.PdfColors.grey600,
-                        ),
-                      ],
-                    ]
-                  ),
+
                   pw.Row(
                       children: [
                         if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
@@ -201,17 +191,24 @@ abstract class PrintServices {
                             fontSize: 9,
                             color: pw.PdfColors.grey600,
                           ),
-                        ]
+                        ],
+                         if (report.slogan != null && report.slogan!.isNotEmpty)
+                        verticalDivider(height: 10, width: 1),
+                        zText(
+                          text: report.slogan ?? "",
+                          fontSize: 9,
+                          color: pw.PdfColors.grey600,
+                        ),
                       ]
-                  )
+                  ),
                 ],
               ),
             ),
             // Logo (right side) - only show if company logo exists
             if (logoImage != null)
               pw.Container(
-                width: 50,
-                height: 50,
+                width: 80,
+                height: 80,
                 child: pw.Image(logoImage, fit: pw.BoxFit.contain),
               ),
           ],
@@ -227,13 +224,12 @@ abstract class PrintServices {
     required pw.Context context,
     required String language,
     required pw.MemoryImage logoImage,
-  }) {
+   }) {
     return pw.Column(
+      mainAxisSize: pw.MainAxisSize.min,
       children: [
-
-        pw.SizedBox(height: 3),
-        horizontalDivider(),
-        pw.SizedBox(height: 3),
+       horizontalDivider(),
+        pw.SizedBox(height: 5),
         pw.Row(
             children: [
               zText(text: "${report.compPhone ?? ""} | ${report.comEmail ?? ""}", fontSize: 9),
@@ -471,6 +467,11 @@ abstract class PrintServices {
         "en": "Debit Entries",
         "ar": "د بدهکار ننوتل",
         "fa": "ورودی‌های بدهکار"
+      },
+      "invoiceDate": {
+        "en": "Invoice Date",
+        "ar": "بل نیته",
+        "fa": "تاریخ بل"
       },
       "localAmount": {
         "en": "Amount",
@@ -814,14 +815,19 @@ abstract class PrintServices {
         "ar":"صراف"
       },
       'products' : {
-        'en':"StockAvailability",
+        'en':"Products",
         'fa':"محصولات",
         "ar":"محصولات"
       },
+      'items' : {
+        'en':"Items",
+        'fa':"اجناس",
+        "ar":"اجناس"
+      },
       'stock' : {
         'en':"Stock",
-        'fa':"انبار",
-        "ar":"انبار"
+        'fa':"گدام",
+        "ar":"گدام"
       },
       'returnInvoice' : {
         'en':"Return Invoice",
@@ -1096,9 +1102,9 @@ abstract class PrintServices {
         'ar':'مقدار',
       },
       'unitPrice':{
-        'en':'Unit Price',
-        'fa':'قیمت واحد',
-        'ar':'واحد قیمت',
+        'en':'Rate',
+        'fa':'نرخ',
+        'ar':'نرخ',
       },
       'totalInvoice':{
         'en':'Total',
@@ -1107,7 +1113,7 @@ abstract class PrintServices {
       },
       'subTotal':{
         'en':'Total',
-        'fa':'جمع جزء',
+        'fa':'مجمع فرعی',
         'ar':'فرعي مجموعه',
       },
       'number':{
@@ -1140,14 +1146,9 @@ abstract class PrintServices {
         'fa':'نمبر بل',
         'ar':'بل نمبر',
       },
-      'items':{
-        'en':'Items',
-        'fa':'نام کالا',
-        'ar':'توکي نوم',
-      },
       'previousBalance':{
-        'en':'Balance',
-        'fa':'مانده حساب',
+        'en':'Previous Amount Due',
+        'fa':'مانده حساب قبلی',
         'ar':'پاتې حساب',
       },
       'payment':{
@@ -1328,7 +1329,12 @@ abstract class PrintServices {
       'customer': {
         'en': 'Customer',
         'fa': 'مشتری',
-        'ar': 'عميل',
+        'ar': 'پیرودونکی',
+      },
+      'addressAndPhone': {
+        'en': 'Address & Phone: ',
+        'fa': 'آدرس و تماس: ',
+        'ar': 'آدرس و تماس: ',
       },
       'shippingRent': {
         'en': 'Rent',
@@ -1586,9 +1592,9 @@ abstract class PrintServices {
         'ar': 'دا راکړه ورکړه'
       },
       'newBalance': {
-        'en': 'New Balance',
-        'fa': 'بیلانس فعلی',
-        'ar': 'قعلی بیلانس'
+        'en': 'Total Amount Due',
+        'fa': 'مانده حساب جدید',
+        'ar': 'مانده حساب جدید'
       },
       'settled': {
         'en': 'Settled',
@@ -1762,14 +1768,14 @@ abstract class PrintServices {
         'ar': 'اعتباراً من',
       },
       'account': {
-        'en': 'Account',
-        'fa': 'حساب',
-        'ar': 'الحساب',
+        'en': 'Account Details',
+        'fa': 'طرف حساب',
+        'ar': 'حساب طرف',
       },
       'name': {
         'en': 'Name',
         'fa': 'نام',
-        'ar': 'الاسم',
+        'ar': 'نوم',
       },
       'ccy': {
         'en': 'Ccy',
@@ -1787,9 +1793,9 @@ abstract class PrintServices {
         'ar': 'إجمالي العناصر',
       },
       'totalQuantity': {
-        'en': 'Total Quantity',
-        'fa': 'مجموع مقدار',
-        'ar': 'الكمية الإجمالية',
+        'en': 'Total Qty',
+        'fa': 'مجموعه مقدار',
+        'ar': 'کل مقدار',
       },
       'totalValue': {
         'en': 'Total Value',
@@ -1878,9 +1884,9 @@ abstract class PrintServices {
       },
 
       'packing': {
-        'en': 'Packing',
-        'fa': 'بسته بندی',
-        'ar': 'بسته بندی',
+        'en': 'Pack',
+        'fa': 'بسته',
+        'ar': 'کڅوړه',
       },
 
       'totalCard': {
@@ -1914,14 +1920,14 @@ abstract class PrintServices {
         'ar': 'اجراء کونکی',
       },
       'driverName': {
-        'en': 'Driver Name',
-        'fa': 'نام راننده',
-        'ar': 'راننده نوم',
+        'en': 'Transporter',
+        'fa': 'راننده باربری',
+        'ar': 'بار وړونکی',
       },
       'stockPaper': {
         'en': 'Stock Paper',
-        'fa': 'سند گدام',
-        'ar': 'گدام سند',
+        'fa': 'سند خروجی گدام',
+        'ar': 'گدام خروجی سند',
       },
       'documentNumber': {
         'en': 'Document No',
@@ -1935,7 +1941,7 @@ abstract class PrintServices {
       },
       "subtotal": {
         "en": "Subtotal",
-        "fa": "جمع جزء",
+        "fa": "مجموعه فرعی",
         "ar": "لنډ مجموع"
       },
       "totalDiscount": {

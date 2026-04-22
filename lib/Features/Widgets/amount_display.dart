@@ -10,10 +10,15 @@ class AmountDisplay extends StatelessWidget {
   final double? convertedAmount;
   final String? convertedCurrency;
 
+  /// 🔹 Optional sign prefix (+ or -)
+  final bool showSign;
+  final bool isPositive; // true for +, false for -
+
   /// 🔹 Optional styling
   final Color? baseColor;
   final Color? convertedColor;
   final double fontSize;
+  final Color? signColor;
 
   const AmountDisplay({
     super.key,
@@ -25,7 +30,18 @@ class AmountDisplay extends StatelessWidget {
     this.baseColor,
     this.convertedColor,
     this.fontSize = 15,
+    this.showSign = false,
+    this.isPositive = true,
+    this.signColor,
   });
+
+  String _getFormattedAmountWithSign(double amount) {
+    final formattedAmount = amount.toAmount();
+    if (!showSign) return formattedAmount;
+
+    final sign = isPositive ? '+' : '-';
+    return '$sign$formattedAmount';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +52,8 @@ class AmountDisplay extends StatelessWidget {
 
     final baseTextColor = baseColor ?? color.onSurface;
     final convertedTextColor = convertedColor ?? color.outline;
+    final effectiveSignColor = signColor ??
+        (isPositive ? Colors.green : Colors.red);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
@@ -57,12 +75,36 @@ class AmountDisplay extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                "${baseAmount.toAmount()} $baseCurrency",
-                style: TextStyle(
-                  color: baseTextColor,
-                  fontWeight: FontWeight.w600,
-                  fontSize: fontSize,
+              RichText(
+                text: TextSpan(
+                  children: [
+                    if (showSign)
+                      TextSpan(
+                        text: _getFormattedAmountWithSign(baseAmount),
+                        style: TextStyle(
+                          color: effectiveSignColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: fontSize,
+                        ),
+                      )
+                    else
+                      TextSpan(
+                        text: _getFormattedAmountWithSign(baseAmount),
+                        style: TextStyle(
+                          color: baseTextColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: fontSize,
+                        ),
+                      ),
+                    TextSpan(
+                      text: ' $baseCurrency',
+                      style: TextStyle(
+                        color: baseTextColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: fontSize,
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -77,11 +119,33 @@ class AmountDisplay extends StatelessWidget {
 
                 const SizedBox(width: 6),
 
-                Text(
-                  "${convertedAmount!.toAmount()} $convertedCurrency",
-                  style: TextStyle(
-                    color: convertedTextColor,
-                    fontSize: fontSize,
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      if (showSign)
+                        TextSpan(
+                          text: _getFormattedAmountWithSign(convertedAmount!),
+                          style: TextStyle(
+                            color: effectiveSignColor,
+                            fontSize: fontSize,
+                          ),
+                        )
+                      else
+                        TextSpan(
+                          text: _getFormattedAmountWithSign(convertedAmount!),
+                          style: TextStyle(
+                            color: convertedTextColor,
+                            fontSize: fontSize,
+                          ),
+                        ),
+                      TextSpan(
+                        text: ' $convertedCurrency',
+                        style: TextStyle(
+                          color: convertedTextColor,
+                          fontSize: fontSize,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],

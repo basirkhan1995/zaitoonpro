@@ -1093,6 +1093,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         quantity: item.qty.toDouble(),
         unitPrice: item.purPrice ?? 0.0,
         batch: item.stkBatch,
+        unit: '',
         total: item.totalPurchase,
         storageName: item.storageName,
         localAmount: item.singleLocalAmount,
@@ -3316,6 +3317,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
         quantity: item.qty.toDouble(),
         unitPrice: item.purPrice ?? 0.0,
         batch: item.stkBatch,
+        unit: '',
         total: item.totalPurchase,
         storageName: item.storageName,
         localAmount: item.localAmount, // Single item local amount (unit price * exchange rate)
@@ -4558,6 +4560,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
         productName: item.productName,
         quantity: item.qty.toDouble(),
         batch: item.stkBatch,
+        unit: '',
         unitPrice: item.purPrice ?? 0.0,
         total: item.totalPurchase,
         storageName: item.storageName,

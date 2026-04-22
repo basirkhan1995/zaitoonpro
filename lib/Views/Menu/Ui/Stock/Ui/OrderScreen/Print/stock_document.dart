@@ -192,7 +192,7 @@ class StockDocumentPrintService extends PrintServices {
 
     document.addPage(
       pw.Page(
-        margin: pw.EdgeInsets.all(15),
+        margin: pw.EdgeInsets.all(25),
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
         orientation: orientation,
@@ -200,13 +200,16 @@ class StockDocumentPrintService extends PrintServices {
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             _stockDocumentHeader(
+              com: company,
               language: language,
               title: tr(text: title, tr: language),
               documentDate: documentDate,
               reference: reference,
             ),
             _customerInfo(
+              com: company,
               language: language,
+              totalQuantity: totalQuantity,
               documentNumber: documentNumber,
               customerSupplierName: customerSupplierName,
               isSale: isSale,
@@ -216,10 +219,9 @@ class StockDocumentPrintService extends PrintServices {
               items: items,
               language: language,
             ),
-            pw.SizedBox(height: 15),
+            pw.SizedBox(height: 8),
             _stockFooter(
               language: language,
-              totalQuantity: totalQuantity,
               driverName: driverName,
               executedBy: executedBy,
               authorizedBy: authorizedBy,
@@ -238,6 +240,7 @@ class StockDocumentPrintService extends PrintServices {
     required String title,
     required DateTime? documentDate,
     required String? reference,
+    required ReportModel com,
   }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -245,39 +248,28 @@ class StockDocumentPrintService extends PrintServices {
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                zText(
-                  text: title,
-                  fontSize: 16,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ],
+            zText(
+              text: title,
+              fontSize: 18,
+              fontWeight: pw.FontWeight.bold,
             ),
             pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
                 zText(
                   text: DateTime.now().toDateTime,
-                  fontSize: 7,
-                  fontWeight: pw.FontWeight.bold,
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.normal,
                 ),
                 zText(
                   text: DateTime.now().shamsiDateFormatted,
-                  fontSize: 8,
+                  fontSize: 10,
                   color: pw.PdfColors.grey800,
                 ),
               ],
             ),
           ],
         ),
-        pw.SizedBox(height: 5),
-        if (reference != null && reference.isNotEmpty)
-          zText(
-            text: "${tr(text: 'referenceNumber', tr: language)}: $reference",
-            fontSize: 7,
-          ),
       ],
     );
   }
@@ -288,54 +280,96 @@ class StockDocumentPrintService extends PrintServices {
     required String customerSupplierName,
     required String documentNumber,
     required bool isSale,
+    required double totalQuantity,
+    required ReportModel com,
   }) {
     final title = isSale
         ? tr(text: 'customer', tr: language)
         : tr(text: 'supplier', tr: language);
-
-    return pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.center,
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      children: [
-
-        pw.Row(
-          children: [
-            zText(
-              text: "$title:",
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              color: pw.PdfColors.grey800,
+    final isRtl = language == 'fa' || language == 'ar';
+    return pw.Container(
+      padding: pw.EdgeInsets.symmetric(horizontal: 4),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Row(
+            children: [
+              zText(
+                text: "$title:",
+                fontSize: 12,
+                fontWeight: pw.FontWeight.bold,
+                color: pw.PdfColors.grey800,
+              ),
+              pw.SizedBox(width: 8),
+              zText(
+                text: customerSupplierName,
+                fontSize: 12,
+                fontWeight: pw.FontWeight.normal,
+              ),
+            ],
+          ),
+          pw.Spacer(),
+          pw.SizedBox(width: 5),
+          // Total Quantity Row
+          pw.Container(
+            padding: pw.EdgeInsets.symmetric(horizontal: 5),
+            child: pw.Row(
+              mainAxisAlignment: isRtl ? pw.MainAxisAlignment.start : pw.MainAxisAlignment.end,
+              children: [
+                zText(
+                  text: "${tr(text: 'totalBox', tr: language)}:",
+                  fontSize: 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                pw.SizedBox(width: 8),
+                zText(
+                  text: totalQuantity.toStringAsFixed(0),
+                  fontSize: 13,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ],
             ),
-            pw.SizedBox(width: 5),
-            zText(
-              text: customerSupplierName,
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ]
-        ),
-
-        zText(
-          text: "${tr(text: 'documentNumber', tr: language)}  | $documentNumber",
-          fontSize: 7,
-        ),
-      ],
+          ),
+          pw.SizedBox(width: 5),
+          zText(
+            text: tr(text: "invoiceDate", tr: language),
+            fontSize: 9,
+            fontWeight: pw.FontWeight.bold,
+          ),
+          pw.SizedBox(width: 5),
+          zText(
+            text: com.statementDate.toFormattedDate(),
+            fontSize: 9,
+            fontWeight: pw.FontWeight.normal,
+          ),
+          pw.SizedBox(width: 10),
+          zText(
+            text: "${tr(text: 'documentNumber', tr: language)}: $documentNumber",
+            fontSize: 10,
+            fontWeight: pw.FontWeight.bold,
+          ),
+          pw.SizedBox(width: 20),
+        ],
+      ),
     );
   }
 
-  // ==================== STOCK ITEMS TABLE ====================
+// ==================== STOCK ITEMS TABLE ====================
   pw.Widget _stockItemsTable({
     required List<StockDocumentItem> items,
     required String language,
   }) {
-    const numberWidth = 25.0;
-    const descriptionWidth = 120.0;
-    const qtyWidth = 40.0;
-    const batchWidth = 45.0;
-    const unitWidth = 35.0;
-    const storageWidth = 60.0;
-
     final isRtl = language == 'fa' || language == 'ar';
+
+    // Adjusted column widths for larger fonts
+    const numberWidth = 20.0;
+    const descriptionWidth = 130.0;
+    const qtyWidth = 35.0;
+    const batchWidth = 35.0;
+    const totalWidth = 40.0;  // New column for total
+    const unitWidth = 30.0;
+    const storageWidth = 60.0;
 
     final Map<int, pw.TableColumnWidth> columnWidths;
     final List<String> headers;
@@ -344,18 +378,20 @@ class StockDocumentPrintService extends PrintServices {
       columnWidths = {
         0: pw.FixedColumnWidth(storageWidth),
         1: pw.FixedColumnWidth(unitWidth),
-        2: pw.FixedColumnWidth(batchWidth),
-        3: pw.FixedColumnWidth(qtyWidth),
-        4: pw.FixedColumnWidth(descriptionWidth),
-        5: pw.FixedColumnWidth(numberWidth),
+        2: pw.FixedColumnWidth(totalWidth),  // Total column
+        3: pw.FixedColumnWidth(batchWidth),
+        4: pw.FixedColumnWidth(qtyWidth),
+        5: pw.FixedColumnWidth(descriptionWidth),
+        6: pw.FixedColumnWidth(numberWidth),
       };
       headers = [
         tr(text: 'storage', tr: language),
         tr(text: 'unit', tr: language),
+        tr(text: 'total', tr: language),  // Total header
         tr(text: 'packing', tr: language),
         tr(text: 'quantity', tr: language),
-        tr(text: 'description', tr: language),
-        tr(text: 'number', tr: language),
+        tr(text: 'items', tr: language),
+        '#',
       ];
     } else {
       columnWidths = {
@@ -363,40 +399,50 @@ class StockDocumentPrintService extends PrintServices {
         1: pw.FixedColumnWidth(descriptionWidth),
         2: pw.FixedColumnWidth(qtyWidth),
         3: pw.FixedColumnWidth(batchWidth),
-        4: pw.FixedColumnWidth(unitWidth),
-        5: pw.FixedColumnWidth(storageWidth),
+        4: pw.FixedColumnWidth(totalWidth),  // Total column
+        5: pw.FixedColumnWidth(unitWidth),
+        6: pw.FixedColumnWidth(storageWidth),
       };
       headers = [
-        tr(text: 'number', tr: language),
-        tr(text: 'description', tr: language),
+        '#',
+        tr(text: 'items', tr: language),
         tr(text: 'quantity', tr: language),
         tr(text: 'packing', tr: language),
+        tr(text: 'total', tr: language),  // Total header
         tr(text: 'unit', tr: language),
         tr(text: 'storage', tr: language),
       ];
     }
 
     return pw.Table(
-      border: pw.TableBorder.all(color: pw.PdfColors.grey300, width: 0.5),
+      border: pw.TableBorder.all(
+        color: pw.PdfColors.grey700,
+        width: 0.8,
+      ),
       columnWidths: columnWidths,
       children: [
+        // Header Row
         pw.TableRow(
           decoration: pw.BoxDecoration(color: pw.PdfColors.grey100),
           children: headers.map((header) {
-            return pw.Padding(
-              padding: pw.EdgeInsets.all(2),
+            return pw.Container(
+              padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
               child: zText(
                 text: header,
-                fontSize: 7,
+                fontSize: 9,
                 fontWeight: pw.FontWeight.bold,
                 textAlign: pw.TextAlign.center,
               ),
             );
           }).toList(),
         ),
+
+        // Data Rows
         for (int i = 0; i < items.length; i++)
           pw.TableRow(
-            decoration: i.isOdd ? pw.BoxDecoration(color: pw.PdfColors.grey50) : null,
+            decoration: i.isOdd
+                ? pw.BoxDecoration(color: pw.PdfColors.grey50)
+                : null,
             children: isRtl
                 ? _buildRtlStockRow(items[i], i)
                 : _buildLtrStockRow(items[i], i),
@@ -405,231 +451,229 @@ class StockDocumentPrintService extends PrintServices {
     );
   }
 
-  // ==================== LTR STOCK ROW ====================
+// ==================== LTR STOCK ROW ====================
   List<pw.Widget> _buildLtrStockRow(StockDocumentItem item, int index) {
+    final total = (item.quantity * item.batch).toStringAsFixed(0);
+
     return [
-      pw.Padding(
-        padding: pw.EdgeInsets.all(3),
+      // Number
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: (index + 1).toString(),
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.symmetric(horizontal: 3),
+      // Description
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
         child: zText(
           text: item.productName,
           textAlign: pw.TextAlign.left,
-          fontSize: 7,
+          fontSize: 9,
+          fontWeight: pw.FontWeight.normal,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(3),
+      // Quantity
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.quantity.toStringAsFixed(0),
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(3),
+      // Batch
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.batch.toString(),
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(3),
+      // Total (Qty × Batch)
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+        child: zText(
+          text: total,
+          fontSize: 9,
+          fontWeight: pw.FontWeight.bold,
+          color: pw.PdfColors.blue700,
+          textAlign: pw.TextAlign.center,
+        ),
+      ),
+      // Unit
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.unit,
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(3),
+      // Storage
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.storageName,
-          fontSize: 7,
+          fontSize: 8,
           textAlign: pw.TextAlign.center,
         ),
       ),
     ];
   }
 
-  // ==================== RTL STOCK ROW ====================
+// ==================== RTL STOCK ROW ====================
   List<pw.Widget> _buildRtlStockRow(StockDocumentItem item, int index) {
+    final total = (item.quantity * item.batch).toStringAsFixed(0);
+
     return [
-      pw.Padding(
-        padding: pw.EdgeInsets.all(2),
+      // Storage
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.storageName,
-          fontSize: 7,
+          fontSize: 8,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(2),
+      // Unit
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.unit,
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(2),
+      // Total (Qty × Batch)
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+        child: zText(
+          text: total,
+          fontSize: 9,
+          fontWeight: pw.FontWeight.bold,
+          color: pw.PdfColors.blue700,
+          textAlign: pw.TextAlign.center,
+        ),
+      ),
+      // Batch
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.batch.toString(),
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(2),
+      // Quantity
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.quantity.toStringAsFixed(0),
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.symmetric(horizontal: 5),
+      // Description
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
         child: zText(
           text: item.productName,
-          fontSize: 7,
+          fontSize: 9,
+          fontWeight: pw.FontWeight.normal,
           textAlign: pw.TextAlign.right,
         ),
       ),
-      pw.Padding(
-        padding: pw.EdgeInsets.all(2),
+      // Number
+      pw.Container(
+        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: (index + 1).toString(),
-          fontSize: 7,
+          fontSize: 9,
           textAlign: pw.TextAlign.center,
         ),
       ),
     ];
   }
 
-  // ==================== STOCK FOOTER WITH SIGNATURES ====================
+  // ==================== SIMPLIFIED STOCK FOOTER WITH SIGNATURES ====================
   pw.Widget _stockFooter({
     required String language,
-    required double totalQuantity,
     String? driverName,
     String? executedBy,
     String? authorizedBy,
     required bool isSale,
   }) {
-    final isRtl = language == 'fa' || language == 'ar';
-
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        // Total Quantity Row
-        pw.Row(
-          mainAxisAlignment: isRtl ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
-          children: [
-            zText(
-              text: "${tr(text: 'totalBox', tr: language)}:",
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-            ),
-            pw.SizedBox(width: 4),
-            zText(
-              text: totalQuantity.toStringAsFixed(0),
-              fontSize: 8,
-              fontWeight: pw.FontWeight.bold,
-              color: pw.PdfColors.blue700,
-            ),
-          ],
+
+        // Simplified Signature Section
+        pw.Container(
+          padding: pw.EdgeInsets.all(10),
+
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+            children: [
+
+              // Executed By
+              _signatureField(
+                label: tr(text: 'executedBy', tr: language),
+                value: executedBy,
+              ),
+
+              // Authorized By
+              _signatureField(
+                label: tr(text: 'authorizedBy', tr: language),
+                value: authorizedBy,
+              ),
+
+              // Driver Name
+              _signatureField(
+                label: tr(text: 'driverName', tr: language),
+                value: driverName,
+              ),
+            ],
+          ),
         ),
+      ],
+    );
+  }
 
-        pw.Divider(thickness: 0.1),
-
-        // Signature Section - Reduced width for A5 paper
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            // Driver Name
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                zText(
-                  text: tr(text: 'driverName', tr: language),
-                  fontSize: 7,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                pw.SizedBox(height: 3),
-                pw.Container(
-                  width: 70,
-                  height: 25,
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border(bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5)),
-                  ),
-                  child: driverName != null && driverName.isNotEmpty
-                      ? zText(
-                    text: driverName,
-                    fontSize: 7,
-                  )
-                      : null,
-                ),
-              ],
+  // Helper widget for signature fields
+  pw.Widget _signatureField({
+    required String label,
+    required String? value,
+  }) {
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        zText(
+          text: label,
+          fontSize: 10,
+          fontWeight: pw.FontWeight.bold,
+        ),
+        pw.SizedBox(height: 5),
+        pw.Container(
+          width: 100,
+          height: 0,
+          alignment: pw.Alignment.center,
+          child: (value != null && value.isNotEmpty)
+              ? zText(
+            text: value,
+            fontSize: 10,
+            textAlign: pw.TextAlign.center,
+          )
+              : pw.Container(
+            decoration: pw.BoxDecoration(
+              border: pw.Border(
+                bottom: pw.BorderSide(color: pw.PdfColors.grey600, width: 0.8),
+              ),
             ),
-
-            // Executed By
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                zText(
-                  text: tr(text: 'executedBy', tr: language),
-                  fontSize: 7,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                pw.SizedBox(height: 3),
-                pw.Container(
-                  width: 70,
-                  height: 25,
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border(bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5)),
-                  ),
-                  child: executedBy != null && executedBy.isNotEmpty
-                      ? zText(
-                    text: executedBy,
-                    fontSize: 7,
-                  )
-                      : null,
-                ),
-              ],
-            ),
-
-            // Authorized By
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                zText(
-                  text: tr(text: 'authorizedBy', tr: language),
-                  fontSize: 7,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-                pw.SizedBox(height: 3),
-                pw.Container(
-                  width: 70,
-                  height: 25,
-                  decoration: pw.BoxDecoration(
-                    border: pw.Border(bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5)),
-                  ),
-                  child: authorizedBy != null && authorizedBy.isNotEmpty
-                      ? zText(
-                    text: authorizedBy,
-                    fontSize: 7,
-                  )
-                      : null,
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ],
     );

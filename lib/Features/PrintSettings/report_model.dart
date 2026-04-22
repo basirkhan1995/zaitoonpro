@@ -15,6 +15,11 @@ class ReportModel {
   String? endDate;
   String? statementPeriod;
 
+  String? partyAddress;
+  String? partyPhone;
+  String? partyCity;
+  String? partyProvince;
+
   ReportModel({
     this.comName,
     this.compPhone,
@@ -28,6 +33,10 @@ class ReportModel {
     this.startDate,
     this.statementPeriod,
     this.endDate,
+    this.partyAddress,
+    this.partyPhone,
+    this.partyCity,
+    this.partyProvince,
   });
 
   ReportModel copyWith({
@@ -43,6 +52,8 @@ class ReportModel {
     String? startDate,
     String? statementPeriod,
     String? endDate,
+    String? partyAddress,
+    String? partyPhone,
     }) =>
       ReportModel(
         comName: comName ?? this.comName,
@@ -56,6 +67,8 @@ class ReportModel {
         startDate: startDate ?? this.startDate,
         statementPeriod: statementPeriod ?? this.statementPeriod,
         endDate: endDate ?? this.endDate,
-        baseCurrency: baseCurrency ?? this.baseCurrency
+        baseCurrency: baseCurrency ?? this.baseCurrency,
+        partyAddress: partyAddress ?? this.partyAddress,
+        partyPhone:  partyPhone ?? this.partyPhone
       );
 }

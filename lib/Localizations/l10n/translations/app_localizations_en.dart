@@ -3281,4 +3281,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addTitle => 'Add';
+
+  @override
+  String get invoiceSummary => 'Invoice Summary';
 }

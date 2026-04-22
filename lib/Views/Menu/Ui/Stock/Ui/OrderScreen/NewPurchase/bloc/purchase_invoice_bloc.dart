@@ -195,7 +195,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final current = state as PurchaseInvoiceLoaded;
       emit(current.copyWith(
         supplierAccount: null,
-        cashPayment: current.grandTotal,
+        cashPayment: current.subtotal,
         paymentMode: PaymentMode.cash,
       ));
     }
@@ -209,7 +209,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       PaymentMode newPaymentMode;
       if (current.cashPayment <= 0) {
         newPaymentMode = PaymentMode.credit;
-      } else if (current.cashPayment >= current.grandTotal) {
+      } else if (current.cashPayment >= current.subtotal) {
         newPaymentMode = PaymentMode.cash;
       } else {
         newPaymentMode = PaymentMode.mixed;
@@ -235,7 +235,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(current.copyWith(
         supplier: null,
         supplierAccount: null,
-        cashPayment: current.grandTotal,
+        cashPayment: current.subtotal,
         paymentMode: PaymentMode.cash,
       ));
     }
@@ -293,9 +293,9 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       if (newCashPayment <= 0) {
         newMode = PaymentMode.credit;
         newCashPayment = 0;
-      } else if (newCashPayment >= current.grandTotal) {
+      } else if (newCashPayment >= current.subtotal) {
         newMode = PaymentMode.cash;
-        newCashPayment = current.grandTotal;
+        newCashPayment = current.subtotal;
       } else {
         newMode = PaymentMode.mixed;
       }
@@ -441,7 +441,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         event.completer.complete('');
         return;
       }
-      if (current.cashPayment >= current.grandTotal) {
+      if (current.cashPayment >= current.subtotal) {
         emit(PurchaseInvoiceError('For mixed payment, cash payment must be less than total amount'));
         emit(savedState);
         event.completer.complete('');
@@ -501,7 +501,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
 
       // ============ 2. HANDLE SUPPLIER PAYMENT (Credit/Debit to supplier account) ============
-      final supplierPaymentAmount = current.grandTotal;
+      final supplierPaymentAmount = current.subtotal;
 
       // Add supplier payment if applicable (credit or mixed payment)
       if (current.paymentMode != PaymentMode.cash && current.supplierAccount != null) {

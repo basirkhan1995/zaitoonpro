@@ -1642,6 +1642,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           final double newBalanceInAccountCurrency = hasCreditAccount
               ? current.currentBalance - remainingAmountInAccountCurrency
               : 0.0;
+
           return ZCover(
             padding: const EdgeInsets.all(15),
             radius: 10,
@@ -1683,18 +1684,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                           const SizedBox(height: 4),
 
-                          if (needsConversion && isLoading)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              decoration: BoxDecoration(color: color.primary.withValues(alpha: .05), borderRadius: BorderRadius.circular(4)),
-                              child: Row(
-                                children: [
-                                  const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                                  const SizedBox(width: 8),
-                                  Text(tr.loading, style: TextStyle(fontSize: 12, color: color.primary)),
-                                ],
-                              ),
-                            ),
+                          // if (needsConversion && isLoading)
+                          //   Container(
+                          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          //     decoration: BoxDecoration(color: color.primary.withValues(alpha: .05), borderRadius: BorderRadius.circular(4)),
+                          //     child: Row(
+                          //       children: [
+                          //         const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+                          //         const SizedBox(width: 8),
+                          //         Text(tr.loading, style: TextStyle(fontSize: 12, color: color.primary)),
+                          //       ],
+                          //     ),
+                          //   ),
 
                           _buildSummaryRow(label: tr.subtotal, fontSize: 17, value: current.subtotal, currency: baseCurr),
 

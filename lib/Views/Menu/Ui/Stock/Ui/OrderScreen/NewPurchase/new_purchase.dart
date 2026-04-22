@@ -9,6 +9,7 @@ import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
+import 'package:zaitoonpro/Features/Widgets/amount_display.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/bloc/storage_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/model/storage_model.dart';
@@ -294,8 +295,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           }
         },
         child: Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           appBar: AppBar(
-
             title: Text(tr.purchaseEntry),
             elevation: 0,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
@@ -352,7 +353,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               ),
             ],
           ),
-          backgroundColor: Theme.of(context).colorScheme.surface,
           body: ZCover(
             color: Theme.of(context).colorScheme.surface,
             borderColor: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
@@ -600,10 +600,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                       );
                                     },
                                   ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [_buildSummarySection(context)],
-                                  ),
                                 ],
                               ),
                             );
@@ -612,6 +608,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         },
                       ),
                     ),
+
+                    _buildSummarySection(context)
                   ],
                 ),
               ),
@@ -738,201 +736,275 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           final totalExpenses = current.totalExpenses;
           final needsAccountConversion = current.needsExchangeRate;
           final needsCashConversion = current.needsCashConversion;
+          final bool isLoading = current.isExchangeRateLoading;
           final baseCurrency = current.fromCurrency ?? '';
+          final String accountCurr = current.supplierAccount?.actCurrency ?? '';
+          final bool needsConversion = current.needsExchangeRate;
+          final bool hasCreditAccount = current.supplierAccount != null && current.creditAmount > 0;
+
+          // Calculate account amounts correctly
+          final double remainingAmountInAccountCurrency = hasCreditAccount
+              ? current.creditAmountLocal
+              : 0.0;
+
+          // New balance calculation
+          final double newBalanceInAccountCurrency = hasCreditAccount
+              ? current.currentBalance + remainingAmountInAccountCurrency
+              : 0.0;
 
           return Container(
             padding: const EdgeInsets.all(16),
-            width: 500,
+            width: double.infinity,
             decoration: BoxDecoration(
               color: color.surface,
               border: Border.all(color: color.outline.withValues(alpha: .2)),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(tr.paymentMethod.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-                    InkWell(
-                      onTap: () => _showPaymentDialog(current),
-                      child: Row(
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              spacing: 8,
+                              children: [
+                                Icon(Icons.file_open_outlined),
+                                Text(tr.invoiceSummary.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              ],
+                            ),
+                            InkWell(
+                              onTap: () => _showPaymentDialog(current),
+                              child: Row(
+                                children: [
+                                  Text(_getPaymentModeLabel(current.paymentMode).toUpperCase(), style: TextStyle(color: color.primary, fontSize: 16, fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 4),
+                                  Icon(Icons.more_vert_rounded, size: 20, color: color.primary),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Divider(color: color.outline.withValues(alpha: .2)),
+                        const SizedBox(height: 4),
+
+                        _buildSummaryRow(label: tr.subtotal, value: current.subtotal, currency: baseCurrency),
+
+                        if (totalExpenses > 0) ...[
+                          const SizedBox(height: 4),
+                          _buildSummaryRow(label: tr.totalExpense, value: totalExpenses, color: Colors.red, currency: baseCurrency),
+                          const SizedBox(height: 4),
+                        ],
+
+                        Divider(color: color.outline.withValues(alpha: .2)),
+                        const SizedBox(height: 4),
+                        _buildSummaryRow(
+                          label: tr.grandTotal,
+                          value: current.subtotal + totalExpenses,
+                          isBold: true,
+                          fontSize: 17,
+                          color: Colors.purple,
+                          currency: baseCurrency,
+                        ),
+
+                        if (needsConversion && !isLoading)...[
+                          const SizedBox(height: 4),
+                          _buildSummaryRow(
+                            label: '${tr.grandTotal} (${current.toCurrency})',
+                            value: current.grandTotalLocal,
+                            fontSize: 14,
+                            color: color.outline.withValues(alpha: .8),
+                            currency: current.toCurrency ?? '',
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(width: 12),
+                  VerticalDivider(width: 20, thickness: 1, color: color.outline.withValues(alpha: .2)),
+                  SizedBox(width: 12),
+
+                  // if (current.supplierAccount != null && current.supplierAccount!.actCurrency != null && current.supplierAccount!.actCurrency!.isNotEmpty) ...[
+                  //   const SizedBox(height: 4),
+                  //   Divider(color: color.outline.withValues(alpha: .2)),
+                  //   const SizedBox(height: 4),
+                  //   _buildSummaryRow(
+                  //     label: "${tr.totalTitle} (${current.supplierAccount!.actCurrency})",
+                  //     value: current.totalLocalAmount,
+                  //     isBold: true,
+                  //     color: Colors.purple,
+                  //     currency: current.supplierAccount!.actCurrency,
+                  //   ),
+                  // ],
+
+
+                  //Cash Payment
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Row(
+                          spacing: 8,
+                          children: [
+                            Icon(Icons.money),
+                            Text(tr.payment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Divider(color: color.outline.withValues(alpha: .2)),
+                        const SizedBox(height: 4),
+
+                        // Payment section with currency conversion
+                        if (current.paymentMode == PaymentMode.cash) ...[
+
+                          AmountDisplay(
+                              title: tr.cashPayment,
+                              baseAmount: current.cashPayment,
+                              baseCurrency: baseCurrency,
+                              convertedAmount: (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency) ?
+                              current.cashPaymentInCashCurrency : null,
+                              convertedCurrency: current.cashCurrency?? "",
+                          ),
+
+                          // _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
+                          //
+                          // if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
+                          //   _buildSummaryRow(
+                          //     label: '${tr.cashPayment} (${current.cashCurrency})',
+                          //     value: current.cashPaymentInCashCurrency,
+                          //     color: Colors.green,
+                          //     currency: current.cashCurrency!,
+                          //     fontSize: 12,
+                          //   ),
+
+                          if (current.supplierAccount != null && needsAccountConversion)
+                            _buildSummaryRow(
+                              label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
+                              value: current.cashPaymentLocal,
+                              color: Colors.green,
+                              currency: current.supplierAccount!.actCurrency,
+                              fontSize: 12,
+                            ),
+                        ] else if (current.paymentMode == PaymentMode.credit) ...[
+                          if (current.supplierAccount != null && needsAccountConversion)
+                            _buildSummaryRow(
+                              label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
+                              value: current.creditAmountLocal,
+                              color: Colors.orange,
+                              currency: current.supplierAccount!.actCurrency,
+                              fontSize: 13,
+                            ),
+                        ] else if (current.paymentMode == PaymentMode.mixed) ...[
+                          AmountDisplay(
+                            title: tr.cashPayment,
+                            baseAmount: current.cashPayment,
+                            baseCurrency: baseCurrency,
+                            convertedAmount: (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency) ?
+                            current.cashPaymentInCashCurrency : null,
+                            convertedCurrency: current.cashCurrency ?? "",
+                          ),
+                          _buildSummaryRow(label: tr.accountPayment, value: current.creditAmount, color: Colors.orange, currency: baseCurrency),
+                          _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
+
+                          // Show cash payment in selected cash currency if different
+                          if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
+                            _buildSummaryRow(
+                              label: '${tr.cashPayment} (${current.cashCurrency})',
+                              value: current.cashPaymentInCashCurrency,
+                              color: Colors.green,
+                              currency: current.cashCurrency!,
+                              fontSize: 12,
+                            ),
+
+                          // Show converted amounts in account currency
+                          if (current.supplierAccount != null && needsAccountConversion) ...[
+                            const SizedBox(height: 4),
+                            Divider(color: color.outline.withValues(alpha: .2)),
+                            _buildSummaryRow(
+                              label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
+                              value: current.creditAmountLocal,
+                              color: Colors.orange,
+                              currency: current.supplierAccount!.actCurrency,
+                              fontSize: 12,
+                            ),
+                            _buildSummaryRow(
+                              label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
+                              value: current.cashPaymentLocal,
+                              color: Colors.green,
+                              currency: current.supplierAccount!.actCurrency,
+                              fontSize: 12,
+                            ),
+                          ],
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(width: 12),
+                  VerticalDivider(width: 20, thickness: 1, color: color.outline.withValues(alpha: .2)),
+                  SizedBox(width: 12),
+
+                  Expanded(
+                      child: Column(
+                    children: [
+                      Row(
+                        spacing: 8,
                         children: [
-                          Text(_getPaymentModeLabel(current.paymentMode), style: TextStyle(color: color.primary)),
-                          const SizedBox(width: 4),
-                          Icon(Icons.more_vert_rounded, size: 20, color: color.primary),
+                          Icon(FontAwesomeIcons.buildingColumns,size: 20),
+                          Text(tr.accountInformation.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Divider(color: color.outline.withValues(alpha: .2)),
-                const SizedBox(height: 4),
-
-                if (needsAccountConversion) ...[
-                  ZCover(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                    radius: 4,
-                    margin: const EdgeInsets.only(bottom: 8),
-                    color: color.primary.withValues(alpha: .03),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(tr.exchangeRate, style: Theme.of(context).textTheme.titleSmall),
-                        Directionality(
-                          textDirection: TextDirection.ltr,
-                          child: Text(
-                            current.exchangeRate != null
-                                ? '1 ${current.fromCurrency} = ${current.exchangeRate?.toAmount(decimal: 6)} ${current.toCurrency}'
-                                : tr.loadingTitle,
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                      const SizedBox(height: 4),
+                      Divider(color: color.outline.withValues(alpha: .2)),
+                      const SizedBox(height: 4),
+                      // Account balance section
+                      if (current.supplierAccount != null) ...[
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
+                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                              ),
+                              Text(current.supplierAccount!.actCurrency ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                            ],
                           ),
                         ),
-                        if (current.exchangeRate == null)
-                          const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
-                      ],
-                    ),
-                  ),
-                ],
-
-                if (totalExpenses > 0) ...[
-                  _buildSummaryRow(label: tr.totalExpense, value: totalExpenses, color: Colors.red, currency: baseCurrency),
-                  const SizedBox(height: 4),
-                ],
-
-                _buildSummaryRow(label: tr.grandTotal, value: current.grandTotal, isBold: true, currency: baseCurrency),
-
-                if (current.supplierAccount != null && current.supplierAccount!.actCurrency != null && current.supplierAccount!.actCurrency!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Divider(color: color.outline.withValues(alpha: .2)),
-                  const SizedBox(height: 4),
-                  _buildSummaryRow(
-                    label: "${tr.totalTitle} (${current.supplierAccount!.actCurrency})",
-                    value: current.totalLocalAmount,
-                    isBold: true,
-                    color: Colors.purple,
-                    currency: current.supplierAccount!.actCurrency,
-                  ),
-                ],
-
-                if (totalExpenses > 0) ...[
-                  const SizedBox(height: 4),
-                  _buildSummaryRow(
-                    label: tr.totalCostPludExpenses,
-                    value: current.grandTotal + totalExpenses,
-                    isBold: true,
-                    color: Colors.purple,
-                    currency: baseCurrency,
-                  ),
-                ],
-
-                // Payment section with currency conversion
-                if (current.paymentMode == PaymentMode.cash) ...[
-                  _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
-                  if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
-                    _buildSummaryRow(
-                      label: '${tr.cashPayment} (${current.cashCurrency})',
-                      value: current.cashPaymentInCashCurrency,
-                      color: Colors.green,
-                      currency: current.cashCurrency!,
-                      fontSize: 12,
-                    ),
-                  if (current.supplierAccount != null && needsAccountConversion)
-                    _buildSummaryRow(
-                      label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
-                      value: current.cashPaymentLocal,
-                      color: Colors.green,
-                      currency: current.supplierAccount!.actCurrency,
-                      fontSize: 12,
-                    ),
-                ] else if (current.paymentMode == PaymentMode.credit) ...[
-                  if (current.supplierAccount != null && needsAccountConversion)
-                    _buildSummaryRow(
-                      label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
-                      value: current.creditAmountLocal,
-                      color: Colors.orange,
-                      currency: current.supplierAccount!.actCurrency,
-                      fontSize: 13,
-                    ),
-                ] else if (current.paymentMode == PaymentMode.mixed) ...[
-                  _buildSummaryRow(label: tr.accountPayment, value: current.creditAmount, color: Colors.orange, currency: baseCurrency),
-                  _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
-
-                  // Show cash payment in selected cash currency if different
-                  if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
-                    _buildSummaryRow(
-                      label: '${tr.cashPayment} (${current.cashCurrency})',
-                      value: current.cashPaymentInCashCurrency,
-                      color: Colors.green,
-                      currency: current.cashCurrency!,
-                      fontSize: 12,
-                    ),
-
-                  // Show converted amounts in account currency
-                  if (current.supplierAccount != null && needsAccountConversion) ...[
-                    const SizedBox(height: 4),
-                    Divider(color: color.outline.withValues(alpha: .2)),
-                    _buildSummaryRow(
-                      label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
-                      value: current.creditAmountLocal,
-                      color: Colors.orange,
-                      currency: current.supplierAccount!.actCurrency,
-                      fontSize: 12,
-                    ),
-                    _buildSummaryRow(
-                      label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
-                      value: current.cashPaymentLocal,
-                      color: Colors.green,
-                      currency: current.supplierAccount!.actCurrency,
-                      fontSize: 12,
-                    ),
-                  ],
-                ],
-
-                // Account balance section
-                if (current.supplierAccount != null) ...[
-                  const SizedBox(height: 4),
-                  Divider(color: color.outline.withValues(alpha: .2)),
-                  const SizedBox(height: 4),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        _buildSummaryRow(
+                          label: tr.currentBalance,
+                          value: current.currentBalance,
+                          color: _getBalanceColor(current.currentBalance),
+                          currency: current.supplierAccount!.actCurrency,
                         ),
-                        Text(current.supplierAccount!.actCurrency ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                        if (current.creditAmountLocal > 0) ...[
+                          const SizedBox(height: 4),
+                          _buildSummaryRow(
+                            label: tr.invoiceAmount,
+                            value: current.creditAmountLocal,
+                            color: Colors.orange,
+                            currency: current.supplierAccount!.actCurrency,
+                          ),
+                          const SizedBox(height: 4),
+                          _buildSummaryRow(
+                            label: "${tr.newBalance} | ${_getBalanceStatus(current.newBalance)}",
+                            value: current.newBalance,
+                            isBold: true,
+                            color: _getBalanceColor(current.newBalance),
+                            currency: current.supplierAccount!.actCurrency,
+                          ),
+                        ],
                       ],
-                    ),
-                  ),
-                  _buildSummaryRow(
-                    label: tr.currentBalance,
-                    value: current.currentBalance,
-                    color: _getBalanceColor(current.currentBalance),
-                    currency: current.supplierAccount!.actCurrency,
-                  ),
-                  if (current.creditAmountLocal > 0) ...[
-                    const SizedBox(height: 4),
-                    _buildSummaryRow(
-                      label: tr.invoiceAmount,
-                      value: current.creditAmountLocal,
-                      color: Colors.orange,
-                      currency: current.supplierAccount!.actCurrency,
-                    ),
-                    const SizedBox(height: 4),
-                    _buildSummaryRow(
-                      label: "${tr.newBalance} | ${_getBalanceStatus(current.newBalance)}",
-                      value: current.newBalance,
-                      isBold: true,
-                      color: _getBalanceColor(current.newBalance),
-                      currency: current.supplierAccount!.actCurrency,
-                    ),
-                  ],
+                    ],
+                  ))
                 ],
-              ],
+              ),
             ),
           );
         }
@@ -1132,7 +1204,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
             items: invoiceItems,
-            grandTotal: current!.grandTotal,
+            grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.supplierAccount,
@@ -1163,7 +1235,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
             items: invoiceItems,
-            grandTotal: current!.grandTotal,
+            grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.supplierAccount,
@@ -1193,7 +1265,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
             items: invoiceItems,
-            grandTotal: current!.grandTotal,
+            grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.supplierAccount,
@@ -1880,7 +1952,7 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     final needsAccountConversion = widget.state.needsExchangeRate;
-    final grandTotal = widget.state.grandTotal;
+    final grandTotal = widget.state.subtotal;
 
     // Check if cash currency is different from base currency
     final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&
@@ -2926,7 +2998,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   children: [
                     Text(tr.grandTotal),
                     Text(
-                      "${current.grandTotal.toAmount()} $baseCurrency",
+                      "${current.subtotal.toAmount()} $baseCurrency",
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -3156,7 +3228,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             ),
             const SizedBox(height: 16),
             Text(
-              "${tr.grandTotal}: ${current.grandTotal.toAmount()}",
+              "${tr.grandTotal}: ${current.subtotal.toAmount()}",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -3180,7 +3252,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                 return;
               }
 
-              if (creditPayment >= current.grandTotal) {
+              if (creditPayment >= current.subtotal) {
                 Utils.showOverlayMessage(
                   context,
                   message:
@@ -3356,7 +3428,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
             items: invoiceItems,
-            grandTotal: current!.grandTotal,
+            grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.supplierAccount,
@@ -3387,7 +3459,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
             items: invoiceItems,
-            grandTotal: current!.grandTotal,
+            grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.supplierAccount,
@@ -3417,7 +3489,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
             items: invoiceItems,
-            grandTotal: current!.grandTotal,
+            grandTotal: current!.subtotal,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.supplierAccount,
@@ -4193,7 +4265,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 // Grand Total
                 _buildSummaryRow(
                   label: tr.grandTotal,
-                  value: current.grandTotal,
+                  value: current.subtotal,
                   isBold: true,
                 ),
                 Divider(color: color.outline.withValues(alpha: .2)),
@@ -4411,7 +4483,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
             ),
             const SizedBox(height: 16),
             Text(
-              "${tr.grandTotal}: ${current.grandTotal.toAmount()}",
+              "${tr.grandTotal}: ${current.subtotal.toAmount()}",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -4435,7 +4507,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 return;
               }
 
-              if (creditPayment >= current.grandTotal) {
+              if (creditPayment >= current.subtotal) {
                 Utils.showOverlayMessage(
                   context,
                   message:
@@ -4595,7 +4667,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 invoiceDate: DateTime.now(),
                 customerSupplierName: current!.supplier?.perName ?? "",
                 items: invoiceItems,
-                grandTotal: current.grandTotal,
+                grandTotal: current.subtotal,
                 cashPayment: current.cashPayment,
                 creditAmount: current.creditAmount,
                 account: current.supplierAccount,
@@ -4624,7 +4696,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 invoiceDate: DateTime.now(),
                 customerSupplierName: current!.supplier?.perName ?? "",
                 items: invoiceItems,
-                grandTotal: current.grandTotal,
+                grandTotal: current.subtotal,
                 cashPayment: current.cashPayment,
                 creditAmount: current.creditAmount,
                 account: current.supplierAccount,
@@ -4652,7 +4724,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 invoiceDate: DateTime.now(),
                 customerSupplierName: current!.supplier?.perName ?? "",
                 items: invoiceItems,
-                grandTotal: current.grandTotal,
+                grandTotal: current.subtotal,
                 cashPayment: current.cashPayment,
                 creditAmount: current.creditAmount,
                 account: current.supplierAccount,

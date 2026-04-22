@@ -6489,6 +6489,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add'**
   String get addTitle;
+
+  /// No description provided for @invoiceSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice Summary'**
+  String get invoiceSummary;
 }
 
 class _AppLocalizationsDelegate

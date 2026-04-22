@@ -55,8 +55,12 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
           ? null
           : payments.where((p) => !p.isExpense).first;
 
-  double get grandTotal {
+  double get subtotal {
     return items.fold(0.0, (sum, item) => sum + item.totalPurchase);
+  }
+  double get grandTotalLocal {
+    if (!needsExchangeRate) return subtotal;
+    return subtotal * safeExchangeRate;
   }
 
   double get totalExpenses {
@@ -64,14 +68,14 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   }
 
   double get totalWithExpenses {
-    return grandTotal + totalExpenses;
+    return subtotal + totalExpenses;
   }
-
+  bool get isExchangeRateLoading => exchangeRate != null && exchangeRate! < 0;
   double get creditAmount {
     if (paymentMode == PaymentMode.credit) {
-      return grandTotal;
+      return subtotal;
     } else if (paymentMode == PaymentMode.mixed) {
-      return grandTotal - cashPayment;
+      return subtotal - cashPayment;
     }
     return 0.0;
   }

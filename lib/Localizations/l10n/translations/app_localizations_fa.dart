@@ -3271,4 +3271,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get addTitle => 'اضافه کردن';
+
+  @override
+  String get invoiceSummary => 'جزئیات بل';
 }

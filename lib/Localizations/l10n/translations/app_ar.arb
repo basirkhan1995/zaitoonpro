@@ -1084,5 +1084,6 @@
   "mixedTitle": "نقد و حساب",
   "totalReceivable": "مجموعه قابل دریافت",
   "duplicateEntry": "ورود جنس تکراری",
-  "addTitle": "اضافه کردن"
+  "addTitle": "اضافه کردن",
+  "invoiceSummary": "جزئیات بل"
 }

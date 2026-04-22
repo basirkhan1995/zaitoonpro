@@ -1084,5 +1084,6 @@
   "mixedTitle": "Mixed",
   "totalReceivable": "Total Receivable",
   "duplicateEntry": "Duplicate Product Entry",
-  "addTitle": "Add"
+  "addTitle": "Add",
+  "invoiceSummary": "Invoice Summary"
 }

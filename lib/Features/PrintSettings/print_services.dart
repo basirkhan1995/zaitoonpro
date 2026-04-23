@@ -71,7 +71,6 @@ abstract class PrintServices {
       );
       _persianBold = pw.Font.ttf(persianBoldData);
 
-      debugPrint('✅ Amiri font loaded successfully for web');
     } catch (e) {
       debugPrint('❌ Amiri font failed, trying NotoNaskh: $e');
       // Fallback to NotoNaskh
@@ -92,8 +91,6 @@ abstract class PrintServices {
         'assets/fonts/NotoNaskh/NotoNaskhArabic-Bold.ttf',
       );
       _persianBold = pw.Font.ttf(persianBoldData);
-
-      debugPrint('✅ NotoNaskh font loaded successfully');
     } catch (e) {
       debugPrint('❌ NotoNaskh font failed: $e');
       rethrow;
@@ -170,11 +167,17 @@ abstract class PrintServices {
                 children: [
                   zText(
                       text: report.comName ?? "",
-                      fontSize: 25,
+                      fontSize: 20,
                       tightBounds: true,
                       fontWeight: pw.FontWeight.bold
                   ),
 
+                  if(report.comAddress != null && report.comAddress!.isNotEmpty)
+                    zText(
+                      text: report.comAddress ?? "",
+                      fontSize: 9,
+                      color: pw.PdfColors.grey600,
+                    ),
                   pw.Row(
                       children: [
                         if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
@@ -207,8 +210,8 @@ abstract class PrintServices {
             // Logo (right side) - only show if company logo exists
             if (logoImage != null)
               pw.Container(
-                width: 80,
-                height: 80,
+                width: 85,
+                height: 85,
                 child: pw.Image(logoImage, fit: pw.BoxFit.contain),
               ),
           ],
@@ -228,19 +231,9 @@ abstract class PrintServices {
     return pw.Column(
       mainAxisSize: pw.MainAxisSize.min,
       children: [
-       horizontalDivider(),
-        pw.SizedBox(height: 5),
         pw.Row(
-            children: [
-              zText(text: "${report.compPhone ?? ""} | ${report.comEmail ?? ""}", fontSize: 9),
-            ]
-        ),
-        pw.SizedBox(height: 3),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
-            zText(text: report.comAddress ?? "", fontSize: 9),
             buildPage(context.pageNumber, context.pagesCount, language),
           ],
         ),

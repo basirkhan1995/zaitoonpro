@@ -910,29 +910,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 ),
                               ],
                             ),
-                            InkWell(
-                              onTap: () => _showPaymentDialog(current),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    _getPaymentModeLabel(
-                                      current.paymentMode,
-                                    ).toUpperCase(),
-                                    style: TextStyle(
-                                      color: color.primary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Icon(
-                                    Icons.more_vert_rounded,
-                                    size: 20,
-                                    color: color.primary,
-                                  ),
-                                ],
-                              ),
-                            ),
+
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -994,14 +972,41 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     child: Column(
                       children: [
                         Row(
-                          spacing: 8,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Icon(Icons.money),
-                            Text(
-                              tr.payment.toUpperCase(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            Row(
+                              spacing: 8,
+                              children: [
+                                Icon(Icons.money),
+                                Text(
+                                  tr.payment.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            InkWell(
+                              onTap: () => _showPaymentDialog(current),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    _getPaymentModeLabel(current.paymentMode,
+                                    ).toUpperCase(),
+                                    style: TextStyle(
+                                      color: color.primary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.more_vert_rounded,
+                                    size: 20,
+                                    color: color.primary,
+                                  ),
+                                ],
                               ),
                             ),
                           ],

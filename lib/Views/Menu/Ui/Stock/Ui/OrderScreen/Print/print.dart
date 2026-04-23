@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:flutter/cupertino.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -608,7 +609,7 @@ class InvoicePrintService extends PrintServices {
           tr(text: 'description', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'packing', tr: language),
-          tr(text: 'totalQuantity', tr: language),
+          tr(text: 'totalQty', tr: language),
           (tr(text: 'unitPrice', tr: language)),
           (tr(text: 'total', tr: language)),
         ];

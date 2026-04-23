@@ -1662,26 +1662,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            spacing: 8,
                             children: [
-                              Row(
-                                spacing: 8,
-                                children: [
-                                  Icon(Icons.money),
-                                  Text(tr.paymentMethod.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                                ],
-                              ),
-                              InkWell(
-                                onTap: () => _showPaymentDialog(current),
-                                child: Row(
-                                  children: [
-                                    Text(_getPaymentModeLabel(current.paymentMode).toUpperCase(),
-                                        style: TextStyle(color: color.primary, fontSize: 16, fontWeight: FontWeight.bold)),
-                                    const SizedBox(width: 8),
-                                    Icon(Icons.more_vert_rounded, size: 18, color: color.primary),
-                                  ],
-                                ),
-                              ),
+                              Icon(Icons.summarize_outlined),
+                              Text(tr.invoiceSummary.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -1743,10 +1727,26 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                              spacing: 8,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Icon(Icons.payment_rounded),
-                              Text(tr.paymentDetails.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Row(
+                                  spacing: 8,
+                                children: [
+                                  Icon(Icons.payment_rounded),
+                                  Text(tr.paymentDetails.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                ],
+                              ),
+                              InkWell(
+                                onTap: () => _showPaymentDialog(current),
+                                child: Row(
+                                  children: [
+                                    Text(_getPaymentModeLabel(current.paymentMode).toUpperCase(),
+                                        style: TextStyle(color: color.primary, fontSize: 16, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 8),
+                                    Icon(Icons.more_vert_rounded, size: 18, color: color.primary),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                           const SizedBox(height: 8),
@@ -2435,11 +2435,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     return (grandTotal - cashAmount).clamp(0, grandTotal);
   }
 
-  // Get remaining amount in SELECTED CASH CURRENCY
-  double get _remainingAmountInCashCurrency {
-    return _remainingAmountInBase * _cashExchangeRate;
-  }
-
   // Get remaining amount in ACCOUNT CURRENCY (if account is selected)
   double get _remainingAmountInAccountCurrency {
     if (_currentState.customerAccount == null) return 0.0;
@@ -2560,7 +2555,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final grandTotal = _currentState.grandTotal;
     final cashAmountInBase = _cashAmountInBase;
     final remainingAmountInBase = _remainingAmountInBase;
-    final remainingAmountInCashCurrency = _remainingAmountInCashCurrency;
+
     final remainingAmountInAccountCurrency = _remainingAmountInAccountCurrency;
     final newBalanceInAccountCurrency = _newBalanceInAccountCurrency;
     final paymentMode = _calculatedPaymentMode;
@@ -2819,12 +2814,10 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           convertedAmount: (needsCashConversion && cashAmountInBase > 0)
                               ? _currentCashAmountInSelectedCurrency
                               : null,
-
                           convertedCurrency:_selectedCashCurrency
                         ),
 
                         if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
-                          const Divider(height: 12),
                           AmountDisplay(
                           title: tr.accountPayment,
                           baseAmount: remainingAmountInBase,
@@ -2851,7 +2844,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "Mixed Payment: Cash + Account Receivable",
+                              "Cash + Account Receivable",
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),
@@ -2859,7 +2852,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "✅ Full Cash Payment - No Account Impact",
+                              "Full Cash Payment ",
                               style: TextStyle(fontSize: 12, color: Colors.green),
                             ),
                           ),
@@ -2867,45 +2860,11 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "Full Credit - Amount Added to Receivable",
+                              "Total Invoice Amount Added to Receivable",
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),
 
-                      if (!isPaymentComplete)...[
-                        const Divider(height: 15),
-                        AmountDisplay(
-                          title: tr.remainingToPay,
-                          baseColor: Theme.of(context).colorScheme.error,
-                          baseAmount: remainingAmountInBase,
-                          baseCurrency: _baseCurrency,
-                          convertedAmount: (needsCashConversion)
-                              ? remainingAmountInCashCurrency
-                              : null,
-
-                          convertedCurrency: _selectedCashCurrency,
-                        ),
-                         ],
-
-                        // if (!isPaymentComplete)...[
-                        //   const Divider(height: 15),
-                        //   _infoRow(
-                        //     label: "Remaining in $_baseCurrency",
-                        //     value: remainingAmountInBase,
-                        //     currency: _baseCurrency,
-                        //     fontSize: 13,
-                        //     color: Colors.red,
-                        //   ),
-                        //   if (needsCashConversion)
-                        //     _infoRow(
-                        //       label: "Remaining in $_selectedCashCurrency",
-                        //       value: remainingAmountInCashCurrency,
-                        //       currency: _selectedCashCurrency,
-                        //       fontSize: 13,
-                        //
-                        //       color: Colors.red,
-                        //     ),
-                        // ],
                       ],
                     ),
                   ),
@@ -2965,31 +2924,22 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       ),
 
                       const SizedBox(height: 3),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(tr.amountAddedToAR, style: const TextStyle(fontWeight: FontWeight.w500)),
-                          Text(
-                            "+${remainingAmountInAccountCurrency.toAmount()} $accountCurrency",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.red),
-                          ),
-                        ],
+
+                      AmountDisplay(
+                          title: tr.amountAddedToAR,
+                          baseAmount: remainingAmountInBase,
+                          baseCurrency: _baseCurrency,
+                          convertedAmount: (widget.state.fromCurrency != widget.state.toCurrency && remainingAmountInBase > 0) ?
+                          remainingAmountInAccountCurrency : null,
+                          isPositive: true,
+                          showSign: true,
+                          baseColor: Colors.green,
+                          signColor: Colors.green,
+                          convertedCurrency: accountCurrency,
+
                       ),
-                      if (remainingAmountInBase > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text("${tr.totalTitle} in $_baseCurrency", style: TextStyle(fontSize: 13, color: Colors.grey)),
-                              Text(
-                                "${remainingAmountInBase.toAmount()} $_baseCurrency",
-                                style: TextStyle(fontSize: 13, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 8),
+
+                      const SizedBox(height: 4),
                       Divider(),
                       const SizedBox(height: 4),
                       _infoRow(

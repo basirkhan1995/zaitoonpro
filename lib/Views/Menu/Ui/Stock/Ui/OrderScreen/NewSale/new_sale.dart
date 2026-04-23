@@ -1616,7 +1616,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       ),
     );
   }
-
+  String _getBalanceStatus(double balance) {
+    if (balance < 0) return AppLocalizations.of(context)!.debtor;
+    if (balance > 0) return AppLocalizations.of(context)!.creditor;
+    return AppLocalizations.of(context)!.noAccountsFound;
+  }
   Widget _buildSummarySection(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
@@ -1684,18 +1688,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                           const SizedBox(height: 4),
 
-                          // if (needsConversion && isLoading)
-                          //   Container(
-                          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          //     decoration: BoxDecoration(color: color.primary.withValues(alpha: .05), borderRadius: BorderRadius.circular(4)),
-                          //     child: Row(
-                          //       children: [
-                          //         const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)),
-                          //         const SizedBox(width: 8),
-                          //         Text(tr.loading, style: TextStyle(fontSize: 12, color: color.primary)),
-                          //       ],
-                          //     ),
-                          //   ),
 
                           _buildSummaryRow(label: tr.subtotal, fontSize: 17, value: current.subtotal, currency: baseCurr),
 
@@ -1771,29 +1763,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 convertedCurrency: current.cashCurrency,
                             ),
 
-                            // _buildSummaryRow(
-                            //     label: "${tr.cashPayment} (${current.cashCurrency ?? baseCurr})",
-                            //     value: current.cashPayment,
-                            //     color: Colors.green,
-                            //     currency: baseCurr
-                            // ),
-                            // if (current.cashCurrency != null && current.cashCurrency!.isNotEmpty && current.cashCurrency != baseCurr)
-                            //   _buildSummaryRow(
-                            //     label: '${tr.cashPayment} (${current.cashCurrency})',
-                            //     value: current.cashPayment * current.cashExchangeRate,
-                            //     fontSize: 12,
-                            //     color: Colors.green.withValues(alpha: .7),
-                            //     currency: current.cashCurrency!,
-                            //   ),
-                            // No need
-                            // if (needsConversion && !isLoading)
-                            //   _buildSummaryRow(
-                            //     label: '${tr.cashPayment} (${current.toCurrency})',
-                            //     value: current.cashPaymentLocal,
-                            //     fontSize: 12,
-                            //     color: Colors.green.withValues(alpha: .7),
-                            //     currency: current.toCurrency ?? '',
-                            //   ),
+
                           ]
                           else if(current.paymentMode == PaymentMode.credit)...[
                             AmountDisplay(
@@ -1831,39 +1801,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               baseColor: Colors.green.withValues(alpha: .9),
                             ),
 
-                            // _buildSummaryRow(
-                            //     label: "${tr.cashPayment} ($baseCurr)",
-                            //     value: current.cashPayment,
-                            //     color: Colors.green,
-                            //     currency: baseCurr,
-                            // ),
-                            // if (current.cashCurrency != null && current.cashCurrency!.isNotEmpty && current.cashCurrency != baseCurr)
-                            //   _buildSummaryRow(
-                            //     label: '${tr.cashPayment} (${current.cashCurrency})',
-                            //     value: current.cashPayment * current.cashExchangeRate,
-                            //     fontSize: 12,
-                            //     color: Colors.green.withValues(alpha: .7),
-                            //     currency: current.cashCurrency!,
-                            //   ),
-                            // if (needsConversion && !isLoading) ...[
-                            //   const SizedBox(height: 4),
-                            //   Divider(height: 1, color: color.outline.withValues(alpha: .2)),
-                            //   const SizedBox(height: 4),
-                            //   _buildSummaryRow(
-                            //     label: '${tr.accountPayment} (${current.toCurrency})',
-                            //     value: current.creditAmountLocal,
-                            //     fontSize: 15,
-                            //     color: Colors.orange.withValues(alpha: .7),
-                            //     currency: current.toCurrency ?? '',
-                            //   ),
-                            //   _buildSummaryRow(
-                            //     label: '${tr.cashPayment} (${current.toCurrency})',
-                            //     value: current.cashPaymentLocal,
-                            //     fontSize: 15,
-                            //     color: Colors.green.withValues(alpha: .7),
-                            //     currency: current.toCurrency ?? '',
-                            //   ),
-                            // ],
+
                           ],
 
                           if (visibility.benefit && current.totalPurchaseCost > 0) ...[
@@ -1928,44 +1866,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       showSign: true,
                                       convertedAmount: (needsConversion && !isLoading) ? remainingAmountInAccountCurrency : null,
                                   ),
-                                  // Row(
-                                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //   children: [
-                                  //     Text(
-                                  //       tr.amountAddedToAR,
-                                  //       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                  //     ),
-                                  //     Text(
-                                  //       "+${remainingAmountInAccountCurrency.toAmount()} $accountCurr",
-                                  //       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.red),
-                                  //     ),
-                                  //   ],
-                                  // ),
-
-                                  // if (current.creditAmount > 0)
-                                  //   Padding(
-                                  //     padding: const EdgeInsets.only(top: 3),
-                                  //     child: Row(
-                                  //       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  //       children: [
-                                  //         Text(
-                                  //           "${tr.totalTitle} $baseCurr",
-                                  //           style: TextStyle(fontSize: 14, color: Colors.grey),
-                                  //         ),
-                                  //         Text(
-                                  //           "${current.creditAmount.toAmount()} $baseCurr",
-                                  //           style: TextStyle(fontSize: 14, color: Colors.grey),
-                                  //         ),
-                                  //       ],
-                                  //     ),
-                                  //   ),
 
                                   const SizedBox(height: 8),
                                   Divider(height: 1, color: color.outline.withValues(alpha: .5)),
                                   const SizedBox(height: 4),
 
                                   _buildSummaryRow(
-                                    label: tr.newBalance,
+                                    label: "${tr.newBalance} | ${_getBalanceStatus(current.newBalance)}",
                                     value: newBalanceInAccountCurrency,
                                     isBold: true,
                                     fontSize: 17,

@@ -83,7 +83,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   void _showPaymentDialog(PurchaseInvoiceLoaded state) {
     showDialog(
       context: context,
-      builder: (context) => PurchasePaymentDialog(state: state),
+      builder: (context) => StatefulBuilder(
+        builder: (context,setState) {
+          return PurchasePaymentDialog(state: state);
+        }
+      ),
     );
   }
 
@@ -95,7 +99,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     if (state is PurchaseInvoiceLoaded) {
       // Update exchange rate controller if needed
       if (state.exchangeRate != null && state.exchangeRate! > 0) {
-        if (_exchangeRateController.text != state.exchangeRate!.toStringAsFixed(4)) {
+        if (_exchangeRateController.text !=
+            state.exchangeRate!.toStringAsFixed(4)) {
           _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
         }
       }
@@ -105,12 +110,28 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         final item = state.items[i];
         if (item.localAmount != null && item.localAmount! > 0) {
           final controller = _localeAmountControllers[item.rowId];
-          if (controller != null && controller.text != item.localAmount!.toAmount()) {
+          if (controller != null &&
+              controller.text != item.localAmount!.toAmount()) {
             controller.text = item.localAmount!.toAmount();
           }
         }
       }
     }
+  }
+
+  bool _needsLocalConversion(BuildContext context) {
+    final state = context.read<PurchaseInvoiceBloc>().state;
+    if (state is PurchaseInvoiceLoaded && state.supplierAccount != null) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        final baseCurrency = authState.loginData.company?.comLocalCcy ?? '';
+        final accountCurrency = state.supplierAccount!.actCurrency ?? '';
+        return baseCurrency.isNotEmpty &&
+            accountCurrency.isNotEmpty &&
+            baseCurrency != accountCurrency;
+      }
+    }
+    return false;
   }
 
   final Map<String, TextEditingController> _purchasePriceControllers = {};
@@ -137,7 +158,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               UpdateExchangeRateManuallyEvent(
                 rate: rate,
                 fromCurrency: state.fromCurrency ?? baseCurrency ?? '',
-                toCurrency: state.toCurrency ?? state.supplierAccount!.actCurrency ?? '',
+                toCurrency:
+                    state.toCurrency ??
+                    state.supplierAccount!.actCurrency ??
+                    '',
               ),
             );
           }
@@ -277,7 +301,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 type: ToastType.success,
               );
               WidgetsBinding.instance.addPostFrameCallback((_) async {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null &&
+                    savedInvoiceNumber.isNotEmpty) {
                   _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
@@ -290,7 +315,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               );
             }
           }
-          if (state is PurchaseInvoiceInitial || state is PurchaseInvoiceLoaded) {
+          if (state is PurchaseInvoiceInitial ||
+              state is PurchaseInvoiceLoaded) {
             _updateControllersFromState(state);
           }
         },
@@ -324,7 +350,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               const SizedBox(width: 8),
               BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                 builder: (context, state) {
-                  if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
+                  if (state is PurchaseInvoiceLoaded ||
+                      state is PurchaseInvoiceSaving) {
                     final current = state is PurchaseInvoiceSaving
                         ? state
                         : (state as PurchaseInvoiceLoaded);
@@ -338,13 +365,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           : () => _saveInvoice(context, current),
                       label: isSaving
                           ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                      )
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(context).colorScheme.surface,
+                              ),
+                            )
                           : Text(tr.saveTitle),
                     );
                   }
@@ -355,7 +382,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           ),
           body: ZCover(
             color: Theme.of(context).colorScheme.surface,
-            borderColor: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+            borderColor: Theme.of(
+              context,
+            ).colorScheme.outline.withValues(alpha: .3),
             margin: EdgeInsets.all(8),
             radius: 8,
             child: Form(
@@ -372,43 +401,59 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       children: [
                         Expanded(
                           flex: 2,
-                          child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
-                            key: const ValueKey('person_field'),
-                            controller: _personController,
-                            title: tr.supplier,
-                            hintText: tr.supplier,
-                            isRequired: true,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return tr.required(tr.supplier);
-                              }
-                              return null;
-                            },
-                            bloc: context.read<IndividualsBloc>(),
-                            fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
-                            searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
-                            itemBuilder: (context, ind) => Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
-                            ),
-                            itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                            stateToLoading: (state) => state is IndividualLoadingState,
-                            stateToItems: (state) {
-                              if (state is IndividualLoadedState) {
-                                return state.individuals;
-                              }
-                              return [];
-                            },
-                            onSelected: (value) {
-                              _personController.text = "${value.perName} ${value.perLastName}";
-                              context.read<PurchaseInvoiceBloc>().add(SelectSupplierEvent(value));
-                              context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
-                              setState(() {
-                                signatory = value.perId;
-                              });
-                            },
-                            showClearButton: true,
-                          ),
+                          child:
+                              GenericTextfield<
+                                IndividualsModel,
+                                IndividualsBloc,
+                                IndividualsState
+                              >(
+                                key: const ValueKey('person_field'),
+                                controller: _personController,
+                                title: tr.supplier,
+                                hintText: tr.supplier,
+                                isRequired: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return tr.required(tr.supplier);
+                                  }
+                                  return null;
+                                },
+                                bloc: context.read<IndividualsBloc>(),
+                                fetchAllFunction: (bloc) =>
+                                    bloc.add(LoadIndividualsEvent()),
+                                searchFunction: (bloc, query) =>
+                                    bloc.add(LoadIndividualsEvent()),
+                                itemBuilder: (context, ind) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
+                                  ),
+                                ),
+                                itemToString: (individual) =>
+                                    "${individual.perName} ${individual.perLastName}",
+                                stateToLoading: (state) =>
+                                    state is IndividualLoadingState,
+                                stateToItems: (state) {
+                                  if (state is IndividualLoadedState) {
+                                    return state.individuals;
+                                  }
+                                  return [];
+                                },
+                                onSelected: (value) {
+                                  _personController.text =
+                                      "${value.perName} ${value.perLastName}";
+                                  context.read<PurchaseInvoiceBloc>().add(
+                                    SelectSupplierEvent(value),
+                                  );
+                                  context.read<AccountsBloc>().add(
+                                    LoadAccountsEvent(ownerId: value.perId),
+                                  );
+                                  setState(() {
+                                    signatory = value.perId;
+                                  });
+                                },
+                                showClearButton: true,
+                              ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
@@ -417,32 +462,50 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             builder: (context, state) {
                               if (state is PurchaseInvoiceLoaded) {
                                 final current = state;
-                                return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                return GenericTextfield<
+                                  AccountsModel,
+                                  AccountsBloc,
+                                  AccountsState
+                                >(
                                   key: const ValueKey('account_field'),
                                   controller: _accountController,
                                   title: tr.accounts,
                                   hintText: tr.selectAccount,
-                                  isRequired: current.paymentMode != PaymentMode.cash,
+                                  isRequired:
+                                      current.paymentMode != PaymentMode.cash,
                                   validator: (value) {
-                                    if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                    if (current.paymentMode !=
+                                            PaymentMode.cash &&
+                                        (value == null || value.isEmpty)) {
                                       return tr.selectCreditAccountMsg;
                                     }
                                     return null;
                                   },
                                   bloc: context.read<AccountsBloc>(),
-                                  fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                  searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                  fetchAllFunction: (bloc) => bloc.add(
+                                    LoadAccountsEvent(ownerId: signatory),
+                                  ),
+                                  searchFunction: (bloc, query) => bloc.add(
+                                    LoadAccountsEvent(ownerId: signatory),
+                                  ),
                                   itemBuilder: (context, account) => ListTile(
-                                    visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
-                                    contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                                    visualDensity: const VisualDensity(
+                                      vertical: -4,
+                                      horizontal: -4,
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                    ),
                                     title: Text(account.accName ?? ''),
                                     subtitle: Text('${account.accNumber}'),
                                     trailing: Text(
                                       "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
                                     ),
                                   ),
-                                  itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                  stateToLoading: (state) => state is AccountLoadingState,
+                                  itemToString: (account) =>
+                                      '${account.accName} (${account.accNumber})',
+                                  stateToLoading: (state) =>
+                                      state is AccountLoadingState,
                                   stateToItems: (state) {
                                     if (state is AccountLoadedState) {
                                       return state.accounts;
@@ -450,18 +513,29 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                     return [];
                                   },
                                   onSelected: (value) {
-                                    _accountController.text = '${value.accName} (${value.accNumber})';
+                                    _accountController.text =
+                                        '${value.accName} (${value.accNumber})';
                                     setState(() {
                                       accountCcy = value.actCurrency;
                                     });
-                                    context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                    context.read<PurchaseInvoiceBloc>().add(
+                                      SelectSupplierAccountEvent(value),
+                                    );
 
-                                    final companyState = context.read<CompanyProfileBloc>().state;
-                                    if (companyState is CompanyProfileLoadedState) {
-                                      final baseCurr = companyState.company.comLocalCcy ?? '';
-                                      final accountCurrency = value.actCurrency ?? '';
+                                    final companyState = context
+                                        .read<CompanyProfileBloc>()
+                                        .state;
+                                    if (companyState
+                                        is CompanyProfileLoadedState) {
+                                      final baseCurr =
+                                          companyState.company.comLocalCcy ??
+                                          '';
+                                      final accountCurrency =
+                                          value.actCurrency ?? '';
 
-                                      if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
+                                      if (baseCurr.isNotEmpty &&
+                                          accountCurrency.isNotEmpty &&
+                                          baseCurr != accountCurrency) {
                                         context.read<PurchaseInvoiceBloc>().add(
                                           UpdateExchangeRateForInvoiceEvent(
                                             fromCurrency: baseCurr,
@@ -483,7 +557,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   showClearButton: true,
                                 );
                               }
-                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              return GenericTextfield<
+                                AccountsModel,
+                                AccountsBloc,
+                                AccountsState
+                              >(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
@@ -491,10 +569,17 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 isRequired: false,
                                 bloc: context.read<AccountsBloc>(),
                                 fetchAllFunction: (bloc) => bloc.add(
-                                  LoadAccountsFilterEvent(include: '8', exclude: ''),
+                                  LoadAccountsFilterEvent(
+                                    include: '8',
+                                    exclude: '',
+                                  ),
                                 ),
                                 searchFunction: (bloc, query) => bloc.add(
-                                  LoadAccountsFilterEvent(input: query, include: '8', exclude: ''),
+                                  LoadAccountsFilterEvent(
+                                    input: query,
+                                    include: '8',
+                                    exclude: '',
+                                  ),
                                 ),
                                 itemBuilder: (context, account) => ListTile(
                                   title: Text(account.accName ?? ''),
@@ -503,8 +588,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   ),
                                   trailing: Text(account.actCurrency ?? ""),
                                 ),
-                                itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                stateToLoading: (state) => state is AccountLoadingState,
+                                itemToString: (account) =>
+                                    '${account.accName} (${account.accNumber})',
+                                stateToLoading: (state) =>
+                                    state is AccountLoadingState,
                                 stateToItems: (state) {
                                   if (state is AccountLoadedState) {
                                     return state.accounts;
@@ -515,8 +602,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   setState(() {
                                     accountCcy = value.actCurrency;
                                   });
-                                  _accountController.text = '${value.accName} (${value.accNumber})';
-                                  context.read<PurchaseInvoiceBloc>().add(SelectSupplierAccountEvent(value));
+                                  _accountController.text =
+                                      '${value.accName} (${value.accNumber})';
+                                  context.read<PurchaseInvoiceBloc>().add(
+                                    SelectSupplierAccountEvent(value),
+                                  );
                                 },
                                 showClearButton: true,
                               );
@@ -534,32 +624,44 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           const SizedBox(width: 4),
                           Expanded(
                             flex: 1,
-                            child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                              builder: (context, state) {
-                                if (state is PurchaseInvoiceLoaded) {
-                                  final isLoading = state.exchangeRate == null;
-                                  return ZTextFieldEntitled(
-                                    showClearButton: true,
-                                    controller: _exchangeRateController,
-                                    title: tr.exchangeRate,
-                                    hint: isLoading ? "Loading rate..." : "Enter rate",
-                                    inputFormat: [
-                                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}')),
-                                    ],
-                                    onSubmit: _onExchangeRateChanged,
-                                    end: isLoading
-                                        ? const SizedBox(
-                                      width: 20,
-                                      height: 20,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                        : null,
-                                    isEnabled: !isLoading,
-                                  );
-                                }
-                                return const SizedBox();
-                              },
-                            ),
+                            child:
+                                BlocBuilder<
+                                  PurchaseInvoiceBloc,
+                                  PurchaseInvoiceState
+                                >(
+                                  builder: (context, state) {
+                                    if (state is PurchaseInvoiceLoaded) {
+                                      final isLoading =
+                                          state.exchangeRate == null;
+                                      return ZTextFieldEntitled(
+                                        showClearButton: true,
+                                        controller: _exchangeRateController,
+                                        title: tr.exchangeRate,
+                                        hint: isLoading
+                                            ? "Loading rate..."
+                                            : "Enter rate",
+                                        inputFormat: [
+                                          FilteringTextInputFormatter.allow(
+                                            RegExp(r'^\d*\.?\d{0,6}'),
+                                          ),
+                                        ],
+                                        onSubmit: _onExchangeRateChanged,
+                                        end: isLoading
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                    ),
+                                              )
+                                            : null,
+                                        isEnabled: !isLoading,
+                                      );
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
                           ),
                         ],
                         const SizedBox(width: 4),
@@ -576,40 +678,51 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     _buildItemsHeader(context),
                     const SizedBox(height: 8),
                     Expanded(
-                      child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                        builder: (context, state) {
-                          if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-                            final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
-                            _synchronizeFocusNodes(current.items.length);
-                            return SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  ListView.builder(
-                                    shrinkWrap: true,
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    itemCount: current.items.length,
-                                    itemBuilder: (context, index) {
-                                      final item = current.items[index];
-                                      final isLastRow = index == current.items.length - 1;
-                                      final nodes = _rowFocusNodes[index];
-                                      return _buildItemRow(
-                                        item: item,
-                                        nodes: nodes,
-                                        isLastRow: isLastRow,
-                                        context: context,
-                                      );
-                                    },
+                      child:
+                          BlocBuilder<
+                            PurchaseInvoiceBloc,
+                            PurchaseInvoiceState
+                          >(
+                            builder: (context, state) {
+                              if (state is PurchaseInvoiceLoaded ||
+                                  state is PurchaseInvoiceSaving) {
+                                final current = state is PurchaseInvoiceSaving
+                                    ? state
+                                    : (state as PurchaseInvoiceLoaded);
+                                _synchronizeFocusNodes(current.items.length);
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      ListView.builder(
+                                        shrinkWrap: true,
+                                        physics:
+                                            const NeverScrollableScrollPhysics(),
+                                        itemCount: current.items.length,
+                                        itemBuilder: (context, index) {
+                                          final item = current.items[index];
+                                          final isLastRow =
+                                              index == current.items.length - 1;
+                                          final nodes = _rowFocusNodes[index];
+                                          return _buildItemRow(
+                                            item: item,
+                                            nodes: nodes,
+                                            isLastRow: isLastRow,
+                                            context: context,
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          }
-                          return const Center(child: CircularProgressIndicator());
-                        },
-                      ),
+                                );
+                              }
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
+                          ),
                     ),
 
-                    _buildSummarySection(context)
+                    _buildSummarySection(context),
                   ],
                 ),
               ),
@@ -623,7 +736,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
+    TextStyle? title = Theme.of(
+      context,
+    ).textTheme.titleSmall?.copyWith(color: color.surface);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -632,26 +747,48 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         borderRadius: BorderRadius.circular(3),
       ),
       child: Row(
-        children: [
-          const SizedBox(width: 40, child: Padding(padding: EdgeInsets.symmetric(horizontal: 16.0), child: Text('#'))),
-          Expanded(child: Text(locale.products, style: title)),
-          const SizedBox(width: 100, child: Text('Qty')),
-          const SizedBox(width: 100, child: Text('Batch')),
-          const SizedBox(width: 100, child: Text('Total Qty')),
-          SizedBox(width: 150, child: Text("${locale.unitPrice} ($baseCurrency)")),
-          SizedBox(width: 150, child: Text("${locale.amount} (${accountCcy ?? baseCurrency})")),
-          const SizedBox(width: 150, child: Text('Sale %')),
-          SizedBox(width: 150, child: Text("${locale.landedPrice} ($baseCurrency)")),
-          const SizedBox(width: 180, child: Text('Storage')),
-          const SizedBox(width: 60, child: Text('Actions')),
-        ].map((child) => DefaultTextStyle(style: title!, child: child)).toList(),
+        children:
+            [
+                  const SizedBox(
+                    width: 40,
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text('#'),
+                    ),
+                  ),
+                  Expanded(child: Text(locale.products, style: title)),
+                  SizedBox(width: 100, child: Text(locale.qty)),
+                  SizedBox(width: 100, child: Text(locale.batchTitle)),
+                  SizedBox(width: 100, child: Text(locale.totalQty)),
+                  SizedBox(
+                    width: 150,
+                    child: Text("${locale.unitPrice} ($baseCurrency)"),
+                  ),
+                  if (_needsLocalConversion(context))
+                    SizedBox(
+                      width: 150,
+                      child: Text(
+                        "${locale.unitPrice} (${accountCcy ?? baseCurrency})",
+                      ),
+                    ),
+                  SizedBox(width: 150, child: Text("${locale.salePrice} %")),
+                  SizedBox(
+                    width: 150,
+                    child: Text("${locale.landedPrice} ($baseCurrency)"),
+                  ),
+                  SizedBox(width: 180, child: Text(locale.warehouse)),
+                  SizedBox(width: 60, child: Text(locale.actions)),
+                ]
+                .map((child) => DefaultTextStyle(style: title!, child: child))
+                .toList(),
       ),
     );
   }
 
   void _setupRowFocus(int rowIndex) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (rowIndex < _rowFocusNodes.length && _rowFocusNodes[rowIndex].isNotEmpty) {
+      if (rowIndex < _rowFocusNodes.length &&
+          _rowFocusNodes[rowIndex].isNotEmpty) {
         _rowFocusNodes[rowIndex][0].requestFocus();
       }
     });
@@ -732,25 +869,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-          final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
+          final current = state is PurchaseInvoiceSaving
+              ? state
+              : (state as PurchaseInvoiceLoaded);
           final totalExpenses = current.totalExpenses;
           final needsAccountConversion = current.needsExchangeRate;
           final needsCashConversion = current.needsCashConversion;
           final bool isLoading = current.isExchangeRateLoading;
           final baseCurrency = current.fromCurrency ?? '';
-          final String accountCurr = current.supplierAccount?.actCurrency ?? '';
           final bool needsConversion = current.needsExchangeRate;
-          final bool hasCreditAccount = current.supplierAccount != null && current.creditAmount > 0;
-
-          // Calculate account amounts correctly
-          final double remainingAmountInAccountCurrency = hasCreditAccount
-              ? current.creditAmountLocal
-              : 0.0;
-
-          // New balance calculation
-          final double newBalanceInAccountCurrency = hasCreditAccount
-              ? current.currentBalance + remainingAmountInAccountCurrency
-              : 0.0;
 
           return Container(
             padding: const EdgeInsets.all(16),
@@ -774,16 +901,35 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               spacing: 8,
                               children: [
                                 Icon(Icons.file_open_outlined),
-                                Text(tr.invoiceSummary.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                Text(
+                                  tr.invoiceSummary.toUpperCase(),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
                               ],
                             ),
                             InkWell(
                               onTap: () => _showPaymentDialog(current),
                               child: Row(
                                 children: [
-                                  Text(_getPaymentModeLabel(current.paymentMode).toUpperCase(), style: TextStyle(color: color.primary, fontSize: 16, fontWeight: FontWeight.bold)),
+                                  Text(
+                                    _getPaymentModeLabel(
+                                      current.paymentMode,
+                                    ).toUpperCase(),
+                                    style: TextStyle(
+                                      color: color.primary,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   const SizedBox(width: 4),
-                                  Icon(Icons.more_vert_rounded, size: 20, color: color.primary),
+                                  Icon(
+                                    Icons.more_vert_rounded,
+                                    size: 20,
+                                    color: color.primary,
+                                  ),
                                 ],
                               ),
                             ),
@@ -793,11 +939,20 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         Divider(color: color.outline.withValues(alpha: .2)),
                         const SizedBox(height: 4),
 
-                        _buildSummaryRow(label: tr.subtotal, value: current.subtotal, currency: baseCurrency),
+                        _buildSummaryRow(
+                          label: tr.subtotal,
+                          value: current.subtotal,
+                          currency: baseCurrency,
+                        ),
 
                         if (totalExpenses > 0) ...[
                           const SizedBox(height: 4),
-                          _buildSummaryRow(label: tr.totalExpense, value: totalExpenses, color: Colors.red, currency: baseCurrency),
+                          _buildSummaryRow(
+                            label: tr.totalExpense,
+                            value: totalExpenses,
+                            color: Colors.red,
+                            currency: baseCurrency,
+                          ),
                           const SizedBox(height: 4),
                         ],
 
@@ -812,7 +967,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           currency: baseCurrency,
                         ),
 
-                        if (needsConversion && !isLoading)...[
+                        if (needsConversion && !isLoading) ...[
                           const SizedBox(height: 4),
                           _buildSummaryRow(
                             label: '${tr.grandTotal} (${current.toCurrency})',
@@ -827,22 +982,12 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
 
                   SizedBox(width: 12),
-                  VerticalDivider(width: 20, thickness: 1, color: color.outline.withValues(alpha: .2)),
+                  VerticalDivider(
+                    width: 20,
+                    thickness: 1,
+                    color: color.outline.withValues(alpha: .2),
+                  ),
                   SizedBox(width: 12),
-
-                  // if (current.supplierAccount != null && current.supplierAccount!.actCurrency != null && current.supplierAccount!.actCurrency!.isNotEmpty) ...[
-                  //   const SizedBox(height: 4),
-                  //   Divider(color: color.outline.withValues(alpha: .2)),
-                  //   const SizedBox(height: 4),
-                  //   _buildSummaryRow(
-                  //     label: "${tr.totalTitle} (${current.supplierAccount!.actCurrency})",
-                  //     value: current.totalLocalAmount,
-                  //     isBold: true,
-                  //     color: Colors.purple,
-                  //     currency: current.supplierAccount!.actCurrency,
-                  //   ),
-                  // ],
-
 
                   //Cash Payment
                   Expanded(
@@ -852,7 +997,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           spacing: 8,
                           children: [
                             Icon(Icons.money),
-                            Text(tr.payment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                            Text(
+                              tr.payment.toUpperCase(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 4),
@@ -861,148 +1012,146 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
                         // Payment section with currency conversion
                         if (current.paymentMode == PaymentMode.cash) ...[
-
-                          AmountDisplay(
-                              title: tr.cashPayment,
-                              baseAmount: current.cashPayment,
-                              baseCurrency: baseCurrency,
-                              convertedAmount: (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency) ?
-                              current.cashPaymentInCashCurrency : null,
-                              convertedCurrency: current.cashCurrency?? "",
-                          ),
-
-                          // _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
-                          //
-                          // if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
-                          //   _buildSummaryRow(
-                          //     label: '${tr.cashPayment} (${current.cashCurrency})',
-                          //     value: current.cashPaymentInCashCurrency,
-                          //     color: Colors.green,
-                          //     currency: current.cashCurrency!,
-                          //     fontSize: 12,
-                          //   ),
-
-                          if (current.supplierAccount != null && needsAccountConversion)
-                            _buildSummaryRow(
-                              label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
-                              value: current.cashPaymentLocal,
-                              color: Colors.green,
-                              currency: current.supplierAccount!.actCurrency,
-                              fontSize: 12,
-                            ),
-                        ] else if (current.paymentMode == PaymentMode.credit) ...[
-                          if (current.supplierAccount != null && needsAccountConversion)
-                            _buildSummaryRow(
-                              label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
-                              value: current.creditAmountLocal,
-                              color: Colors.orange,
-                              currency: current.supplierAccount!.actCurrency,
-                              fontSize: 13,
-                            ),
-                        ] else if (current.paymentMode == PaymentMode.mixed) ...[
                           AmountDisplay(
                             title: tr.cashPayment,
                             baseAmount: current.cashPayment,
                             baseCurrency: baseCurrency,
-                            convertedAmount: (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency) ?
-                            current.cashPaymentInCashCurrency : null,
+                            convertedAmount:
+                                (needsCashConversion &&
+                                    current.cashCurrency != null &&
+                                    current.cashCurrency != baseCurrency)
+                                ? current.cashPaymentInCashCurrency
+                                : null,
                             convertedCurrency: current.cashCurrency ?? "",
                           ),
-                          _buildSummaryRow(label: tr.accountPayment, value: current.creditAmount, color: Colors.orange, currency: baseCurrency),
-                          _buildSummaryRow(label: tr.cashPayment, value: current.cashPayment, color: Colors.green, currency: baseCurrency),
+                        ] else if (current.paymentMode ==
+                            PaymentMode.credit) ...[
+                          AmountDisplay(
+                            title: tr.creditPayment,
+                            baseAmount: current.creditAmount,
+                            baseCurrency: baseCurrency,
+                            convertedAmount:
+                                (current.supplierAccount != null &&
+                                    needsAccountConversion)
+                                ? current.creditAmountLocal
+                                : null,
+                            convertedCurrency: current.toCurrency ?? "",
+                            fontSize: 15,
+                          ),
+                        ] else if (current.paymentMode ==
+                            PaymentMode.mixed) ...[
+                          AmountDisplay(
+                            title: tr.cashPayment,
+                            baseAmount: current.cashPayment,
+                            baseCurrency: baseCurrency,
+                            convertedAmount:
+                                (needsCashConversion &&
+                                    current.cashCurrency != null &&
+                                    current.cashCurrency != baseCurrency)
+                                ? current.cashPaymentInCashCurrency
+                                : null,
+                            convertedCurrency: current.cashCurrency ?? "",
+                          ),
 
-                          // Show cash payment in selected cash currency if different
-                          if (needsCashConversion && current.cashCurrency != null && current.cashCurrency != baseCurrency)
-                            _buildSummaryRow(
-                              label: '${tr.cashPayment} (${current.cashCurrency})',
-                              value: current.cashPaymentInCashCurrency,
-                              color: Colors.green,
-                              currency: current.cashCurrency!,
-                              fontSize: 12,
-                            ),
-
-                          // Show converted amounts in account currency
-                          if (current.supplierAccount != null && needsAccountConversion) ...[
-                            const SizedBox(height: 4),
-                            Divider(color: color.outline.withValues(alpha: .2)),
-                            _buildSummaryRow(
-                              label: "${tr.creditPayment} (${current.supplierAccount!.actCurrency})",
-                              value: current.creditAmountLocal,
-                              color: Colors.orange,
-                              currency: current.supplierAccount!.actCurrency,
-                              fontSize: 12,
-                            ),
-                            _buildSummaryRow(
-                              label: "${tr.cashPayment} (${current.supplierAccount!.actCurrency})",
-                              value: current.cashPaymentLocal,
-                              color: Colors.green,
-                              currency: current.supplierAccount!.actCurrency,
-                              fontSize: 12,
-                            ),
-                          ],
+                          AmountDisplay(
+                            title: tr.creditPayment,
+                            baseAmount: current.creditAmount,
+                            baseCurrency: baseCurrency,
+                            convertedAmount:
+                                (current.supplierAccount != null &&
+                                    needsAccountConversion)
+                                ? current.creditAmountLocal
+                                : null,
+                            convertedCurrency: current.toCurrency ?? "",
+                            fontSize: 15,
+                          ),
                         ],
                       ],
                     ),
                   ),
 
-                  SizedBox(width: 12),
-                  VerticalDivider(width: 20, thickness: 1, color: color.outline.withValues(alpha: .2)),
-                  SizedBox(width: 12),
 
-                  Expanded(
+                  if(current.supplierAccount !=null)...[
+                    SizedBox(width: 12),
+                    VerticalDivider(
+                      width: 20,
+                      thickness: 1,
+                      color: color.outline.withValues(alpha: .2),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
                       child: Column(
-                    children: [
-                      Row(
-                        spacing: 8,
                         children: [
-                          Icon(FontAwesomeIcons.buildingColumns,size: 20),
-                          Text(tr.accountInformation.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Divider(color: color.outline.withValues(alpha: .2)),
-                      const SizedBox(height: 4),
-                      // Account balance section
-                      if (current.supplierAccount != null) ...[
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Row(
+                            spacing: 8,
                             children: [
+                              Icon(FontAwesomeIcons.buildingColumns, size: 19),
                               Text(
-                                '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                tr.accountInformation.toUpperCase(),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
-                              Text(current.supplierAccount!.actCurrency ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
                             ],
                           ),
-                        ),
-                        _buildSummaryRow(
-                          label: tr.currentBalance,
-                          value: current.currentBalance,
-                          color: _getBalanceColor(current.currentBalance),
-                          currency: current.supplierAccount!.actCurrency,
-                        ),
-                        if (current.creditAmountLocal > 0) ...[
+                          const SizedBox(height: 5),
+                          Divider(color: color.outline.withValues(alpha: .2)),
                           const SizedBox(height: 4),
-                          _buildSummaryRow(
-                            label: tr.invoiceAmount,
-                            value: current.creditAmountLocal,
-                            color: Colors.orange,
-                            currency: current.supplierAccount!.actCurrency,
-                          ),
-                          const SizedBox(height: 4),
-                          _buildSummaryRow(
-                            label: "${tr.newBalance} | ${_getBalanceStatus(current.newBalance)}",
-                            value: current.newBalance,
-                            isBold: true,
-                            color: _getBalanceColor(current.newBalance),
-                            currency: current.supplierAccount!.actCurrency,
-                          ),
+                          // Account balance section
+                          if (current.supplierAccount != null) ...[
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    current.supplierAccount!.actCurrency ?? '',
+                                    style: const TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            _buildSummaryRow(
+                              label: tr.currentBalance,
+                              value: current.currentBalance,
+                              color: _getBalanceColor(current.currentBalance),
+                              currency: current.supplierAccount!.actCurrency,
+                            ),
+                            if (current.creditAmountLocal > 0) ...[
+                              const SizedBox(height: 4),
+                              _buildSummaryRow(
+                                label: tr.invoiceAmount,
+                                value: current.creditAmountLocal,
+                                color: Colors.orange,
+                                currency: current.supplierAccount!.actCurrency,
+                              ),
+                              const SizedBox(height: 4),
+                              _buildSummaryRow(
+                                label:
+                                "${tr.newBalance} | ${_getBalanceStatus(current.newBalance)}",
+                                value: current.newBalance,
+                                isBold: true,
+                                color: _getBalanceColor(current.newBalance),
+                                currency: current.supplierAccount!.actCurrency,
+                              ),
+                            ],
+                          ],
                         ],
-                      ],
-                    ],
-                  ))
+                      ),
+                    ),
+                  ],
+
                 ],
               ),
             ),
@@ -1036,7 +1185,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, fontSize: fontSize)),
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            fontSize: fontSize,
+          ),
+        ),
         Text(
           "${value.toAmount()} ${currency ?? ''}",
           style: TextStyle(
@@ -1138,7 +1293,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return;
     }
 
-    final needsConversion = current.supplierAccount?.actCurrency != null &&
+    final needsConversion =
+        current.supplierAccount?.actCurrency != null &&
         baseCurrency != null &&
         baseCurrency != current.supplierAccount!.actCurrency;
 
@@ -1179,7 +1335,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         total: item.totalPurchase,
         storageName: item.storageName,
         localAmount: item.singleLocalAmount,
-        localCurrency: current?.supplierAccount?.actCurrency ?? current?.toCurrency,
+        localCurrency:
+            current?.supplierAccount?.actCurrency ?? current?.toCurrency,
         exchangeRate: current?.exchangeRate,
       );
     }).toList();
@@ -1191,95 +1348,107 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-            invoiceType: "Purchase",
-            invoiceNumber: invoiceNumber ?? "",
-            reference: _xRefController.text,
-            invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
-            items: invoiceItems,
-            grandTotal: current!.subtotal,
-            cashPayment: current.cashPayment,
-            creditAmount: current.creditAmount,
-            account: current.supplierAccount,
-            language: language,
-            orientation: orientation,
-            company: company,
-            pageFormat: pageFormat,
-            currency: baseCurrency,
-            isSale: false,
-            totalLocalAmount: needsConversion ? totalLocalAmount : null,
-            localCurrency: needsConversion ? (current.supplierAccount?.actCurrency ?? current.toCurrency) : null,
-            exchangeRate: needsConversion ? current.exchangeRate : null,
-          );
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-            invoiceType: "Purchase",
-            invoiceNumber: invoiceNumber ?? "",
-            reference: _xRefController.text,
-            invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
-            items: invoiceItems,
-            grandTotal: current!.subtotal,
-            cashPayment: current.cashPayment,
-            creditAmount: current.creditAmount,
-            account: current.supplierAccount,
-            language: language,
-            orientation: orientation,
-            company: company,
-            selectedPrinter: selectedPrinter,
-            pageFormat: pageFormat,
-            copies: copies,
-            currency: baseCurrency,
-            isSale: false,
-            totalLocalAmount: needsConversion ? totalLocalAmount : null,
-            localCurrency: needsConversion ? (current.supplierAccount?.actCurrency ?? current.toCurrency) : null,
-            exchangeRate: needsConversion ? current.exchangeRate : null,
-          );
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-            invoiceType: "Purchase",
-            invoiceNumber: invoiceNumber ?? "",
-            reference: _xRefController.text,
-            invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
-            items: invoiceItems,
-            grandTotal: current!.subtotal,
-            cashPayment: current.cashPayment,
-            creditAmount: current.creditAmount,
-            account: current.supplierAccount,
-            language: language,
-            orientation: orientation,
-            company: company,
-            pageFormat: pageFormat,
-            currency: baseCurrency,
-            isSale: false,
-            totalLocalAmount: needsConversion ? totalLocalAmount : null,
-            localCurrency: needsConversion ? (current.supplierAccount?.actCurrency ?? current.toCurrency) : null,
-            exchangeRate: needsConversion ? current.exchangeRate : null,
-          );
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current?.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current!.subtotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+                totalLocalAmount: needsConversion ? totalLocalAmount : null,
+                localCurrency: needsConversion
+                    ? (current.supplierAccount?.actCurrency ??
+                          current.toCurrency)
+                    : null,
+                exchangeRate: needsConversion ? current.exchangeRate : null,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current?.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current!.subtotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: false,
+                totalLocalAmount: needsConversion ? totalLocalAmount : null,
+                localCurrency: needsConversion
+                    ? (current.supplierAccount?.actCurrency ??
+                          current.toCurrency)
+                    : null,
+                exchangeRate: needsConversion ? current.exchangeRate : null,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current?.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current!.subtotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+                totalLocalAmount: needsConversion ? totalLocalAmount : null,
+                localCurrency: needsConversion
+                    ? (current.supplierAccount?.actCurrency ??
+                          current.toCurrency)
+                    : null,
+                exchangeRate: needsConversion ? current.exchangeRate : null,
+              );
+            },
       ),
     );
   }
@@ -1342,9 +1511,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           : '',
     );
     _storageController = TextEditingController(text: widget.item.storageName);
-    _localAmountController = TextEditingController(
-      text: _getLocalAmountText(),
-    );
+    _localAmountController = TextEditingController(text: _getLocalAmountText());
     _lastExchangeRate = _getCurrentExchangeRate();
     _lastPurPrice = widget.item.purPrice;
   }
@@ -1357,12 +1524,28 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     return null;
   }
 
+  bool _needsLocalConversion(BuildContext context) {
+    final state = context.read<PurchaseInvoiceBloc>().state;
+    if (state is PurchaseInvoiceLoaded && state.supplierAccount != null) {
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthenticatedState) {
+        final baseCurrency = authState.loginData.company?.comLocalCcy ?? '';
+        final accountCurrency = state.supplierAccount!.actCurrency ?? '';
+        return baseCurrency.isNotEmpty &&
+            accountCurrency.isNotEmpty &&
+            baseCurrency != accountCurrency;
+      }
+    }
+    return false;
+  }
+
   void _updateLocalAmount() {
     final currentExchangeRate = _getCurrentExchangeRate();
     final currentPurPrice = widget.item.purPrice;
 
     // Check if exchange rate or purchase price changed
-    if (_lastExchangeRate != currentExchangeRate || _lastPurPrice != currentPurPrice) {
+    if (_lastExchangeRate != currentExchangeRate ||
+        _lastPurPrice != currentPurPrice) {
       _lastExchangeRate = currentExchangeRate;
       _lastPurPrice = currentPurPrice;
 
@@ -1396,7 +1579,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
     // Calculate from current values
     final exchangeRate = _getCurrentExchangeRate();
-    if (widget.item.purPrice != null && exchangeRate != null && exchangeRate > 0) {
+    if (widget.item.purPrice != null &&
+        exchangeRate != null &&
+        exchangeRate > 0) {
       final calculatedAmount = widget.item.purPrice! * exchangeRate;
       if (calculatedAmount > 0) {
         return calculatedAmount.toAmount();
@@ -1411,7 +1596,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
     // Update landed price
     if (widget.item.landedPrice != oldWidget.item.landedPrice) {
-      final newValue = widget.item.landedPrice != null && widget.item.landedPrice! > 0
+      final newValue =
+          widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
           : '';
       if (_landedPriceController.text != newValue) {
@@ -1450,7 +1636,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 
   FocusNode? safeNode(int index) {
-    return (index >= 0 && index < widget.nodes.length) ? widget.nodes[index] : null;
+    return (index >= 0 && index < widget.nodes.length)
+        ? widget.nodes[index]
+        : null;
   }
 
   void _addNewRowAndFocus() {
@@ -1481,25 +1669,27 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     );
     final qtyController = widget.qtyControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(
+      () => TextEditingController(
         text: widget.item.qty > 0 ? widget.item.qty.toString() : '',
       ),
     );
     final batchController = widget.batchControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(
+      () => TextEditingController(
         text: widget.item.stkBatch > 0 ? widget.item.stkBatch.toString() : '',
       ),
     );
     final sellPriceController = widget.sellPriceControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(
-        text: widget.item.sellPriceAmount > 0 ? widget.item.sellPriceAmount.toString() : '',
+      () => TextEditingController(
+        text: widget.item.sellPriceAmount > 0
+            ? widget.item.sellPriceAmount.toString()
+            : '',
       ),
     );
     final priceController = widget.purchasePriceControllers.putIfAbsent(
       widget.item.rowId,
-          () => TextEditingController(
+      () => TextEditingController(
         text: widget.item.purPrice != null && widget.item.purPrice! > 0
             ? widget.item.purPrice!.toAmount()
             : '',
@@ -1528,7 +1718,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               Expanded(
                 child: PurchaseProductSearchField(
                   controller: productController,
-                  headerSearchController: headerProductController, // Optional: for header sync
+                  headerSearchController:
+                      headerProductController, // Optional: for header sync
                   focusNode: safeNode(0),
                   bloc: context.read<ProductsBloc>(),
                   onProductSelected: (product) {
@@ -1554,7 +1745,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   },
                   hintText: AppLocalizations.of(context)!.products,
                   showAllOnFocus: true,
-                  openOverlayOnFocus: true, // Opens overlay when field gets focus
+                  openOverlayOnFocus:
+                      true, // Opens overlay when field gets focus
                 ),
               ),
 
@@ -1618,18 +1810,22 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 child: TextField(
                   controller: priceController,
                   focusNode: safeNode(3),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d+\.?\d{0,2}'),
+                    ),
                   ],
                   decoration: InputDecoration(
-
                     hintText: locale.unitPrice,
                     border: InputBorder.none,
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                    final parsed =
+                        double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
                   onSubmitted: (_) {
@@ -1645,22 +1841,23 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               ),
 
               /// Local Amount (read-only)
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _localAmountController,
-                  decoration: InputDecoration(
-                    hintText: AppLocalizations.of(context)!.amount,
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  readOnly: true,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w500,
+              if (_needsLocalConversion(context))
+                SizedBox(
+                  width: 150,
+                  child: TextField(
+                    controller: _localAmountController,
+                    decoration: InputDecoration(
+                      hintText: AppLocalizations.of(context)!.amount,
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                    readOnly: true,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-              ),
 
               /// Sell Price - Index 4
               SizedBox(
@@ -1668,14 +1865,17 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 child: TextField(
                   controller: sellPriceController,
                   focusNode: safeNode(4),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
                     hintText: locale.salePercentage,
                     border: InputBorder.none,
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                    final parsed =
+                        double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onSellPriceChanged(widget.item.rowId, parsed);
                   },
                   onSubmitted: (_) => focusNext(5), // Move to Storage
@@ -1721,14 +1921,19 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       });
                     }
 
-                    return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
+                    return GenericUnderlineTextfield<
+                      StorageModel,
+                      StorageBloc,
+                      StorageState
+                    >(
                       title: "",
                       focusNode: storageFocus,
                       controller: _storageController,
                       hintText: locale.storage,
                       bloc: context.read<StorageBloc>(),
                       fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
-                      searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
+                      searchFunction: (bloc, query) =>
+                          bloc.add(LoadStorageEvent()),
                       itemBuilder: (context, stg) => Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(stg.stgName ?? ''),
@@ -1832,10 +2037,13 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
     _cashExchangeRate = 1.0;
 
     // Convert stored base amount to selected currency for display
-    final cashPaymentInSelectedCurrency = widget.state.cashPayment * _cashExchangeRate;
+    final cashPaymentInSelectedCurrency =
+        widget.state.cashPayment * _cashExchangeRate;
 
     _cashPaymentController = TextEditingController(
-      text: cashPaymentInSelectedCurrency > 0 ? cashPaymentInSelectedCurrency.toStringAsFixed(2) : '',
+      text: cashPaymentInSelectedCurrency > 0
+          ? cashPaymentInSelectedCurrency.toStringAsFixed(2)
+          : '',
     );
 
     _exchangeRateController = TextEditingController(
@@ -1852,7 +2060,9 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   void _updateCashPayment(double amountInSelectedCurrency) {
     // Convert selected currency amount to base currency for storage
     final amountInBaseCurrency = amountInSelectedCurrency / _cashExchangeRate;
-    context.read<PurchaseInvoiceBloc>().add(UpdateCashPaymentEvent(amountInBaseCurrency));
+    context.read<PurchaseInvoiceBloc>().add(
+      UpdateCashPaymentEvent(amountInBaseCurrency),
+    );
     setState(() {});
   }
 
@@ -1863,10 +2073,9 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
       _cashExchangeRateController.text = rate.toStringAsFixed(4);
     });
 
-    context.read<PurchaseInvoiceBloc>().add(UpdateCashCurrencyEvent(
-      currency: currency,
-      exchangeRate: rate,
-    ));
+    context.read<PurchaseInvoiceBloc>().add(
+      UpdateCashCurrencyEvent(currency: currency, exchangeRate: rate),
+    );
   }
 
   void _onCashCurrencyChanged(CurrenciesModel? currency) {
@@ -1896,12 +2105,15 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
     }
   }
 
-  Future<void> _fetchCashExchangeRate(String fromCurrency, String toCurrency) async {
+  Future<void> _fetchCashExchangeRate(
+    String fromCurrency,
+    String toCurrency,
+  ) async {
     try {
-      final rateStr = await context.read<PurchaseInvoiceBloc>().repo.getSingleRate(
-        fromCcy: fromCurrency,
-        toCcy: toCurrency,
-      );
+      final rateStr = await context
+          .read<PurchaseInvoiceBloc>()
+          .repo
+          .getSingleRate(fromCcy: fromCurrency, toCcy: toCurrency);
       final rate = double.tryParse(rateStr ?? "1.0") ?? 1.0;
 
       setState(() {
@@ -1942,11 +2154,6 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
     _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
   }
 
-  double get _convertedCashAmount {
-    final amountInSelectedCurrency = double.tryParse(_cashPaymentController.text.replaceAll(',', '')) ?? 0;
-    return amountInSelectedCurrency / _cashExchangeRate;
-  }
-
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -1955,7 +2162,8 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
     final grandTotal = widget.state.subtotal;
 
     // Check if cash currency is different from base currency
-    final bool needsCashConversion = _selectedCashCurrency.isNotEmpty &&
+    final bool needsCashConversion =
+        _selectedCashCurrency.isNotEmpty &&
         _baseCurrency.isNotEmpty &&
         _selectedCashCurrency != _baseCurrency;
 
@@ -2002,7 +2210,10 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                         isBold: true,
                       ),
                     // Account conversion summary (if account is selected)
-                    if (needsAccountConversion && widget.state.exchangeRate != null && widget.state.exchangeRate! > 0 && widget.state.toCurrency != null)
+                    if (needsAccountConversion &&
+                        widget.state.exchangeRate != null &&
+                        widget.state.exchangeRate! > 0 &&
+                        widget.state.toCurrency != null)
                       _infoRow(
                         label: "${tr.grandTotal} (${widget.state.toCurrency})",
                         value: grandTotal * widget.state.safeExchangeRate,
@@ -2031,10 +2242,13 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                     fieldType: ZTextFieldType.currency,
                     onCurrencyChanged: _onCashCurrencyChanged,
                     inputFormat: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d*\.?\d{0,2}'),
+                      ),
                     ],
                     onChanged: (value) {
-                      final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      final amountInSelectedCurrency =
+                          double.tryParse(value.replaceAll(',', '')) ?? 0;
                       _updateCashPayment(amountInSelectedCurrency);
                     },
                     showFlag: true,
@@ -2043,111 +2257,119 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                     isRequired: true,
                   ),
 
-                  // Show current selected currency info
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      "Selected cash currency: $_selectedCashCurrency",
-                      style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                    ),
-                  ),
-
                   // Exchange Rate Section for Cash (if currency changed from base)
                   if (needsCashConversion) ...[
                     const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: ZTextFieldEntitled(
-                            controller: _cashExchangeRateController,
-                            title: "${tr.exchangeRate} (1 $_baseCurrency = ? $_selectedCashCurrency)",
-                            hint: "1 $_baseCurrency = ?",
-                            inputFormat: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
-                            ],
-                            onChanged: (value) {
-                              final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
-                              if (rate > 0) {
-                                _updateCashExchangeRate(rate);
-                              }
-                            },
-                            trailing: _isLoadingCashRate
-                                ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Container(
-                          padding: const EdgeInsets.all(11),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
-                            color: color.primary.withValues(alpha: .03),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Text(
-                                "≈ ${_convertedCashAmount.toStringAsFixed(2)} $_baseCurrency",
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                              ),
-                              if (_convertedCashAmount > 0 && grandTotal > 0)
-                                Text(
-                                  "(${(_convertedCashAmount / grandTotal * 100).toStringAsFixed(1)}% of total)",
-                                  style: const TextStyle(fontSize: 10, color: Colors.grey),
-                                ),
-                            ],
-                          ),
+                    ZTextFieldEntitled(
+                      controller: _cashExchangeRateController,
+                      title:
+                      "${tr.exchangeRate} (1 $_baseCurrency = ? $_selectedCashCurrency)",
+                      hint: "1 $_baseCurrency = ?",
+                      inputFormat: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d{0,6}'),
                         ),
                       ],
-                    ),
-                  ],
-
-                  // Account Payment Exchange Rate Section (only if account is selected)
-                  if (needsAccountConversion && widget.state.toCurrency != null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: ZTextFieldEntitled(
-                            controller: _exchangeRateController,
-                            title: "${tr.exchangeRate} ($_baseCurrency → ${widget.state.toCurrency})",
-                            hint: "1 $_baseCurrency = ?",
-                            inputFormat: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
-                            ],
-                            onChanged: (value) {
-                              final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
-                              if (rate > 0) {
-                                _updateExchangeRate(rate);
-                              }
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 5),
-                        Container(
-                          padding: const EdgeInsets.all(11),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: .3)),
-                            color: color.primary.withValues(alpha: .03),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          child: Text(
-                            "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                          ),
-                        ),
-                      ],
+                      onChanged: (value) {
+                        final rate =
+                            double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                        if (rate > 0) {
+                          _updateCashExchangeRate(rate);
+                        }
+                      },
+                      trailing: _isLoadingCashRate
+                          ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                          : null,
                     ),
                   ],
                 ],
               ),
+
+              //Payment Details
+              if (widget.state.cashPayment > 0 ||
+                  widget.state.creditAmount > 0) ...[
+                SizedBox(height: 10),
+                ZCover(
+                  padding: const EdgeInsets.all(12),
+                  radius: 8,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.credit_card,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            tr.paymentSummary.toUpperCase(),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+
+                      if (widget.state.cashPayment > 0)
+                        AmountDisplay(
+                          title: tr.cashPayment,
+                          baseAmount: widget.state.cashPayment,
+                          baseCurrency: _baseCurrency,
+                          convertedAmount:
+                          (needsAccountConversion &&
+                              widget.state.cashPayment > 0 &&
+                              widget.state.toCurrency != null)
+                              ? widget.state.cashPaymentInCashCurrency
+                              : null,
+                          convertedCurrency: widget.state.toCurrency,
+                        ),
+
+                      if (widget.state.creditAmount > 0)
+                        AmountDisplay(
+                          title: tr.amountToChargeAccount,
+                          baseAmount: widget.state.creditAmount,
+                          baseCurrency: _baseCurrency,
+                          convertedAmount:
+                          (needsAccountConversion &&
+                              widget.state.creditAmount > 0 &&
+                              widget.state.toCurrency != null)
+                              ? widget.state.creditAmountLocal
+                              : null,
+                          convertedCurrency: widget.state.toCurrency,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+
+              // Account Payment Exchange Rate Section (only if account is selected)
+              if (needsAccountConversion &&
+                  widget.state.toCurrency != null) ...[
+                const SizedBox(height: 8),
+                ZTextFieldEntitled(
+                  controller: _exchangeRateController,
+                  title:
+                  "${tr.exchangeRate} ($_baseCurrency → ${widget.state.toCurrency})",
+                  hint: "1 $_baseCurrency = ?",
+                  inputFormat: [
+                    FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d*\.?\d{0,6}'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    final rate =
+                        double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                    if (rate > 0) {
+                      _updateExchangeRate(rate);
+                    }
+                  },
+                ),
+              ],
 
               const SizedBox(height: 12),
 
@@ -2161,9 +2383,16 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.primary),
+                          Icon(
+                            Icons.credit_card,
+                            size: 20,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
-                          Text(tr.accountPayment.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w600)),
+                          Text(
+                            tr.accountPayment.toUpperCase(),
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -2178,28 +2407,42 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                         ],
                       ),
                       const SizedBox(height: 3),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(tr.creditAmount, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          Text(
-                            "${widget.state.creditAmount.toStringAsFixed(2)} $_baseCurrency",
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                          ),
-                        ],
+
+                      AmountDisplay(
+                        title: tr.creditAmount,
+                        baseAmount: widget.state.creditAmount,
+                        baseCurrency: _baseCurrency,
+                        convertedAmount:
+                        (needsAccountConversion &&
+                            widget.state.creditAmount > 0 &&
+                            widget.state.toCurrency != null)
+                            ? widget.state.creditAmountLocal
+                            : null,
+                        convertedCurrency: widget.state.toCurrency,
                       ),
-                      if (needsAccountConversion && widget.state.creditAmount > 0 && widget.state.toCurrency != null)
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("${tr.amount} (${widget.state.toCurrency})",
-                                style: const TextStyle(fontSize: 14)),
-                            Text(
-                              "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
-                              style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.primary),
-                            ),
-                          ],
-                        ),
+
+                      // Row(
+                      //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //   children: [
+                      //     Text(tr.creditAmount, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      //     Text(
+                      //       "${widget.state.creditAmount.toAmount()} $_baseCurrency",
+                      //       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      //     ),
+                      //   ],
+                      // ),
+                      // if (needsAccountConversion && widget.state.creditAmount > 0 && widget.state.toCurrency != null)
+                      //   Row(
+                      //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //     children: [
+                      //       Text("${tr.amount} (${widget.state.toCurrency})",
+                      //           style: const TextStyle(fontSize: 14)),
+                      //       Text(
+                      //         "${widget.state.creditAmountLocal.toStringAsFixed(2)} ${widget.state.toCurrency}",
+                      //         style: TextStyle(fontSize: 14, color: Theme.of(context).colorScheme.primary),
+                      //       ),
+                      //     ],
+                      //   ),
                       if (widget.state.supplierAccount != null) ...[
                         const SizedBox(height: 8),
                         Divider(),
@@ -2207,16 +2450,22 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                         _infoRow(
                           label: tr.currentBalance,
                           value: widget.state.currentBalance,
-                          currency: widget.state.supplierAccount!.actCurrency ?? _baseCurrency,
+                          currency:
+                          widget.state.supplierAccount!.actCurrency ??
+                              _baseCurrency,
                           fontSize: 15,
                         ),
                         _infoRow(
                           label: tr.newBalance,
                           value: widget.state.newBalance,
-                          currency: widget.state.supplierAccount!.actCurrency ?? _baseCurrency,
+                          currency:
+                          widget.state.supplierAccount!.actCurrency ??
+                              _baseCurrency,
                           isBold: true,
                           fontSize: 17,
-                          color: widget.state.newBalance < 0 ? Colors.red : Colors.green,
+                          color: widget.state.newBalance < 0
+                              ? Colors.red
+                              : Colors.green,
                         ),
                       ],
                     ],
@@ -2243,7 +2492,13 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: fontSize, fontWeight: isBold ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
           Text(
             "${value.toStringAsFixed(2)} $currency",
             style: TextStyle(
@@ -3358,7 +3613,8 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
 
     // Now current is not null, we can safely use it
     // Check if currency conversion is needed
-    final needsConversion = current.supplierAccount?.actCurrency != null &&
+    final needsConversion =
+        current.supplierAccount?.actCurrency != null &&
         baseCurrency != null &&
         baseCurrency != current.supplierAccount!.actCurrency;
 
@@ -3401,8 +3657,10 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
         unit: '',
         total: item.totalPurchase,
         storageName: item.storageName,
-        localAmount: item.localAmount, // Single item local amount (unit price * exchange rate)
-        localCurrency: current?.supplierAccount?.actCurrency ?? current?.toCurrency,
+        localAmount: item
+            .localAmount, // Single item local amount (unit price * exchange rate)
+        localCurrency:
+            current?.supplierAccount?.actCurrency ?? current?.toCurrency,
         exchangeRate: current?.exchangeRate, // Pass exchange rate
       );
     }).toList();
@@ -3415,95 +3673,107 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().printInvoicePreview(
-            invoiceType: "Purchase",
-            invoiceNumber: invoiceNumber ?? "",
-            reference: _xRefController.text,
-            invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
-            items: invoiceItems,
-            grandTotal: current!.subtotal,
-            cashPayment: current.cashPayment,
-            creditAmount: current.creditAmount,
-            account: current.supplierAccount,
-            language: language,
-            orientation: orientation,
-            company: company,
-            pageFormat: pageFormat,
-            currency: baseCurrency,
-            isSale: false,
-            totalLocalAmount: needsConversion ? totalLocalAmount : null,
-            localCurrency: needsConversion ? (current.supplierAccount?.actCurrency ?? current.toCurrency) : null,
-            exchangeRate: needsConversion ? current.exchangeRate : null,
-          );
-        },
-        onPrint: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-          required selectedPrinter,
-          required copies,
-          required pages,
-        }) {
-          return InvoicePrintService().printInvoiceDocument(
-            invoiceType: "Purchase",
-            invoiceNumber: invoiceNumber ?? "",
-            reference: _xRefController.text,
-            invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
-            items: invoiceItems,
-            grandTotal: current!.subtotal,
-            cashPayment: current.cashPayment,
-            creditAmount: current.creditAmount,
-            account: current.supplierAccount,
-            language: language,
-            orientation: orientation,
-            company: company,
-            selectedPrinter: selectedPrinter,
-            pageFormat: pageFormat,
-            copies: copies,
-            currency: baseCurrency,
-            isSale: false,
-            totalLocalAmount: needsConversion ? totalLocalAmount : null,
-            localCurrency: needsConversion ? (current.supplierAccount?.actCurrency ?? current.toCurrency) : null,
-            exchangeRate: needsConversion ? current.exchangeRate : null,
-          );
-        },
-        onSave: ({
-          required data,
-          required language,
-          required orientation,
-          required pageFormat,
-        }) {
-          return InvoicePrintService().createInvoiceDocument(
-            invoiceType: "Purchase",
-            invoiceNumber: invoiceNumber ?? "",
-            reference: _xRefController.text,
-            invoiceDate: DateTime.now(),
-            customerSupplierName: current?.supplier?.perName ?? "",
-            items: invoiceItems,
-            grandTotal: current!.subtotal,
-            cashPayment: current.cashPayment,
-            creditAmount: current.creditAmount,
-            account: current.supplierAccount,
-            language: language,
-            orientation: orientation,
-            company: company,
-            pageFormat: pageFormat,
-            currency: baseCurrency,
-            isSale: false,
-            totalLocalAmount: needsConversion ? totalLocalAmount : null,
-            localCurrency: needsConversion ? (current.supplierAccount?.actCurrency ?? current.toCurrency) : null,
-            exchangeRate: needsConversion ? current.exchangeRate : null,
-          );
-        },
+        buildPreview:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().printInvoicePreview(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current?.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current!.subtotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+                totalLocalAmount: needsConversion ? totalLocalAmount : null,
+                localCurrency: needsConversion
+                    ? (current.supplierAccount?.actCurrency ??
+                          current.toCurrency)
+                    : null,
+                exchangeRate: needsConversion ? current.exchangeRate : null,
+              );
+            },
+        onPrint:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return InvoicePrintService().printInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current?.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current!.subtotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                selectedPrinter: selectedPrinter,
+                pageFormat: pageFormat,
+                copies: copies,
+                currency: baseCurrency,
+                isSale: false,
+                totalLocalAmount: needsConversion ? totalLocalAmount : null,
+                localCurrency: needsConversion
+                    ? (current.supplierAccount?.actCurrency ??
+                          current.toCurrency)
+                    : null,
+                exchangeRate: needsConversion ? current.exchangeRate : null,
+              );
+            },
+        onSave:
+            ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return InvoicePrintService().createInvoiceDocument(
+                invoiceType: "Purchase",
+                invoiceNumber: invoiceNumber ?? "",
+                reference: _xRefController.text,
+                invoiceDate: DateTime.now(),
+                customerSupplierName: current?.supplier?.perName ?? "",
+                items: invoiceItems,
+                grandTotal: current!.subtotal,
+                cashPayment: current.cashPayment,
+                creditAmount: current.creditAmount,
+                account: current.supplierAccount,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                currency: baseCurrency,
+                isSale: false,
+                totalLocalAmount: needsConversion ? totalLocalAmount : null,
+                localCurrency: needsConversion
+                    ? (current.supplierAccount?.actCurrency ??
+                          current.toCurrency)
+                    : null,
+                exchangeRate: needsConversion ? current.exchangeRate : null,
+              );
+            },
       ),
     );
   }
@@ -4023,7 +4293,11 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 Expanded(
                   flex: 3,
                   child:
-                      GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                      GenericUnderlineTextfield<
+                        ProductsModel,
+                        ProductsBloc,
+                        ProductsState
+                      >(
                         title: "",
                         controller: productController,
                         hintText: tr.products,
@@ -4740,5 +5014,3 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
     );
   }
 }
-
-

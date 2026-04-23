@@ -73,7 +73,7 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
     ));
   }
 
-  Future<void> _onLoadOrderById(LoadOrderByIdEvent event, Emitter<OrderByIdState> emit,) async {
+  Future<void> _onLoadOrderById(LoadOrderByIdEvent event, Emitter<OrderByIdState> emit) async {
     emit(OrderByIdLoading());
 
     try {
@@ -107,14 +107,11 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
       // For sale orders, load product stock to get purchase prices
       if (!isPurchase) {
         try {
-          // Load product stock data to get purchase prices
-          final productsStock = await repo.getProductStock(); // You need to add this method to your repository
+          final productsStock = await repo.getProductStock();
 
-          // Create a map of productId -> purchase price
           final productPurchasePrices = <int, double>{};
           for (var stock in productsStock) {
             if (stock.proId != null && stock.averagePrice != null) {
-              // Remove thousand separators and parse
               final cleanPrice = stock.averagePrice!.replaceAll(',', '');
               final price = double.tryParse(cleanPrice) ?? 0.0;
               if (price > 0) {
@@ -123,17 +120,13 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
             }
           }
 
-          // Update records with purchase prices if missing
           for (var i = 0; i < records.length; i++) {
             final record = records[i];
             if (record.stkProduct != null && record.stkProduct! > 0) {
               final purchasePrice = productPurchasePrices[record.stkProduct!];
-
-              // Check if purchase price is missing or zero
               final currentPurPrice = double.tryParse(record.stkPurPrice ?? "0") ?? 0;
               if ((currentPurPrice == 0 || record.stkPurPrice == null || record.stkPurPrice!.isEmpty)
                   && purchasePrice != null && purchasePrice > 0) {
-                // Update the record with purchase price
                 final updatedRecord = record.copyWith(
                   stkPurPrice: purchasePrice.toStringAsFixed(4),
                 );
@@ -142,15 +135,13 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
             }
           }
         } catch (e) {
-          // Continue without purchase prices - they may be loaded later when editing
+          // Continue without purchase prices
         }
       }
 
       for (final record in records) {
-        // Update product name from pre-loaded list
         if (record.stkProduct != null) {
           if (!productNames.containsKey(record.stkProduct)) {
-            // If not in pre-loaded list, try to load it
             try {
               final products = await repo.getProduct(proId: record.stkProduct!);
               if (products.isNotEmpty) {
@@ -163,7 +154,6 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
             }
           }
 
-          // Load storage name
           if (record.stkStorage != null && !storageNames.containsKey(record.stkStorage)) {
             final storage = storages.firstWhere(
                   (s) => s.stgId == record.stkStorage,
@@ -176,31 +166,46 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
 
       // Calculate grand total from items
       double grandTotal = 0.0;
-
       for (final record in records) {
         final qty = double.tryParse(record.stkQuantity ?? "0") ?? 0;
         double price;
-
         if (isPurchase) {
           price = double.tryParse(record.stkPurPrice ?? "0") ?? 0;
         } else {
           price = double.tryParse(record.stkSalePrice ?? "0") ?? 0;
         }
-
         grandTotal += qty * price;
       }
 
-      // Get credit amount from API
-      final creditAmount = double.tryParse(order.amount ?? "0.0") ?? 0.0;
-      final hasAccount = order.acc != null && order.acc! > 0;
+      // Extract payment information from payments array
+      double cashPayment = 0.0;
+      double creditAmount = 0.0;
+      int? accountNumber;
 
-      // Calculate cash payment
-      double cashPayment = grandTotal - creditAmount;
+      if (order.payments != null && order.payments!.isNotEmpty) {
+        for (var payment in order.payments!) {
+          final amount = double.tryParse(payment.trdAmount ?? "0") ?? 0;
 
-      // Validate: credit amount should not exceed grand total
-      if (creditAmount > grandTotal) {
-        cashPayment = 0.0;
-        // Or you can adjust creditAmount = grandTotal;
+          // Check if this is a cash payment (typically Dr to cash account)
+          if (payment.trdDrCr == "Dr" && payment.trdAccount == 10101010) { // Cash account
+            cashPayment += amount;
+          }
+          // Check if this is a credit payment (Dr to customer account)
+          else if (payment.trdDrCr == "Dr" && payment.trdAccount != 10101010 && payment.trdAccount != 500000) {
+            creditAmount += amount;
+            accountNumber = payment.trdAccount;
+          }
+        }
+      }
+
+      // If payments array is empty or we couldn't determine, fall back to order.amount
+      if (cashPayment == 0 && creditAmount == 0) {
+        creditAmount = double.tryParse(order.amount ?? "0.0") ?? 0.0;
+        cashPayment = grandTotal - creditAmount;
+
+        if (creditAmount > grandTotal) {
+          cashPayment = 0.0;
+        }
       }
 
       // Determine initial supplier
@@ -213,14 +218,14 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
       }
 
       emit(OrderByIdLoaded(
-        order: order.copyWith(records: records), // Use updated records
+        order: order.copyWith(records: records),
         storages: storages,
         productNames: productNames,
         storageNames: storageNames,
         isEditing: false,
         selectedSupplier: selectedSupplier,
-        selectedAccount: hasAccount && creditAmount > 0
-            ? AccountsModel(accNumber: order.acc)
+        selectedAccount: creditAmount > 0 && accountNumber != null
+            ? AccountsModel(accNumber: accountNumber)
             : null,
         cashPayment: cashPayment,
         creditAmount: creditAmount,
@@ -229,6 +234,7 @@ class OrderByIdBloc extends Bloc<OrderByIdEvent, OrderByIdState> {
       emit(OrderByIdError(e.toString()));
     }
   }
+
   void _onToggleEditMode(ToggleEditModeEvent event, Emitter<OrderByIdState> emit) {
     if (state is OrderByIdLoaded) {
       final current = state as OrderByIdLoaded;

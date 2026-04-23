@@ -1,9 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'dart:convert';
-
-OrderByIdModel orderByIdModelFromMap(String str) => OrderByIdModel.fromMap(json.decode(str));
-
-String orderByIdModelToMap(OrderByIdModel data) => json.encode(data.toMap());
 
 class OrderByIdModel {
   final int? ordId;
@@ -17,6 +12,7 @@ class OrderByIdModel {
   final String? trnStateText;
   final DateTime? ordEntryDate;
   final List<OrderRecords>? records;
+  final List<PaymentRecord>? payments; // Add payments array
 
   OrderByIdModel({
     this.ordId,
@@ -30,6 +26,7 @@ class OrderByIdModel {
     this.trnStateText,
     this.ordEntryDate,
     this.records,
+    this.payments,
   });
 
   OrderByIdModel copyWith({
@@ -44,6 +41,7 @@ class OrderByIdModel {
     String? trnStateText,
     DateTime? ordEntryDate,
     List<OrderRecords>? records,
+    List<PaymentRecord>? payments,
   }) =>
       OrderByIdModel(
         ordId: ordId ?? this.ordId,
@@ -57,21 +55,42 @@ class OrderByIdModel {
         trnStateText: trnStateText ?? this.trnStateText,
         ordEntryDate: ordEntryDate ?? this.ordEntryDate,
         records: records ?? this.records,
+        payments: payments ?? this.payments,
       );
 
   factory OrderByIdModel.fromMap(Map<String, dynamic> json) => OrderByIdModel(
     ordId: json["ordID"] ?? json["ordId"],
     ordName: json["ordName"],
-    perId: json["ordPersonal"] ?? json["ordPersonal"],
+    perId: json["ordPersonal"],
     personal: json["ordPersonalName"],
     ordxRef: json["ordxRef"],
     ordTrnRef: json["ordTrnRef"],
-    acc: json["account"],
-    amount: json["amount"] ?? json["totalBill"]?.toString(), // Notice: totalBill instead of amount
+    acc: json["ordAccount"] ?? json["account"], // Handle both field names
+    amount: _calculateTotalFromPayments(json["payments"]), // Calculate from payments
     trnStateText: json["trnStateText"],
     ordEntryDate: json["ordEntryDate"] == null ? null : DateTime.parse(json["ordEntryDate"]),
     records: json["records"] == null ? [] : List<OrderRecords>.from(json["records"]!.map((x) => OrderRecords.fromMap(x))),
+    payments: json["payments"] == null ? [] : List<PaymentRecord>.from(json["payments"]!.map((x) => PaymentRecord.fromMap(x))),
   );
+
+  // Helper method to calculate total from payments
+  static String _calculateTotalFromPayments(List? payments) {
+    if (payments == null || payments.isEmpty) return "0.0";
+
+    // Calculate net amount (Cr - Dr) or sum based on your accounting logic
+    // Based on your API response, you might want to sum all Cr amounts
+    double total = 0.0;
+    for (var payment in payments) {
+      final amount = double.tryParse(payment["trdAmount"]?.toString() ?? "0") ?? 0;
+      // For sales, Cr amounts typically represent credit to accounts
+      if (payment["trdDrCr"] == "Cr") {
+        total += amount;
+      } else if (payment["trdDrCr"] == "Dr") {
+        total -= amount;
+      }
+    }
+    return total.toStringAsFixed(4);
+  }
 
   Map<String, dynamic> toMap() => {
     "ordID": ordId,
@@ -85,6 +104,56 @@ class OrderByIdModel {
     "trnStateText": trnStateText,
     "ordEntryDate": ordEntryDate?.toIso8601String(),
     "records": records == null ? [] : List<dynamic>.from(records!.map((x) => x.toMap())),
+    "payments": payments == null ? [] : List<dynamic>.from(payments!.map((x) => x.toMap())),
+  };
+}
+
+// Add PaymentRecord model
+class PaymentRecord {
+  final int? trdID;
+  final String? trdReference;
+  final String? trdCcy;
+  final int? trdBranch;
+  final int? trdAccount;
+  final String? trdDrCr;
+  final String? trdAmount;
+  final String? trdNarration;
+  final DateTime? trdEntryDate;
+
+  PaymentRecord({
+    this.trdID,
+    this.trdReference,
+    this.trdCcy,
+    this.trdBranch,
+    this.trdAccount,
+    this.trdDrCr,
+    this.trdAmount,
+    this.trdNarration,
+    this.trdEntryDate,
+  });
+
+  factory PaymentRecord.fromMap(Map<String, dynamic> json) => PaymentRecord(
+    trdID: json["trdID"],
+    trdReference: json["trdReference"],
+    trdCcy: json["trdCcy"],
+    trdBranch: json["trdBranch"],
+    trdAccount: json["trdAccount"],
+    trdDrCr: json["trdDrCr"],
+    trdAmount: json["trdAmount"]?.toString(),
+    trdNarration: json["trdNarration"],
+    trdEntryDate: json["trdEntryDate"] == null ? null : DateTime.parse(json["trdEntryDate"]),
+  );
+
+  Map<String, dynamic> toMap() => {
+    "trdID": trdID,
+    "trdReference": trdReference,
+    "trdCcy": trdCcy,
+    "trdBranch": trdBranch,
+    "trdAccount": trdAccount,
+    "trdDrCr": trdDrCr,
+    "trdAmount": trdAmount,
+    "trdNarration": trdNarration,
+    "trdEntryDate": trdEntryDate?.toIso8601String(),
   };
 }
 

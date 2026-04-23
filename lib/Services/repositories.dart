@@ -1480,7 +1480,7 @@ class Repositories {
       return [];
     }
 
-    // Your API returns a single order with records included
+    // Your API returns a single order with records and payments included
     if (response.data is Map<String, dynamic>) {
       final orderData = response.data as Map<String, dynamic>;
       if (orderData.containsKey('ordID') || orderData.containsKey('ordId')) {
@@ -1489,7 +1489,7 @@ class Repositories {
       }
     }
 
-    // If it's a list (though your API doesn't seem to return this)
+    // If it's a list
     if (response.data is List) {
       return (response.data as List)
           .whereType<Map<String, dynamic>>()

@@ -2007,7 +2007,6 @@ class PurchasePaymentDialog extends StatefulWidget {
   @override
   State<PurchasePaymentDialog> createState() => _PurchasePaymentDialogState();
 }
-
 class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;

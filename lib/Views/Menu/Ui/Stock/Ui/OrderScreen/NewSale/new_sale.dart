@@ -2822,20 +2822,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
                           convertedCurrency:_selectedCashCurrency
                         ),
-                        // _infoRow(
-                        //   label: tr.cashPayment,
-                        //   value: cashAmountInBase,
-                        //   currency: _baseCurrency,
-                        //   fontSize: 15,
-                        // ),
-                        // if (needsCashConversion && cashAmountInBase > 0)
-                        //   _infoRow(
-                        //     label: "${tr.cashPayment} ($_selectedCashCurrency)",
-                        //     value: _currentCashAmountInSelectedCurrency,
-                        //     currency: _selectedCashCurrency,
-                        //     fontSize: 13,
-                        //     color: Theme.of(context).colorScheme.outline,
-                        //   ),
 
                         if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
                           const Divider(height: 12),
@@ -2850,25 +2836,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           convertedCurrency: accountCurrency,
                         ),
                         ],
-
-                        // if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
-                        //   const Divider(height: 12),
-                        //   _infoRow(
-                        //     label: "${tr.accountPayment} (Receivable)",
-                        //     value: remainingAmountInBase,
-                        //     currency: _baseCurrency,
-                        //     fontSize: 15,
-                        //     fontWeight: FontWeight.w500,
-                        //   ),
-                        //   if (needsAccountConversion && remainingAmountInBase > 0)
-                        //     _infoRow(
-                        //       label: "${tr.accountPayment} ($accountCurrency)",
-                        //       value: remainingAmountInAccountCurrency,
-                        //       currency: accountCurrency,
-                        //       fontSize: 13,
-                        //       color: Theme.of(context).colorScheme.outline,
-                        //     ),
-                        // ],
 
                         const Divider(height: 12),
                         _infoRow(

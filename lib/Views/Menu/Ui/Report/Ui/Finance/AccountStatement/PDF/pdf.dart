@@ -115,7 +115,6 @@ class AccountStatementPrintSettings extends PrintServices {
         textDirection: documentLanguage(language: language),
         orientation: orientation,
         build: (context) => [
-          horizontalDivider(),
           statementHeaderWidget(language: language, reportInfo: report, statement: stmtInfo),
           pw.SizedBox(height: 5),
           items(items: stmtInfo, language: language),
@@ -132,98 +131,8 @@ class AccountStatementPrintSettings extends PrintServices {
     return document;
   }
 
-  @override
-  Future<pw.Widget> header({required ReportModel report}) async {
-    final image = (report.comLogo != null && report.comLogo is Uint8List && report.comLogo!.isNotEmpty)
-        ? pw.MemoryImage(report.comLogo!)
-        : null;
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            // Company info (left side)
-            pw.Expanded(
-              flex: 3,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                children: [
-                  zText(text: report.comName ?? "", fontSize: 25,fontWeight: pw.FontWeight.bold, tightBounds: true),
-                  pw.SizedBox(height: 3),
-                  zText(text: report.statementDate ?? "", fontSize: 10),
-                ],
-              ),
-            ),
-            // Logo (right side)
-            if (image != null)
-              pw.Container(
-                width: 40,
-                height: 40,
-                child: pw.Image(image, fit: pw.BoxFit.contain),
-              ),
-          ],
-        ),
-        pw.SizedBox(height: 5)
-      ],
-    );
-  }
 
-  @override
-  pw.Widget footer({
-    required ReportModel report,
-    required pw.Context context,
-    required String language,
-    required pw.MemoryImage logoImage,
-  }) {
-    return pw.Column(
-      children: [
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.start,
-          children: [
-            pw.Container(
-              height: 20,
-              child: pw.Image(logoImage),
-            ),
-            verticalDivider(height: 15, width: 0.6),
-            zText(
-              text: tr(text: 'producedBy', tr: language),
-              fontWeight: pw.FontWeight.normal,
-              fontSize: 8,
-            ),
-          ],
-        ),
-        pw.SizedBox(height: 3),
-        horizontalDivider(),
-        pw.SizedBox(height: 3),
-        pw.Row(
-          children: [
-            zText(text: report.comAddress ?? "", fontSize: 9),
-          ],
-        ),
-        pw.SizedBox(height: 3),
-        pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: pw.CrossAxisAlignment.end,
-          children: [
-            pw.Row(
-              children: [
-                zText(text: report.compPhone ?? "", fontSize: 9),
-                verticalDivider(height: 10, width: 1),
-                zText(text: report.comEmail ?? "", fontSize: 9),
-              ],
-            ),
-            pw.Row(
-              children: [
-                buildPage(context.pageNumber, context.pagesCount, language),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+
 
   pw.Widget totalSummary({
     required String language,
@@ -317,23 +226,36 @@ class AccountStatementPrintSettings extends PrintServices {
               pw.SizedBox(height: 1),
               horizontalDivider(width: 190),
               pw.SizedBox(height: 1),
-              buildTotalSummary(
+              if(currentBalance != availableBalance)...[
+                buildTotalSummary(
+                  label: tr(
+                    text: 'currentBalance',
+                    tr: language,
+                  ),
+                  ccySymbol: info.actCurrency,
+                  value: currentBalance.toAmount(),
+                  isEmphasized: true,
+                ),
+                pw.SizedBox(height: 1),
+                buildTotalSummary(
+                  label: tr(
+                    text: 'availableBalance',
+                    tr: language,
+                  ),
+                  ccySymbol: info.actCurrency,
+                  value: availableBalance.toAmount(),
+                  isEmphasized: true,
+                ),
+              ] else
+                buildTotalSummary(
                 label: tr(
-                  text: 'currentBalance',
+                  text: 'netBalance',
                   tr: language,
                 ),
+                applyBalanceColor: true,
+                balanceValue: currentBalance.toDoubleAmount(),
                 ccySymbol: info.actCurrency,
                 value: currentBalance.toAmount(),
-                isEmphasized: true,
-              ),
-              pw.SizedBox(height: 1),
-              buildTotalSummary(
-                label: tr(
-                  text: 'availableBalance',
-                  tr: language,
-                ),
-                ccySymbol: info.actCurrency,
-                value: availableBalance.toAmount(),
                 isEmphasized: true,
               ),
             ],
@@ -342,6 +264,8 @@ class AccountStatementPrintSettings extends PrintServices {
       ),
     );
   }
+
+
 
   pw.Widget statementDescription({
     required String language,
@@ -450,11 +374,30 @@ class AccountStatementPrintSettings extends PrintServices {
       ),
     );
   }
+  pw.PdfColor _getBalanceColorWithPriority(String? balance, String? narration) {
+    // Handle null or empty balance
+    if (balance == null || balance.isEmpty) return pw.PdfColors.black;
 
-  pw.Widget items({
-    required AccountStatementModel items,
-    required String language,
-  }) {
+    final bal = double.tryParse(balance);
+
+    // Handle invalid number format
+    if (bal == null) return pw.PdfColors.black;
+
+    // First check if it's Opening/Closing Balance - keep blue
+    if (narration == "Opening Balance" || narration == "Closing Balance") {
+      return pw.PdfColors.blue;
+    }
+
+    // Otherwise apply red/green based on value
+    if (bal < 0) {
+      return pw.PdfColors.red;  // Negative - Red
+    } else if (bal > 0) {
+      return pw.PdfColors.green; // Positive - Green
+    } else {
+      return pw.PdfColors.black; // Zero - Neutral/Black
+    }
+  }
+  pw.Widget items({required AccountStatementModel items, required String language,}) {
     const dateWidth = 50.0;
     const trnWidth = 90.0;
     const amountWidth = 60.0;
@@ -530,7 +473,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
-              pw.SizedBox(width: 10),
+
             ],
           ),
         ),
@@ -582,7 +525,7 @@ class AccountStatementPrintSettings extends PrintServices {
                         text: 'openingBalance',
                         tr: language,
                       ) : items.records![i].trdNarration ?? "",
-                      fontSize: 7,
+                      fontSize: 6
                     ),
                   ),
                 ),
@@ -603,23 +546,18 @@ class AccountStatementPrintSettings extends PrintServices {
                     fontSize: 7,
                   ),
                 ),
+
                 pw.SizedBox(
                   width: balanceWidth,
                   child: zText(
                     textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
                     fontWeight: pw.FontWeight.bold,
-                    text: items.records![i].total?.toAmount() ??"",
-                    color: items.records![i].trdNarration == "Opening Balance" || items.records![i].trdNarration == "Closing Balance"? pw.PdfColors.blue : null,
-                    fontSize: 7,
-                  ),
-                ),
-                pw.SizedBox(
-                  width: 10,
-                  child: zText(
-                    textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
-                    text: items.records![i].status??"",
-                    color: pw.PdfColors.red,
-                    fontSize: 7,
+                    text: items.records![i].total ?? "",
+                    color: _getBalanceColorWithPriority(
+                        items.records![i].total,
+                        items.records![i].trdNarration
+                    ),
+                    fontSize: 8,
                   ),
                 ),
               ],

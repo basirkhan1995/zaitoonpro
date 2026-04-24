@@ -1770,14 +1770,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               title: tr.accountPayment,
                               baseAmount: current.creditAmount,
                               baseCurrency: baseCurr,
-                              convertedAmount: (needsConversion && !isLoading) ? (current.creditAmount * current.cashExchangeRate) : null,
+                              convertedAmount: (needsConversion && !isLoading) ? current.creditAmountLocal : null,
                               convertedCurrency: current.toCurrency,
                               fontSize: 16,
                               baseColor: Colors.green.withValues(alpha: .9),
                             ),
                           ]
                           else if (current.paymentMode == PaymentMode.mixed) ...[
-                           // _buildSummaryRow(label: tr.accountPayment, value: current.creditAmount, color: Colors.orange, currency: baseCurr),
 
                               AmountDisplay(
                                 title: tr.cashPayment,
@@ -1795,7 +1794,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               title: tr.accountPayment,
                               baseAmount: current.creditAmount,
                               baseCurrency: baseCurr,
-                              convertedAmount: (needsConversion && !isLoading) ? (current.creditAmount * current.cashExchangeRate) : null,
+                              convertedAmount: (needsConversion && !isLoading) ? current.creditAmountLocal : null,
                               convertedCurrency: current.toCurrency,
                               fontSize: 16,
                               baseColor: Colors.green.withValues(alpha: .9),
@@ -2291,6 +2290,9 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   // Track current cash amount in selected currency
   double _currentCashAmountInSelectedCurrency = 0.0;
 
+  // Track if we're in pure cash mode (no account selected)
+  bool get _isPureCashMode => widget.state.customerAccount == null;
+
   // Track current state to rebuild when bloc updates
   SaleInvoiceLoaded _currentState = const SaleInvoiceLoaded(
     items: [],
@@ -2327,8 +2329,15 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
         ? _currentState.cashExchangeRate
         : 1.0;
 
-    // Initialize current cash amount
-    _currentCashAmountInSelectedCurrency = _currentState.cashPayment * _cashExchangeRate;
+    // Calculate initial cash amount in selected currency
+    double grandTotalInSelectedCurrency = _currentState.grandTotal * _cashExchangeRate;
+
+    if (_isPureCashMode) {
+      // In pure cash mode, amount should be the full grand total in selected currency
+      _currentCashAmountInSelectedCurrency = grandTotalInSelectedCurrency;
+    } else {
+      _currentCashAmountInSelectedCurrency = _currentState.cashPayment * _cashExchangeRate;
+    }
 
     _cashPaymentController = TextEditingController(
       text: _currentCashAmountInSelectedCurrency > 0
@@ -2359,10 +2368,24 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     // Set initial cash currency if not set
     if (_currentState.cashCurrency == null || _currentState.cashCurrency!.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
-          currency: _baseCurrency,
-          exchangeRate: 1.0,
-        ));
+        // For pure cash mode, set the cash payment to full grand total
+        if (_isPureCashMode) {
+          context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(_currentState.grandTotal));
+          context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
+            currency: _baseCurrency,
+            exchangeRate: 1.0,
+          ));
+        } else {
+          context.read<SaleInvoiceBloc>().add(UpdateCashCurrencyEvent(
+            currency: _baseCurrency,
+            exchangeRate: 1.0,
+          ));
+        }
+      });
+    } else if (_isPureCashMode && _currentState.cashPayment != _currentState.grandTotal) {
+      // Ensure cash payment matches grand total in pure cash mode
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(_currentState.grandTotal));
       });
     }
 
@@ -2378,6 +2401,16 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
               : '';
           if (_exchangeRateController.text != newRate) {
             _exchangeRateController.text = newRate;
+          }
+
+          // Update cash amount if needed
+          if (_isPureCashMode) {
+            // In pure cash mode, ensure cash payment matches grand total
+            final expectedCashInSelectedCurrency = _currentState.grandTotal * _cashExchangeRate;
+            if (_currentCashAmountInSelectedCurrency != expectedCashInSelectedCurrency) {
+              _currentCashAmountInSelectedCurrency = expectedCashInSelectedCurrency;
+              _cashPaymentController.text = expectedCashInSelectedCurrency.toStringAsFixed(2);
+            }
           }
         });
       }
@@ -2398,6 +2431,20 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   }
 
   void _updateCashPayment(double amountInSelectedCurrency) {
+    if (_isPureCashMode) {
+      // In pure cash mode, we don't allow manual editing of the amount
+      // The amount should always be the full grand total
+      // Just refresh the display with the correct amount
+      final correctAmount = _currentState.grandTotal * _cashExchangeRate;
+      if (_currentCashAmountInSelectedCurrency != correctAmount) {
+        setState(() {
+          _currentCashAmountInSelectedCurrency = correctAmount;
+          _cashPaymentController.text = correctAmount.toStringAsFixed(2);
+        });
+      }
+      return;
+    }
+
     setState(() {
       _currentCashAmountInSelectedCurrency = amountInSelectedCurrency;
     });
@@ -2413,10 +2460,19 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
       _cashExchangeRateController.text = rate.toStringAsFixed(4);
 
       // Update displayed amount with new rate
-      final currentAmountInBase = _currentState.cashPayment;
-      _currentCashAmountInSelectedCurrency = currentAmountInBase * rate;
-      _cashPaymentController.text = _currentCashAmountInSelectedCurrency > 0
-          ? _currentCashAmountInSelectedCurrency.toStringAsFixed(2)
+      double newAmountInSelectedCurrency;
+
+      if (_isPureCashMode) {
+        // In pure cash mode, the amount should be grand total converted to new currency
+        newAmountInSelectedCurrency = _currentState.grandTotal * rate;
+      } else {
+        final currentAmountInBase = _currentState.cashPayment;
+        newAmountInSelectedCurrency = currentAmountInBase * rate;
+      }
+
+      _currentCashAmountInSelectedCurrency = newAmountInSelectedCurrency;
+      _cashPaymentController.text = newAmountInSelectedCurrency > 0
+          ? newAmountInSelectedCurrency.toStringAsFixed(2)
           : '';
     });
 
@@ -2426,10 +2482,19 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     ));
   }
 
-  double get _cashAmountInBase => _currentCashAmountInSelectedCurrency / _cashExchangeRate;
+  double get _cashAmountInBase {
+    if (_isPureCashMode) {
+      // In pure cash mode, return the grand total in base currency
+      return _currentState.grandTotal;
+    }
+    return _currentCashAmountInSelectedCurrency / _cashExchangeRate;
+  }
 
   // Get remaining amount in BASE CURRENCY that still needs to be paid
   double get _remainingAmountInBase {
+    if (_isPureCashMode) {
+      return 0.0; // No remaining amount in pure cash mode
+    }
     final grandTotal = _currentState.grandTotal;
     final cashAmount = _cashAmountInBase;
     return (grandTotal - cashAmount).clamp(0, grandTotal);
@@ -2448,12 +2513,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   }
 
   PaymentMode get _calculatedPaymentMode {
-    final grandTotal = _currentState.grandTotal;
-    final cashAmount = _cashAmountInBase;
-
-    if (_currentState.customerAccount == null) {
+    if (_isPureCashMode) {
       return PaymentMode.cash;
     }
+
+    final grandTotal = _currentState.grandTotal;
+    final cashAmount = _cashAmountInBase;
 
     if (cashAmount <= 0) {
       return PaymentMode.credit;
@@ -2536,14 +2601,17 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     });
   }
 
-
-
   void _onConfirm() {
-    // Update the cash payment with the entered amount
-    final finalCashAmount = _cashAmountInBase;
-    context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(finalCashAmount));
+    if (_isPureCashMode) {
+      // In pure cash mode, ensure the full grand total is set as cash payment
+      context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(_currentState.grandTotal));
+    } else {
+      // Update the cash payment with the entered amount
+      final finalCashAmount = _cashAmountInBase;
+      context.read<SaleInvoiceBloc>().add(UpdateCashPaymentEvent(finalCashAmount));
+    }
 
-    // Just close the dialog - user will click main Save button to save invoice
+    // Close the dialog - user will click main Save button to save invoice
     Navigator.pop(context);
   }
 
@@ -2559,12 +2627,15 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final remainingAmountInAccountCurrency = _remainingAmountInAccountCurrency;
     final newBalanceInAccountCurrency = _newBalanceInAccountCurrency;
     final paymentMode = _calculatedPaymentMode;
-    final isPaymentComplete = remainingAmountInBase <= 0.01;
+    final isPaymentComplete = remainingAmountInBase <= 0.01 || _isPureCashMode;
 
     final bool isActionEnabled;
-    if (_currentState.customerAccount == null) {
+    if (_isPureCashMode) {
+      // Pure cash mode - always enabled since amount is set automatically
+      isActionEnabled = true;
+    } else if (_currentState.customerAccount == null) {
       // No account selected - must pay full amount in cash
-      isActionEnabled = _remainingAmountInBase <= 0.01;
+      isActionEnabled = remainingAmountInBase <= 0.01;
     } else {
       // Account selected - any cash amount is valid
       isActionEnabled = true;
@@ -2575,7 +2646,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
         _selectedCashCurrency != _baseCurrency;
 
     final accountCurrency = _currentState.customerAccount?.actCurrency ?? '';
-
 
     return ZFormDialog(
       title: "${tr.payment} - ${_getPaymentModeLabel(paymentMode)}",
@@ -2676,7 +2746,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 40), // Spacer to align with discount icon
+                        const SizedBox(width: 40),
                         SizedBox(
                           width: 120,
                           child: TextField(
@@ -2730,8 +2800,11 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                 children: [
                   ZGenericTextField(
                     controller: _cashPaymentController,
-                    title: "${tr.cashAmount} ($_selectedCashCurrency)",
+                    title: _isPureCashMode
+                        ? "${tr.cashAmount} ($_selectedCashCurrency) - Full Amount"
+                        : "${tr.cashAmount} ($_selectedCashCurrency)",
                     hint: "0.00",
+                    readOnly: _isPureCashMode, // Make read-only in pure cash mode
                     defaultCurrencyCode: _selectedCashCurrency,
                     fieldType: ZTextFieldType.currency,
                     onCurrencyChanged: _onCashCurrencyChanged,
@@ -2739,14 +2812,25 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
                     ],
                     onChanged: (value) {
-                      final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      if (_isPureCashMode) {
+                        // In pure cash mode, don't allow editing, just refresh with correct amount
+                        final correctAmount = grandTotal * _cashExchangeRate;
+                        if (_cashPaymentController.text != correctAmount.toStringAsFixed(2)) {
+                          _cashPaymentController.text = correctAmount.toStringAsFixed(2);
+                        }
+                        return;
+                      }
+
+                      final amountInSelectedCurrency =
+                          double.tryParse(value.replaceAll(',', '')) ?? 0;
+
                       _updateCashPayment(amountInSelectedCurrency);
                     },
                     showFlag: true,
                     showClearButton: true,
                     showSymbol: false,
                     isRequired: true,
-                    onSubmit: (e)=> _onConfirm(),
+                    onSubmit: (e) => _onConfirm(),
                   ),
 
                   // Exchange Rate Section for Cash
@@ -2760,10 +2844,13 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             controller: _cashExchangeRateController,
                             title: "${tr.exchangeRate} (1 $_baseCurrency = ? $_selectedCashCurrency)",
                             hint: "1 $_baseCurrency = ?",
+                            readOnly: _isPureCashMode, // Make read-only in pure cash mode
                             inputFormat: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
                             ],
                             onChanged: (value) {
+                              if (_isPureCashMode) return; // Don't allow rate changes in pure cash mode
+
                               final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
                               if (rate > 0) {
                                 _updateCashExchangeRate(rate);
@@ -2807,40 +2894,39 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         ),
                         const SizedBox(height: 8),
                         AmountDisplay(
-                          title: tr.cashPayment,
-                          baseAmount: cashAmountInBase,
-                          baseCurrency: _baseCurrency,
-
-                          convertedAmount: (needsCashConversion && cashAmountInBase > 0)
-                              ? _currentCashAmountInSelectedCurrency
-                              : null,
-                          convertedCurrency:_selectedCashCurrency
+                            title: tr.cashPayment,
+                            baseAmount: cashAmountInBase,
+                            baseCurrency: _baseCurrency,
+                            convertedAmount: (needsCashConversion && cashAmountInBase > 0)
+                                ? _currentCashAmountInSelectedCurrency
+                                : null,
+                            convertedCurrency: _selectedCashCurrency
                         ),
 
-                        if (_currentState.customerAccount != null && remainingAmountInBase > 0) ...[
+                        if (!_isPureCashMode && _currentState.customerAccount != null && remainingAmountInBase > 0) ...[
                           AmountDisplay(
-                          title: tr.accountPayment,
-                          baseAmount: remainingAmountInBase,
-                          baseCurrency: _baseCurrency,
-                          convertedAmount: (needsAccountConversion && remainingAmountInBase > 0)
-                              ? remainingAmountInAccountCurrency
-                              : null,
-
-                          convertedCurrency: accountCurrency,
-                        ),
+                            title: tr.accountPayment,
+                            baseAmount: remainingAmountInBase,
+                            baseCurrency: _baseCurrency,
+                            convertedAmount: (needsAccountConversion && remainingAmountInBase > 0)
+                                ? remainingAmountInAccountCurrency
+                                : null,
+                            convertedCurrency: accountCurrency,
+                          ),
                         ],
 
                         const Divider(height: 12),
-                        _infoRow(
-                          label: tr.totalReceivable,
-                          value: cashAmountInBase + remainingAmountInBase,
-                          currency: _baseCurrency,
-                          fontSize: 17,
-                          isBold: true,
-                          color: isPaymentComplete ? Colors.green : Colors.red,
-                        ),
+                        if (needsCashConversion && paymentMode == PaymentMode.cash)
+                          _infoRow(
+                            label: tr.totalReceivable,
+                            value: cashAmountInBase + remainingAmountInBase,
+                            currency: _baseCurrency,
+                            fontSize: 17,
+                            isBold: true,
+                            color: isPaymentComplete ? Colors.green : Colors.red,
+                          ),
 
-                        if (paymentMode == PaymentMode.mixed)
+                        if (!_isPureCashMode && paymentMode == PaymentMode.mixed)
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
@@ -2848,15 +2934,15 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),
-                        if (paymentMode == PaymentMode.cash && _currentState.customerAccount != null && isPaymentComplete)
+                        if (!_isPureCashMode && paymentMode == PaymentMode.cash && _currentState.customerAccount != null && isPaymentComplete)
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "Full Cash Payment ",
+                              "Full Cash Payment",
                               style: TextStyle(fontSize: 12, color: Colors.green),
                             ),
                           ),
-                        if (paymentMode == PaymentMode.credit && _currentState.customerAccount != null)
+                        if (!_isPureCashMode && paymentMode == PaymentMode.credit && _currentState.customerAccount != null)
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
@@ -2864,13 +2950,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),
-
                       ],
                     ),
                   ),
 
                   // Account Payment Exchange Rate Section
-                  if (needsAccountConversion && _currentState.toCurrency != null) ...[
+                  if (needsAccountConversion && !_isPureCashMode && _currentState.toCurrency != null) ...[
                     const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -2900,7 +2985,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
               const SizedBox(height: 12),
 
               // Credit Account Section
-              if (_currentState.customerAccount != null && remainingAmountInBase > 0)
+              if (!_isPureCashMode && _currentState.customerAccount != null && remainingAmountInBase > 0)
                 ZCover(
                   padding: const EdgeInsets.all(12),
                   radius: 8,
@@ -2911,34 +2996,29 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
-                              children: [
-                                Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.primary),
-                                const SizedBox(width: 8),
-                                Text(tr.accountInformation.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
-                              ],
+                            children: [
+                              Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(tr.accountInformation.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            ],
                           ),
-
                           Text("${_currentState.customerAccount?.accName} (${_currentState.customerAccount?.accNumber})", style: const TextStyle(fontWeight: FontWeight.w600)),
                         ],
-
                       ),
-
                       const SizedBox(height: 3),
-
                       AmountDisplay(
-                          title: tr.amountAddedToAR,
-                          baseAmount: remainingAmountInBase,
-                          baseCurrency: _baseCurrency,
-                          convertedAmount: (widget.state.fromCurrency != widget.state.toCurrency && remainingAmountInBase > 0) ?
-                          remainingAmountInAccountCurrency : null,
-                          isPositive: true,
-                          showSign: true,
-                          baseColor: Colors.green,
-                          signColor: Colors.green,
-                          convertedCurrency: accountCurrency,
-
+                        title: tr.amountAddedToAR,
+                        baseAmount: remainingAmountInBase,
+                        baseCurrency: _baseCurrency,
+                        convertedAmount: (widget.state.fromCurrency != widget.state.toCurrency && remainingAmountInBase > 0)
+                            ? remainingAmountInAccountCurrency
+                            : null,
+                        isPositive: true,
+                        showSign: true,
+                        baseColor: Colors.green,
+                        signColor: Colors.green,
+                        convertedCurrency: accountCurrency,
                       ),
-
                       const SizedBox(height: 4),
                       Divider(),
                       const SizedBox(height: 4),

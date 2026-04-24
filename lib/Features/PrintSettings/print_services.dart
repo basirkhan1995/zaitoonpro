@@ -405,7 +405,21 @@ abstract class PrintServices {
     String? ccySymbol,
     pw.TextAlign? align,
     bool isEmphasized = false,
+    bool applyBalanceColor = false, // New parameter
+    double? balanceValue, // New parameter - pass the actual numeric balance
   }) {
+    // Calculate color if applyBalanceColor is true
+    PdfColor? finalColor = color;
+    if (applyBalanceColor && balanceValue != null) {
+      if (balanceValue < 0) {
+        finalColor = pw.PdfColors.red;
+      } else if (balanceValue > 0) {
+        finalColor = pw.PdfColors.green;
+      } else {
+        finalColor = pw.PdfColors.black;
+      }
+    }
+
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 0),
       child: pw.Row(
@@ -415,7 +429,7 @@ abstract class PrintServices {
           pw.SizedBox(
             width: width ?? 100,
             child: zText(
-              color: color,
+              color: finalColor,
               text: label,
               fontWeight: isEmphasized ? pw.FontWeight.bold : pw.FontWeight.normal,
               fontSize: 9,
@@ -430,6 +444,7 @@ abstract class PrintServices {
                   fontSize: 9,
                   fontWeight: isEmphasized ? pw.FontWeight.bold : pw.FontWeight.normal,
                   font: _englishBold,
+                  color: finalColor, // Apply color to the value text as well
                 ),
                 textAlign: align ?? pw.TextAlign.center,
               ),
@@ -440,6 +455,7 @@ abstract class PrintServices {
                   tightBounds: true,
                   fontSize: 8,
                   fontWeight: isEmphasized ? pw.FontWeight.bold : pw.FontWeight.normal,
+                  color: finalColor, // Apply color to currency symbol as well
                 )
               ]
             ],
@@ -658,14 +674,19 @@ abstract class PrintServices {
         'ar': 'دا کریډیټ'
       },
       'totalDebits' : {
-        'en':"Total Debit",
-        'fa':"مجموعه دبت",
-        "ar":"مجموعه دبت"
+        'en':"Total Debits",
+        'fa':"مجموعه بدهکار",
+        "ar":"مجموعه بدهکار"
       },
       'totalCredits' : {
-        'en':"Total Credit",
-        'fa':"مجموعه دبت",
-        "ar":"مجموعه دبت"
+        'en':"Total Credits",
+        'fa':"مجموعه بستانکار",
+        "ar":"مجموعه بستانکار"
+      },
+      'netBalance' : {
+        'en':"Net Balance",
+        'fa':"مانده خالص",
+        "ar":"خالص بیلانس"
       },
       'statementAccount' : {
         'en':"Statement of Account",
@@ -954,7 +975,7 @@ abstract class PrintServices {
       },
       'openingBalance': {
         'en': 'Opening Balance',
-        'fa': 'مانده اولیه',
+        'fa': 'بیلانس افتتاحیه',
         'ar': 'د پرانیستې بیلانس',
       },
       'closingBalance': {

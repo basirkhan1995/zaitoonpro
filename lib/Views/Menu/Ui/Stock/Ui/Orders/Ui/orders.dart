@@ -10,7 +10,9 @@ import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/bloc/orders_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../../Features/Generic/shimmer.dart';
@@ -540,14 +542,12 @@ class _TabletOrdersViewState extends State<_TabletOrdersView> {
                           final isCopied = _copiedStates[ord.ordTrnRef ?? ""] ?? false;
                           final reference = ord.ordTrnRef ?? "";
 
+
                           return InkWell(
                             onTap: () {
                               Utils.goto(
                                 context,
-                                OrderByIdView(
-                                  orderId: ord.ordId!,
-                                  ordName: ord.ordName,
-                                ),
+                                 ord.ordName == "Sale"? NewSaleView(editOrderId: ord.ordId) : NewPurchaseOrderView()
                               );
                             },
                             child: Container(
@@ -1086,11 +1086,8 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                     _toggleSelection(ord.ordId!);
                                   } else {
                                     Utils.goto(
-                                      context,
-                                      OrderByIdView(
-                                        orderId: ord.ordId!,
-                                        ordName: ord.ordName,
-                                      ),
+                                        context,
+                                        ord.ordName == "Sale"? NewSaleView(editOrderId: ord.ordId) : NewPurchaseOrderView()
                                     );
                                   }
                                 },

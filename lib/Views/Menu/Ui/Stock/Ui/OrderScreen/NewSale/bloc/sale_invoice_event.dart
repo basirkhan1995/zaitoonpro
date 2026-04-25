@@ -207,3 +207,15 @@ class UpdateCashCurrencyEvent extends SaleInvoiceEvent {
   @override
   List<Object?> get props => [currency, exchangeRate];
 }
+
+
+class LoadSaleInvoiceForEditEvent extends SaleInvoiceEvent {
+  final int orderId;
+  final String baseCurrency;
+  const LoadSaleInvoiceForEditEvent({
+    required this.orderId,
+    required this.baseCurrency,
+  });
+  @override
+  List<Object?> get props => [orderId, baseCurrency];
+}

@@ -34,6 +34,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final double cashPayment;
   final String? cashCurrency;
   final double cashExchangeRate;
+  final String? xRef;
+  final String? remark;
 
   const SaleInvoiceLoaded({
     required this.items,
@@ -51,6 +53,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     this.cashPayment = 0.0,
     this.cashCurrency,
     this.cashExchangeRate = 1.0,
+    this.xRef,
+    this.remark
   });
 
   bool get needsExchangeRate {
@@ -202,6 +206,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     double? cashPayment,
     String? cashCurrency,
     double? cashExchangeRate,
+    String? xRef,
+    String? remark,
   }) {
     return SaleInvoiceLoaded(
       items: items ?? this.items,
@@ -219,6 +225,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       cashPayment: cashPayment ?? this.cashPayment,
       cashCurrency: cashCurrency ?? this.cashCurrency,
       cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
+      xRef: xRef ?? this.xRef,
+      remark: remark ?? this.remark
     );
   }
 
@@ -226,7 +234,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   List<Object?> get props => [
     items, payments, customer, customerAccount, paymentMode, storages,
     generalDiscount, generalDiscountType, exchangeRate, fromCurrency,
-    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate,
+    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate, xRef, remark
   ];
 }
 
@@ -257,4 +265,9 @@ class SaleInvoiceSaved extends SaleInvoiceState {
   const SaleInvoiceSaved(this.success, {this.invoiceNumber, this.invoiceData});
   @override
   List<Object?> get props => [success, invoiceNumber, invoiceData];
+}
+
+class SaleInvoiceLoading extends SaleInvoiceState {
+  @override
+  List<Object> get props => [];
 }

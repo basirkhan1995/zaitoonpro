@@ -8,6 +8,7 @@ import '../../../../../../../../Services/repositories.dart';
 import '../../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../../Settings/Ui/Company/Storage/model/storage_model.dart';
 import '../../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
+import '../../Parser/parser.dart';
 
 part 'sale_invoice_event.dart';
 part 'sale_invoice_state.dart';
@@ -38,8 +39,163 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateExtraChargesEvent>(_onUpdateExtraCharges);
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
     on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
+    on<LoadSaleInvoiceForEditEvent>(_onLoadSaleInvoiceForEdit);
   }
 
+
+
+  Future<void> _onLoadSaleInvoiceForEdit(
+      LoadSaleInvoiceForEditEvent event,
+      Emitter<SaleInvoiceState> emit,
+      ) async {
+    emit(SaleInvoiceLoading());
+
+    try {
+      // 1. Fetch from API
+      final response = await repo.fetchOrderById(orderId: event.orderId);
+
+      if (response.isEmpty) {
+        emit(SaleInvoiceError('Order not found'));
+        return;
+      }
+
+      // 2. Parse response
+      final parsed = OrderParser.parseOrderResponse(response);
+      final records = parsed['records'] as List<Map<String, dynamic>>;
+      final payments = parsed['payments'] as List<Map<String, dynamic>>;
+
+      // 3. Build items
+      final List<SaleInvoiceItem> items = [];
+      for (var record in records) {
+        items.add(SaleInvoiceItem(
+          itemId: DateTime.now().millisecondsSinceEpoch.toString(),
+          productId: record['productId'].toString(),
+          productName: '',
+          qty: record['quantity'].toInt(),
+          batch: record['batch'].toInt(),
+          purPrice: record['purchasePrice'],
+          salePrice: record['salePrice'],
+          landedPrice: record['landedPrice'],
+          discount: record['discount'],
+          storageId: record['storageId'],
+          storageName: '',
+          unit: '',
+        ));
+      }
+
+      // 4. Get cash payment (account 10101010)
+      double cashPayment = 0;
+      String cashCurrency = '';
+      for (var payment in payments) {
+        if (payment['account'] == 10101010) {
+          cashPayment = payment['amount'] as double;
+          cashCurrency = payment['currency'] as String;
+          break;
+        }
+      }
+
+      // 5. Get customer account (500000 or higher, EXCLUDING internal accounts)
+      final excludedAccounts = [10101010, 10101011, 10101018, 30303031, 40404053];
+
+      Map<String, dynamic>? customerAccountData;
+      for (var payment in payments) {
+        final account = payment['account'] as int;
+        if (account >= 500000 && !excludedAccounts.contains(account)) {
+          customerAccountData = payment;
+          break;
+        }
+      }
+
+      AccountsModel? customerAccount;
+      String toCurrency = event.baseCurrency;
+
+      if (customerAccountData != null) {
+        customerAccount = AccountsModel(
+          accNumber: customerAccountData['account'],
+          accName: '',
+          actCurrency: customerAccountData['currency'],
+          accAvailBalance: '0',
+        );
+        toCurrency = customerAccountData['currency'] as String;
+      }
+
+      // 6. Get exchange rate from narration
+      double exchangeRate = 1.0;
+      for (var payment in payments) {
+        final narration = payment['narration'] as String;
+        final match = RegExp(r'@Rate:\s*([\d.]+)').firstMatch(narration);
+        if (match != null) {
+          exchangeRate = double.parse(match.group(1)!);
+          break;
+        }
+      }
+
+      // 7. Get customer (party)
+      final customer = IndividualsModel(
+        perId: parsed['partyId'],
+        perName: parsed['partyName'],
+      );
+
+      // 8. Convert cash payment to base currency if needed
+      double cashPaymentInBase = cashPayment;
+      if (cashCurrency.isNotEmpty && cashCurrency != event.baseCurrency && exchangeRate > 0) {
+        cashPaymentInBase = cashPayment / exchangeRate;
+      }
+
+      // 9. Get extra charges (account 10101018)
+      double extraCharges = 0;
+      for (var payment in payments) {
+        if (payment['account'] == 10101018) {
+          extraCharges = payment['amount'] as double;
+          break;
+        }
+      }
+
+      // 10. Get general discount (account 40404053)
+      double generalDiscount = 0;
+      for (var payment in payments) {
+        if (payment['account'] == 40404053) {
+          generalDiscount = payment['amount'] as double;
+          break;
+        }
+      }
+
+      // 11. Calculate grand total from items
+      final grandTotal = items.fold(0.0, (sum, item) => sum + item.totalSale);
+
+      // 12. Determine payment mode
+      PaymentMode paymentMode;
+      if (cashPaymentInBase <= 0) {
+        paymentMode = PaymentMode.credit;
+      } else if (cashPaymentInBase >= grandTotal) {
+        paymentMode = PaymentMode.cash;
+      } else {
+        paymentMode = PaymentMode.mixed;
+      }
+
+      // 13. Emit loaded state
+      emit(SaleInvoiceLoaded(
+        items: items,
+        payments: [],
+        customer: customer,
+        customerAccount: customerAccount,
+        cashPayment: cashPaymentInBase,
+        paymentMode: paymentMode,
+        exchangeRate: exchangeRate,
+        fromCurrency: event.baseCurrency,
+        toCurrency: toCurrency,
+        cashCurrency: cashCurrency != event.baseCurrency ? cashCurrency : null,
+        cashExchangeRate: exchangeRate,
+        extraCharges: extraCharges,
+        generalDiscount: generalDiscount,
+        xRef: parsed['reference'],
+        remark: parsed['remarks'],
+      ));
+
+    } catch (e) {
+      emit(SaleInvoiceError('Failed to load invoice: $e'));
+    }
+  }
   void setBaseCurrency(String currency) {
     _baseCurrency = currency;
   }

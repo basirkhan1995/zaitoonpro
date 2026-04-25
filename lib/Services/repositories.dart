@@ -1276,9 +1276,7 @@ class Repositories {
     return response.data;
   }
 
-  Future<Map<String, dynamic>> updateProduct({
-    required ProductsModel newProduct,
-  }) async {
+  Future<Map<String, dynamic>> updateProduct({required ProductsModel newProduct}) async {
     final response = await api.put(
       endpoint: "/inventory/product.php",
       data: newProduct.toMap(),
@@ -1811,6 +1809,15 @@ class Repositories {
 
   /// Purchase Invoice...........................................................................
 
+  Future<Map<String, dynamic>> fetchOrderById({
+    required int orderId,
+  }) async {
+    final response = await api.get(
+      endpoint: "/inventory/salePurchase.php",
+      queryParams: {'ordID': orderId.toString()},
+    );
+    return response.data is Map<String, dynamic> ? response.data : {};
+  }
 
   Future<Map<String, dynamic>> addPurchaseInvoice({
     required String usrName,

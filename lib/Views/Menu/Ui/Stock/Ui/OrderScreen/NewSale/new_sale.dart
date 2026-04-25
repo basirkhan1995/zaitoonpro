@@ -38,21 +38,23 @@ import '../Print/stock_document.dart';
 import 'model/sale_invoice_items.dart';
 
 class NewSaleView extends StatelessWidget {
-  const NewSaleView({super.key});
+  final int? editOrderId;
+  const NewSaleView({super.key,this.editOrderId});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: const _DesktopNewSaleView(),
-      desktop: const _DesktopNewSaleView(),
-      tablet: const _DesktopNewSaleView(),
+      mobile: _DesktopNewSaleView(editOrderId),
+      desktop: _DesktopNewSaleView(editOrderId),
+      tablet: _DesktopNewSaleView(editOrderId),
     );
   }
 }
 
 
 class _DesktopNewSaleView extends StatefulWidget {
-  const _DesktopNewSaleView();
+  final int? editOrderId;
+  const _DesktopNewSaleView(this.editOrderId);
 
   @override
   State<_DesktopNewSaleView> createState() => _DesktopNewSaleViewState();
@@ -73,6 +75,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   String? _userName;
   String? baseCurrency;
   int? signatory;
+  bool _isEditMode = false;
 
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};
@@ -187,6 +190,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       }
     }
 
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final saleBloc = context.read<SaleInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
@@ -197,7 +201,17 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       }
 
       saleBloc.setExchangeRateBloc(exchangeBloc);
-      context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
+
+      if (widget.editOrderId != null) {
+        _isEditMode = true;
+        saleBloc.add(LoadSaleInvoiceForEditEvent(
+          orderId: widget.editOrderId!,
+          baseCurrency: baseCurrency ?? 'USD',
+        ));
+      } else {
+        saleBloc.add(InitializeSaleInvoiceEvent());
+      }
+
       _clearAllControllers();
     });
   }
@@ -383,6 +397,41 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 isError: true,
               );
             }
+          }
+          // Add this BEFORE your existing SaleInvoiceLoaded case
+          if (state is SaleInvoiceLoaded && _isEditMode) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Set customer name
+              if (state.customer != null) {
+                _personController.text = state.customer!.perName ?? '';
+                signatory = state.customer!.perId;
+              }
+
+              // Set account (SHOW ACCOUNT NUMBER ONLY since name is empty)
+              if (state.customerAccount != null) {
+                _accountController.text = '${state.customerAccount!.accNumber}';
+                _selectedAccountNumber = state.customerAccount!.accNumber;
+              }
+
+              // Set reference and remark
+              _xRefController.text = state.xRef ?? '';
+              _remarkController.text = state.remark ?? '';
+
+              // Set exchange rate
+              if (state.exchangeRate != null && state.exchangeRate! > 0) {
+                _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
+              }
+
+              _isEditMode = false; // Reset flag
+            });
+          }
+
+
+          if (state is SaleInvoiceLoaded) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _focusNewRowIfNeeded(state);
+              _updateControllersFromState(state);
+            });
           }
           if (state is SaleInvoiceLoaded) {
             WidgetsBinding.instance.addPostFrameCallback((_) {

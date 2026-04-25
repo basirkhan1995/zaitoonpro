@@ -1170,7 +1170,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               const SizedBox(height: 4),
                               _buildSummaryRow(
                                 label: tr.invoiceAmount,
-                                value: current.supplierAccountPayment,
+                                value: current.supplierAccountPayment * current.exchangeRate!,
                                 color: Colors.orange,
                                 currency: current.supplierAccount!.actCurrency,
                               ),

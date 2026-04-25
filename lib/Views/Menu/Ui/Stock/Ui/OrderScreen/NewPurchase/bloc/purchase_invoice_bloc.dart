@@ -6,6 +6,7 @@ import '../../../../../../../../Services/repositories.dart';
 import '../../../../../Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
 import '../../../../../Settings/Ui/Company/Storage/model/storage_model.dart';
 import '../../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
+import '../../Parser/parser.dart';
 import '../model/purchase_invoice_items.dart';
 
 part 'purchase_invoice_event.dart';
@@ -41,7 +42,143 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
 
     on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
+
+
+    on<LoadPurchaseInvoiceForEditEvent>(_onLoadPurchaseInvoiceForEdit);
   }
+  Future<void> _onLoadPurchaseInvoiceForEdit(LoadPurchaseInvoiceForEditEvent event, Emitter<PurchaseInvoiceState> emit) async {
+    emit(PurchaseInvoiceLoading());
+
+    try {
+      final response = await repo.fetchOrderById(orderId: event.orderId);
+
+      if (response.isEmpty) {
+        emit(PurchaseInvoiceError('Order not found'));
+        return;
+      }
+
+      // Parse response
+      final parsed = OrderParser.parseOrderResponse(response);
+      final records = parsed['records'] as List<Map<String, dynamic>>;
+      final payments = parsed['payments'] as List<Map<String, dynamic>>;
+
+      // Build items
+      final List<PurchaseInvoiceItem> items = [];
+      for (var record in records) {
+        items.add(PurchaseInvoiceItem(
+          itemId: DateTime.now().millisecondsSinceEpoch.toString(),
+          productId: record['productId'].toString(),
+          productName: '',
+          qty: record['quantity'].toInt(),
+          stkBatch: record['batch'].toInt(),
+          purPrice: record['purchasePrice'],
+          landedPrice: record['landedPrice'],
+          sellPriceAmount: 0,
+          storageId: record['storageId'],
+          storageName: '',
+        ));
+      }
+
+      // Get exchange rate
+      final exchangeRate = OrderParser.getExchangeRate(payments);
+
+      // Get cash payment for PURCHASE (Cr side)
+      final cashPayment = OrderParser.getPurchaseCashPayment(payments);
+      final cashCurrency = OrderParser.getPurchaseCashCurrency(payments);
+
+      // Get supplier account (Cr side - we owe supplier)
+      final supplierAccountData = OrderParser.getSupplierAccount(payments);
+
+      AccountsModel? supplierAccount;
+      String toCurrency = event.baseCurrency;
+
+      if (supplierAccountData != null) {
+        supplierAccount = AccountsModel(
+          accNumber: supplierAccountData['account'],
+          accName: '',
+          actCurrency: supplierAccountData['currency'],
+          accAvailBalance: '0',
+        );
+        toCurrency = supplierAccountData['currency'];
+      }
+
+      // ============ BUILD COMPLETE PAYMENTS LIST ============
+      List<PurchasePaymentRecord> allPayments = [];
+
+      // 1. Add expenses (Dr side - 40404041, 40404042)
+      final expensesData = OrderParser.getExpenses(payments);
+      for (var expense in expensesData) {
+        allPayments.add(PurchasePaymentRecord(
+          accountNumber: expense['account'],
+          amount: expense['amount'],
+          currency: expense['currency'],
+          exRate: exchangeRate,
+          narration: expense['narration'],
+          isExpense: true,
+        ));
+      }
+
+      // 2. Add supplier account payment (Cr side - 500001) - THIS IS KEY!
+      if (supplierAccountData != null) {
+        allPayments.add(PurchasePaymentRecord(
+          accountNumber: supplierAccountData['account'],
+          amount: supplierAccountData['amount'],
+          currency: supplierAccountData['currency'],
+          exRate: exchangeRate,
+          narration: supplierAccountData['narration'],
+          isExpense: false,  // This is the supplier account, not an expense
+        ));
+      }
+
+      // Get supplier
+      final supplier = IndividualsModel(
+        perId: parsed['partyId'],
+        perName: parsed['partyName'],
+      );
+
+      // Convert cash payment to base currency if needed
+      double cashPaymentInBase = cashPayment;
+      if (cashCurrency.isNotEmpty && cashCurrency != event.baseCurrency && exchangeRate > 0) {
+        cashPaymentInBase = cashPayment / exchangeRate;
+      }
+
+      // Calculate totals from items and expenses
+      final itemsTotal = items.fold(0.0, (sum, item) => sum + item.totalPurchase);
+      final expensesTotal = expensesData.fold(0.0, (sum, e) => sum + (e['amount'] as double));
+      final totalInvoice = itemsTotal + expensesTotal;
+
+      // Determine payment mode based on cash payment
+      PaymentMode paymentMode;
+      if (cashPaymentInBase <= 0) {
+        paymentMode = PaymentMode.credit;
+      } else if (cashPaymentInBase >= totalInvoice) {
+        paymentMode = PaymentMode.cash;
+      } else {
+        paymentMode = PaymentMode.mixed;
+      }
+
+      // Emit loaded state with all payments
+      emit(PurchaseInvoiceLoaded(
+        items: items,
+        payments: allPayments,
+        supplier: supplier,
+        supplierAccount: supplierAccount,
+        cashPayment: cashPaymentInBase,
+        paymentMode: paymentMode,
+        exchangeRate: exchangeRate,
+        fromCurrency: event.baseCurrency,
+        toCurrency: toCurrency,
+        cashCurrency: cashCurrency != event.baseCurrency ? cashCurrency : null,
+        cashExchangeRate: exchangeRate,
+        xRef: parsed['reference'],
+        remark: parsed['remarks'],
+      ));
+
+    } catch (e) {
+      emit(PurchaseInvoiceError('Failed to load invoice: $e'));
+    }
+  }
+
   void _onUpdateCashCurrency(UpdateCashCurrencyEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;

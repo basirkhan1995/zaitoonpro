@@ -41,13 +41,14 @@ import 'expense_section.dart';
 import 'model/purchase_invoice_items.dart';
 
 class NewPurchaseOrderView extends StatelessWidget {
-  const NewPurchaseOrderView({super.key});
+  final int? editOrderId;
+  const NewPurchaseOrderView({super.key,this.editOrderId});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
       mobile: const _MobilePurchaseOrderView(),
-      desktop: const _DesktopPurchaseOrderView(),
+      desktop:  _DesktopPurchaseOrderView(editOrderId),
       tablet: const _TabletPurchaseOrderView(),
     );
   }
@@ -55,7 +56,8 @@ class NewPurchaseOrderView extends StatelessWidget {
 
 // Desktop Version (Original)
 class _DesktopPurchaseOrderView extends StatefulWidget {
-  const _DesktopPurchaseOrderView();
+  final int? editOrderId;
+  const _DesktopPurchaseOrderView(this.editOrderId);
 
   @override
   State<_DesktopPurchaseOrderView> createState() =>
@@ -169,7 +171,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       }
     });
   }
-
+  bool _isEditMode = false;
   @override
   void initState() {
     super.initState();
@@ -181,7 +183,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
-      purchaseBloc.add(InitializePurchaseInvoiceEvent());
+      if (widget.editOrderId != null) {
+        _isEditMode = true;
+        purchaseBloc.add(LoadPurchaseInvoiceForEditEvent(
+          orderId: widget.editOrderId!,
+          baseCurrency: baseCurrency ?? '',
+        ));
+      } else {
+        purchaseBloc.add(InitializePurchaseInvoiceEvent());
+      }
       _clearAllControllers();
     });
   }
@@ -290,6 +300,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               type: ToastType.error,
             );
           }
+
           if (state is PurchaseInvoiceSaved) {
             Navigator.of(context).pop();
             if (state.success) {
@@ -314,6 +325,31 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 type: ToastType.error,
               );
             }
+          }
+          if (state is PurchaseInvoiceLoaded && _isEditMode) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              // Set supplier name
+              if (state.supplier != null) {
+                _personController.text = state.supplier!.perName ?? '';
+                signatory = state.supplier!.perId;
+              }
+
+              // Set account
+              if (state.supplierAccount != null) {
+                _accountController.text = '${state.supplierAccount!.accNumber}';
+              }
+
+              // Set reference and remark
+              _xRefController.text = state.xRef ?? '';
+              _remark.text = state.remark ?? '';
+
+              // Set exchange rate
+              if (state.exchangeRate != null && state.exchangeRate! > 0) {
+                _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
+              }
+
+              _isEditMode = false;
+            });
           }
           if (state is PurchaseInvoiceInitial ||
               state is PurchaseInvoiceLoaded) {
@@ -679,10 +715,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     const SizedBox(height: 8),
                     Expanded(
                       child:
-                          BlocBuilder<
-                            PurchaseInvoiceBloc,
-                            PurchaseInvoiceState
-                          >(
+                          BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                             builder: (context, state) {
                               if (state is PurchaseInvoiceLoaded ||
                                   state is PurchaseInvoiceSaving) {
@@ -1133,11 +1166,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               color: _getBalanceColor(current.currentBalance),
                               currency: current.supplierAccount!.actCurrency,
                             ),
-                            if (current.creditAmountLocal > 0) ...[
+                            if (current.supplierAccountPayment > 0) ...[
                               const SizedBox(height: 4),
                               _buildSummaryRow(
                                 label: tr.invoiceAmount,
-                                value: current.creditAmountLocal,
+                                value: current.supplierAccountPayment,
                                 color: Colors.orange,
                                 currency: current.supplierAccount!.actCurrency,
                               ),

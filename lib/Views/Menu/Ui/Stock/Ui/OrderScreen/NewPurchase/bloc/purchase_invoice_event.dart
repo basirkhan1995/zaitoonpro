@@ -170,3 +170,14 @@ class UpdateExchangeRateManuallyEvent extends PurchaseInvoiceEvent {
   @override
   List<Object?> get props => [rate, fromCurrency, toCurrency];
 }
+
+class LoadPurchaseInvoiceForEditEvent extends PurchaseInvoiceEvent {
+  final int orderId;
+  final String baseCurrency;
+  const LoadPurchaseInvoiceForEditEvent({
+    required this.orderId,
+    required this.baseCurrency,
+  });
+  @override
+  List<Object?> get props => [orderId, baseCurrency];
+}

@@ -31,6 +31,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final double cashPayment;
   final String? cashCurrency;
   final double cashExchangeRate;
+  final String? xRef;
+  final String? remark;
 
   const PurchaseInvoiceLoaded({
     required this.items,
@@ -45,6 +47,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     this.cashPayment = 0.0,
     this.cashCurrency,
     this.cashExchangeRate = 1.0,
+    this.xRef,
+    this.remark,
   });
 
   List<PurchasePaymentRecord> get expenses =>
@@ -71,15 +75,24 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return subtotal + totalExpenses;
   }
   bool get isExchangeRateLoading => exchangeRate != null && exchangeRate! < 0;
+
   double get creditAmount {
     if (paymentMode == PaymentMode.credit) {
-      return subtotal;
+      return totalInvoice;
     } else if (paymentMode == PaymentMode.mixed) {
-      return subtotal - cashPayment;
+      return totalInvoice - cashPayment;
     }
     return 0.0;
   }
 
+  double get supplierAccountPayment {
+    for (var payment in payments) {
+      if (!payment.isExpense && payment.accountNumber >= 500000) {
+        return payment.amount;
+      }
+    }
+    return 0.0;
+  }
   double get creditAmountLocal {
     if (exchangeRate == null || exchangeRate == 0) return creditAmount;
     return creditAmount * exchangeRate!;
@@ -159,6 +172,14 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return baseCurr.isNotEmpty && cashCurrency != baseCurr;
   }
 
+// Total invoice including expenses
+  double get totalInvoice {
+    return subtotal + totalExpenses;
+  }
+
+
+
+
   PurchaseInvoiceLoaded copyWith({
     List<PurchaseInvoiceItem>? items,
     List<PurchasePaymentRecord>? payments,
@@ -172,6 +193,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     double? cashPayment,
     String? cashCurrency,
     double? cashExchangeRate,
+    String? xRef,
+    String? remark
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
@@ -186,6 +209,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       cashPayment: cashPayment ?? this.cashPayment,
       cashCurrency: cashCurrency ?? this.cashCurrency,
       cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
+      xRef: xRef ?? this.xRef,
+      remark: remark ?? this.remark
     );
   }
 
@@ -203,6 +228,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     cashPayment,
     cashCurrency,
     cashExchangeRate,
+    xRef,
+    remark
   ];
 }
 
@@ -225,4 +252,9 @@ class PurchaseInvoiceSaved extends PurchaseInvoiceState {
   const PurchaseInvoiceSaved(this.success, {this.invoiceNumber, this.invoiceData});
   @override
   List<Object?> get props => [success, invoiceNumber, invoiceData];
+}
+
+class PurchaseInvoiceLoading extends PurchaseInvoiceState {
+  @override
+  List<Object> get props => [];
 }

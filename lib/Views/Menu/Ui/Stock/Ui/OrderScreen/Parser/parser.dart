@@ -65,6 +65,36 @@ class OrderParser {
 
   // ============ SALE INVOICE SPECIFIC ============
 
+  // Add this for purchase cash currency
+  static String getPurchaseCashCurrency(List<Map<String, dynamic>> payments) {
+    for (var payment in payments) {
+      final account = payment['account'];
+      final drCr = payment['drCr'];
+      final narration = payment['narration'] as String;
+
+      if (account == cashAccount && drCr == 'Cr' &&
+          (narration.contains('Cash payment to supplier') || narration.contains('Cash payment'))) {
+        return payment['currency'] as String;
+      }
+    }
+    return 'USD';
+  }
+
+// Get total invoice amount from supplier account (what we owe)
+  static double getSupplierInvoiceAmount(List<Map<String, dynamic>> payments) {
+    final supplierAccount = getSupplierAccount(payments);
+    if (supplierAccount != null) {
+      return supplierAccount['amount'] as double;
+    }
+    return 0.0;
+  }
+
+
+// Add this method to get supplier credit amount
+  static double getSupplierCreditAmount(List<Map<String, dynamic>> payments) {
+    final supplierAccount = getSupplierAccount(payments);
+    return supplierAccount?['amount'] as double? ?? 0.0;
+  }
   // Get cash payment (account 10101010) - Dr side means customer paid cash
   static double getCashPayment(List<Map<String, dynamic>> payments) {
     final cashPayment = payments.firstWhere(
@@ -121,7 +151,28 @@ class OrderParser {
 
   // ============ PURCHASE INVOICE SPECIFIC ============
 
-  // Get supplier account (stakeholder) - Cr side means we owe supplier (payable)
+
+  // Get cash payment for PURCHASE (Cr side - WE paid cash TO supplier)
+  static double getPurchaseCashPayment(List<Map<String, dynamic>> payments) {
+    double cashPayment = 0;
+    for (var payment in payments) {
+      final account = payment['account'];
+      final drCr = payment['drCr'];
+      final narration = payment['narration'] as String;
+
+      // We pay supplier in cash → Credit (Cr) entry to cash account
+      if (account == cashAccount && drCr == 'Cr') {
+        // This could be the main invoice payment
+        if (narration.contains('Cash payment to supplier') ||
+            narration.contains('Cash payment')) {
+          cashPayment = payment['amount'] as double;
+        }
+      }
+    }
+    return cashPayment;
+  }
+
+// Get supplier account (Cr side - we owe supplier)
   static Map<String, dynamic>? getSupplierAccount(List<Map<String, dynamic>> payments) {
     final excludedAccounts = [cashAccount, cogsAccount, extraChargesAccount, revenueAccount, discountAccount];
 
@@ -130,22 +181,23 @@ class OrderParser {
         final account = p['account'];
         return account >= stakeholderMin &&
             !excludedAccounts.contains(account) &&
-            p['drCr'] == 'Cr'; // Credit means we owe supplier
+            p['drCr'] == 'Cr'; // Credit means we owe supplier (Payable)
       },
       orElse: () => {},
     );
     return supplierAccount.isEmpty ? null : supplierAccount;
   }
 
-  // Get expenses for purchase (accounts 40404040+ that are not discount)
+// Get expenses - take the Dr entries (account 40404041, 40404042)
   static List<Map<String, dynamic>> getExpenses(List<Map<String, dynamic>> payments) {
     return payments.where((p) {
       final account = p['account'];
-      return account >= 40404040 &&
-          account != discountAccount &&
-          p['drCr'] == 'Dr';
+      final drCr = p['drCr'];
+      // Only take the Dr entries (expense recording), not the Cr cash payments
+      return account >= 40404040 && account < stakeholderMin && drCr == 'Dr';
     }).toList();
   }
+
 
   // ============ COMMON ============
 

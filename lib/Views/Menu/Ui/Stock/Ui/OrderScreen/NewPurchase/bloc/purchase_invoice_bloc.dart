@@ -46,6 +46,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
     on<LoadPurchaseInvoiceForEditEvent>(_onLoadPurchaseInvoiceForEdit);
   }
+
   Future<void> _onLoadPurchaseInvoiceForEdit(LoadPurchaseInvoiceForEditEvent event, Emitter<PurchaseInvoiceState> emit) async {
     emit(PurchaseInvoiceLoading());
 
@@ -57,16 +58,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         return;
       }
 
-      // Parse response
       final parsed = OrderParser.parseOrderResponse(response);
       final records = parsed['records'] as List<Map<String, dynamic>>;
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
 
-      // Build items
+      // Build items with UNIQUE IDs
       final List<PurchaseInvoiceItem> items = [];
       for (var record in records) {
         items.add(PurchaseInvoiceItem(
-          itemId: DateTime.now().millisecondsSinceEpoch.toString(),
+          itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_${items.length}',
           productId: record['productId'].toString(),
           productName: '',
           qty: record['quantity'].toInt(),
@@ -102,31 +102,17 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         toCurrency = supplierAccountData['currency'];
       }
 
-      // ============ BUILD COMPLETE PAYMENTS LIST ============
-      List<PurchasePaymentRecord> allPayments = [];
-
-      // 1. Add expenses (Dr side - 40404041, 40404042)
+      // Build expenses ONLY (not supplier account)
+      List<PurchasePaymentRecord> expenses = [];
       final expensesData = OrderParser.getExpenses(payments);
       for (var expense in expensesData) {
-        allPayments.add(PurchasePaymentRecord(
+        expenses.add(PurchasePaymentRecord(
           accountNumber: expense['account'],
           amount: expense['amount'],
           currency: expense['currency'],
           exRate: exchangeRate,
           narration: expense['narration'],
           isExpense: true,
-        ));
-      }
-
-      // 2. Add supplier account payment (Cr side - 500001) - THIS IS KEY!
-      if (supplierAccountData != null) {
-        allPayments.add(PurchasePaymentRecord(
-          accountNumber: supplierAccountData['account'],
-          amount: supplierAccountData['amount'],
-          currency: supplierAccountData['currency'],
-          exRate: exchangeRate,
-          narration: supplierAccountData['narration'],
-          isExpense: false,  // This is the supplier account, not an expense
         ));
       }
 
@@ -142,9 +128,9 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         cashPaymentInBase = cashPayment / exchangeRate;
       }
 
-      // Calculate totals from items and expenses
+      // Calculate totals
       final itemsTotal = items.fold(0.0, (sum, item) => sum + item.totalPurchase);
-      final expensesTotal = expensesData.fold(0.0, (sum, e) => sum + (e['amount'] as double));
+      final expensesTotal = expenses.fold(0.0, (sum, e) => sum + e.amount);
       final totalInvoice = itemsTotal + expensesTotal;
 
       // Determine payment mode based on cash payment
@@ -157,10 +143,9 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         paymentMode = PaymentMode.mixed;
       }
 
-      // Emit loaded state with all payments
       emit(PurchaseInvoiceLoaded(
         items: items,
-        payments: allPayments,
+        payments: expenses,
         supplier: supplier,
         supplierAccount: supplierAccount,
         cashPayment: cashPaymentInBase,
@@ -178,7 +163,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(PurchaseInvoiceError('Failed to load invoice: $e'));
     }
   }
-
   void _onUpdateCashCurrency(UpdateCashCurrencyEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
@@ -188,10 +172,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       ));
     }
   }
-  void _onUpdateExchangeRateManually(
-      UpdateExchangeRateManuallyEvent event,
-      Emitter<PurchaseInvoiceState> emit,
-      ) {
+  void _onUpdateExchangeRateManually(UpdateExchangeRateManuallyEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
@@ -202,7 +183,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       ));
     }
   }
-
   void setExchangeRateBloc(ExchangeRateBloc exchangeRateBloc) {
     _exchangeRateSubscription?.cancel();
     _exchangeRateBloc = exchangeRateBloc;

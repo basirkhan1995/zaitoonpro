@@ -51,7 +51,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     emit(SaleInvoiceLoading());
 
     try {
-      // 1. Fetch from API
       final response = await repo.fetchOrderById(orderId: event.orderId);
 
       if (response.isEmpty) {
@@ -59,16 +58,15 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         return;
       }
 
-      // 2. Parse response
       final parsed = OrderParser.parseOrderResponse(response);
       final records = parsed['records'] as List<Map<String, dynamic>>;
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
 
-      // 3. Build items
+      // Build items with UNIQUE IDs
       final List<SaleInvoiceItem> items = [];
       for (var record in records) {
         items.add(SaleInvoiceItem(
-          itemId: DateTime.now().millisecondsSinceEpoch.toString(),
+          itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_${items.length}',
           productId: record['productId'].toString(),
           productName: '',
           qty: record['quantity'].toInt(),
@@ -83,7 +81,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         ));
       }
 
-      // 4. Get cash payment (account 10101010)
+      // Get cash payment
       double cashPayment = 0;
       String cashCurrency = '';
       for (var payment in payments) {
@@ -94,9 +92,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // 5. Get customer account (500000 or higher, EXCLUDING internal accounts)
+      // Get customer account
       final excludedAccounts = [10101010, 10101011, 10101018, 30303031, 40404053];
-
       Map<String, dynamic>? customerAccountData;
       for (var payment in payments) {
         final account = payment['account'] as int;
@@ -108,7 +105,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
       AccountsModel? customerAccount;
       String toCurrency = event.baseCurrency;
-
       if (customerAccountData != null) {
         customerAccount = AccountsModel(
           accNumber: customerAccountData['account'],
@@ -119,7 +115,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         toCurrency = customerAccountData['currency'] as String;
       }
 
-      // 6. Get exchange rate from narration
+      // Get exchange rate
       double exchangeRate = 1.0;
       for (var payment in payments) {
         final narration = payment['narration'] as String;
@@ -130,19 +126,16 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // 7. Get customer (party)
       final customer = IndividualsModel(
         perId: parsed['partyId'],
         perName: parsed['partyName'],
       );
 
-      // 8. Convert cash payment to base currency if needed
       double cashPaymentInBase = cashPayment;
       if (cashCurrency.isNotEmpty && cashCurrency != event.baseCurrency && exchangeRate > 0) {
         cashPaymentInBase = cashPayment / exchangeRate;
       }
 
-      // 9. Get extra charges (account 10101018)
       double extraCharges = 0;
       for (var payment in payments) {
         if (payment['account'] == 10101018) {
@@ -151,7 +144,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // 10. Get general discount (account 40404053)
       double generalDiscount = 0;
       for (var payment in payments) {
         if (payment['account'] == 40404053) {
@@ -160,10 +152,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // 11. Calculate grand total from items
       final grandTotal = items.fold(0.0, (sum, item) => sum + item.totalSale);
 
-      // 12. Determine payment mode
       PaymentMode paymentMode;
       if (cashPaymentInBase <= 0) {
         paymentMode = PaymentMode.credit;
@@ -173,10 +163,9 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         paymentMode = PaymentMode.mixed;
       }
 
-      // 13. Emit loaded state
       emit(SaleInvoiceLoaded(
         items: items,
-        payments: [],
+        payments: [],  // Empty - supplier account is stored separately
         customer: customer,
         customerAccount: customerAccount,
         cashPayment: cashPaymentInBase,
@@ -196,6 +185,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(SaleInvoiceError('Failed to load invoice: $e'));
     }
   }
+
   void setBaseCurrency(String currency) {
     _baseCurrency = currency;
   }

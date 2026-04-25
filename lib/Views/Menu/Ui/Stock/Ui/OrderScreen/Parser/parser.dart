@@ -77,7 +77,7 @@ class OrderParser {
         return payment['currency'] as String;
       }
     }
-    return 'USD';
+    return '';
   }
 
 // Get total invoice amount from supplier account (what we owe)

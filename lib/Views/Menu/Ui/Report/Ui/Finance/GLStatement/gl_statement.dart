@@ -600,6 +600,7 @@ class _DesktopState extends State<_Desktop> {
         builder: (context, state) {
           if(state is AuthenticatedState){
             final auth = state.loginData;
+            baseCurrency = auth.company?.comLocalCcy ??"";
             company.comName = auth.company?.comName??"";
             company.comAddress = auth.company?.comAddress??"";
             company.compPhone = auth.company?.comPhone??"";

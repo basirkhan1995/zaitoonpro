@@ -1069,7 +1069,7 @@ class _MobileViewState extends State<_MobileView> {
                                       LoadAccountsFilterEvent(
                                         include: '1,2,3,4,5,6,7',
                                         ccy: baseCurrency,
-                                        exclude: "10101010,10101011",
+                                        exclude: "10101011",
                                       ),
                                     ),
                                     searchFunction: (bloc, query) => bloc.add(
@@ -1077,7 +1077,7 @@ class _MobileViewState extends State<_MobileView> {
                                         include: '1,2,3,4,5,6,7',
                                         ccy: baseCurrency,
                                         input: query,
-                                        exclude: "10101010,10101011",
+                                        exclude: "10101011",
                                       ),
                                     ),
                                     validator: (value) {
@@ -1330,7 +1330,7 @@ class _MobileViewState extends State<_MobileView> {
                                       fetchAllFunction: (bloc) => bloc.add(
                                         LoadAccountsFilterEvent(
                                           include: '1,2,3,4,5,6,7,8,9,10,11,12',
-                                          exclude: "10101010,10101011",
+                                          exclude: "10101011",
                                           ccy: baseCurrency,
                                         ),
                                       ),
@@ -1339,7 +1339,7 @@ class _MobileViewState extends State<_MobileView> {
                                             LoadAccountsFilterEvent(
                                               input: query,
                                               include: '1,2,3,4,5,6,7,8,9,10,11,12',
-                                              exclude: "10101010,10101011",
+                                              exclude: "10101011",
                                               ccy: baseCurrency,
                                             ),
                                           ),
@@ -3388,7 +3388,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                 LoadAccountsFilterEvent(
                                   include: '1,2,3,4,5,6,7',
                                   ccy: baseCurrency,
-                                  exclude: "10101010,10101011",
+                                  exclude: "10101011",
                                 ),
                               ),
                               searchFunction: (bloc, query) => bloc.add(
@@ -3396,7 +3396,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                   include: '1,2,3,4,5,6,7',
                                   ccy: baseCurrency,
                                   input: query,
-                                  exclude: "10101010,10101011",
+                                  exclude: "10101011",
                                 ),
                               ),
                               validator: (value) {
@@ -3631,7 +3631,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                       fetchAllFunction: (bloc) => bloc.add(
                                         LoadAccountsFilterEvent(
                                           include: '1,2,3,4,5,6,7,8,9,10,11,12',
-                                          exclude: "10101010,10101011",
+                                          exclude: "10101011",
                                           ccy: baseCurrency,
                                         ),
                                       ),
@@ -3640,7 +3640,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                             LoadAccountsFilterEvent(
                                               input: query,
                                               include: '1,2,3,4,5,6,7,8,9,10,11,12',
-                                              exclude: "10101010,10101011",
+                                              exclude: "10101011",
                                               ccy: baseCurrency,
                                             ),
                                           ),
@@ -3888,7 +3888,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                       fetchAllFunction: (bloc) => bloc.add(
                                         LoadAccountsFilterEvent(
                                           include: '1,2,3,4,5,6,7,8,9,10,11,12',
-                                          exclude: "10101010,10101011",
+                                          exclude: "10101011",
                                           ccy: baseCurrency,
                                         ),
                                       ),
@@ -3897,7 +3897,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                             LoadAccountsFilterEvent(
                                               input: query,
                                               include: '1,2,3,4,5,6,7,8,9,10,11,12',
-                                              exclude: "10101010,10101011",
+                                              exclude: "10101011",
                                               ccy: baseCurrency,
                                             ),
                                           ),

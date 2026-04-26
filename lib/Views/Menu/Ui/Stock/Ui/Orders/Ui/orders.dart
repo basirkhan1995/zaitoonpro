@@ -20,6 +20,7 @@ import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../OrderScreen/GetOrderById/order_by_id.dart';
 import '../model/orders_model.dart';
 
@@ -832,7 +833,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
     final textTheme = Theme.of(context).textTheme;
     final titleStyle = textTheme.titleSmall?.copyWith(color: color.surface);
     final tr = AppLocalizations.of(context)!;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     return Scaffold(
       body: MultiBlocListener(
         listeners: [
@@ -1148,7 +1149,12 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                       ),
 
                                       // Date
-                                       SizedBox(width: 100, child: Text(ord.ordEntryDate.toFormattedDate())),
+                                      if(visibility.dateType == DateType.gregorian)...[
+                                        SizedBox(width: 100, child: Text(ord.ordEntryDate.toFormattedDate())),
+                                      ]else ...[
+                                        SizedBox(width: 100, child: Text(ord.ordEntryDate?.shamsiDateString??"",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 17),)),
+                                      ],
+
 
                                       // Reference Number with Copy
                                       Row(
@@ -1239,6 +1245,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                             style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                                               color: isSelected ? color.primary : null,
+                                              fontSize: 15
                                             ),
                                             textAlign: TextAlign.start,
                                           ),

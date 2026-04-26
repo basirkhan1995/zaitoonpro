@@ -57,8 +57,8 @@ class NewPurchaseOrderView extends StatelessWidget {
 
 // Desktop Version (Original)
 class _DesktopPurchaseOrderView extends StatefulWidget {
-  final int? editOrderId;
-  const _DesktopPurchaseOrderView(this.editOrderId);
+  final int? orderId;
+  const _DesktopPurchaseOrderView(this.orderId);
 
   @override
   State<_DesktopPurchaseOrderView> createState() =>
@@ -184,10 +184,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
-      if (widget.editOrderId != null) {
+      if (widget.orderId != null) {
         _isEditMode = true;
         purchaseBloc.add(LoadPurchaseInvoiceForEditEvent(
-          orderId: widget.editOrderId!,
+          orderId: widget.orderId!,
           baseCurrency: baseCurrency ?? '',
         ));
       } else {
@@ -824,9 +824,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
   void _setupRowFocus(int rowIndex) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (rowIndex < _rowFocusNodes.length &&
-          _rowFocusNodes[rowIndex].isNotEmpty) {
-        _rowFocusNodes[rowIndex][0].requestFocus();
+      if (rowIndex < _rowFocusNodes.length && _rowFocusNodes[rowIndex].isNotEmpty) {
+        _rowFocusNodes[rowIndex][0].requestFocus(); // Always focus product field
       }
     });
   }
@@ -1248,16 +1247,32 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   }
 
   void _synchronizeFocusNodes(int itemCount) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
+    final isWholeSale = visibility.isWholeSale;
+
     while (_rowFocusNodes.length < itemCount) {
-      _rowFocusNodes.add([
-        FocusNode(), // Product
-        FocusNode(), // Qty
-        FocusNode(), // Batch
-        FocusNode(), // Unit Price
-        FocusNode(), // Sell Price
-        FocusNode(), // Storage
-      ]);
+      if (isWholeSale) {
+        // All 6 fields visible
+        _rowFocusNodes.add([
+          FocusNode(), // Product
+          FocusNode(), // Qty
+          FocusNode(), // Batch
+          FocusNode(), // Unit Price
+          FocusNode(), // Sell Price
+          FocusNode(), // Storage
+        ]);
+      } else {
+        // Batch and Total Qty hidden (only 4 fields)
+        _rowFocusNodes.add([
+          FocusNode(), // Product
+          FocusNode(), // Qty
+          FocusNode(), // Unit Price (index 2 instead of 3)
+          FocusNode(), // Sell Price (index 3 instead of 4)
+          FocusNode(), // Storage (index 4 instead of 5)
+        ]);
+      }
     }
+
     while (_rowFocusNodes.length > itemCount) {
       final removed = _rowFocusNodes.removeLast();
       for (final node in removed) {
@@ -1341,8 +1356,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         baseCurrency != null &&
         baseCurrency != current.supplierAccount!.actCurrency;
 
-    final companyState = context.read<CompanyProfileBloc>().state;
-    if (companyState is! CompanyProfileLoadedState) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is! AuthenticatedState) {
       Utils.showOverlayMessage(
         context,
         message: 'Company information not available',
@@ -1352,14 +1367,16 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     }
 
     final company = ReportModel(
-      comName: companyState.company.comName ?? "",
-      comAddress: companyState.company.addName ?? "",
-      compPhone: companyState.company.comPhone ?? "",
-      comEmail: companyState.company.comEmail ?? "",
+      comName: authState.loginData.company?.comName ?? "",
+      comAddress: authState.loginData.company?.comAddress ?? "",
+      compPhone: authState.loginData.company?.comPhone ?? "",
+      comEmail: authState.loginData.company?.comEmail ?? "",
+      slogan: authState.loginData.company?.comDetails ?? "",
+      invoiceNumber: widget.orderId,
       statementDate: DateTime.now().toFullDateTime,
     );
 
-    final base64Logo = companyState.company.comLogo;
+    final base64Logo = authState.loginData.company?.comLogo;
     if (base64Logo != null && base64Logo.isNotEmpty) {
       try {
         company.comLogo = base64Decode(base64Logo);
@@ -1391,8 +1408,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
         company: company,
-        buildPreview:
-            ({
+        buildPreview: ({
               required data,
               required language,
               required orientation,
@@ -1667,9 +1683,33 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     super.dispose();
   }
 
-  void focusNext(int index) {
-    if (index < widget.nodes.length) {
-      final nextNode = widget.nodes[index];
+  void focusNext(int currentIndex) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
+    final isWholeSale = visibility.isWholeSale;
+
+    // Calculate next index based on visibility
+    int nextIndex;
+    if (isWholeSale) {
+      // Normal flow: 0->1->2->3->4->5
+      nextIndex = currentIndex + 1;
+    } else {
+      // Without batch: Skip index 2 (batch)
+      if (currentIndex == 1) {
+        // After Qty (index 1), go to Unit Price which is index 2 (was index 3 in full mode)
+        nextIndex = 2;
+      } else if (currentIndex == 2) {
+        // After Unit Price (index 2), go to Sell Price (index 3)
+        nextIndex = 3;
+      } else if (currentIndex == 3) {
+        // After Sell Price (index 3), go to Storage (index 4)
+        nextIndex = 4;
+      } else {
+        nextIndex = currentIndex + 1;
+      }
+    }
+
+    if (nextIndex < widget.nodes.length) {
+      final nextNode = widget.nodes[nextIndex];
       Future.delayed(const Duration(milliseconds: 50), () {
         if (nextNode.canRequestFocus) {
           nextNode.requestFocus();
@@ -1679,6 +1719,24 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 
   FocusNode? safeNode(int index) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
+    final isWholeSale = visibility.isWholeSale;
+
+    if (!isWholeSale) {
+      // Remap indices when batch is hidden
+      if (index == 2) {
+        // Index 2 in UI (Unit Price) maps to nodes[2] in non-wholesale
+        return widget.nodes.length > 2 ? widget.nodes[2] : null;
+      } else if (index == 3) {
+        // Index 3 in UI (Sell Price) maps to nodes[3] in non-wholesale
+        return widget.nodes.length > 3 ? widget.nodes[3] : null;
+      } else if (index == 4) {
+        // Index 4 in UI (Storage) maps to nodes[4] in non-wholesale
+        return widget.nodes.length > 4 ? widget.nodes[4] : null;
+      }
+    }
+
+    // Default mapping
     return (index >= 0 && index < widget.nodes.length)
         ? widget.nodes[index]
         : null;
@@ -1812,7 +1870,14 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final qty = int.tryParse(value) ?? 0;
                     widget.onQtyChanged(widget.item.rowId, qty);
                   },
-                  onSubmitted: (_) => focusNext(2), // Move to Batch
+                  onSubmitted: (_) {
+                    final visibility = context.read<SettingsVisibleBloc>().state;
+                    if (visibility.isWholeSale) {
+                      focusNext(2); // Move to Batch
+                    } else {
+                      focusNext(1); // Move to Unit Price (skipping batch)
+                    }
+                  },
                 ),
               ),
 
@@ -1830,7 +1895,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       isDense: true,
                     ),
                     onChanged: (value) {
-                      // If value is empty or 0, default to 1
                       final batch = int.tryParse(value) ?? 0;
                       final effectiveBatch = batch <= 0 ? 1 : batch;
                       if (effectiveBatch != batch) {
@@ -1838,7 +1902,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       }
                       widget.onBatchChanged(widget.item.rowId, effectiveBatch);
                     },
-                    onSubmitted: (_) => focusNext(3),
+                    onSubmitted: (_) => focusNext(2), // Move to Unit Price
                   ),
                 ),
                 /// Total (read-only) - No focus
@@ -1855,19 +1919,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ],
 
-              /// Unit Price - Index 3
+              /// Unit Price - Index 3 (or Index 2 in non-wholesale)
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: priceController,
-                  focusNode: safeNode(3),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  focusNode: safeNode(visibility.isWholeSale ? 3 : 2),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d+\.?\d{0,2}'),
-                    ),
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
                   ],
                   decoration: InputDecoration(
                     hintText: locale.unitPrice,
@@ -1875,17 +1935,20 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    final parsed =
-                        double.tryParse(value.replaceAll(',', '')) ?? 0;
+                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
                   onSubmitted: (_) {
                     if (widget.isLastRow) {
-                      // Add new row and focus its product field
                       _addNewRowAndFocus();
                     } else {
-                      // Move to next row's product field (index 0 of next row)
-                      focusNext(0);
+                      // Move to next appropriate field
+                      final visibility = context.read<SettingsVisibleBloc>().state;
+                      if (visibility.isWholeSale) {
+                        focusNext(3); // Move to Sell Price (index 4 in full mode)
+                      } else {
+                        focusNext(2); // Move to Sell Price (index 3 in non-wholesale)
+                      }
                     }
                   },
                 ),
@@ -1910,26 +1973,24 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   ),
                 ),
 
-              /// Sell Price - Index 4
+
+              /// Sell Price - Index 4 (or Index 3 in non-wholesale)
               SizedBox(
                 width: 150,
                 child: TextField(
                   controller: sellPriceController,
-                  focusNode: safeNode(4),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
+                  focusNode: safeNode(visibility.isWholeSale ? 4 : 3),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     hintText: locale.salePercentage,
                     border: InputBorder.none,
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    final parsed =
-                        double.tryParse(value.replaceAll(',', '')) ?? 0;
+                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onSellPriceChanged(widget.item.rowId, parsed);
                   },
-                  onSubmitted: (_) => focusNext(5), // Move to Storage
+                  onSubmitted: (_) => focusNext(visibility.isWholeSale ? 4 : 3), // Move to Storage
                 ),
               ),
 

@@ -9,6 +9,52 @@ class OrderParser {
   static const int discountAccount = 40404053;
   static const int stakeholderMin = 500000;
 
+
+
+
+// Get expenses - take the Dr entries for expense accounts (40404040 - 40404999)
+  static List<Map<String, dynamic>> getExpenses(List<Map<String, dynamic>> payments) {
+    return payments.where((p) {
+      final account = p['account'];
+      final drCr = p['drCr'];
+
+      // Expense accounts range (40404040 to 40404999)
+      // Exclude stakeholder accounts (>= 500000)
+      return account is int &&
+          account >= 40404040 &&
+          account <= 40404999 &&
+          drCr == 'Dr';
+    }).toList();
+  }
+
+// Get expense total (for landed price calculation)
+  static double getExpensesTotal(List<Map<String, dynamic>> payments) {
+    final expenses = getExpenses(payments);
+    return expenses.fold(0.0, (sum, expense) => sum + (expense['amount'] as double));
+  }
+
+// Check if a payment is an expense
+  static bool isExpensePayment(Map<String, dynamic> payment) {
+    final account = payment['account'];
+    final drCr = payment['drCr'];
+    return account is int &&
+        account >= 40404040 &&
+        account <= 40404999 &&
+        drCr == 'Dr';
+  }
+
+// Get all expense accounts from payments (Dr side, range 40404040-40404999)
+  static List<Map<String, dynamic>> getExpensePayments(List<Map<String, dynamic>> payments) {
+    return payments.where((p) {
+      final account = p['account'];
+      final drCr = p['drCr'];
+      return account is int &&
+          account >= 40404040 &&
+          account <= 40404999 &&
+          drCr == 'Dr';
+    }).toList();
+  }
+
   // Parse complete order response
   static Map<String, dynamic> parseOrderResponse(Map<String, dynamic> response) {
     return {
@@ -53,13 +99,14 @@ class OrderParser {
     for (var payment in paymentsData) {
       payments.add({
         'trdID': payment['trdID'],
-        'account': payment['trdAccount'],
-        'amount': double.tryParse(payment['trdAmount']?.toString() ?? '0') ?? 0,
+        'account': int.tryParse(payment['trdAccount'].toString()) ?? 0,
+        'amount': double.tryParse(payment['trdAmount']?.toString() ?? '0') ?? 0.0,
         'currency': payment['trdCcy']?.toString() ?? '',
         'drCr': payment['trdDrCr']?.toString() ?? '',
         'narration': payment['trdNarration']?.toString() ?? '',
       });
     }
+
     return payments;
   }
 
@@ -188,15 +235,15 @@ class OrderParser {
     return supplierAccount.isEmpty ? null : supplierAccount;
   }
 
-// Get expenses - take the Dr entries (account 40404041, 40404042)
-  static List<Map<String, dynamic>> getExpenses(List<Map<String, dynamic>> payments) {
-    return payments.where((p) {
-      final account = p['account'];
-      final drCr = p['drCr'];
-      // Only take the Dr entries (expense recording), not the Cr cash payments
-      return account >= 40404040 && account < stakeholderMin && drCr == 'Dr';
-    }).toList();
+
+
+  // Get total expenses amount
+  static double getTotalExpenses(List<Map<String, dynamic>> payments) {
+    final expenses = getExpensePayments(payments);
+    return expenses.fold(0.0, (sum, e) => sum + (e['amount'] as double));
   }
+
+
 
 
   // ============ COMMON ============

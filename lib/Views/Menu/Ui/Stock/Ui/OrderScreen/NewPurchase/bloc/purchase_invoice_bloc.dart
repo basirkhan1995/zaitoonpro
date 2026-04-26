@@ -47,7 +47,10 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<LoadPurchaseInvoiceForEditEvent>(_onLoadPurchaseInvoiceForEdit);
   }
 
-  Future<void> _onLoadPurchaseInvoiceForEdit(LoadPurchaseInvoiceForEditEvent event, Emitter<PurchaseInvoiceState> emit) async {
+  Future<void> _onLoadPurchaseInvoiceForEdit(
+      LoadPurchaseInvoiceForEditEvent event,
+      Emitter<PurchaseInvoiceState> emit
+      ) async {
     emit(PurchaseInvoiceLoading());
 
     try {
@@ -66,11 +69,10 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final List<PurchaseInvoiceItem> items = [];
       for (var record in records) {
         items.add(PurchaseInvoiceItem(
-          itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_${items.length}',
           productId: record['productId'].toString(),
           productName: '',
-          qty: record['quantity'].toInt(),
-          stkBatch: record['batch'].toInt(),
+          qty: (record['quantity'] as double).toInt(),
+          stkBatch: (record['batch'] as double).toInt(),
           purPrice: record['purchasePrice'],
           landedPrice: record['landedPrice'],
           sellPriceAmount: 0,
@@ -79,7 +81,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         ));
       }
 
-      // Get exchange rate
+      // Get exchange rate from narration
       final exchangeRate = OrderParser.getExchangeRate(payments);
 
       // Get cash payment for PURCHASE (Cr side)
@@ -102,18 +104,23 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         toCurrency = supplierAccountData['currency'];
       }
 
-      // Build expenses ONLY (not supplier account)
-      List<PurchasePaymentRecord> expenses = [];
+      // IMPORTANT: Extract expenses ONLY (not supplier account, not cash)
+      // Filter for expense accounts (40404040-40404999) with Dr side
       final expensesData = OrderParser.getExpenses(payments);
+
+      List<PurchasePaymentRecord> expenses = [];
+
       for (var expense in expensesData) {
-        expenses.add(PurchasePaymentRecord(
-          accountNumber: expense['account'],
-          amount: expense['amount'],
-          currency: expense['currency'],
-          exRate: exchangeRate,
-          narration: expense['narration'],
-          isExpense: true,
-        ));
+        expenses.add(
+          PurchasePaymentRecord(
+            accountNumber: expense['account'] as int,
+            amount: expense['amount'] as double,
+            currency: (expense['currency'] ?? event.baseCurrency).toString(),
+            exRate: exchangeRate,
+            narration: _extractExpenseNarration(expense['narration']?.toString() ?? ''),
+            isExpense: true,
+          ),
+        );
       }
 
       // Get supplier
@@ -122,30 +129,39 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         perName: parsed['partyName'],
       );
 
-      // Convert cash payment to base currency if needed
-      double cashPaymentInBase = cashPayment;
-      if (cashCurrency.isNotEmpty && cashCurrency != event.baseCurrency && exchangeRate > 0) {
-        cashPaymentInBase = cashPayment / exchangeRate;
-      }
-
       // Calculate totals
-      final itemsTotal = items.fold(0.0, (sum, item) => sum + item.totalPurchase);
-      final expensesTotal = expenses.fold(0.0, (sum, e) => sum + e.amount);
+      final itemsTotal = items.fold(0.0, (sum, item) => sum + (item.totalPurchase));
+      final expensesTotal = OrderParser.getExpensesTotal(payments);
       final totalInvoice = itemsTotal + expensesTotal;
 
-      // Determine payment mode based on cash payment
+      // Convert cash payment to base currency if needed
+      double cashPaymentInBase = cashPayment;
+      if (cashCurrency.isNotEmpty &&
+          cashCurrency != event.baseCurrency &&
+          exchangeRate > 0) {
+        cashPaymentInBase = cashPayment * exchangeRate; // Multiply to convert to base
+      }
+
+      // Determine payment mode based on cash payment and supplier account
       PaymentMode paymentMode;
-      if (cashPaymentInBase <= 0) {
+      final hasCreditPayment = supplierAccountData != null &&
+          (supplierAccountData['amount'] as double) > 0;
+
+      if (cashPaymentInBase <= 0 && !hasCreditPayment) {
         paymentMode = PaymentMode.credit;
       } else if (cashPaymentInBase >= totalInvoice) {
         paymentMode = PaymentMode.cash;
-      } else {
+      } else if (cashPaymentInBase > 0 && hasCreditPayment) {
         paymentMode = PaymentMode.mixed;
+      } else if (cashPaymentInBase > 0) {
+        paymentMode = PaymentMode.cash;
+      } else {
+        paymentMode = PaymentMode.credit;
       }
 
       emit(PurchaseInvoiceLoaded(
         items: items,
-        payments: expenses,
+        payments: expenses, // Expenses only
         supplier: supplier,
         supplierAccount: supplierAccount,
         cashPayment: cashPaymentInBase,
@@ -162,6 +178,16 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     } catch (e) {
       emit(PurchaseInvoiceError('Failed to load invoice: $e'));
     }
+  }
+
+// Helper to extract clean narration without rate info
+  String _extractExpenseNarration(String narration) {
+    // Remove @Rate: ... part if present
+    final rateMatch = RegExp(r'\s*@Rate:\s*[\d.]+').firstMatch(narration);
+    if (rateMatch != null) {
+      return narration.substring(0, rateMatch.start).trim();
+    }
+    return narration.trim();
   }
   void _onUpdateCashCurrency(UpdateCashCurrencyEvent event, Emitter<PurchaseInvoiceState> emit) {
     if (state is PurchaseInvoiceLoaded) {

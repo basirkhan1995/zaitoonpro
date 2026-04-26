@@ -19,9 +19,9 @@ class LoadSettingsEvent extends SettingsVisibleEvent{
 
 class UpdateSettingsEvent extends SettingsVisibleEvent {
   final bool? stock;
-  final bool? attendance; // Added missing field
+  final bool? attendance;
   final bool? exchangeRate;
-  final bool? currencyRates; // Changed from currencyUsd
+  final bool? currencyRates;
   final bool? dashboardClock;
   final bool? benefit;
   final bool? quickAccess;
@@ -32,9 +32,10 @@ class UpdateSettingsEvent extends SettingsVisibleEvent {
   final bool? profitAndLoss;
   final bool? transport;
   final bool? orders;
-  final bool? todayTotalTransactions; // Added missing field
-  final bool? statsCount; // Added missing field
-  final bool? todayTotalTxnChart; // Added missing field
+  final bool? todayTotalTransactions;
+  final bool? statsCount;
+  final bool? todayTotalTxnChart;
+  final bool? isWholeSale;
 
   const UpdateSettingsEvent({
     this.stock,
@@ -42,7 +43,7 @@ class UpdateSettingsEvent extends SettingsVisibleEvent {
     this.exchangeRate,
     this.benefit,
     this.isDateExpiry,
-    this.currencyRates, // Changed from currencyUsd
+    this.currencyRates,
     this.dashboardClock,
     this.quickAccess,
     this.dateType,
@@ -54,6 +55,7 @@ class UpdateSettingsEvent extends SettingsVisibleEvent {
     this.todayTotalTransactions,
     this.statsCount,
     this.todayTotalTxnChart,
+    this.isWholeSale
   });
 
   @override
@@ -63,7 +65,7 @@ class UpdateSettingsEvent extends SettingsVisibleEvent {
     exchangeRate,
     benefit,
     isDateExpiry,
-    currencyRates, // Changed from currencyUsd
+    currencyRates,
     dashboardClock,
     quickAccess,
     recentTransactions,
@@ -75,5 +77,6 @@ class UpdateSettingsEvent extends SettingsVisibleEvent {
     todayTotalTransactions,
     statsCount,
     todayTotalTxnChart,
+    isWholeSale
   ];
 }

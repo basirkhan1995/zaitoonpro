@@ -142,11 +142,11 @@ class _MobileState extends State<_Mobile> {
                   flex: 4,
                   child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
                     controller: _personController,
-                    title: tr.customer,
-                    hintText: tr.customer,
+                    title: tr.party,
+                    hintText: tr.party,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return tr.required(tr.customer);
+                        return tr.required(tr.party);
                       }
                       return null;
                     },
@@ -611,7 +611,7 @@ class _DesktopState extends State<_Desktop> {
   String _formatQuantity(double? qty, String? type) {
     if (qty == null) return "";
 
-    final formatted = qty.toStringAsFixed(2); // or your toAmount()
+    final formatted = qty.toStringAsFixed(0);
 
     if (type == "IN") {
       return "+$formatted";
@@ -650,11 +650,6 @@ class _DesktopState extends State<_Desktop> {
             ),
             SizedBox(width: 8),
           ],
-          ZOutlineButton(
-            onPressed: () {},
-            icon: Icons.print,
-            label: Text(tr.print),
-          ),
           SizedBox(width: 8),
           ZOutlineButton(
             onPressed: () {
@@ -699,12 +694,6 @@ class _DesktopState extends State<_Desktop> {
                         bloc: context.read<ProductsBloc>(),
                         fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
                         searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
-                        // showAllOption: true,
-                        // allOption: ProductsModel(
-                        //   proId: null,
-                        //   proName: tr.all,
-                        //   proCode: '',
-                        // ),
                         itemBuilder: (context, ind) {
                           if (ind.proId == null) {
                             return Padding(
@@ -745,11 +734,11 @@ class _DesktopState extends State<_Desktop> {
                   flex: 4,
                   child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
                     controller: _personController,
-                    title: tr.customer,
-                    hintText: tr.customer,
+                    title: tr.party,
+                    hintText: tr.party,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return tr.required(tr.customer);
+                        return tr.required(tr.party);
                       }
                       return null;
                     },
@@ -870,19 +859,19 @@ class _DesktopState extends State<_Desktop> {
                       child: Text(tr.party,style: titleStyle)),
                   SizedBox(
                       width: 180,
-                      child: Text(tr.storage,style: titleStyle)),
+                      child: Text(tr.storage,style: titleStyle, textAlign: TextAlign.center)),
                   SizedBox(
                       width: 80,
-                      child: Text(tr.inAndOut,style: titleStyle)),
+                      child: Text(tr.inAndOut,style: titleStyle, textAlign: TextAlign.center)),
                   SizedBox(
                       width: 120,
-                      child: Text(tr.qty,style: titleStyle)),
+                      child: Text(tr.qty,style: titleStyle, textAlign: TextAlign.center)),
                   SizedBox(
                       width: 120,
-                      child: Text(tr.rate,style: titleStyle)),
+                      child: Text(tr.rate,style: titleStyle, textAlign: TextAlign.center)),
                   SizedBox(
                       width: 120,
-                      child: Text(tr.stockBalance,style: titleStyle)),
+                      child: Text(tr.stockBalance,style: titleStyle, textAlign: TextAlign.center)),
             ]),
           ),
 
@@ -947,11 +936,12 @@ class _DesktopState extends State<_Desktop> {
 
                               SizedBox(
                                   width: 180,
-                                  child: Text(stock.storageName.toString())),
-
+                                  child: Text(stock.storageName.toString(), textAlign: TextAlign.center)),
                               SizedBox(
                                   width: 80,
-                                  child: Text(stock.entryType.toString(),style: TextStyle(
+                                  child: Text(stock.entryType.toString(),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
                                     color: stock.entryType == "IN"? Colors.green : color.error,
                                   )),
                               ),
@@ -959,6 +949,7 @@ class _DesktopState extends State<_Desktop> {
                               SizedBox(
                                 width: 120,
                                 child: Text(
+                                  textAlign: TextAlign.center,
                                   _formatQuantity(double.tryParse(stock.quantity??""), stock.entryType),
                                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                                     color: stock.entryType == "IN" ? Colors.green : Colors.red,
@@ -968,12 +959,13 @@ class _DesktopState extends State<_Desktop> {
 
                               SizedBox(
                                   width: 120,
-                                  child: Text("${stock.price.toAmount()} $baseCcy")),
+                                  child: Text("${stock.price.toAmount()} $baseCcy", textAlign: TextAlign.center)),
 
                               SizedBox(
                                 width: 120,
                                 child: Text(
                                     stock.runningQuantity??"",
+                                    textAlign: TextAlign.center,
                                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                     color: stock.entryType == "IN" ? Colors.green : Colors.red,
                                   ),

@@ -59,6 +59,7 @@ class SettingsVisibleBloc extends Bloc<SettingsVisibleEvent, SettingsVisibilityS
       todayTotalTransactions: event.todayTotalTransactions ?? state.todayTotalTransactions,
       statsCount: event.statsCount ?? state.statsCount,
       todayTotalTxnChart: event.todayTotalTxnChart ?? state.todayTotalTxnChart,
+      isWholeSale: event.isWholeSale ?? state.isWholeSale
     );
 
 

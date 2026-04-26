@@ -14,6 +14,7 @@ typedef ItemToString<T> = String Function(T item);
 typedef OnProductSelected<T> = void Function(T? product);
 typedef BlocSearchFunction<B> = void Function(B bloc, String query);
 typedef BlocFetchAllFunction<B> = void Function(B bloc);
+typedef BlocFetchByIdFunction<B> = void Function(B bloc, int productId);
 typedef ProductListItemBuilder<T> = Widget Function(BuildContext context, T product);
 typedef ProductDetailsBuilder<T> = Widget Function(BuildContext context, T product);
 
@@ -24,6 +25,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final B? bloc;
   final BlocSearchFunction<B>? searchFunction;
   final BlocFetchAllFunction<B>? fetchAllFunction;
+  final BlocFetchByIdFunction<B>? fetchByIdFunction; // NEW: Function to fetch product by ID
   final List<T> Function(S state) stateToItems;
   final bool Function(S state)? stateToLoading;
   final ItemToString<T> itemToString;
@@ -62,6 +64,10 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
 
   // Header search controller (different from main controller)
   final TextEditingController? headerSearchController;
+
+  // NEW PARAMETERS FOR INITIAL PRODUCT
+  final int? initialProductId;
+  final bool autoSelectInitialProduct;
 
   const ProductSearchField({
     super.key,
@@ -103,6 +109,10 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     this.showAllOnFocus = true,
     this.openOverlayOnFocus = false,
     this.headerSearchController,
+    // NEW PARAMETERS
+    this.initialProductId,
+    this.fetchByIdFunction,
+    this.autoSelectInitialProduct = true,
   });
 
   @override
@@ -142,6 +152,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   // Timeout for loading state
   Timer? _loadingTimeout;
 
+  // NEW: Initialization flags
+  bool _isInitializing = false;
+  bool _initialLoadDone = false;
+
   @override
   void initState() {
     super.initState();
@@ -166,6 +180,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardListenerFocusNode.requestFocus();
+      // NEW: Initialize from product ID if provided
+      _initializeFromProductId();
     });
   }
 
@@ -187,6 +203,33 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     _scrollController.dispose();
     _overlaySearchController.dispose();
     super.dispose();
+  }
+
+  // NEW METHOD: Initialize product from ID using BLoC
+  void _initializeFromProductId() {
+    // Prevent multiple initializations
+    if (_isInitializing || _initialLoadDone) return;
+
+    // Check if we have an initial product ID and fetch function
+    final hasInitialId = widget.initialProductId != null &&
+        widget.initialProductId! > 0 &&
+        widget.fetchByIdFunction != null;
+
+    if (!hasInitialId) return;
+
+    // Don't initialize if controller already has text
+    if (widget.controller.text.isNotEmpty) {
+      _initialLoadDone = true;
+      return;
+    }
+
+    _isInitializing = true;
+
+    // Show loading state
+    _setLoading(true);
+
+    // Dispatch BLoC event to fetch product by ID
+    widget.fetchByIdFunction!(widget.bloc!, widget.initialProductId!);
   }
 
   void _onMainControllerChanged() {
@@ -242,7 +285,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     }
 
     // Only trigger search if header text changed and is not empty
-    // Add a small delay to prevent rapid triggers
     if (headerText != _currentSearchQuery) {
       _triggerSearch(headerText);
     }
@@ -359,7 +401,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
       // Only show overlay if we have content or explicitly asked to
       if ((_currentSuggestions.isNotEmpty || _isLoading || widget.controller.text.isNotEmpty || widget.openOverlayOnFocus) &&
-          widget.controller.text.isNotEmpty) {  // Added condition: only show if text is not empty
+          widget.controller.text.isNotEmpty) {
         _showOverlay();
       }
     } else {
@@ -490,7 +532,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                             margin: const EdgeInsets.all(8),
                             child: Column(
                               children: [
-                                // Search TextField inside overlay - REMOVED the background color
+                                // Search TextField inside overlay
                                 Container(
                                   padding: const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
@@ -504,7 +546,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                     controller: _overlaySearchController,
                                     autofocus: true,
                                     showCursor: true,
-
                                     decoration: InputDecoration(
                                       hintText: AppLocalizations.of(context)!.searchProducts,
                                       prefixIcon: Icon(FontAwesomeIcons.magnifyingGlass,
@@ -547,7 +588,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                                     ),
                                     onSubmitted: (_) {
-                                      // Handle Enter in overlay search
                                       if (_highlightedIndex >= 0 && _highlightedIndex < _currentSuggestions.length) {
                                         _handleItemSelection(_currentSuggestions[_highlightedIndex]);
                                       } else if (_currentSuggestions.isNotEmpty) {
@@ -556,7 +596,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                     },
                                   ),
                                 ),
-                                // Header row - keep as is but adjust colors
+                                // Header row
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   margin: const EdgeInsets.symmetric(horizontal: 1),
@@ -567,19 +607,19 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   child: Row(
                                     children: [
                                       Expanded(child: Text(tr.description, style: titleStyle)),
-                                        SizedBox(width: 90,
+                                      SizedBox(width: 90,
                                           child: Text(tr.unit,
                                               textAlign: TextAlign.center,
                                               style: titleStyle)),
-                                        SizedBox(width: 100,
+                                      SizedBox(width: 100,
                                           child: Text(tr.batchTitle,
                                               textAlign: isRTL ? TextAlign.left : TextAlign.right,
                                               style: titleStyle)),
-                                        SizedBox(width: 100,
+                                      SizedBox(width: 100,
                                           child: Text(tr.available,
                                               textAlign: isRTL ? TextAlign.left : TextAlign.right,
                                               style: titleStyle)),
-                                        SizedBox(width: 100,
+                                      SizedBox(width: 100,
                                           child: Text(tr.unitPrice,
                                               textAlign: isRTL ? TextAlign.left : TextAlign.right,
                                               style: titleStyle)),
@@ -678,7 +718,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                             ),
                           ),
                         ),
-                        // Right panel - details with rounded border
+                        // Right panel - details
                         if (_currentHighlightedItem != null && !_isLoading && _currentSuggestions.isNotEmpty)
                           Container(
                             width: 350,
@@ -794,7 +834,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                   ],
                 ),
               ),
-
               SizedBox(
                 width: 100,
                 child: Column(
@@ -1079,6 +1118,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
             _highlightedIndex = -1;
             _isLoading = false;
             _currentSearchQuery = '';
+            _initialLoadDone = false;
           });
         }
         widget.onProductSelected?.call(null);
@@ -1236,6 +1276,40 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
                       // If not loading and we have results or empty, update highlight
                       if (!isLoading) {
+                        // NEW: Handle initial product selection
+                        if (_isInitializing && items.isNotEmpty && !_initialLoadDone) {
+                          // This is the response from fetching by ID
+                          final product = items.first;
+                          final productName = widget.itemToString(product);
+
+                          // Update controllers
+                          _isSyncingFromMain = true;
+                          _isSyncingFromOverlay = true;
+                          _isSyncingFromHeader = true;
+
+                          widget.controller.text = productName;
+                          _overlaySearchController.text = productName;
+
+                          if (widget.headerSearchController != null &&
+                              widget.headerSearchController != widget.controller) {
+                            widget.headerSearchController!.text = productName;
+                          }
+
+                          _isSyncingFromMain = false;
+                          _isSyncingFromOverlay = false;
+                          _isSyncingFromHeader = false;
+
+                          setState(() {
+                            _selectedItem = product;
+                            _currentHighlightedItem = product;
+                          });
+
+                          widget.onProductSelected?.call(product);
+                          _initialLoadDone = true;
+                          _isInitializing = false;
+                        }
+
+                        // Regular highlight logic
                         if (_selectedItem != null && items.isNotEmpty) {
                           final selectedIndex = items.indexWhere(
                                 (item) => widget.itemToString(item) == widget.itemToString(_selectedItem as T),
@@ -1262,7 +1336,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                       }
                     });
 
-                    // CRITICAL FIX: Refresh the overlay to show results
+                    // Refresh the overlay to show results
                     _refreshOverlay();
                   }
 

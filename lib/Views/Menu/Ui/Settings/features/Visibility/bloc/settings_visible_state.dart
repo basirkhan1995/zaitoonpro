@@ -23,6 +23,7 @@ class SettingsVisibilityState extends Equatable {
   final bool transport;
   final bool orders;
   final bool benefit;
+  final bool isWholeSale;
 
   const SettingsVisibilityState({
     this.stock = false,
@@ -42,6 +43,7 @@ class SettingsVisibilityState extends Equatable {
     this.todayTotalTxnChart = true,
     this.transport = true,
     this.orders = true,
+    this.isWholeSale = false,
   });
 
   factory SettingsVisibilityState.fromMap(Map<String, dynamic> map) {
@@ -63,6 +65,7 @@ class SettingsVisibilityState extends Equatable {
       todayTotalTxnChart: map['todayTotalTxnChart'] ?? true,
       transport: map['transport'] ?? true,
       orders: map['orders'] ?? true,
+      isWholeSale: map['isWholeSale'] ?? false
     );
   }
 
@@ -85,6 +88,7 @@ class SettingsVisibilityState extends Equatable {
       'todayTotalTxnChart': todayTotalTxnChart,
       'transport': transport,
       'orders': orders,
+      'isWholeSale': isWholeSale
     };
   }
 
@@ -114,5 +118,6 @@ class SettingsVisibilityState extends Equatable {
     transport,
     orders,
     benefit,
+    isWholeSale
   ];
 }

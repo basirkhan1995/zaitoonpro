@@ -33,6 +33,7 @@ import '../../../../Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_model.dart';
+import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 import '../Print/print.dart';
@@ -768,6 +769,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
   Widget _buildItemsHeader(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final color = Theme.of(context).colorScheme;
     TextStyle? title = Theme.of(
       context,
@@ -791,8 +793,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                   ),
                   Expanded(child: Text(locale.products, style: title)),
                   SizedBox(width: 100, child: Text(locale.qty)),
-                  SizedBox(width: 100, child: Text(locale.batchTitle)),
-                  SizedBox(width: 100, child: Text(locale.totalQty)),
+                  if(visibility.isWholeSale)...[
+                    SizedBox(width: 100, child: Text(locale.batchTitle)),
+                    SizedBox(width: 100, child: Text(locale.totalQty)),
+                  ],
                   SizedBox(
                     width: 150,
                     child: Text("${locale.unitPrice} ($baseCurrency)"),
@@ -859,8 +863,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         );
       },
       onBatchChanged: (rowId, batch) {
+        final effectiveBatch = batch <= 0 ? 1 : batch;
         context.read<PurchaseInvoiceBloc>().add(
-          UpdatePurchaseItemEvent(rowId: rowId, batch: batch),
+          UpdatePurchaseItemEvent(rowId: rowId, batch: effectiveBatch),
         );
       },
       onPurchasePriceChanged: (rowId, price) {
@@ -1698,7 +1703,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   @override
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final productController = TextEditingController(
       text: widget.item.productName,
     );
@@ -1713,8 +1718,10 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     );
     final batchController = widget.batchControllers.putIfAbsent(
       widget.item.rowId,
-      () => TextEditingController(
-        text: widget.item.stkBatch > 0 ? widget.item.stkBatch.toString() : '',
+          () => TextEditingController(
+        text: widget.item.stkBatch > 0
+            ? widget.item.stkBatch.toString()
+            : '1', // Default to 1
       ),
     );
     final sellPriceController = widget.sellPriceControllers.putIfAbsent(
@@ -1809,38 +1816,44 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Batch - Index 2
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  controller: batchController,
-                  focusNode: safeNode(2),
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    hintText: locale.batchTitle,
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  onChanged: (value) {
-                    final batch = int.tryParse(value) ?? 0;
-                    widget.onBatchChanged(widget.item.rowId, batch);
-                  },
-                  onSubmitted: (_) => focusNext(3), // Move to Unit Price
-                ),
-              ),
-
-              /// Total (read-only) - No focus
-              SizedBox(
-                width: 100,
-                child: Text(
-                  widget.item.totalQty.toStringAsFixed(1),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.primary,
+              if(visibility.isWholeSale)...[
+                /// Batch - Index 2
+                SizedBox(
+                  width: 100,
+                  child: TextField(
+                    controller: batchController,
+                    focusNode: safeNode(2),
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      hintText: locale.batchTitle,
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                    onChanged: (value) {
+                      // If value is empty or 0, default to 1
+                      final batch = int.tryParse(value) ?? 0;
+                      final effectiveBatch = batch <= 0 ? 1 : batch;
+                      if (effectiveBatch != batch) {
+                        batchController.text = effectiveBatch.toString();
+                      }
+                      widget.onBatchChanged(widget.item.rowId, effectiveBatch);
+                    },
+                    onSubmitted: (_) => focusNext(3),
                   ),
                 ),
-              ),
+                /// Total (read-only) - No focus
+                SizedBox(
+                  width: 100,
+                  child: Text(
+                    widget.item.totalQty.toStringAsFixed(1),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                ),
+              ],
 
               /// Unit Price - Index 3
               SizedBox(

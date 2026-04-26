@@ -1085,5 +1085,7 @@
   "totalReceivable": "مجموعه قابل دریافت",
   "duplicateEntry": "ورود جنس تکراری",
   "addTitle": "اضافه کردن",
-  "invoiceSummary": "جزئیات بل"
+  "invoiceSummary": "جزئیات بل",
+  "invoiceBatch": "گزینه عمده بل",
+  "invoiceBatchHint": "فعال و غیرفعال سازی گزینه بل عمده"
 }

@@ -1085,5 +1085,7 @@
   "totalReceivable": "Total Receivable",
   "duplicateEntry": "Duplicate Product Entry",
   "addTitle": "Add",
-  "invoiceSummary": "Invoice Summary"
+  "invoiceSummary": "Invoice Summary",
+  "invoiceBatch": "Invoice Batch",
+  "invoiceBatchHint": "On or Hide Whole Sale option."
 }

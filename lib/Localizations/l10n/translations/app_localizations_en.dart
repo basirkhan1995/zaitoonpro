@@ -3284,4 +3284,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceSummary => 'Invoice Summary';
+
+  @override
+  String get invoiceBatch => 'Invoice Batch';
+
+  @override
+  String get invoiceBatchHint => 'On or Hide Whole Sale option.';
 }

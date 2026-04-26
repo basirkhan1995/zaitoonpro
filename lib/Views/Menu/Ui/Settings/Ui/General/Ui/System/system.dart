@@ -62,7 +62,7 @@ class _Desktop extends StatelessWidget {
                   SizedBox(
                     width: 330,
                     child: CustomDropdown<String>(
-                      title: "Date Format",
+                      title: AppLocalizations.of(context)!.dateFormat,
                       items: dateFormats.keys.toList(),
                       selectedItem: state.dateFormat,
                       itemLabel: (format) =>
@@ -103,7 +103,7 @@ class _Desktop extends StatelessWidget {
                         ),
 
                         LabeledCheckbox(
-                          title: "Invoice Batch",
+                          title: AppLocalizations.of(context)!.invoiceBatch,
                           value: state.isWholeSale,
                           onChanged: (e) {
                             context.read<SettingsVisibleBloc>().add(
@@ -113,7 +113,7 @@ class _Desktop extends StatelessWidget {
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: bulletPoint("To sale and purchase products with batch"),
+                          child: bulletPoint(AppLocalizations.of(context)!.invoiceBatchHint),
                         ),
 
                         Divider(indent: 8,endIndent: 8),

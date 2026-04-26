@@ -6495,6 +6495,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Invoice Summary'**
   String get invoiceSummary;
+
+  /// No description provided for @invoiceBatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice Batch'**
+  String get invoiceBatch;
+
+  /// No description provided for @invoiceBatchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On or Hide Whole Sale option.'**
+  String get invoiceBatchHint;
 }
 
 class _AppLocalizationsDelegate

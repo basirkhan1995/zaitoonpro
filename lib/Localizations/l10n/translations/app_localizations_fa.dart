@@ -3274,4 +3274,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get invoiceSummary => 'جزئیات بل';
+
+  @override
+  String get invoiceBatch => 'گزینه عمده بل';
+
+  @override
+  String get invoiceBatchHint => 'فعال و غیرفعال سازی گزینه بل عمده';
 }

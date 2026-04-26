@@ -38,23 +38,23 @@ import '../Print/stock_document.dart';
 import 'model/sale_invoice_items.dart';
 
 class NewSaleView extends StatelessWidget {
-  final int? editOrderId;
-  const NewSaleView({super.key,this.editOrderId});
+  final int? orderId;
+  const NewSaleView({super.key,this.orderId});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: _DesktopNewSaleView(editOrderId),
-      desktop: _DesktopNewSaleView(editOrderId),
-      tablet: _DesktopNewSaleView(editOrderId),
+      mobile: _DesktopNewSaleView(orderId),
+      desktop: _DesktopNewSaleView(orderId),
+      tablet: _DesktopNewSaleView(orderId),
     );
   }
 }
 
 
 class _DesktopNewSaleView extends StatefulWidget {
-  final int? editOrderId;
-  const _DesktopNewSaleView(this.editOrderId);
+  final int? orderId;
+  const _DesktopNewSaleView(this.orderId);
 
   @override
   State<_DesktopNewSaleView> createState() => _DesktopNewSaleViewState();
@@ -202,10 +202,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
       saleBloc.setExchangeRateBloc(exchangeBloc);
 
-      if (widget.editOrderId != null) {
+      if (widget.orderId != null) {
         _isEditMode = true;
         saleBloc.add(LoadSaleInvoiceForEditEvent(
-          orderId: widget.editOrderId!,
+          orderId: widget.orderId!,
           baseCurrency: baseCurrency ?? 'USD',
         ));
       } else {
@@ -488,38 +488,70 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ),
               const SizedBox(width: 8),
 
-              BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                builder: (context, state) {
-                  if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                    final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
-                    final isSaving = state is SaleInvoiceSaving;
+              if(widget.orderId == null)...[
+                BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                  builder: (context, state) {
+                    if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
+                      final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                      final isSaving = state is SaleInvoiceSaving;
 
-                    return ZOutlineButton(
-                      isActive: true,
-                      icon: Icons.save_rounded,
-                      onPressed: (isSaving || !current.isFormValid)
-                          ? () {
-                        // Show validation errors when button is clicked but form is invalid
-                        if (!current.isFormValid) {
-                          _showValidationErrors(current);
+                      return ZOutlineButton(
+                        isActive: true,
+                        icon: Icons.save_rounded,
+                        onPressed: (isSaving || !current.isFormValid)
+                            ? () {
+                          if (!current.isFormValid) {
+                            _showValidationErrors(current);
+                          }
                         }
-                      }
-                          : () => _saveInvoice(context, current),
-                      label: isSaving
-                          ? SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.surface,
-                        ),
-                      )
-                          : Text(tr.saveTitle),
-                    );
-                  }
-                  return const SizedBox();
-                },
-              ),
+                            : () => _saveInvoice(context, current),
+                        label: isSaving
+                            ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.surface,
+                          ),
+                        )
+                            : Text(tr.saveTitle),
+                      );
+                    }
+                    return const SizedBox();
+                  },
+                ),
+              ] else ...[
+                BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                  builder: (context, state) {
+                    if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
+                      final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                      final isSaving = state is SaleInvoiceSaving;
+
+                      return ZOutlineButton(
+                        isActive: true,
+                        icon: Icons.refresh,
+                        onPressed: (isSaving || !current.isFormValid)
+                            ? () {
+                          if (!current.isFormValid) {
+                            _showValidationErrors(current);
+                          }
+                        } : () {},
+                        label: isSaving
+                            ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.surface,
+                          ),
+                        )
+                            : Text(tr.update.toUpperCase()),
+                      );
+                    }
+                    return const SizedBox();
+                  },
+                ),
+              ]
             ],
           ),
           body: ZCover(
@@ -1647,12 +1679,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 1),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                toggleProfit ? "••••••" : "${current.totalProfit.toStringAsFixed(2)} $baseCurr",
+                toggleProfit ? "••••••" : "${current.totalProfit.toAmount()} $baseCurr",
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color),
               ),
               Text(
@@ -1812,7 +1844,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 convertedCurrency: current.cashCurrency,
                             ),
 
-
                           ]
                           else if(current.paymentMode == PaymentMode.credit)...[
                             AmountDisplay(
@@ -1826,7 +1857,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             ),
                           ]
                           else if (current.paymentMode == PaymentMode.mixed) ...[
-
                               AmountDisplay(
                                 title: tr.cashPayment,
                                 baseAmount: current.cashPayment,
@@ -1839,16 +1869,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 baseColor: Colors.green.withValues(alpha: .9),
                               ),
 
-                              AmountDisplay(
-                              title: tr.accountPayment,
-                              baseAmount: current.creditAmount,
-                              baseCurrency: baseCurr,
-                              convertedAmount: (needsConversion && !isLoading) ? current.creditAmountLocal : null,
-                              convertedCurrency: current.toCurrency,
-                              fontSize: 16,
-                              baseColor: Colors.green.withValues(alpha: .9),
-                            ),
-
+                              if(needsConversion && !isLoading)...[
+                                Divider(),
+                                AmountDisplay(
+                                  title: tr.accountPayment,
+                                  baseAmount: current.creditAmount,
+                                  baseCurrency: baseCurr,
+                                  convertedAmount: (needsConversion && !isLoading) ? current.creditAmountLocal : null,
+                                  convertedCurrency: current.toCurrency,
+                                  fontSize: 16,
+                                  baseColor: Colors.green.withValues(alpha: .9),
+                                ),
+                              ]
 
                           ],
 
@@ -1857,7 +1889,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             _buildProfitSection(
                               current: current,
                               baseCurr: baseCurr,
-                              profitLabel: tr.profitSummary.toUpperCase(),
+                              profitLabel: tr.pAndLTitle.toUpperCase(),
                             ),
                           ],
                         ],

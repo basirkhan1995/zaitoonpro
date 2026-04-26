@@ -547,7 +547,7 @@ class _TabletOrdersViewState extends State<_TabletOrdersView> {
                             onTap: () {
                               Utils.goto(
                                 context,
-                                 ord.ordName == "Sale"? NewSaleView(editOrderId: ord.ordId) : NewPurchaseOrderView()
+                                 ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : NewPurchaseOrderView()
                               );
                             },
                             child: Container(
@@ -1087,7 +1087,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                   } else {
                                     Utils.goto(
                                         context,
-                                        ord.ordName == "Sale"? NewSaleView(editOrderId: ord.ordId) : NewPurchaseOrderView(editOrderId: ord.ordId)
+                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : NewPurchaseOrderView(editOrderId: ord.ordId)
                                     );
                                   }
                                 },

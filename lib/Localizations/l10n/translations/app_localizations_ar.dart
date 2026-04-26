@@ -759,7 +759,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get forceEmailVerificationTitle => 'د ایمیل تایید اړین دی';
 
   @override
-  String get rate => 'اسعارو نرخ';
+  String get rate => 'نرخ';
 
   @override
   String get from => 'له - اسعار';

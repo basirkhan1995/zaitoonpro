@@ -758,7 +758,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get forceEmailVerificationTitle => 'الزام به تأیید ایمیل';
 
   @override
-  String get rate => 'نرخ اسعار';
+  String get rate => 'نرخ';
 
   @override
   String get from => 'از - اسعار';

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
@@ -38,13 +37,19 @@ class _ExpensesDialogContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final totalExpenses = payments.fold(0.0, (sum, e) => sum + e.amount);
     final tr = AppLocalizations.of(context)!;
+    String? baseCurrency;
+    final authState = context.read<AuthBloc>().state;
+    if(authState is AuthenticatedState){
+     baseCurrency = authState.loginData.company?.comLocalCcy ?? "";
+    }
+
 
     return ZFormDialog(
       title: tr.manageExpenses,
       icon: Icons.outbond_outlined,
       isActionTrue: false,
       padding: EdgeInsets.all(10),
-      width: MediaQuery.of(context).size.width * .65,
+      width: MediaQuery.of(context).size.width * .6,
       height: MediaQuery.of(context).size.width * .8,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -103,7 +108,7 @@ class _ExpensesDialogContent extends StatelessWidget {
               children: [
                 Text(tr.totalExpense, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 Text(
-                  totalExpenses.toAmount(),
+                  "${totalExpenses.toAmount()} $baseCurrency",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -244,7 +249,16 @@ class _ExpenseRowState extends State<_ExpenseRow> {
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
 
-    return ZCover(
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+            width: 1.5,
+            style: BorderStyle.solid,
+          ),
+        ),
+      ),
       margin: const EdgeInsets.only(bottom: 4),
       child: Padding(
         padding: const EdgeInsets.all(2.0),

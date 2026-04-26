@@ -265,7 +265,7 @@
   "oldPasswordIncorrect": "ستاسو پخوانی پاسورډ ناسم دی.",
   "forceChangePasswordTitle": "د پاسورډ بدلون اړین دی",
   "forceEmailVerificationTitle": "د ایمیل تایید اړین دی",
-  "rate": "اسعارو نرخ",
+  "rate": "نرخ",
   "from": "له - اسعار",
   "toCurrency": "په - اسعار",
   "amountGreaterZero": "مبلغ باید له صفر څخه زیاته وي",

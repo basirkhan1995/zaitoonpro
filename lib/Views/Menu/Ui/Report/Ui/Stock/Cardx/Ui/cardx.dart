@@ -608,7 +608,18 @@ class _DesktopState extends State<_Desktop> {
           message: AppLocalizations.of(context)!.noProductSelectedMsg, type: ToastType.info);
     }
   }
+  String _formatQuantity(double? qty, String? type) {
+    if (qty == null) return "";
 
+    final formatted = qty.toStringAsFixed(2); // or your toAmount()
+
+    if (type == "IN") {
+      return "+$formatted";
+    } else if (type == "OUT") {
+      return "-$formatted";
+    }
+    return formatted;
+  }
   @override
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
@@ -850,7 +861,7 @@ class _DesktopState extends State<_Desktop> {
                 children: [
               SizedBox(
                   width: 40,
-                  child: Text(tr.id,style: titleStyle)),
+                  child: Text("#",style: titleStyle)),
                   SizedBox(
                       width: 100,
                       child: Text(tr.date,style: titleStyle)),
@@ -864,13 +875,13 @@ class _DesktopState extends State<_Desktop> {
                       width: 80,
                       child: Text(tr.inAndOut,style: titleStyle)),
                   SizedBox(
-                      width: 100,
-                      child: Text(tr.weight,style: titleStyle)),
+                      width: 120,
+                      child: Text(tr.qty,style: titleStyle)),
                   SizedBox(
                       width: 120,
-                      child: Text(tr.unitPrice,style: titleStyle)),
+                      child: Text(tr.rate,style: titleStyle)),
                   SizedBox(
-                      width: 100,
+                      width: 120,
                       child: Text(tr.stockBalance,style: titleStyle)),
             ]),
           ),
@@ -946,16 +957,28 @@ class _DesktopState extends State<_Desktop> {
                               ),
 
                               SizedBox(
-                                  width: 100,
-                                  child: Text(stock.quantity.toString())),
+                                width: 120,
+                                child: Text(
+                                  _formatQuantity(double.tryParse(stock.quantity??""), stock.entryType),
+                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: stock.entryType == "IN" ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                              ),
 
                               SizedBox(
                                   width: 120,
                                   child: Text("${stock.price.toAmount()} $baseCcy")),
 
                               SizedBox(
-                                  width: 100,
-                                  child: Text(stock.runningQuantity.toAmount(decimal: 4))),
+                                width: 120,
+                                child: Text(
+                                    stock.runningQuantity??"",
+                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: stock.entryType == "IN" ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                                                 ),

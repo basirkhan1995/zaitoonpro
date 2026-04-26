@@ -1573,7 +1573,7 @@ abstract class AppLocalizations {
   /// No description provided for @rate.
   ///
   /// In en, this message translates to:
-  /// **'Exchange Rate'**
+  /// **'Rate'**
   String get rate;
 
   /// No description provided for @from.
@@ -6463,7 +6463,7 @@ abstract class AppLocalizations {
   /// No description provided for @amountAddedToAR.
   ///
   /// In en, this message translates to:
-  /// **'Amount Added to Receivable'**
+  /// **'Receivable Amount'**
   String get amountAddedToAR;
 
   /// No description provided for @mixedTitle.

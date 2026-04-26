@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/Shortcuts/shortcuts.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserProfileSettings/profile_view.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/user_role_settings.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
@@ -70,10 +71,15 @@ class _BaseGeneralView extends StatelessWidget {
         MenuDefinition(
           value: GeneralTabName.profileSettings,
           label: AppLocalizations.of(context)!.profileSettings,
-          //screen: const UserProfileSettingsView(),
           screen: const UserProfileView(),
           icon: Icons.account_circle,
         ),
+      MenuDefinition(
+        value: GeneralTabName.shortcuts,
+        label: AppLocalizations.of(context)!.shortcuts,
+        screen: const ShortcutsView(),
+        icon: Icons.shortcut_rounded,
+      ),
     ];
 
     // Handle empty tabs case

@@ -51,6 +51,13 @@ class StockMovementSummary extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.summarize_outlined),
+              Text(tr.summary.toUpperCase(),style: Theme.of(context).textTheme.titleMedium),
+            ],
+          )),
           _SummaryItem(
             label: tr.totalIn,
             value: totals['in']!,
@@ -108,17 +115,16 @@ class _SummaryItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            label,
+            label.toUpperCase(),
             style: TextStyle(
               fontSize: 12,
               color: Theme.of(context).colorScheme.outline,
             ),
           ),
-          const SizedBox(height: 4),
           Text(
-            value.toAmount(decimal: 4),
+            value.toAmount(decimal: 0),
             style: TextStyle(
-              fontSize: isBold ? 18 : 16,
+              fontSize: 25,
               fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
               color: color,
             ),

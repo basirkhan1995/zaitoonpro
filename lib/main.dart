@@ -55,9 +55,11 @@ import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/bloc/cash_ba
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/cash_branch.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/TrialBalance/bloc/trial_balance_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/TrialBalance/trial_balance.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/Cardx/Ui/cardx.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/Cardx/bloc/stock_record_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/OrdersReport/bloc/order_report_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/bloc/product_report_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Stock/StockAvailability/product_report.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TotalDailyTxn/bloc/total_daily_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TransactionRef/transaction_ref.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/UserReport/StakeholdersReport/bloc/stakeholders_report_bloc.dart';
@@ -268,6 +270,20 @@ class MyApp extends StatelessWidget {
                   const SingleActivator(
                     LogicalKeyboardKey.f11,
                   ): () => ZNavigator.goto(TrialBalanceView()),
+
+                  if(authState is AuthenticatedState)
+                    const SingleActivator(
+                        LogicalKeyboardKey.keyX,
+                      shift: true,
+                      control: true
+                    ): () => ZNavigator.goto(StockRecordReportView()),
+                  if(authState is AuthenticatedState)
+                    const SingleActivator(
+                        LogicalKeyboardKey.keyZ,
+                        shift: true,
+                        control: true
+                    ): () => ZNavigator.goto(ProductReportView()),
+
                 },
                 child: MaterialApp(
 

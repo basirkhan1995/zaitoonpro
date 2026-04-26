@@ -279,7 +279,7 @@ class _MobileState extends State<_Mobile> {
     return Scaffold(
       backgroundColor: color.surface,
       appBar: AppBar(
-        title: Text("${tr.stock} ${tr.report}"),
+        title: Text("${tr.products} ${tr.report}"),
         actions: [
           if (hasAnyFilter)
             IconButton(
@@ -690,7 +690,7 @@ class _TabletState extends State<_Tablet> {
     return Scaffold(
       backgroundColor: color.surface,
       appBar: AppBar(
-        title: Text("${tr.stock} ${tr.report}"),
+        title: Text("${tr.products} ${tr.report}"),
         titleSpacing: 0,
         actions: [
           IconButton(
@@ -1094,7 +1094,7 @@ class _DesktopState extends State<_Desktop> {
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
-        title: Text("${tr.stock} ${tr.report}"),
+        title: Text("${tr.products} ${tr.report}"),
         actionsPadding: EdgeInsets.symmetric(horizontal: 10),
         actions: [
           if(hasAnyFilter)...[

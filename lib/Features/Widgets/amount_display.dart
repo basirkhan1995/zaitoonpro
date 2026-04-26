@@ -50,7 +50,7 @@ class AmountDisplay extends StatelessWidget {
     final hasConversion =
         convertedAmount != null && convertedAmount! > 0;
 
-    final baseTextColor = baseColor ?? color.onSurface;
+
     final convertedTextColor = convertedColor ?? color.outline;
     final effectiveSignColor = signColor ??
         (isPositive ? Colors.green : Colors.red);
@@ -82,7 +82,7 @@ class AmountDisplay extends StatelessWidget {
                       TextSpan(
                         text: _getFormattedAmountWithSign(baseAmount),
                         style: TextStyle(
-                          color: effectiveSignColor,
+                          color: baseColor ?? effectiveSignColor,
                           fontWeight: FontWeight.w600,
                           fontSize: fontSize,
                         ),
@@ -91,7 +91,7 @@ class AmountDisplay extends StatelessWidget {
                       TextSpan(
                         text: _getFormattedAmountWithSign(baseAmount),
                         style: TextStyle(
-                          color: baseTextColor,
+                          color: baseColor ?? effectiveSignColor,
                           fontWeight: FontWeight.w600,
                           fontSize: fontSize,
                         ),
@@ -99,7 +99,7 @@ class AmountDisplay extends StatelessWidget {
                     TextSpan(
                       text: ' $baseCurrency',
                       style: TextStyle(
-                        color: baseTextColor,
+                        color: baseColor ?? effectiveSignColor,
                         fontWeight: FontWeight.w600,
                         fontSize: fontSize,
                       ),
@@ -126,7 +126,7 @@ class AmountDisplay extends StatelessWidget {
                         TextSpan(
                           text: _getFormattedAmountWithSign(convertedAmount!),
                           style: TextStyle(
-                            color: effectiveSignColor,
+                            color: convertedTextColor,
                             fontSize: fontSize,
                           ),
                         )

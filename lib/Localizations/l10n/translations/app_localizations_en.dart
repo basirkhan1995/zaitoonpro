@@ -760,7 +760,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get forceEmailVerificationTitle => 'Require Email Verification';
 
   @override
-  String get rate => 'Exchange Rate';
+  String get rate => 'Rate';
 
   @override
   String get from => 'From CCY';
@@ -3268,7 +3268,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accountReceivable => 'Account Receivable';
 
   @override
-  String get amountAddedToAR => 'Amount Added to Receivable';
+  String get amountAddedToAR => 'Receivable Amount';
 
   @override
   String get mixedTitle => 'Mixed';

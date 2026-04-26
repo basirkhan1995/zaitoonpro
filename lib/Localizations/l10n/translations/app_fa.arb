@@ -265,7 +265,7 @@
   "oldPasswordIncorrect": "گذرواژه قبلی شما نادرست است.",
   "forceChangePasswordTitle": "الزام به تغییر گذرواژه",
   "forceEmailVerificationTitle": "الزام به تأیید ایمیل",
-  "rate": "نرخ اسعار",
+  "rate": "نرخ",
   "from": "از - اسعار",
   "toCurrency": "به - اسعار",
   "amountGreaterZero": "مبلغ باید بیشتر از صفر باشد",

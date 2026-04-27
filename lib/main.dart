@@ -286,7 +286,6 @@ class MyApp extends StatelessWidget {
 
                 },
                 child: MaterialApp(
-
                     navigatorKey: ZNavigator.navigatorKey,
                     debugShowCheckedModeBanner: false,
                     title: 'Zaitoon System',

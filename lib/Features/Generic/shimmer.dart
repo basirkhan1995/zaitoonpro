@@ -2,8 +2,14 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
+import '../../Localizations/l10n/translations/app_localizations.dart';
+
 class UniversalShimmer {
   // ==================== ACCOUNT LIST SHIMMER (YOUR DESIGN WITH YOUR COLORS) ====================
+
+  static Widget saleInvoiceLoading() {
+    return _SaleInvoiceShimmerContent();
+  }
 
   /// Account list shimmer - matches your exact account list design
   static Widget accountList({
@@ -1208,6 +1214,314 @@ class _ShimmerHorizontalList extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+
+}
+
+// ==================== SALE INVOICE SHIMMER ====================
+
+/// Sale invoice loading shimmer - Matches the invoice screen design
+
+class _SaleInvoiceShimmerContent extends StatelessWidget {
+  const _SaleInvoiceShimmerContent();
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final tr = AppLocalizations.of(context)!;
+
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.3);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+
+    return Shimmer.fromColors(
+      baseColor: baseColor,
+      highlightColor: highlightColor,
+      period: const Duration(milliseconds: 1200),
+      child: Column(
+        children: [
+          // Header section shimmer
+          _buildHeaderSection(colorScheme),
+
+          const SizedBox(height: 16),
+
+          // Items header shimmer
+          _buildItemsHeaderShimmer(colorScheme, tr),
+
+          const SizedBox(height: 8),
+
+          // Items list shimmer
+          Expanded(
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 5,
+              itemBuilder: (context, index) => _buildItemRowShimmer(colorScheme, index),
+            ),
+          ),
+
+          // Summary section shimmer
+          _buildSummarySectionShimmer(colorScheme, tr),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderSection(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        children: [
+          // Customer field
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 14, width: 70, color: Colors.white),
+                const SizedBox(height: 8),
+                Container(height: 40, width: double.infinity, color: Colors.white),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Account field
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 14, width: 70, color: Colors.white),
+                const SizedBox(height: 8),
+                Container(height: 40, width: double.infinity, color: Colors.white),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          // Remark field
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 14, width: 50, color: Colors.white),
+                const SizedBox(height: 8),
+                Container(height: 40, width: double.infinity, color: Colors.white),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItemsHeaderShimmer(ColorScheme colorScheme, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 30),
+          Expanded(child: Container(height: 16, color: Colors.white, width: 60)),
+          const SizedBox(width: 10),
+          Container(height: 16, color: Colors.white, width: 60),
+          const SizedBox(width: 10),
+          Container(height: 16, color: Colors.white, width: 60),
+          const SizedBox(width: 10),
+          Container(height: 16, color: Colors.white, width: 60),
+          const SizedBox(width: 10),
+          Container(height: 16, color: Colors.white, width: 80),
+          const SizedBox(width: 10),
+          Container(height: 16, color: Colors.white, width: 80),
+          const SizedBox(width: 10),
+          Container(height: 16, color: Colors.white, width: 60),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildItemRowShimmer(ColorScheme colorScheme, int index) {
+    final bool isEven = index.isEven;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: isEven ? Colors.transparent : colorScheme.primary.withValues(alpha: 0.04),
+        border: Border(
+          bottom: BorderSide(color: colorScheme.outline.withValues(alpha: 0.1)),
+        ),
+      ),
+      child: Row(
+        children: [
+          // Index number
+          SizedBox(width: 30, child: Container(height: 14, width: 20, color: Colors.white)),
+          const SizedBox(width: 10),
+
+          // Product name
+          Expanded(child: Container(height: 16, color: Colors.white)),
+          const SizedBox(width: 10),
+
+          // Qty
+          Container(height: 32, color: Colors.white, width: 60),
+          const SizedBox(width: 10),
+
+          // Batch
+          Container(height: 32, color: Colors.white, width: 60),
+          const SizedBox(width: 10),
+
+          // Unit
+          Container(height: 32, color: Colors.white, width: 60),
+          const SizedBox(width: 10),
+
+          // Unit price
+          Container(height: 32, color: Colors.white, width: 80),
+          const SizedBox(width: 10),
+
+          // Discount
+          Container(height: 32, color: Colors.white, width: 100),
+          const SizedBox(width: 10),
+
+          // Total
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(height: 18, width: 80, color: Colors.white),
+              const SizedBox(height: 4),
+              Container(height: 12, width: 60, color: Colors.white.withValues(alpha: 0.6)),
+            ],
+          ),
+          const SizedBox(width: 10),
+
+          // Delete button
+          Container(height: 24, width: 24, color: Colors.white),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummarySectionShimmer(ColorScheme colorScheme, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(top: 8),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Left side - Invoice Summary
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(height: 20, width: 20, color: Colors.white),
+                        const SizedBox(width: 8),
+                        Container(height: 18, width: 120, color: Colors.white),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
+                    const SizedBox(height: 8),
+                    _buildSummaryRowShimmer(),
+                    const SizedBox(height: 4),
+                    _buildSummaryRowShimmer(),
+                    const SizedBox(height: 4),
+                    _buildSummaryRowShimmer(),
+                    const SizedBox(height: 8),
+                    Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
+                    const SizedBox(height: 8),
+                    _buildSummaryRowShimmer(isBold: true),
+                  ],
+                ),
+              ),
+
+              const SizedBox(width: 12),
+              VerticalDivider(width: 1, color: colorScheme.outline.withValues(alpha: 0.2)),
+              const SizedBox(width: 12),
+
+              // Right side - Payment Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(height: 20, width: 20, color: Colors.white),
+                            const SizedBox(width: 8),
+                            Container(height: 18, width: 120, color: Colors.white),
+                          ],
+                        ),
+                        Container(height: 24, width: 80, color: Colors.white),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Divider(color: colorScheme.outline.withValues(alpha: 0.2)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSummaryRowShimmer(),
+                          const SizedBox(height: 8),
+                          _buildSummaryRowShimmer(),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: _buildSummaryRowShimmer(),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryRowShimmer({bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            height: isBold ? 18 : 14,
+            width: 80,
+            color: Colors.white,
+          ),
+          Container(
+            height: isBold ? 18 : 14,
+            width: 100,
+            color: Colors.white,
+          ),
+        ],
       ),
     );
   }

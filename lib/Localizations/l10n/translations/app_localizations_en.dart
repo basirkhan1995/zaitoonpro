@@ -3277,7 +3277,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get totalReceivable => 'Total Receivable';
 
   @override
-  String get duplicateEntry => 'Duplicate Product Entry';
+  String get duplicateEntry =>
+      'This product has already been added to your invoice.';
 
   @override
   String get addTitle => 'Add';
@@ -3290,4 +3291,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get invoiceBatchHint => 'On or Hide Whole Sale option.';
+
+  @override
+  String get duplicateProduct => 'Duplicate Product';
+
+  @override
+  String get itemAlreadyExists => 'Item already exists in invoice';
+
+  @override
+  String get addAgain => 'Add Again';
+
+  @override
+  String get confirmAddAgain => 'Would you like to add it again?';
 }

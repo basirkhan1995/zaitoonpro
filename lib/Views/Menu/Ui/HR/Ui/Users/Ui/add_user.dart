@@ -211,7 +211,7 @@ class _MobileState extends State<_Mobile> {
       
                             // Individual/Owner Field (conditionally shown)
                             if (widget.indId == null) ...[
-                              GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                              GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                                 showAllOnFocus: true,
                                 controller: usrOwner,
                                 title: locale.individuals,
@@ -645,7 +645,7 @@ class _DesktopState extends State<_Desktop> {
                         children: [
                           Expanded(
                             flex: 3,
-                            child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                            child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                               showAllOnFocus: true,
                               controller: usrOwner,
                               title: locale.individuals,

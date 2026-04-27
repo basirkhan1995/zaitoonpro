@@ -89,7 +89,7 @@ class _MobileState extends State<_Mobile> {
               padding: const EdgeInsets.only(top: 8),
               children: [
                 /// 🔹 Employee Selector
-                GenericTextfield<EmployeeModel, EmployeeBloc, EmployeeState>(
+                GenericTextField<EmployeeModel, EmployeeBloc, EmployeeState>(
                   showAllOnFocus: true,
                   controller: empController,
                   title: tr.employees,
@@ -862,7 +862,7 @@ class _TabletState extends State<_Tablet> {
 
                   Expanded(
                     flex: 2,
-                    child: GenericTextfield<EmployeeModel, EmployeeBloc, EmployeeState>(
+                    child: GenericTextField<EmployeeModel, EmployeeBloc, EmployeeState>(
                       showAllOnFocus: true,
                       showAllOption: true,
                       allOptionText: tr.all,

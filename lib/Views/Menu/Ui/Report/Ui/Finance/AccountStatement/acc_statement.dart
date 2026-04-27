@@ -241,7 +241,7 @@ class _MobileState extends State<_Mobile> {
                         child: Column(
                           children: [
                             // Account Selection
-                            GenericTextfield<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
+                            GenericTextField<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
                               showAllOnFocus: true,
                               controller: accountController,
                               title: tr.accounts,
@@ -749,7 +749,7 @@ class _DesktopState extends State<_Desktop> {
                         SizedBox(
                           width: 500,
                           child:
-                              GenericTextfield<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
+                              GenericTextField<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
                                 showAllOnFocus: true,
                                 controller: accountController,
                                 title: tr.accounts,

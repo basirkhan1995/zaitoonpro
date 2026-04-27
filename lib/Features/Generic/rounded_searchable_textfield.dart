@@ -18,7 +18,7 @@ enum TextFieldStyle {
   noBorder,
 }
 
-class GenericTextfield<T, B extends BlocBase<S>, S> extends StatefulWidget {
+class GenericTextField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final LoadingBuilder? loadingBuilder;
   final bool Function(S state)? stateToLoading;
   final double? width;
@@ -53,7 +53,7 @@ class GenericTextfield<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final String allOptionText;
   final TextFieldStyle textFieldStyle;
 
-  const GenericTextfield({
+  const GenericTextField({
     super.key,
     this.isEnabled = true,
     this.height = 60,
@@ -91,10 +91,10 @@ class GenericTextfield<T, B extends BlocBase<S>, S> extends StatefulWidget {
   }) : assert(bloc != null || searchFunction == null, 'If searchFunction is provided, bloc must also be provided');
 
   @override
-  State<GenericTextfield<T, B, S>> createState() => _GenericTextfieldState<T, B, S>();
+  State<GenericTextField<T, B, S>> createState() => _GenericTextFieldState<T, B, S>();
 }
 
-class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericTextfield<T, B, S>> {
+class _GenericTextFieldState<T, B extends BlocBase<S>, S> extends State<GenericTextField<T, B, S>> {
   final LayerLink _layerLink = LayerLink();
   OverlayEntry? _overlayEntry;
   final GlobalKey _fieldKey = GlobalKey();
@@ -112,7 +112,7 @@ class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericT
   }
 
   @override
-  void didUpdateWidget(covariant GenericTextfield<T, B, S> oldWidget) {
+  void didUpdateWidget(covariant GenericTextField<T, B, S> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller?.removeListener(_onControllerChanged);
@@ -427,6 +427,7 @@ class _GenericTextfieldState<T, B extends BlocBase<S>, S> extends State<GenericT
                         widget.title,
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontSize: 12,
+                          color: Theme.of(context).colorScheme.outline,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

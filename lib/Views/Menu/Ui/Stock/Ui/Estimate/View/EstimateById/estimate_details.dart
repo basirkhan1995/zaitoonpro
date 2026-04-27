@@ -587,7 +587,7 @@ class _EstimateDetailViewState extends State<EstimateDetailView> {
         Row(
           children: [
             Expanded(
-              child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+              child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                 controller: _customerController,
                 title: tr.customer,
                 hintText: tr.customer,
@@ -1159,7 +1159,7 @@ class _EstimateDetailViewState extends State<EstimateDetailView> {
 
                   // Account Selection - FIXED SECTION
                   if (_selectedPaymentMethod != PaymentMethod.cash)
-                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                       title: tr.accounts,
                       hintText: tr.selectCreditAccountMsg,
                       isRequired: _selectedPaymentMethod != PaymentMethod.cash,

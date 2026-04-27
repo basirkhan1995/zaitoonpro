@@ -104,7 +104,7 @@ class _MobileState extends State<_Mobile> {
                 const SizedBox(height: 8),
 
                 /// 🔹 Product
-                GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                GenericTextField<ProductsModel, ProductsBloc, ProductsState>(
                   key: const ValueKey('filter_product_field'),
                   controller: _productController,
                   title: tr.products,
@@ -140,7 +140,7 @@ class _MobileState extends State<_Mobile> {
                 const SizedBox(height: 16),
                 Expanded(
                   flex: 4,
-                  child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                  child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                     controller: _personController,
                     title: tr.party,
                     hintText: tr.party,
@@ -686,7 +686,7 @@ class _DesktopState extends State<_Desktop> {
                 Expanded(
                   flex: 4,
                   child:
-                      GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                      GenericTextField<ProductsModel, ProductsBloc, ProductsState>(
                         controller: _productController,
                         title: tr.products,
                         hintText: tr.products,
@@ -732,7 +732,7 @@ class _DesktopState extends State<_Desktop> {
                 ),
                 Expanded(
                   flex: 4,
-                  child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                  child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                     controller: _personController,
                     title: tr.party,
                     hintText: tr.party,

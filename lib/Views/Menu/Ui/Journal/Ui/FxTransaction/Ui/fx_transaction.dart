@@ -1230,7 +1230,7 @@ class __EntryRowState extends State<_EntryRow> {
           Expanded(
             child: SizedBox(
               height: 40,
-              child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+              child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                 controller: widget.accountController,
                 title: '',
                 hintText: AppLocalizations.of(context)!.accounts,

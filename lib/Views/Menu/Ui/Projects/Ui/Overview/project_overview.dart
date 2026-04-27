@@ -186,7 +186,7 @@ class _MobileContentState extends State<_MobileContent> {
                     SectionTitle(title: tr.ownerInformation),
                     const SizedBox(height: 12),
 
-                    GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                    GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                       isEnabled: isPending,
                       controller: projectOwner,
                       title: tr.individuals,
@@ -254,7 +254,7 @@ class _MobileContentState extends State<_MobileContent> {
                     SectionTitle(title: tr.ownerAccount),
                     const SizedBox(height: 12),
 
-                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                       isEnabled: isPending,
                       controller: ownerAccount,
                       title: tr.accounts,
@@ -658,7 +658,7 @@ class _TabletContentState extends State<_TabletContent> {
                     const SizedBox(height: 16),
 
                     // Owner field
-                    GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                    GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                       isEnabled: isPending,
                       controller: projectOwner,
                       title: tr.individuals,
@@ -724,7 +724,7 @@ class _TabletContentState extends State<_TabletContent> {
                     SectionTitle(title: tr.ownerAccount),
                     const SizedBox(height: 12),
 
-                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                       isEnabled: isPending,
                       controller: ownerAccount,
                       title: tr.accounts,
@@ -1088,7 +1088,7 @@ class _DesktopState extends State<_Desktop> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
                         child:
-                        GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                        GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                           isEnabled: isPending,
                           controller: projectOwner,
                           title: tr.individuals,
@@ -1170,7 +1170,7 @@ class _DesktopState extends State<_Desktop> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
                         child:
-                        GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                        GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                           isEnabled: isPending,
                           controller: ownerAccount,
                           title: tr.accounts,

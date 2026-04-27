@@ -251,7 +251,7 @@ class _MobileState extends State<_Mobile> {
                         child: Column(
                           children: [
                             // Account Selection
-                            GenericTextfield<GlAccountsModel, GlAccountsBloc, GlAccountsState>(
+                            GenericTextField<GlAccountsModel, GlAccountsBloc, GlAccountsState>(
                               showAllOnFocus: true,
                               controller: accountController,
                               title: tr.accounts,
@@ -694,7 +694,7 @@ class _DesktopState extends State<_Desktop> {
                           children: [
                             Expanded(
                               child:
-                              GenericTextfield<GlAccountsModel, GlAccountsBloc, GlAccountsState>(
+                              GenericTextField<GlAccountsModel, GlAccountsBloc, GlAccountsState>(
                                 showAllOnFocus: true,
                                 controller: accountController,
                                 title: tr.accounts,

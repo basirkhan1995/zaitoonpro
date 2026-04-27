@@ -153,7 +153,7 @@ class _DesktopState extends State<_Desktop> {
           
               /// Account
               if(widget.isEnable == false)...[
-                GenericTextfield<StakeholdersAccountsModel, AccountsBloc,
+                GenericTextField<StakeholdersAccountsModel, AccountsBloc,
                     AccountsState>(
                   showAllOnFocus: true,
                   controller: account,

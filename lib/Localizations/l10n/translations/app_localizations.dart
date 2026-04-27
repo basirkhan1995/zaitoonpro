@@ -6481,7 +6481,7 @@ abstract class AppLocalizations {
   /// No description provided for @duplicateEntry.
   ///
   /// In en, this message translates to:
-  /// **'Duplicate Product Entry'**
+  /// **'This product has already been added to your invoice.'**
   String get duplicateEntry;
 
   /// No description provided for @addTitle.
@@ -6507,6 +6507,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On or Hide Whole Sale option.'**
   String get invoiceBatchHint;
+
+  /// No description provided for @duplicateProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate Product'**
+  String get duplicateProduct;
+
+  /// No description provided for @itemAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Item already exists in invoice'**
+  String get itemAlreadyExists;
+
+  /// No description provided for @addAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Again'**
+  String get addAgain;
+
+  /// No description provided for @confirmAddAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Would you like to add it again?'**
+  String get confirmAddAgain;
 }
 
 class _AppLocalizationsDelegate

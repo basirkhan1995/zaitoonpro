@@ -1083,9 +1083,13 @@
   "amountAddedToAR": "Receivable Amount",
   "mixedTitle": "Mixed",
   "totalReceivable": "Total Receivable",
-  "duplicateEntry": "Duplicate Product Entry",
+  "duplicateEntry": "This product has already been added to your invoice.",
   "addTitle": "Add",
   "invoiceSummary": "Invoice Summary",
   "invoiceBatch": "Invoice Batch",
-  "invoiceBatchHint": "On or Hide Whole Sale option."
+  "invoiceBatchHint": "On or Hide Whole Sale option.",
+  "duplicateProduct": "Duplicate Product",
+  "itemAlreadyExists": "Item already exists in invoice",
+  "addAgain": "Add Again",
+  "confirmAddAgain": "Would you like to add it again?"
 }

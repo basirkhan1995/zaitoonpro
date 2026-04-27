@@ -620,7 +620,7 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
             flex: 2,
             child: SizedBox(
               height: 40,
-              child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+              child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                 key: ValueKey('account_${widget.entry.rowId}'),
                 showAllOnFocus: true,
                 controller: widget.accountController,

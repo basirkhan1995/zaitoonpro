@@ -194,7 +194,7 @@ class _MobileViewState extends State<_MobileView> {
                         mainAxisSize: MainAxisSize.min,
                         spacing: 12,
                         children: [
-                          GenericTextfield<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
+                          GenericTextField<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
                             showAllOnFocus: true,
                             controller: accountController,
                             title: locale.accounts,
@@ -582,7 +582,7 @@ class _MobileViewState extends State<_MobileView> {
                               children: [
                                 Expanded(
                                   flex: 5,
-                                  child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                  child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                     showAllOnFocus: true,
                                     controller: accountController,
                                     title: locale.accounts,
@@ -821,7 +821,7 @@ class _MobileViewState extends State<_MobileView> {
                               children: [
                                 Expanded(
                                   flex: 5,
-                                  child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                  child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                     showAllOnFocus: true,
                                     controller: accountController,
                                     title: locale.accounts,
@@ -1058,7 +1058,7 @@ class _MobileViewState extends State<_MobileView> {
                               children: [
                                 Expanded(
                                   flex: 5,
-                                  child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                  child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                     showAllOnFocus: true,
                                     controller: accountController,
                                     title: locale.accounts,
@@ -1320,7 +1320,7 @@ class _MobileViewState extends State<_MobileView> {
                               Expanded(
                                 child: Column(
                                   children: [
-                                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                       showAllOnFocus: true,
                                       controller: debitAccountCtrl,
                                       title: tr.debitAccount,
@@ -1577,7 +1577,7 @@ class _MobileViewState extends State<_MobileView> {
                               Expanded(
                                 child: Column(
                                   children: [
-                                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                       showAllOnFocus: true,
                                       controller: creditAccountCtrl,
                                       title: tr.creditAccount,
@@ -2564,7 +2564,7 @@ class _DesktopViewState extends State<_DesktopView> {
                         mainAxisSize: MainAxisSize.min,
                         spacing: 12,
                         children: [
-                          GenericTextfield<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
+                          GenericTextField<StakeholdersAccountsModel, AccountsBloc, AccountsState>(
                             showAllOnFocus: true,
                             controller: accountController,
                             title: locale.accounts,
@@ -2946,7 +2946,7 @@ class _DesktopViewState extends State<_DesktopView> {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                               showAllOnFocus: true,
                               controller: accountController,
                               title: locale.accounts,
@@ -3162,7 +3162,7 @@ class _DesktopViewState extends State<_DesktopView> {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                               showAllOnFocus: true,
                               controller: accountController,
                               title: locale.accounts,
@@ -3377,7 +3377,7 @@ class _DesktopViewState extends State<_DesktopView> {
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                            GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                               showAllOnFocus: true,
                               controller: accountController,
                               title: locale.accounts,
@@ -3621,7 +3621,7 @@ class _DesktopViewState extends State<_DesktopView> {
                               Expanded(
                                 child: Column(
                                   children: [
-                                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                       showAllOnFocus: true,
                                       controller: debitAccountCtrl,
                                       title: tr.debitAccount,
@@ -3878,7 +3878,7 @@ class _DesktopViewState extends State<_DesktopView> {
                               Expanded(
                                 child: Column(
                                   children: [
-                                    GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                    GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                       showAllOnFocus: true,
                                       controller: creditAccountCtrl,
                                       title: tr.creditAccount,

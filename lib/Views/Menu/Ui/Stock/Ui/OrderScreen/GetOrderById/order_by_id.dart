@@ -712,7 +712,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
     final tr = AppLocalizations.of(context)!;
     final isPurchase = state.order.ordName?.toLowerCase().contains('purchase') ?? true;
 
-    return GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+    return GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
       controller: TextEditingController(
         text: state.selectedSupplier != null
             ? "${state.selectedSupplier?.perName ?? ""} ${state.selectedSupplier?.perLastName ?? ""}"
@@ -813,7 +813,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                   controller: TextEditingController(
                     text: selectedAccount != null
                         ? '${selectedAccount.accNumber ?? ""} | ${selectedAccount.accName ?? ""}'
@@ -1118,7 +1118,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
     final tr = AppLocalizations.of(context)!;
     final isPurchase = state.order.ordName?.toLowerCase().contains('purchase') ?? true;
 
-    return GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+    return GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
       controller: TextEditingController(
         text: state.selectedSupplier != null
             ? "${state.selectedSupplier?.perName ?? ""} ${state.selectedSupplier?.perLastName ?? ""}"
@@ -1217,7 +1217,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
 
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                   controller: TextEditingController(
                     text: selectedAccount != null
                         ? '${selectedAccount.accNumber ?? ""} | ${selectedAccount.accName ?? ""}'
@@ -1553,7 +1553,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
               children: [
                 Expanded(
                   child: state.isEditing
-                      ? GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                      ? GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                     controller: TextEditingController(
                       text: state.selectedSupplier != null
                           ? "${state.selectedSupplier?.perName ?? ""} ${state.selectedSupplier?.perLastName ?? ""}"
@@ -1753,7 +1753,7 @@ class _OrderByIdViewState extends State<OrderByIdView> {
                 );
               }
 
-              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+              return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                 controller: TextEditingController(
                   text: selectedAccount != null ? '${selectedAccount.accNumber ?? ""} | ${selectedAccount.accName ?? ""}'
                       : '',

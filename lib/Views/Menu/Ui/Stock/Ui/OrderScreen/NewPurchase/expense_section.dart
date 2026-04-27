@@ -267,7 +267,7 @@ class _ExpenseRowState extends State<_ExpenseRow> {
             /// Account Selection
             Expanded(
               flex: 2,
-              child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+              child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                 title: "",
                 textFieldStyle: TextFieldStyle.noBorder,
                 hintText: tr.accounts,

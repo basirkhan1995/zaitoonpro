@@ -121,7 +121,7 @@ class _MobileState extends State<_Mobile> {
                 const SizedBox(height: 8),
 
                 /// 🔹 Product Selection
-                GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                GenericTextField<ProductsModel, ProductsBloc, ProductsState>(
                   title: tr.products,
                   controller: filterProductController,
                   hintText: tr.products,
@@ -740,7 +740,7 @@ class _TabletState extends State<_Tablet> {
                   // Product
                   SizedBox(
                     width: 300,
-                    child: GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                    child: GenericTextField<ProductsModel, ProductsBloc, ProductsState>(
                       title: tr.products,
                       controller: productController,
                       hintText: tr.products,
@@ -1138,7 +1138,7 @@ class _DesktopState extends State<_Desktop> {
               children: [
                 // Product Selection
                 Expanded(
-                  child: GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
+                  child: GenericTextField<ProductsModel, ProductsBloc, ProductsState>(
                     title: tr.products,
                     controller: productController,
                     hintText: tr.products,

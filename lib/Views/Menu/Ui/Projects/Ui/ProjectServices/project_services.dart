@@ -167,7 +167,7 @@ class _DesktopState extends State<_Desktop> {
                       children: [
                         Expanded(
                           flex: 3,
-                          child: GenericTextfield<ServicesModel, ServicesBloc, ServicesState>(
+                          child: GenericTextField<ServicesModel, ServicesBloc, ServicesState>(
                             controller: servicesController,
                             title: tr.services,
                             hintText: tr.services,
@@ -855,7 +855,7 @@ class _MobileState extends State<_Mobile> {
         child: Column(
           children: [
             // Service Selection
-            GenericTextfield<ServicesModel, ServicesBloc, ServicesState>(
+            GenericTextField<ServicesModel, ServicesBloc, ServicesState>(
               controller: servicesController,
               title: tr.services,
               hintText: tr.services,
@@ -1576,7 +1576,7 @@ class _TabletState extends State<_Tablet> {
                 children: [
                   Expanded(
                     flex: 2,
-                    child: GenericTextfield<ServicesModel, ServicesBloc, ServicesState>(
+                    child: GenericTextField<ServicesModel, ServicesBloc, ServicesState>(
                       controller: servicesController,
                       title: tr.services,
                       hintText: tr.services,

@@ -273,7 +273,7 @@ class _AddEstimateViewState extends State<AddEstimateView> {
                   Row(
                     children: [
                       Expanded(
-                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                        child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                           controller: _customerController,
                           title: tr.customer,
                           hintText: tr.customer,

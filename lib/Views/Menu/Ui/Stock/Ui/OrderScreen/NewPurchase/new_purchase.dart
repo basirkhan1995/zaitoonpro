@@ -439,7 +439,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         Expanded(
                           flex: 2,
                           child:
-                              GenericTextfield<
+                              GenericTextField<
                                 IndividualsModel,
                                 IndividualsBloc,
                                 IndividualsState
@@ -499,7 +499,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             builder: (context, state) {
                               if (state is PurchaseInvoiceLoaded) {
                                 final current = state;
-                                return GenericTextfield<
+                                return GenericTextField<
                                   AccountsModel,
                                   AccountsBloc,
                                   AccountsState
@@ -594,7 +594,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   showClearButton: true,
                                 );
                               }
-                              return GenericTextfield<
+                              return GenericTextField<
                                 AccountsModel,
                                 AccountsBloc,
                                 AccountsState
@@ -1655,8 +1655,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
     // Update landed price
     if (widget.item.landedPrice != oldWidget.item.landedPrice) {
-      final newValue =
-          widget.item.landedPrice != null && widget.item.landedPrice! > 0
+      final newValue = widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
           : '';
       if (_landedPriceController.text != newValue) {
@@ -1671,8 +1670,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
-    // Update local amount whenever anything changes
-    _updateLocalAmount();
+    // FIX: Use post frame callback to avoid setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _updateLocalAmount();
+      }
+    });
   }
 
   @override
@@ -2792,7 +2795,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   padding: const EdgeInsets.all(12.0),
                   child: Column(
                     children: [
-                      GenericTextfield<
+                      GenericTextField<
                         IndividualsModel,
                         IndividualsBloc,
                         IndividualsState
@@ -2849,7 +2852,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                         builder: (context, state) {
                           if (state is PurchaseInvoiceLoaded) {
                             final current = state;
-                            return GenericTextfield<
+                            return GenericTextField<
                               AccountsModel,
                               AccountsBloc,
                               AccountsState
@@ -2908,7 +2911,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                               showClearButton: true,
                             );
                           }
-                          return GenericTextfield<
+                          return GenericTextField<
                             AccountsModel,
                             AccountsBloc,
                             AccountsState
@@ -3117,7 +3120,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
             const SizedBox(height: 8),
 
             // Product Selection
-            GenericTextfield<ProductsModel, ProductsBloc, ProductsState>(
+            GenericTextField<ProductsModel, ProductsBloc, ProductsState>(
               title: tr.products,
               controller: productController,
               hintText: tr.products,
@@ -3250,7 +3253,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                   }
                 }
 
-                return GenericTextfield<
+                return GenericTextField<
                   StorageModel,
                   StorageBloc,
                   StorageState
@@ -4060,7 +4063,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                     children: [
                       Expanded(
                         child:
-                            GenericTextfield<
+                            GenericTextField<
                               IndividualsModel,
                               IndividualsBloc,
                               IndividualsState
@@ -4119,7 +4122,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                           builder: (context, state) {
                             if (state is PurchaseInvoiceLoaded) {
                               final current = state;
-                              return GenericTextfield<
+                              return GenericTextField<
                                 AccountsModel,
                                 AccountsBloc,
                                 AccountsState
@@ -4178,7 +4181,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                                 showClearButton: true,
                               );
                             }
-                            return GenericTextfield<
+                            return GenericTextField<
                               AccountsModel,
                               AccountsBloc,
                               AccountsState

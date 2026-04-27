@@ -3267,7 +3267,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get totalReceivable => 'مجموعه قابل دریافت';
 
   @override
-  String get duplicateEntry => 'ورود جنس تکراری';
+  String get duplicateEntry => 'این محصول قبلاً به بل شما اضافه شده است';
 
   @override
   String get addTitle => 'اضافه کردن';
@@ -3280,4 +3280,16 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get invoiceBatchHint => 'فعال و غیرفعال سازی گزینه بل عمده';
+
+  @override
+  String get duplicateProduct => 'محصول تکراری';
+
+  @override
+  String get itemAlreadyExists => 'کالا قبلاً در بل اضافه شده است';
+
+  @override
+  String get addAgain => 'افزودن مجدد';
+
+  @override
+  String get confirmAddAgain => 'آیا می‌خواهید دوباره اضافه کنید؟';
 }

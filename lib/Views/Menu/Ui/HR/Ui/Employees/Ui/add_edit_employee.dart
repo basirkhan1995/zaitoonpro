@@ -188,7 +188,7 @@ class _MobileState extends State<_Mobile> {
                       SectionTitle(title:  locale.personalInfo),
                       Padding(
                         padding: const EdgeInsets.all(12),
-                        child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                        child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                           showAllOnFocus: true,
                           controller: individualCtrl,
                           title: locale.individuals,
@@ -266,7 +266,7 @@ class _MobileState extends State<_Mobile> {
                     SectionTitle(title: locale.accountInfo),
                     Padding(
                       padding: const EdgeInsets.all(12),
-                      child: GenericTextfield<AccountsModel, AccountsBloc,
+                      child: GenericTextField<AccountsModel, AccountsBloc,
                           AccountsState>(
                         showAllOnFocus: true,
                         controller: indAccountCtrl,
@@ -710,7 +710,7 @@ class _DesktopState extends State<_Desktop> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (widget.model == null)
-                  GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                  GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                     showAllOnFocus: true,
                     controller: individualCtrl,
                     title: locale.individuals,
@@ -778,7 +778,7 @@ class _DesktopState extends State<_Desktop> {
                     showClearButton: true,
                   ),
                 if (widget.model == null) SizedBox(height: 10),
-                  GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                  GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                     showAllOnFocus: true,
                     controller: indAccountCtrl,
                     title: locale.accounts,

@@ -311,7 +311,7 @@ class _AddEditIncomeExpenseMobileState extends State<_AddEditIncomeExpenseMobile
                         ),
 
                       if (_selectedType == "Expense" && widget.existingData == null)
-                        GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                        GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                           showAllOnFocus: true,
                           controller: _accountController,
                           title: tr.accounts,
@@ -721,7 +721,7 @@ class _AddEditIncomeExpenseTabletState extends State<_AddEditIncomeExpenseTablet
                         ),
 
                       if (_selectedType == "Expense" && widget.existingData == null)
-                        GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                        GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                           showAllOnFocus: true,
                           controller: _accountController,
                           title: tr.accounts,
@@ -1159,7 +1159,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
             ],
             if (widget.existingData == null)
               if (_selectedType == "Expense") ...[
-                GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                   showAllOnFocus: true,
                   controller: _accountController,
                   title: tr.accounts,

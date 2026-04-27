@@ -1083,9 +1083,13 @@
   "amountAddedToAR": "مبلغ دریافتنی بل",
   "mixedTitle": "نقد و حساب",
   "totalReceivable": "مجموعه قابل دریافت",
-  "duplicateEntry": "ورود جنس تکراری",
+  "duplicateEntry": "این محصول قبلاً به بل شما اضافه شده است",
   "addTitle": "اضافه کردن",
   "invoiceSummary": "جزئیات بل",
   "invoiceBatch": "گزینه عمده بل",
-  "invoiceBatchHint": "فعال و غیرفعال سازی گزینه بل عمده"
+  "invoiceBatchHint": "فعال و غیرفعال سازی گزینه بل عمده",
+  "duplicateProduct": "محصول تکراری",
+  "itemAlreadyExists": "کالا قبلاً در بل اضافه شده است",
+  "addAgain": "افزودن مجدد",
+  "confirmAddAgain": "آیا می‌خواهید دوباره اضافه کنید؟"
 }

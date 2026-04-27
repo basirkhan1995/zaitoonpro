@@ -248,7 +248,7 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                     children: [
                       Expanded(
                         flex: 3,
-                        child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                        child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                           controller: _accountController,
                           title: tr.accounts,
                           hintText: tr.accNameOrNumber,

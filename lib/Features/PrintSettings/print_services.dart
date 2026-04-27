@@ -493,9 +493,9 @@ abstract class PrintServices {
         "fa": "ورودی‌های بستانکار"
       },
       "invoiceAmount": {
-        "en": "Invoice Amount",
-        "ar": "بل مجموعه",
-        "fa": "مجموعه بل"
+        "en": "Receivable Amount",
+        "ar": "ترلاسه کولو وړ مقدار",
+        "fa": "مبلغ دریافتنی"
       },
       "noDebitEntries": {
         "en": "No debit entries",
@@ -1162,7 +1162,7 @@ abstract class PrintServices {
       },
       'previousBalance':{
         'en':'Previous Amount Due',
-        'fa':'مانده حساب قبلی',
+        'fa':'صورتحساب قبلی',
         'ar':'پاتې حساب',
       },
       'payment':{
@@ -1556,7 +1556,7 @@ abstract class PrintServices {
         'ar': 'متوسط تفاوت'
       },
       'totalQty': {
-        'en': 'Total Quantity',
+        'en': 'Total QTY',
         'fa': 'کل تعداد',
         'ar': 'کل تعداد',
       },
@@ -1607,8 +1607,18 @@ abstract class PrintServices {
       },
       'newBalance': {
         'en': 'Total Amount Due',
-        'fa': 'مانده حساب جدید',
-        'ar': 'مانده حساب جدید'
+        'fa': 'صورتحساب نهایی',
+        'ar': 'صورتحساب بیلانس'
+      },
+      'usd': {
+        'en': 'USD',
+        'fa': 'دالر',
+        'ar': 'دالر'
+      },
+      'afn': {
+        'en': 'AFN',
+        'fa': 'افغانی',
+        'ar': 'افغانی'
       },
       'settled': {
         'en': 'Settled',
@@ -1980,7 +1990,7 @@ abstract class PrintServices {
       },
       "extraCharges": {
         "en": "Extra Charges",
-        "fa": "هزینه‌های اضافی",
+        "fa": "هزینه های متفرقه",
         "ar": "اضافي لګښتونه"
       },
       "creditPayment": {

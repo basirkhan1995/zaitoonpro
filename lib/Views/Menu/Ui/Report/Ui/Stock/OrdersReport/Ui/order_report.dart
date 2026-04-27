@@ -132,7 +132,7 @@ class _MobileState extends State<_Mobile> {
                 const SizedBox(height: 8),
 
                 /// 🔹 Party Selection
-                GenericTextfield<
+                GenericTextField<
                     IndividualsModel,
                     IndividualsBloc,
                     IndividualsState>(
@@ -785,7 +785,7 @@ class _TabletState extends State<_Tablet> {
                   // Party
                   SizedBox(
                     width: 300,
-                    child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                    child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                       key: const ValueKey('tablet_person_field'),
                       controller: _personController,
                       title: tr.party,
@@ -1215,7 +1215,7 @@ class _DesktopState extends State<_Desktop> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                  child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                     key: const ValueKey('person_field'),
                     controller: _personController,
                     title: tr.party,

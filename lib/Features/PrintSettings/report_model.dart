@@ -1,6 +1,8 @@
 
 import 'dart:typed_data';
 
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/features/Visibility/bloc/settings_visible_bloc.dart';
+
 class ReportModel {
   String? comName;
   String? compPhone;
@@ -19,6 +21,7 @@ class ReportModel {
   String? partyPhone;
   String? partyCity;
   String? partyProvince;
+  SettingsVisibilityState? visible;
 
   ReportModel({
     this.comName,
@@ -37,6 +40,7 @@ class ReportModel {
     this.partyPhone,
     this.partyCity,
     this.partyProvince,
+    this.visible
   });
 
   ReportModel copyWith({
@@ -54,6 +58,7 @@ class ReportModel {
     String? endDate,
     String? partyAddress,
     String? partyPhone,
+    SettingsVisibilityState? visible
     }) =>
       ReportModel(
         comName: comName ?? this.comName,
@@ -69,6 +74,7 @@ class ReportModel {
         endDate: endDate ?? this.endDate,
         baseCurrency: baseCurrency ?? this.baseCurrency,
         partyAddress: partyAddress ?? this.partyAddress,
-        partyPhone:  partyPhone ?? this.partyPhone
+        partyPhone:  partyPhone ?? this.partyPhone,
+        visible: visible ?? this.visible
       );
 }

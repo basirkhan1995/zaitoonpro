@@ -185,7 +185,7 @@ class _AddAdjustmentViewState extends State<AddAdjustmentView> {
                     children: [
                       Expanded(
                         flex: 3,
-                        child: GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                        child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                           controller: _accountController,
                           title: 'Expense Account',
                           hintText: tr.accNameOrNumber,

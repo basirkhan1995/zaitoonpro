@@ -349,7 +349,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     final state = context.watch<AuthBloc>().state;
-
     if (state is! AuthenticatedState) {
       return const SizedBox();
     }
@@ -440,6 +439,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             });
           }
         },
+
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           appBar: AppBar(
@@ -556,9 +556,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           ),
           body: ZCover(
             color: Theme.of(context).colorScheme.surface,
-            borderColor: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
+            borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            shadowColor: Theme.of(context).colorScheme.surfaceContainerHigh,
             margin: EdgeInsets.all(8),
-            radius: 8,
+            radius: 10,
             child: Form(
               key: _formKey,
               child: Padding(
@@ -572,7 +573,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Expanded(
-                          child: GenericTextfield<IndividualsModel, IndividualsBloc, IndividualsState>(
+                          child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                             key: const ValueKey('person_field'),
                             controller: _personController,
                             title: tr.customer,
@@ -620,7 +621,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             builder: (context, state) {
                               if (state is SaleInvoiceLoaded) {
                                 final current = state;
-                                return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                                return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                   key: const ValueKey('account_field'),
                                   controller: _accountController,
                                   title: tr.accounts,
@@ -695,7 +696,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   showClearButton: true,
                                 );
                               }
-                              return GenericTextfield<AccountsModel, AccountsBloc, AccountsState>(
+                              return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                 key: const ValueKey('account_field'),
                                 controller: _accountController,
                                 title: tr.accounts,
@@ -878,7 +879,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final locale = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
     TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
-
+    final visibility = context.read<SettingsVisibleBloc>().state;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       decoration: BoxDecoration(
@@ -890,6 +891,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
            const SizedBox(width: 30, child: Text('#', textAlign: TextAlign.center)),
           Expanded(child: Text(locale.products, style: title)),
             SizedBox(width: 80, child: Text(locale.qty)),
+            if(visibility.isWholeSale)
             SizedBox(width: 80, child: Text(locale.batchTitle)),
             SizedBox(width: 80, child: Text(locale.unit)),
           SizedBox(width: 120, child: Text("${locale.unitPrice} ($baseCurrency)")),
@@ -910,6 +912,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     required bool isLastRow,
     required int index,
   }) {
+    final visibility = context.read<SettingsVisibleBloc>().state;
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
 
@@ -1071,7 +1074,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.outline.withValues(alpha: .08),
+                            color: Theme.of(context).colorScheme.surfaceContainer,
                             borderRadius: const BorderRadius.only(
                               topLeft: Radius.circular(8),
                               topRight: Radius.circular(8),
@@ -1079,24 +1082,15 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ),
                           child: Row(
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: .2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.warning_rounded,
-                                  size: 24,
-                                ),
-                              ),
+
+
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Duplicate Product',
+                                      tr.duplicateProduct.toUpperCase(),
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -1106,7 +1100,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      'Item already exists in invoice',
+                                      tr.itemAlreadyExists,
                                       style: TextStyle(
                                         fontSize: 12,
                                       ),
@@ -1138,7 +1132,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: .5),
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
                                       color: Theme.of(context).colorScheme.primary.withValues(alpha: .2),
@@ -1153,13 +1147,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                           Icon(
                                             Icons.inventory_2_rounded,
                                             color: Theme.of(context).colorScheme.primary,
-                                            size: 18,
+                                            size: 20,
                                           ),
                                           const SizedBox(width: 6),
                                           Text(
-                                            'Product Details',
+                                            tr.productDetails.toUpperCase(),
                                             style: TextStyle(
-                                              fontSize: 11,
+                                              fontSize: 14,
                                               fontWeight: FontWeight.w600,
                                               color: Theme.of(context).colorScheme.primary,
                                               letterSpacing: 0.5,
@@ -1180,12 +1174,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                         const SizedBox(height: 6),
                                         Container(
                                           padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
+                                            horizontal: 8,
+                                            vertical: 3,
                                           ),
                                           decoration: BoxDecoration(
                                             color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
-                                            borderRadius: BorderRadius.circular(8),
+                                            borderRadius: BorderRadius.circular(2),
                                           ),
                                           child: Row(
                                             mainAxisSize: MainAxisSize.min,
@@ -1197,7 +1191,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
-                                                'Batch: $batch',
+                                                '${tr.batchTitle}: $batch',
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   fontWeight: FontWeight.w600,
@@ -1236,7 +1230,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Text(
-                                        'This product has already been added to your invoice.',
+                                        tr.duplicateEntry,
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Theme.of(context).colorScheme.error,
@@ -1244,18 +1238,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       ),
                                     ),
                                   ],
-                                ),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Question text
-                              Text(
-                                'Would you like to add it again?',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
 
@@ -1287,7 +1269,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       ),
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
+                                  const SizedBox(width: 5),
                                   Expanded(
                                     child: ZOutlineButton(
                                       onPressed: () {
@@ -1296,7 +1278,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       },
                                       isActive: true,
                                       label: Text(
-                                        'ADD AGAIN',
+                                        tr.addAgain,
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.bold,
@@ -1373,7 +1355,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   showAllOnFocus: true,
                 ),
               ),
-              // ... rest of your row widgets (qty, batch, unit, price, etc.)
               SizedBox(
                 width: 80,
                 child: TextField(
@@ -1390,6 +1371,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   onSubmitted: (_) => nodes[2].requestFocus(),
                 ),
               ),
+              if(visibility.isWholeSale)
               SizedBox(
                 width: 80,
                 child: TextField(
@@ -1731,7 +1713,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return ZCover(
             padding: const EdgeInsets.all(15),
             radius: 10,
-            borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: .4),
+            borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            shadowColor: Theme.of(context).colorScheme.surfaceContainer,
             color: Theme.of(context).colorScheme.surface,
             child: IntrinsicHeight(
               child: Row(
@@ -2124,6 +2107,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
   void _onSalePrint({String? invoiceNumber}) {
 
+    final visibilityState = context.read<SettingsVisibleBloc>().state;
     final state = context.read<SaleInvoiceBloc>().state;
     SaleInvoiceLoaded? current;
 
@@ -2176,7 +2160,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             account: current.customerAccount,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
             currency: baseCurrency,
             isSale: true,
@@ -2203,7 +2187,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             account: current.customerAccount,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company.copyWith(visible: visibilityState),
             selectedPrinter: selectedPrinter,
             pageFormat: pageFormat,
             copies: copies,
@@ -2232,7 +2216,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             account: current.customerAccount,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
             currency: baseCurrency,
             isSale: true,

@@ -35,6 +35,14 @@ class SaleInvoiceItem {
     this.unit,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
+  // Total number of units (qty * batch)
+  num get totalUnits {
+    if (batch != null && batch! > 0) {
+      return qty * batch!;
+    }
+    return qty.toDouble();
+  }
+
   double get singleLocalAmount {
     final rate = exchangeRate ?? 1.0;
     if (rate <= 0) return 0;
@@ -46,37 +54,49 @@ class SaleInvoiceItem {
     if (rate <= 0) return 0;
     return totalSale * rate;
   }
+
   // Get effective quantity (qty * batch, or just qty if no batch)
   num get effectiveQty {
-    if (batch != null && batch! > 0) {
-      return qty * batch!;
-    }
-    return qty.toDouble();
+    return totalUnits;
   }
-  double get totalPurchase => qty * (purPrice ?? 0);
+
+  double get totalPurchase => totalUnits * (purPrice ?? 0);
 
   double get totalSale {
-    double subtotal = effectiveQty * (salePrice ?? 0);
+    double subtotal = totalUnits * (salePrice ?? 0);
     if (discount != null && discount! > 0) {
       if (discountType == DiscountType.percentage) {
         subtotal = subtotal * (1 - discount! / 100);
       } else {
-        subtotal = subtotal - discount!;
+        // Amount discount is applied to EACH UNIT
+        // If user enters 1 USD discount and totalUnits = 10, total discount = 1 * 10 = 10
+        subtotal = subtotal - (discount! * totalUnits);
       }
     }
     return subtotal > 0 ? subtotal : 0;
   }
 
   double get discountAmount {
-    double subtotal = effectiveQty * (salePrice ?? 0);
+    double subtotal = totalUnits * (salePrice ?? 0);
     if (discount != null && discount! > 0) {
       if (discountType == DiscountType.percentage) {
         return subtotal * (discount! / 100);
       } else {
-        return discount!;
+        // Amount discount: discount per unit multiplied by total units
+        return discount! * totalUnits;
       }
     }
     return 0;
+  }
+
+  // For UI display - shows discount per unit
+  double get displayDiscountPerUnit {
+    if (discount == null || discount! <= 0) return 0;
+    if (discountType == DiscountType.percentage) {
+      return (salePrice ?? 0) * (discount! / 100);
+    } else {
+      return discount!;
+    }
   }
 
   void updateLocalAmount(double? exchangeRateValue) {

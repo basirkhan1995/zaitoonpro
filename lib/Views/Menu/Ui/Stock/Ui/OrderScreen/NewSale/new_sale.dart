@@ -1340,6 +1340,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     },
                   ),
                 ),
+              // In the discount column
               SizedBox(
                 width: 140,
                 child: Row(
@@ -1354,7 +1355,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           hintText: tr.discountTitle,
                           border: InputBorder.none,
                           isDense: true,
-                          suffixText: item.discountType == DiscountType.percentage ? '%' : null,
                         ),
                         onChanged: (value) {
                           final discount = double.tryParse(value) ?? 0;
@@ -1383,13 +1383,19 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   ],
                 ),
               ),
+
+
               SizedBox(
                 width: 140,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(item.totalSale.toAmount(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: color.primary)),
-                    if (item.discountAmount > 0) Text('(-${item.discountAmount.toAmount()})', style: const TextStyle(fontSize: 10, color: Colors.red)),
+                    if (item.discountAmount > 0)
+                      Text(
+                        '${item.displayDiscountPerUnit.toAmount()} × ${item.totalUnits} = -${item.discountAmount.toAmount()}',
+                        style: const TextStyle(fontSize: 10, color: Colors.red),
+                      ),
                   ],
                 ),
               ),

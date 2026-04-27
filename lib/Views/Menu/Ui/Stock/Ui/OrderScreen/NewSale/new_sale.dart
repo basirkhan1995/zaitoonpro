@@ -2231,20 +2231,29 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
         : 1.0;
 
     // Calculate initial cash amount in selected currency
-    double grandTotalInSelectedCurrency = _currentState.grandTotal * _cashExchangeRate;
+    final cashAmountInBase = _currentState.cashPayment;
+    double initialAmountInSelectedCurrency;
 
     if (_isPureCashMode) {
-      // In pure cash mode, amount should be the full grand total in selected currency
-      _currentCashAmountInSelectedCurrency = grandTotalInSelectedCurrency;
+      initialAmountInSelectedCurrency = _currentState.grandTotal * _cashExchangeRate;
     } else {
-      _currentCashAmountInSelectedCurrency = _currentState.cashPayment * _cashExchangeRate;
+      // If selected currency is the same as base, amount in base is correct
+      // If different, convert from base to selected currency
+      if (_selectedCashCurrency == _baseCurrency) {
+        initialAmountInSelectedCurrency = cashAmountInBase;
+      } else {
+        initialAmountInSelectedCurrency = cashAmountInBase * _cashExchangeRate;
+      }
     }
+
+    _currentCashAmountInSelectedCurrency = initialAmountInSelectedCurrency;
 
     _cashPaymentController = TextEditingController(
       text: _currentCashAmountInSelectedCurrency > 0
           ? _currentCashAmountInSelectedCurrency.toStringAsFixed(2)
           : '',
     );
+
 
     _exchangeRateController = TextEditingController(
       text: _currentState.exchangeRate != null && _currentState.exchangeRate! > 0

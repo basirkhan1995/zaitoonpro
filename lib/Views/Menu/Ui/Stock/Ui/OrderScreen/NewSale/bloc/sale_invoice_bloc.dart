@@ -571,20 +571,29 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
     // Validation
     if (current.customer == null) {
-      emit(SaleInvoiceError("pleaseSelectCustomer"));
+      emit(SaleInvoiceError(tr.selectCustomer));
       emit(savedState);
       event.completer.complete('');
       return;
     }
 
-    if (current.paymentMode == PaymentMode.cash && current.cashPayment <= 0) {
-      emit(SaleInvoiceError("Please enter cash payment amount"));
+    if (current.paymentMode == PaymentMode.cash) {
+      if(current.cashPayment != current.grandTotal || current.cashPaymentLocal != current.grandTotalLocal){
+        emit(SaleInvoiceError(tr.invalidCashAmount));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+    }
+
+    if (current.paymentMode == PaymentMode.mixed && current.customerAccount == null) {
+      emit(SaleInvoiceError(tr.selectCreditAccountMsg));
       emit(savedState);
       event.completer.complete('');
       return;
     }
 
-    if (current.paymentMode != PaymentMode.cash && current.customerAccount == null) {
+    if (current.paymentMode == PaymentMode.credit && current.customerAccount == null) {
       emit(SaleInvoiceError(tr.selectCreditAccountMsg));
       emit(savedState);
       event.completer.complete('');
@@ -592,7 +601,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     }
 
     if (current.items.isEmpty) {
-      emit(SaleInvoiceError("pleaseAddItems"));
+      emit(SaleInvoiceError(tr.addItemMsg));
       emit(savedState);
       event.completer.complete('');
       return;
@@ -600,25 +609,25 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
 
     for (var item in current.items) {
       if (item.productId.isEmpty || item.productName.isEmpty) {
-        emit(SaleInvoiceError("pleaseSelectProduct"));
+        emit(SaleInvoiceError(tr.addProductMsg));
         emit(savedState);
         event.completer.complete('');
         return;
       }
       if (item.storageId == 0 || item.storageName.isEmpty) {
-        emit(SaleInvoiceError("pleaseSelectStorage"));
+        emit(SaleInvoiceError("Please Select Storage"));
         emit(savedState);
         event.completer.complete('');
         return;
       }
       if (item.salePrice == null || item.salePrice! <= 0) {
-        emit(SaleInvoiceError("pleaseEnterValidPrice"));
+        emit(SaleInvoiceError(tr.addValidPrice));
         emit(savedState);
         event.completer.complete('');
         return;
       }
       if (item.qty <= 0) {
-        emit(SaleInvoiceError("pleaseEnterValidQuantity"));
+        emit(SaleInvoiceError(tr.addValidQty));
         emit(savedState);
         event.completer.complete('');
         return;
@@ -789,8 +798,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           errorMessage = 'Invalid product or storage ID';
         } else if (msgLower.contains('failed')) {
           errorMessage = 'Invoice creation failed. Please try again.';
-        } else if (msgLower.contains('foreign key') || msgLower.contains('constraint')) {
-          errorMessage = 'Currency configuration error. Please check your currency settings.';
         } else {
           errorMessage = message;
         }

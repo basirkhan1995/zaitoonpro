@@ -1163,10 +1163,9 @@ class InvoicePrintService extends PrintServices {
           ),
 
           if (cashPayment > 0)...[
-            pw.Divider(color: pw.PdfColors.grey300,height: 9),
             _buildCompactRow(
               language: language,
-              label: tr(text: 'cashPayment', tr: language),
+              label: tr(text: 'cashReceipt', tr: language),
               value: effectiveCashPayment,
               currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
               fontSize: 11

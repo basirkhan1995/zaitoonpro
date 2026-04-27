@@ -6531,6 +6531,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Would you like to add it again?'**
   String get confirmAddAgain;
+
+  /// No description provided for @addItemMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one item.'**
+  String get addItemMsg;
+
+  /// No description provided for @addProductMsg.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select a product.'**
+  String get addProductMsg;
+
+  /// No description provided for @addValidPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter a valid price'**
+  String get addValidPrice;
+
+  /// No description provided for @addValidQty.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter valid quantity.'**
+  String get addValidQty;
+
+  /// No description provided for @invalidCashAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash payment is not not equal to receivable amount'**
+  String get invalidCashAmount;
+
+  /// No description provided for @cashReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash Receipt'**
+  String get cashReceipt;
 }
 
 class _AppLocalizationsDelegate

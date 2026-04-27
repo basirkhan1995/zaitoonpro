@@ -1555,6 +1555,11 @@ abstract class PrintServices {
         'fa': 'متوسط تفاوت',
         'ar': 'متوسط تفاوت'
       },
+      'cashReceipt':{
+        'en': 'Cash Receipt',
+        'fa': 'دریافت نقدی',
+        'ar': 'نقدي رسید'
+      },
       'totalQty': {
         'en': 'Total QTY',
         'fa': 'کل تعداد',

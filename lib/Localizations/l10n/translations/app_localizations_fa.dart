@@ -3292,4 +3292,22 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get confirmAddAgain => 'آیا می‌خواهید دوباره اضافه کنید؟';
+
+  @override
+  String get addItemMsg => 'لطفا حداقل یک قلم جنس را وارید نمایید.';
+
+  @override
+  String get addProductMsg => 'لطفا یک جنس را انتخاب نمایید.';
+
+  @override
+  String get addValidPrice => 'لطفا قیمت را درست وارد نمایید';
+
+  @override
+  String get addValidQty => 'لطفا تعداد یا مقدار را درست وارید نمایید.';
+
+  @override
+  String get invalidCashAmount => 'مقدار نقدی معادل قابل دریافت بل نمیباشد.';
+
+  @override
+  String get cashReceipt => 'دریافت نقدی';
 }

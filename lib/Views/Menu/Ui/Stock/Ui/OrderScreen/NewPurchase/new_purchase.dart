@@ -1193,7 +1193,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       ),
                     ),
                   ],
-
                 ],
               ),
             ),

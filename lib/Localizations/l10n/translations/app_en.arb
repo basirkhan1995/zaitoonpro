@@ -1091,5 +1091,11 @@
   "duplicateProduct": "Duplicate Product",
   "itemAlreadyExists": "Item already exists in invoice",
   "addAgain": "Add Again",
-  "confirmAddAgain": "Would you like to add it again?"
+  "confirmAddAgain": "Would you like to add it again?",
+  "addItemMsg": "Please add at least one item.",
+  "addProductMsg": "Please select a product.",
+  "addValidPrice": "Please enter a valid price",
+  "addValidQty": "Please enter valid quantity.",
+  "invalidCashAmount": "Cash payment is not not equal to receivable amount",
+  "cashReceipt": "Cash Receipt"
 }

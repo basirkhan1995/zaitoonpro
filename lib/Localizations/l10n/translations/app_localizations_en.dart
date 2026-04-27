@@ -3303,4 +3303,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get confirmAddAgain => 'Would you like to add it again?';
+
+  @override
+  String get addItemMsg => 'Please add at least one item.';
+
+  @override
+  String get addProductMsg => 'Please select a product.';
+
+  @override
+  String get addValidPrice => 'Please enter a valid price';
+
+  @override
+  String get addValidQty => 'Please enter valid quantity.';
+
+  @override
+  String get invalidCashAmount =>
+      'Cash payment is not not equal to receivable amount';
+
+  @override
+  String get cashReceipt => 'Cash Receipt';
 }

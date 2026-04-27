@@ -1091,5 +1091,11 @@
   "duplicateProduct": "تکراری محصول",
   "itemAlreadyExists": "توکي دمخه په بل کې شتون لري",
   "addAgain": "بیا اضافه کول",
-  "confirmAddAgain": "ایا تاسو غواړئ بیا اضافه کړئ؟"
+  "confirmAddAgain": "ایا تاسو غواړئ بیا اضافه کړئ؟",
+  "addItemMsg": "لطفا حداقل یک قلم جنس را وارید نمایید.",
+  "addProductMsg": "لطفا یک جنس را انتخاب نمایید.",
+  "addValidPrice": "لطفا قیمت را درست وارد نمایید",
+  "addValidQty": "لطفا تعداد یا مقدار را درست وارید نمایید.",
+  "invalidCashAmount": "مقدار نقدی معادل قابل دریافت بل نمیباشد.",
+  "cashReceipt": "نقدی رسید"
 }

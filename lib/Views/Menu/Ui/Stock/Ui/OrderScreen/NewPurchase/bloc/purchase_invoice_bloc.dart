@@ -577,6 +577,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
     }
 
+    if(current.paymentMode == PaymentMode.cash){
+      if(current.cashPayment != current.grandTotalLocal || current.cashPayment != current.totalInvoice){
+        emit(PurchaseInvoiceError('Cash payment not equal to total invoice amount'));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+    }
+
     if (current.paymentMode == PaymentMode.mixed) {
       if (current.cashPayment <= 0) {
         emit(PurchaseInvoiceError('For mixed payment, cash payment must be greater than 0'));

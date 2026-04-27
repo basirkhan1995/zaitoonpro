@@ -251,98 +251,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     super.dispose();
   }
 
-  void _showValidationErrors(SaleInvoiceLoaded state) {
-    final tr = AppLocalizations.of(context)!;
 
-    if (state.customer == null) {
-      ToastManager.show(
-        context: context,
-        title: tr.errorTitle,
-        message: "Please select a customer",
-        type: ToastType.error,
-      );
-      return;
-    }
-
-    if (state.paymentMode == PaymentMode.cash && state.cashPayment <= 0) {
-      ToastManager.show(
-        context: context,
-        title: tr.errorTitle,
-        message: "Please enter cash payment amount",
-        type: ToastType.error,
-      );
-      return;
-    }
-
-    if (state.paymentMode != PaymentMode.cash && state.customerAccount == null) {
-      ToastManager.show(
-        context: context,
-        title: tr.errorTitle,
-        message: "Please select an account for credit/mixed payment",
-        type: ToastType.error,
-      );
-      return;
-    }
-
-    if (state.items.isEmpty) {
-      ToastManager.show(
-        context: context,
-        title: tr.errorTitle,
-        message: "Please add at least one item",
-        type: ToastType.error,
-      );
-      return;
-    }
-
-    // Check items
-    for (var i = 0; i < state.items.length; i++) {
-      final item = state.items[i];
-      if (item.productId.isEmpty) {
-        ToastManager.show(
-          context: context,
-          title: tr.errorTitle,
-          message: "Please select a product for item ${i + 1}",
-          type: ToastType.error,
-        );
-        return;
-      }
-      if (item.storageId == 0) {
-        ToastManager.show(
-          context: context,
-          title: tr.errorTitle,
-          message: "Please select a storage location for item ${i + 1}",
-          type: ToastType.error,
-        );
-        return;
-      }
-      if (item.salePrice == null || item.salePrice! <= 0) {
-        ToastManager.show(
-          context: context,
-          title: tr.errorTitle,
-          message: "Please enter a valid sale price for item ${i + 1}",
-          type: ToastType.error,
-        );
-        return;
-      }
-      if (item.qty <= 0) {
-        ToastManager.show(
-          context: context,
-          title: tr.errorTitle,
-          message: "Please enter a valid quantity for item ${i + 1}",
-          type: ToastType.error,
-        );
-        return;
-      }
-    }
-
-    // Generic error
-    ToastManager.show(
-      context: context,
-      title: tr.errorTitle,
-      message: "Please fill all required fields correctly",
-      type: ToastType.error,
-    );
-  }
 
 
   @override
@@ -498,12 +407,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                       return ZOutlineButton(
                         isActive: true,
                         icon: Icons.save_rounded,
-                        onPressed: (isSaving || !current.isFormValid)
-                            ? () {
-                          if (!current.isFormValid) {
-                            _showValidationErrors(current);
-                          }
-                        }
+                        onPressed: (isSaving)
+                            ? null
                             : () => _saveInvoice(context, current),
                         label: isSaving
                             ? SizedBox(
@@ -513,8 +418,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             strokeWidth: 2,
                             color: Theme.of(context).colorScheme.surface,
                           ),
-                        )
-                            : Text(tr.saveTitle),
+                        ) : Text(tr.saveTitle),
                       );
                     }
                     return const SizedBox();
@@ -530,12 +434,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                       return ZOutlineButton(
                         isActive: true,
                         icon: Icons.refresh,
-                        onPressed: (isSaving || !current.isFormValid)
-                            ? () {
-                          if (!current.isFormValid) {
-                            _showValidationErrors(current);
-                          }
-                        } : () {},
+                        onPressed: (isSaving)
+                            ? null  // Just disable the button, no error message
+                            : () => _saveInvoice(context, current),
                         label: isSaving
                             ? SizedBox(
                           width: 20,
@@ -671,9 +572,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       _accountController.text = '${value.accName} (${value.accNumber})';
                                       _selectedAccountNumber = value.accNumber;
                                     });
-
                                     context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
-
                                     final authState = context.read<AuthBloc>().state;
                                     if (authState is AuthenticatedState) {
                                       final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
@@ -1819,7 +1718,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                           if (current.paymentMode == PaymentMode.cash) ...[
                             AmountDisplay(
-                                title: tr.cashPayment,
+                                title: tr.cashReceipt,
                                 baseAmount: current.cashPayment,
                                 baseCurrency: baseCurr,
                                 convertedAmount: (current.cashCurrency != null && current.cashCurrency!.isNotEmpty && current.cashCurrency != baseCurr)?
@@ -1841,7 +1740,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ]
                           else if (current.paymentMode == PaymentMode.mixed) ...[
                               AmountDisplay(
-                                title: tr.cashPayment,
+                                title: tr.cashReceipt,
                                 baseAmount: current.cashPayment,
                                 baseCurrency: baseCurr,
                                 convertedAmount:
@@ -2009,89 +1908,26 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   }
 
   void _saveInvoice(BuildContext context, SaleInvoiceLoaded state) {
-    if (!state.isFormValid) {
-      // Show specific error messages
-      if (state.customer == null) {
-        ToastManager.show(
-          context: context,
-          title: "Validation Error",
-          message: "Please select a customer",
-          type: ToastType.error,
-        );
-      } else if (state.paymentMode == PaymentMode.cash && state.cashPayment <= 0) {
-        _showPaymentDialog(state);
-      } else if (state.paymentMode != PaymentMode.cash && state.customerAccount == null) {
-        ToastManager.show(
-          context: context,
-          title: "Validation Error",
-          message: "Please select an account for credit/mixed payment",
-          type: ToastType.error,
-        );
-      } else if (state.items.isEmpty) {
-        ToastManager.show(
-          context: context,
-          title: "Validation Error",
-          message: "Please add at least one item",
-          type: ToastType.error,
-        );
-      } else {
-        // Check items
-        for (var item in state.items) {
-          if (item.productId.isEmpty) {
-            ToastManager.show(
-              context: context,
-              title: "Validation Error",
-              message: "Please select a product for all items",
-              type: ToastType.error,
-            );
-            return;
-          }
-          if (item.storageId == 0) {
-            ToastManager.show(
-              context: context,
-              title: "Validation Error",
-              message: "Please select a storage location for all items",
-              type: ToastType.error,
-            );
-            return;
-          }
-          if (item.salePrice == null || item.salePrice! <= 0) {
-            ToastManager.show(
-              context: context,
-              title: "Validation Error",
-              message: "Please enter a valid sale price for all items",
-              type: ToastType.error,
-            );
-            return;
-          }
-          if (item.qty <= 0) {
-            ToastManager.show(
-              context: context,
-              title: "Validation Error",
-              message: "Please enter a valid quantity for all items",
-              type: ToastType.error,
-            );
-            return;
-          }
-        }
+    // Check if customer exists
+    if (state.customer == null) {
+      ToastManager.show(
+        context: context,
+        title: AppLocalizations.of(context)!.errorTitle,
+        message: AppLocalizations.of(context)!.selectCustomer,
+        type: ToastType.error,
+      );
+      return;
+    }
 
-        ToastManager.show(
-          context: context,
-          title: "Validation Error",
-          message: "Please fill all required fields correctly",
-          type: ToastType.error,
-        );
+    // If payment is cash but no cash amount set, open dialog to set it
+  if (state.paymentMode == PaymentMode.cash) {
+      if(state.cashPayment <= 0 || state.cashPaymentLocal <=0 && state.cashPayment != state.grandTotal || state.cashPaymentLocal != state.grandTotalLocal){
+        _showPaymentDialog(state);
       }
       return;
     }
 
-    // If payment is cash but no cash amount set, open dialog
-    if (state.paymentMode == PaymentMode.cash && state.cashPayment <= 0) {
-      _showPaymentDialog(state);
-      return;
-    }
-
-    // If validation passes and payment is set, save directly
+    // Let Bloc handle all validation and show errors
     final completer = Completer<String>();
     context.read<SaleInvoiceBloc>().add(
       SaveSaleInvoiceEvent(
@@ -2462,7 +2298,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
           // Update exchange rate controller if changed
           final newRate = _currentState.exchangeRate != null && _currentState.exchangeRate! > 0
-              ? _currentState.exchangeRate!.toStringAsFixed(4)
+              ? _currentState.exchangeRate!.toStringAsFixed(8)
               : '';
           if (_exchangeRateController.text != newRate) {
             _exchangeRateController.text = newRate;
@@ -2522,7 +2358,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     setState(() {
       _selectedCashCurrency = currency;
       _cashExchangeRate = rate;
-      _cashExchangeRateController.text = rate.toStringAsFixed(4);
+      _cashExchangeRateController.text = rate.toStringAsFixed(8);
 
       // Update displayed amount with new rate
       double newAmountInSelectedCurrency;
@@ -2959,7 +2795,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         ),
                         const SizedBox(height: 8),
                         AmountDisplay(
-                            title: tr.cashPayment,
+                            title: tr.cashReceipt,
                             baseAmount: cashAmountInBase,
                             baseCurrency: _baseCurrency,
                             convertedAmount: (needsCashConversion && cashAmountInBase > 0)
@@ -4033,7 +3869,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 //                   Row(
 //                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
 //                     children: [
-//                       Text(tr.cashPayment),
+//                       Text(tr.cashReceipt),
 //                       Text(
 //                         current.cashPayment.toAmount(),
 //                         style: const TextStyle(color: Colors.green),

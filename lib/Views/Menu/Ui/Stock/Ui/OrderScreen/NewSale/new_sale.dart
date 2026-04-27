@@ -650,41 +650,46 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ),
                         ),
                         const SizedBox(width: 4),
-                        if (_needsLocalConversion(context)) ...[
-                          BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                            builder: (context, state) {
-                              if (state is SaleInvoiceLoaded && state.needsExchangeRate) {
-                                final isLoading = state.isExchangeRateLoading;
-                                return Expanded(
-                                  child: ZTextFieldEntitled(
-                                    controller: _exchangeRateController,
-                                    isRequired: true,
-                                    title: tr.exchangeRate,
-                                    hint: isLoading ? tr.loading : tr.exchangeRate,
-                                    isEnabled: !isLoading,
-                                    validator: (value){
-                                      if(value.isEmpty){
-                                        return tr.required(tr.exchangeRate);
-                                      }
-                                      return null;
-                                    },
-                                    compactMode: true,
-                                    onSubmit: _onExchangeRateChanged,
-                                    trailing: isLoading ? Container(
-                                      padding: EdgeInsets.all(2),
-                                      width: 18,
-                                      height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
-                                    )
-                                        : null,
-                                    inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
-                                  ),
-                                );
-                              }
-                              return const SizedBox();
-                            },
-                          ),
-                        ],
+                        BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                          builder: (context, state) {
+                            // Check condition INSIDE the builder
+                            bool shouldShowExchangeRate = false;
+                            if (state is SaleInvoiceLoaded) {
+                              final base = baseCurrency ?? state.fromCurrency ?? '';
+                              final toCcy = state.toCurrency ?? '';
+                              shouldShowExchangeRate = base.isNotEmpty && toCcy.isNotEmpty && base != toCcy;
+                            }
+
+                            if (shouldShowExchangeRate && state is SaleInvoiceLoaded && state.needsExchangeRate) {
+                              final isLoading = state.isExchangeRateLoading;
+                              return Expanded(
+                                child: ZTextFieldEntitled(
+                                  controller: _exchangeRateController,
+                                  isRequired: true,
+                                  title: tr.exchangeRate,
+                                  hint: isLoading ? tr.loading : tr.exchangeRate,
+                                  isEnabled: !isLoading,
+                                  validator: (value){
+                                    if(value.isEmpty){
+                                      return tr.required(tr.exchangeRate);
+                                    }
+                                    return null;
+                                  },
+                                  compactMode: true,
+                                  onSubmit: _onExchangeRateChanged,
+                                  trailing: isLoading ? Container(
+                                    padding: EdgeInsets.all(2),
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  ) : null,
+                                  inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
+                                ),
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
                         const SizedBox(width: 4),
                         Expanded(
                           flex: 2,
@@ -698,7 +703,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                     const SizedBox(height: 8),
 
-                    _buildItemsHeader(context),
+                    BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                      builder: (context, state) {
+                        return _buildItemsHeader(context);
+                      },
+                    ),
                     const SizedBox(height: 8),
 
                     Expanded(
@@ -779,6 +788,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final color = Theme.of(context).colorScheme;
     TextStyle? title = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.surface);
     final visibility = context.read<SettingsVisibleBloc>().state;
+    final needsLocalConv = _needsLocalConversion(context);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       decoration: BoxDecoration(
@@ -794,7 +804,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             SizedBox(width: 80, child: Text(locale.batchTitle)),
             SizedBox(width: 80, child: Text(locale.unit)),
           SizedBox(width: 120, child: Text("${locale.unitPrice} ($baseCurrency)")),
-          if (_needsLocalConversion(context))
+          if (needsLocalConv)
             SizedBox(width: 120, child: Text("${locale.unitPrice} (${_getAccountCurrency(context)})")),
             SizedBox(width: 140, child: Text(locale.discountTitle)),
           SizedBox(width: 140, child: Text("${locale.totalTitle} ($baseCurrency)")),
@@ -837,7 +847,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final batchController = _pcsControllers.putIfAbsent(
       "sale_${item.rowId}",
           () => TextEditingController(
-        text: item.batch != null && item.batch! > 0 ? item.batch!.toAmount() : '',
+        text: item.batch != null && item.batch! > 0 ? item.batch!.toAmount(decimal: 0) : '',
       ),
     );
     final unitController = TextEditingController(text: item.unit ?? '');

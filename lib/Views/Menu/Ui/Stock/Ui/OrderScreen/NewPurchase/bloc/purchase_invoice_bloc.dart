@@ -818,7 +818,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           // Landed price = purchase price + (allocated expense / quantity)
           landedPriceForDisplay = (item.purPrice ?? 0.0) + (allocatedExpense / item.qty);
         }
-
         return item.copyWith(landedPrice: landedPriceForDisplay);
       }).toList();
 

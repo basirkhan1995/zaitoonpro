@@ -67,6 +67,21 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return subtotal * safeExchangeRate;
   }
 
+
+  double get supplierAccountPayment {
+    if (supplierAccount == null) return 0.0;
+
+    // Calculate amount to be paid to supplier account
+    if (paymentMode == PaymentMode.credit) {
+      return subtotal; // Full amount to supplier
+    } else if (paymentMode == PaymentMode.mixed) {
+      return subtotal - cashPayment; // Remaining after cash payment
+    } else if (paymentMode == PaymentMode.cash) {
+      return 0.0; // No supplier account payment in cash mode
+    }
+    return 0.0;
+  }
+
   double get totalExpenses {
     return expenses.fold(0.0, (sum, expense) => sum + expense.amount);
   }
@@ -85,14 +100,14 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return 0.0;
   }
 
-  double get supplierAccountPayment {
-    for (var payment in payments) {
-      if (!payment.isExpense && payment.accountNumber >= 500000) {
-        return payment.amount;
-      }
-    }
-    return 0.0;
-  }
+  // double get supplierAccountPayment {
+  //   for (var payment in payments) {
+  //     if (!payment.isExpense && payment.accountNumber >= 500000) {
+  //       return payment.amount;
+  //     }
+  //   }
+  //   return 0.0;
+  // }
   double get creditAmountLocal {
     if (exchangeRate == null || exchangeRate == 0) return creditAmount;
     return creditAmount * exchangeRate!;

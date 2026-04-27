@@ -42,12 +42,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<LoadSaleInvoiceForEditEvent>(_onLoadSaleInvoiceForEdit);
   }
 
-
-
-  Future<void> _onLoadSaleInvoiceForEdit(
-      LoadSaleInvoiceForEditEvent event,
-      Emitter<SaleInvoiceState> emit,
-      ) async {
+  Future<void> _onLoadSaleInvoiceForEdit(LoadSaleInvoiceForEditEvent event, Emitter<SaleInvoiceState> emit) async {
     emit(SaleInvoiceLoading());
 
     try {

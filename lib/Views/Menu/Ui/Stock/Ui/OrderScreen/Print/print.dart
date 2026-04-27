@@ -733,7 +733,10 @@ class InvoicePrintService extends PrintServices {
     }
 
     return pw.Table(
-      border: pw.TableBorder.all(color: pw.PdfColors.grey300, width: 1),
+      border: pw.TableBorder(
+        bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 1),
+        horizontalInside: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5),
+      ),
       columnWidths: columnWidths,
       children: [
         // Header Row
@@ -761,10 +764,16 @@ class InvoicePrintService extends PrintServices {
                 ? _buildRtlRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report)
                 : _buildLtrRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report),
           ),
+        // Bottom Border Row (adds border at bottom of table)
+        pw.TableRow(
+          children: List.generate(
+            headers.length,
+                (index) => pw.Container(height: 0),
+          ),
+        ),
       ],
     );
   }
-
   // ==================== LTR ROW ====================
   List<pw.Widget> _buildLtrRow(
       InvoiceItem item,

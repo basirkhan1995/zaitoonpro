@@ -112,7 +112,6 @@ class OrderParser {
     return payments;
   }
 
-  // ============ SALE INVOICE SPECIFIC ============
 
   // Add this for purchase cash currency
   static String getPurchaseCashCurrency(List<Map<String, dynamic>> payments) {
@@ -245,18 +244,25 @@ class OrderParser {
     return expenses.fold(0.0, (sum, e) => sum + (e['amount'] as double));
   }
 
-
-
-
   // ============ COMMON ============
 
   // Get exchange rate from narration
   static double getExchangeRate(List<Map<String, dynamic>> payments) {
     for (var payment in payments) {
-      final narration = payment['narration'] as String;
-      final match = RegExp(r'@Rate:\s*([\d.]+)').firstMatch(narration);
-      if (match != null) {
-        return double.parse(match.group(1)!);
+      final account = payment['account'];
+
+      // ONLY look at stakeholder accounts (500000 and above)
+      // Don't check drCr because stakeholder can be Dr (Sale) or Cr (Purchase)
+      if (account is int && account >= stakeholderMin) {
+        final narration = payment['narration'] as String;
+        final match = RegExp(r'@Rate:\s*([\d.]+)').firstMatch(narration);
+        if (match != null) {
+          final rate = double.parse(match.group(1)!);
+          // Only return if rate is not 1.0 (in case there are multiple stakeholder accounts)
+          if (rate != 1.0) {
+            return rate;
+          }
+        }
       }
     }
     return 1.0;

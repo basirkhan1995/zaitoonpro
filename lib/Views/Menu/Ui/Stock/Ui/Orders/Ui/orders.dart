@@ -1093,7 +1093,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                   } else {
                                     Utils.goto(
                                         context,
-                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : NewPurchaseOrderView(editOrderId: ord.ordId)
+                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : NewPurchaseOrderView(orderId: ord.ordId)
                                     );
                                   }
                                 },

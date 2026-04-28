@@ -33,6 +33,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final double cashExchangeRate;
   final String? xRef;
   final String? remark;
+  final int? orderId;
 
   const PurchaseInvoiceLoaded({
     required this.items,
@@ -41,7 +42,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     this.supplierAccount,
     this.paymentMode = PaymentMode.cash,
     this.storages,
-    this.exchangeRate,
+    this.exchangeRate = 1.0,
     this.fromCurrency,
     this.toCurrency,
     this.cashPayment = 0.0,
@@ -49,6 +50,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     this.cashExchangeRate = 1.0,
     this.xRef,
     this.remark,
+    this.orderId
   });
 
   List<PurchasePaymentRecord> get expenses =>
@@ -100,14 +102,6 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return 0.0;
   }
 
-  // double get supplierAccountPayment {
-  //   for (var payment in payments) {
-  //     if (!payment.isExpense && payment.accountNumber >= 500000) {
-  //       return payment.amount;
-  //     }
-  //   }
-  //   return 0.0;
-  // }
   double get creditAmountLocal {
     if (exchangeRate == null || exchangeRate == 0) return creditAmount;
     return creditAmount * exchangeRate!;
@@ -209,7 +203,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     String? cashCurrency,
     double? cashExchangeRate,
     String? xRef,
-    String? remark
+    String? remark,
+    int? orderId,
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
@@ -225,7 +220,9 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       cashCurrency: cashCurrency ?? this.cashCurrency,
       cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
       xRef: xRef ?? this.xRef,
-      remark: remark ?? this.remark
+      remark: remark ?? this.remark,
+      orderId: orderId ?? this.orderId
+
     );
   }
 
@@ -244,7 +241,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     cashCurrency,
     cashExchangeRate,
     xRef,
-    remark
+    remark,
+    orderId,
   ];
 }
 

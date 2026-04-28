@@ -36,20 +36,22 @@ import '../../../../Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
+import '../../Orders/bloc/orders_bloc.dart';
 import '../Print/print.dart';
 import 'bloc/purchase_invoice_bloc.dart';
 import 'expense_section.dart';
 import 'model/purchase_invoice_items.dart';
 
 class NewPurchaseOrderView extends StatelessWidget {
-  final int? editOrderId;
-  const NewPurchaseOrderView({super.key,this.editOrderId});
+  final int? orderId;
+  final String? ref;
+  const NewPurchaseOrderView({super.key,this.orderId,this.ref});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
       mobile: const _MobilePurchaseOrderView(),
-      desktop:  _DesktopPurchaseOrderView(editOrderId),
+      desktop:  _DesktopPurchaseOrderView(orderId,ref),
       tablet: const _TabletPurchaseOrderView(),
     );
   }
@@ -58,7 +60,8 @@ class NewPurchaseOrderView extends StatelessWidget {
 // Desktop Version (Original)
 class _DesktopPurchaseOrderView extends StatefulWidget {
   final int? orderId;
-  const _DesktopPurchaseOrderView(this.orderId);
+  final String? ref;
+  const _DesktopPurchaseOrderView(this.orderId,this.ref);
 
   @override
   State<_DesktopPurchaseOrderView> createState() =>
@@ -72,7 +75,38 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _exchangeRateController = TextEditingController();
   final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  void _confirmDeleteOrder() {
+    final tr = AppLocalizations.of(context)!;
 
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(tr.areYouSure),
+        content: Text('Confirm Delete Order #${widget.orderId}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(tr.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<OrdersBloc>().add(
+                DeleteOrderEvent(
+                  orderId: widget.orderId!,
+                  usrName: _userName??"",
+                  ref: widget.ref,
+                  orderName: 'Purchase',
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(tr.delete),
+          ),
+        ],
+      ),
+    );
+  }
   void _showExpensesDialog(BuildContext context) {
     final state = context.read<PurchaseInvoiceBloc>().state;
     if (state is PurchaseInvoiceLoaded) {
@@ -149,7 +183,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   void _onExchangeRateChanged(String value) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 300), () {
+    _debounce = Timer(const Duration(milliseconds: 2000), () {
       final rate = double.tryParse(value.replaceAll(',', ''));
 
       if (rate != null && rate > 0) {
@@ -313,8 +347,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                 type: ToastType.success,
               );
               WidgetsBinding.instance.addPostFrameCallback((_) async {
-                if (savedInvoiceNumber != null &&
-                    savedInvoiceNumber.isNotEmpty) {
+                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
                   _onPrint(invoiceNumber: savedInvoiceNumber);
                 }
               });
@@ -366,11 +399,23 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             titleSpacing: 0,
             actionsPadding: const EdgeInsets.symmetric(horizontal: 12),
             actions: [
-              ZOutlineButton(
-                icon: Icons.lock_reset_outlined,
-                onPressed: _resetForm,
-                label: Text(tr.newPurchase),
-              ),
+              if(widget.orderId !=null && widget.orderId!> 0)
+                ZOutlineButton(
+                  icon: Icons.delete_outline_rounded,
+                  backgroundHover: Theme.of(context).colorScheme.error,
+                  onPressed: _confirmDeleteOrder,
+                  label: Text(tr.delete),
+                ),
+
+              if(widget.orderId ==null)...[
+                const SizedBox(width: 8),
+                ZOutlineButton(
+                  icon: Icons.lock_reset_outlined,
+                  onPressed: _resetForm,
+                  label: Text(tr.newPurchase),
+                ),
+              ],
+
               const SizedBox(width: 8),
               ZOutlineButton(
                 icon: Icons.outbond_outlined,
@@ -439,11 +484,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         Expanded(
                           flex: 2,
                           child:
-                              GenericTextField<
-                                IndividualsModel,
-                                IndividualsBloc,
-                                IndividualsState
-                              >(
+                              GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                                 key: const ValueKey('person_field'),
                                 controller: _personController,
                                 title: tr.supplier,
@@ -682,6 +723,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                             RegExp(r'^\d*\.?\d{0,6}'),
                                           ),
                                         ],
+                                        onChanged: _onExchangeRateChanged,
                                         onSubmit: _onExchangeRateChanged,
                                         end: isLoading
                                             ? const SizedBox(
@@ -1174,7 +1216,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               const SizedBox(height: 4),
                               _buildSummaryRow(
                                 label: tr.invoiceAmount,
-                                value: current.supplierAccountPayment * current.exchangeRate!,
+                                value: current.supplierAccountPayment * (current.exchangeRate ?? 1.0),
                                 color: Colors.orange,
                                 currency: current.supplierAccount!.actCurrency,
                               ),
@@ -1350,8 +1392,20 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return;
     }
 
-    final needsConversion =
-        current.supplierAccount?.actCurrency != null &&
+    // Determine the invoice number to use
+    final String finalInvoiceNumber;
+    if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
+      // Case 1: After saving, use the returned invoice number
+      finalInvoiceNumber = invoiceNumber;
+    } else if (widget.orderId != null && widget.orderId! > 0) {
+      // Case 2: When loading an existing invoice, use the widget.orderId
+      finalInvoiceNumber = widget.orderId.toString();
+    } else {
+      // Case 3: New invoice - leave empty, API will generate
+      finalInvoiceNumber = '';
+    }
+
+    final needsConversion = current.supplierAccount?.actCurrency != null &&
         baseCurrency != null &&
         baseCurrency != current.supplierAccount!.actCurrency;
 
@@ -1394,8 +1448,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         total: item.totalPurchase,
         storageName: item.storageName,
         localAmount: item.singleLocalAmount,
-        localCurrency:
-            current?.supplierAccount?.actCurrency ?? current?.toCurrency,
+        localCurrency: current?.supplierAccount?.actCurrency ?? current?.toCurrency,
         exchangeRate: current?.exchangeRate,
       );
     }).toList();
@@ -1408,105 +1461,100 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         data: null,
         company: company,
         buildPreview: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return InvoicePrintService().printInvoicePreview(
-                invoiceType: "Purchase",
-                invoiceNumber: invoiceNumber ?? "",
-                reference: _xRefController.text,
-                invoiceDate: DateTime.now(),
-                customerSupplierName: current?.supplier?.perName ?? "",
-                items: invoiceItems,
-                grandTotal: current!.subtotal,
-                cashPayment: current.cashPayment,
-                creditAmount: current.creditAmount,
-                account: current.supplierAccount,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-                currency: baseCurrency,
-                isSale: false,
-                totalLocalAmount: needsConversion ? totalLocalAmount : null,
-                localCurrency: needsConversion
-                    ? (current.supplierAccount?.actCurrency ??
-                          current.toCurrency)
-                    : null,
-                exchangeRate: needsConversion ? current.exchangeRate : null,
-              );
-            },
-        onPrint:
-            ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-              required selectedPrinter,
-              required copies,
-              required pages,
-            }) {
-              return InvoicePrintService().printInvoiceDocument(
-                invoiceType: "Purchase",
-                invoiceNumber: invoiceNumber ?? "",
-                reference: _xRefController.text,
-                invoiceDate: DateTime.now(),
-                customerSupplierName: current?.supplier?.perName ?? "",
-                items: invoiceItems,
-                grandTotal: current!.subtotal,
-                cashPayment: current.cashPayment,
-                creditAmount: current.creditAmount,
-                account: current.supplierAccount,
-                language: language,
-                orientation: orientation,
-                company: company,
-                selectedPrinter: selectedPrinter,
-                pageFormat: pageFormat,
-                copies: copies,
-                currency: baseCurrency,
-                isSale: false,
-                totalLocalAmount: needsConversion ? totalLocalAmount : null,
-                localCurrency: needsConversion
-                    ? (current.supplierAccount?.actCurrency ??
-                          current.toCurrency)
-                    : null,
-                exchangeRate: needsConversion ? current.exchangeRate : null,
-              );
-            },
-        onSave:
-            ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return InvoicePrintService().createInvoiceDocument(
-                invoiceType: "Purchase",
-                invoiceNumber: invoiceNumber ?? "",
-                reference: _xRefController.text,
-                invoiceDate: DateTime.now(),
-                customerSupplierName: current?.supplier?.perName ?? "",
-                items: invoiceItems,
-                grandTotal: current!.subtotal,
-                cashPayment: current.cashPayment,
-                creditAmount: current.creditAmount,
-                account: current.supplierAccount,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-                currency: baseCurrency,
-                isSale: false,
-                totalLocalAmount: needsConversion ? totalLocalAmount : null,
-                localCurrency: needsConversion
-                    ? (current.supplierAccount?.actCurrency ??
-                          current.toCurrency)
-                    : null,
-                exchangeRate: needsConversion ? current.exchangeRate : null,
-              );
-            },
+          required data,
+          required language,
+          required orientation,
+          required pageFormat,
+        }) {
+          return InvoicePrintService().printInvoicePreview(
+            invoiceType: "Purchase",
+            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            reference: _xRefController.text,
+            invoiceDate: DateTime.now(),
+            customerSupplierName: current?.supplier?.perName ?? "",
+            items: invoiceItems,
+            grandTotal: current!.subtotal,
+            cashPayment: current.cashPayment,
+            creditAmount: current.creditAmount,
+            account: current.supplierAccount,
+            language: language,
+            orientation: orientation,
+            company: company,
+            pageFormat: pageFormat,
+            currency: baseCurrency,
+            isSale: false,
+            totalLocalAmount: needsConversion ? totalLocalAmount : null,
+            localCurrency: needsConversion
+                ? (current.supplierAccount?.actCurrency ?? current.toCurrency)
+                : null,
+            exchangeRate: needsConversion ? current.exchangeRate : null,
+          );
+        },
+        onPrint: ({
+          required data,
+          required language,
+          required orientation,
+          required pageFormat,
+          required selectedPrinter,
+          required copies,
+          required pages,
+        }) {
+          return InvoicePrintService().printInvoiceDocument(
+            invoiceType: "Purchase",
+            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            reference: _xRefController.text,
+            invoiceDate: DateTime.now(),
+            customerSupplierName: current?.supplier?.perName ?? "",
+            items: invoiceItems,
+            grandTotal: current!.subtotal,
+            cashPayment: current.cashPayment,
+            creditAmount: current.creditAmount,
+            account: current.supplierAccount,
+            language: language,
+            orientation: orientation,
+            company: company,
+            selectedPrinter: selectedPrinter,
+            pageFormat: pageFormat,
+            copies: copies,
+            currency: baseCurrency,
+            isSale: false,
+            totalLocalAmount: needsConversion ? totalLocalAmount : null,
+            localCurrency: needsConversion
+                ? (current.supplierAccount?.actCurrency ?? current.toCurrency)
+                : null,
+            exchangeRate: needsConversion ? current.exchangeRate : null,
+          );
+        },
+        onSave: ({
+          required data,
+          required language,
+          required orientation,
+          required pageFormat,
+        }) {
+          return InvoicePrintService().createInvoiceDocument(
+            invoiceType: "Purchase",
+            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            reference: _xRefController.text,
+            invoiceDate: DateTime.now(),
+            customerSupplierName: current?.supplier?.perName ?? "",
+            items: invoiceItems,
+            grandTotal: current!.subtotal,
+            cashPayment: current.cashPayment,
+            creditAmount: current.creditAmount,
+            account: current.supplierAccount,
+            language: language,
+            orientation: orientation,
+            company: company,
+            pageFormat: pageFormat,
+            currency: baseCurrency,
+            isSale: false,
+            totalLocalAmount: needsConversion ? totalLocalAmount : null,
+            localCurrency: needsConversion
+                ? (current.supplierAccount?.actCurrency ?? current.toCurrency)
+                : null,
+            exchangeRate: needsConversion ? current.exchangeRate : null,
+          );
+        },
       ),
     );
   }

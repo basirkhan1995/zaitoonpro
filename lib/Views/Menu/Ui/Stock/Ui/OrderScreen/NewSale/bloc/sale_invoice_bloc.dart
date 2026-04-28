@@ -64,17 +64,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       final parsed = OrderParser.parseOrderResponse(response);
       final records = parsed['records'] as List<Map<String, dynamic>>;
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
+      final orderId = parsed['orderId'] as int? ?? event.orderId;
 
-      // Get exchange rate for account conversion (from base to account currency)
-      double accountExchangeRate = 1.0;
-      for (var payment in payments) {
-        final narration = payment['narration'] as String;
-        final match = RegExp(r'@Rate:\s*([\d.]+)').firstMatch(narration);
-        if (match != null) {
-          accountExchangeRate = double.parse(match.group(1)!);
-          break;
-        }
-      }
+      // FIX: Use OrderParser.getExchangeRate() to get rate ONLY from stakeholder accounts
+      double accountExchangeRate = OrderParser.getExchangeRate(payments);
 
       // Build items with local amount calculation
       final List<SaleInvoiceItem> items = [];
@@ -228,13 +221,13 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         generalDiscountType: generalDiscountType,
         xRef: parsed['reference'],
         remark: parsed['remarks'],
+        orderId: orderId
       ));
 
     } catch (e) {
       emit(SaleInvoiceError('Failed to load invoice: $e'));
     }
   }
-
   void setBaseCurrency(String currency) {
     _baseCurrency = currency;
   }

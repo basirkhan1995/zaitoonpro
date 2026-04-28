@@ -26,7 +26,7 @@ class PurchaseInvoiceItem {
     required this.storageId,
     this.localAmount,
     this.exchangeRate,
-    this.unit
+    this.unit,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   double get totalQty => qty.toDouble() * stkBatch;
@@ -78,7 +78,7 @@ class PurchaseInvoiceItem {
       storageName: storageName ?? this.storageName,
       localAmount: localAmount ?? this.localAmount,
       exchangeRate: exchangeRate ?? this.exchangeRate,
-      unit: unit ?? this.unit
+      unit: unit ?? this.unit,
     );
   }
 }

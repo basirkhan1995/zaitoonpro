@@ -2035,7 +2035,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   }
 
   void _onSalePrint({String? invoiceNumber}) {
-
     final visibilityState = context.read<SettingsVisibleBloc>().state;
     final state = context.read<SaleInvoiceBloc>().state;
     SaleInvoiceLoaded? current;
@@ -2049,6 +2048,19 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     if (current == null) {
       Utils.showOverlayMessage(context, message: 'Cannot print: No invoice data available', isError: true);
       return;
+    }
+
+    // Determine the invoice number to use
+    final String finalInvoiceNumber;
+    if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
+      // Case 1: After saving, use the returned invoice number
+      finalInvoiceNumber = invoiceNumber;
+    } else if (widget.orderId != null && widget.orderId! > 0) {
+      // Case 2: When loading an existing invoice, use the widget.orderId
+      finalInvoiceNumber = widget.orderId.toString();
+    } else {
+      // Case 3: New invoice - leave empty
+      finalInvoiceNumber = '';
     }
 
     final needsConversion = current.needsExchangeRate;
@@ -2078,7 +2090,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         buildPreview: ({required data, required language, required orientation, required pageFormat}) {
           return InvoicePrintService().printInvoicePreview(
             invoiceType: "Sale",
-            invoiceNumber: invoiceNumber ?? "",
+            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2106,7 +2118,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         onPrint: ({required data, required language, required orientation, required pageFormat, required selectedPrinter, required copies, required pages}) {
           return InvoicePrintService().printInvoiceDocument(
             invoiceType: "Sale",
-            invoiceNumber: invoiceNumber ?? "",
+            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2136,7 +2148,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         onSave: ({required data, required language, required orientation, required pageFormat}) {
           return InvoicePrintService().createInvoiceDocument(
             invoiceType: "Sale",
-            invoiceNumber: invoiceNumber ?? "",
+            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2180,6 +2192,19 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       return;
     }
 
+    // Determine the invoice number to use
+    final String finalInvoiceNumber;
+    if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
+      // Case 1: After saving, use the returned invoice number
+      finalInvoiceNumber = invoiceNumber;
+    } else if (widget.orderId != null && widget.orderId! > 0) {
+      // Case 2: When loading an existing invoice, use the widget.orderId
+      finalInvoiceNumber = widget.orderId.toString();
+    } else {
+      // Case 3: New invoice - leave empty
+      finalInvoiceNumber = '';
+    }
+
     // Convert to StockDocumentItem (only needs: productName, quantity, batch, storageName)
     final List<StockDocumentItem> stockItems = current.items.map((item) {
       return SaleStockItem(
@@ -2202,7 +2227,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         buildPreview: ({required data, required language, required orientation, required pageFormat}) {
           return StockDocumentPrintService().previewStockDocument(
             documentType: "Sale",
-            documentNumber: invoiceNumber ?? "",
+            documentNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
             reference: _xRefController.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2217,7 +2242,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         onPrint: ({required data, required language, required orientation, required pageFormat, required selectedPrinter, required copies, required pages}) {
           return StockDocumentPrintService().printStockDocument(
             documentType: "Sale",
-            documentNumber: invoiceNumber ?? "",
+            documentNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
             reference: _xRefController.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2234,7 +2259,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         onSave: ({required data, required language, required orientation, required pageFormat}) {
           return StockDocumentPrintService().createStockDocument(
             documentType: "Sale",
-            documentNumber: invoiceNumber ?? "",
+            documentNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
             reference: _xRefController.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",

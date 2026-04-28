@@ -47,3 +47,20 @@ final class OrdersStatusUpdatedState extends OrdersState {
   @override
   List<Object> get props => [message];
 }
+
+final class OrdersDeletingState extends OrdersState {
+  final int orderId;
+  const OrdersDeletingState(this.orderId);
+
+  @override
+  List<Object> get props => [orderId];
+}
+
+final class OrdersDeletedState extends OrdersState {
+  final bool success;
+  final String message;
+  const OrdersDeletedState(this.success, {required this.message});
+
+  @override
+  List<Object> get props => [success, message];
+}

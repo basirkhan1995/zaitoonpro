@@ -40,6 +40,14 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
     on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
     on<LoadSaleInvoiceForEditEvent>(_onLoadSaleInvoiceForEdit);
+    on<UpdateRemarkEvent>(_onUpdateRemark);
+  }
+
+  void _onUpdateRemark(UpdateRemarkEvent event, Emitter<SaleInvoiceState> emit) {
+    if (state is SaleInvoiceLoaded) {
+      final current = state as SaleInvoiceLoaded;
+      emit(current.copyWith(remark: event.remark));
+    }
   }
 
   Future<void> _onLoadSaleInvoiceForEdit(LoadSaleInvoiceForEditEvent event, Emitter<SaleInvoiceState> emit) async {

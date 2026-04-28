@@ -5359,7 +5359,7 @@ abstract class AppLocalizations {
   /// No description provided for @availableTitle.
   ///
   /// In en, this message translates to:
-  /// **'Available'**
+  /// **'Available Stock'**
   String get availableTitle;
 
   /// No description provided for @basicInformation.

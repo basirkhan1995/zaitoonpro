@@ -34,20 +34,22 @@ import '../../../../Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
+import '../../Orders/bloc/orders_bloc.dart';
 import '../Print/print.dart';
 import '../Print/stock_document.dart';
 import 'model/sale_invoice_items.dart';
 
 class NewSaleView extends StatelessWidget {
   final int? orderId;
-  const NewSaleView({super.key,this.orderId});
+  final String? ref;
+  const NewSaleView({super.key,this.orderId,this.ref});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: _DesktopNewSaleView(orderId),
-      desktop: _DesktopNewSaleView(orderId),
-      tablet: _DesktopNewSaleView(orderId),
+      mobile: _DesktopNewSaleView(orderId,ref),
+      desktop: _DesktopNewSaleView(orderId,ref),
+      tablet: _DesktopNewSaleView(orderId,ref),
     );
   }
 }
@@ -55,7 +57,8 @@ class NewSaleView extends StatelessWidget {
 
 class _DesktopNewSaleView extends StatefulWidget {
   final int? orderId;
-  const _DesktopNewSaleView(this.orderId);
+  final String? ref;
+  const _DesktopNewSaleView(this.orderId,this.ref);
 
   @override
   State<_DesktopNewSaleView> createState() => _DesktopNewSaleViewState();
@@ -68,7 +71,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   final TextEditingController _generalDiscountController = TextEditingController();
   final TextEditingController _exchangeRateController = TextEditingController();
   final TextEditingController _extraChargesController = TextEditingController();
-
+  Timer? _remarkDebounce;
   final List<List<FocusNode>> _rowFocusNodes = [];
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   Uint8List _companyLogo = Uint8List(0);
@@ -87,6 +90,50 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   Timer? _debounce;
   bool toggleProfit = true;
 
+  void _confirmDeleteOrder() {
+    final tr = AppLocalizations.of(context)!;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(tr.areYouSure),
+        content: Text('Confirm Delete Order #${widget.orderId}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(tr.cancel),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<OrdersBloc>().add(
+                DeleteOrderEvent(
+                  orderId: widget.orderId!,
+                  usrName: _userName??"",
+                  ref: widget.ref,
+                  orderName: 'Sale',
+                ),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(tr.delete),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onRemarkChanged(String value) {
+    // Cancel existing timer
+    _remarkDebounce?.cancel();
+
+    // Start new timer
+    _remarkDebounce = Timer(const Duration(milliseconds: 2000), () {
+      if (mounted) {
+        context.read<SaleInvoiceBloc>().add(UpdateRemarkEvent(value));
+      }
+    });
+  }
   void _onExchangeRateChanged(String value) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
@@ -225,6 +272,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         node.dispose();
       }
     }
+    _remarkDebounce?.cancel();
+
     _accountController.dispose();
     _personController.dispose();
     _xRefController.dispose();
@@ -251,9 +300,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
     super.dispose();
   }
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -378,6 +424,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   label: Text(tr.setReminder),
                 ),
               ],
+              if(widget.orderId !=null && widget.orderId!> 0)
+              ZOutlineButton(
+                icon: Icons.delete_outline_rounded,
+                backgroundHover: Theme.of(context).colorScheme.error,
+                onPressed: _confirmDeleteOrder,
+                label: Text(tr.delete),
+              ),
               const SizedBox(width: 8),
               ZOutlineButton(
                 icon: Icons.refresh,
@@ -708,8 +761,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                               Expanded(
                                 flex: 2,
                                 child: ZTextFieldEntitled(
+                                  showClearButton: true,
                                   controller: _remarkController,
+                                  maxLength: 100,
                                   title: tr.remark,
+                                  onChanged: _onRemarkChanged
                                 ),
                               ),
                             ],
@@ -776,6 +832,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     _discountControllers.clear();
     _localeAmountControllers.clear();
     context.read<SaleInvoiceBloc>().add(InitializeSaleInvoiceEvent());
+
+    //TO reset
+    context.read<SaleInvoiceBloc>().add(const UpdateRemarkEvent(''));
   }
 
   void _clearAllControllers() {
@@ -2029,6 +2088,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             creditAmount: current.creditAmount,
             account: current.customerAccount,
             language: language,
+            remark: current.remark,
             orientation: orientation,
             company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
@@ -2052,6 +2112,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             customerSupplierName: current!.customer?.perName ?? "",
             items: invoiceItems,
             grandTotal: current.grandTotal,
+            remark: current.remark,
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.customerAccount,
@@ -2084,6 +2145,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             cashPayment: current.cashPayment,
             creditAmount: current.creditAmount,
             account: current.customerAccount,
+            remark: current.remark,
             language: language,
             orientation: orientation,
             company: company.copyWith(visible: visibilityState),
@@ -2150,9 +2212,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             orientation: orientation,
             company: company,
             pageFormat: pageFormat,
-            driverName: null,        // Leave empty for manual writing
-            executedBy: null,        // Leave empty for manual writing
-            authorizedBy: null,      // Leave empty for manual writing
           );
         },
         onPrint: ({required data, required language, required orientation, required pageFormat, required selectedPrinter, required copies, required pages}) {
@@ -2170,9 +2229,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             selectedPrinter: selectedPrinter,
             pageFormat: pageFormat,
             copies: copies,
-            driverName: null,        // Leave empty for manual writing
-            executedBy: null,        // Leave empty for manual writing
-            authorizedBy: null,      // Leave empty for manual writing
           );
         },
         onSave: ({required data, required language, required orientation, required pageFormat}) {
@@ -2188,9 +2244,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             orientation: orientation,
             company: company,
             pageFormat: pageFormat,
-            driverName: null,        // Leave empty for manual writing
-            executedBy: null,        // Leave empty for manual writing
-            authorizedBy: null,      // Leave empty for manual writing
           );
         },
       ),

@@ -2711,7 +2711,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get codeTitle => 'Code';
 
   @override
-  String get availableTitle => 'Available';
+  String get availableTitle => 'Available Stock';
 
   @override
   String get basicInformation => 'Basic Information';

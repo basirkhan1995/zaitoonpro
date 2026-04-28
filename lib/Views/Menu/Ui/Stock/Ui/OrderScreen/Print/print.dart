@@ -119,6 +119,7 @@ class InvoicePrintService extends PrintServices {
     required ReportModel company,
     required pw.PdfPageFormat pageFormat,
     required bool isSale,
+    String? remark,
     String? currency,
     double? totalLocalAmount,
     String? localCurrency,
@@ -133,6 +134,7 @@ class InvoicePrintService extends PrintServices {
         invoiceType: invoiceType,
         invoiceNumber: invoiceNumber,
         reference: reference,
+        remark: remark,
         invoiceDate: invoiceDate,
         customerSupplierName: customerSupplierName,
         items: items,
@@ -182,6 +184,7 @@ class InvoicePrintService extends PrintServices {
     required pw.PdfPageFormat pageFormat,
     required int copies,
     required bool isSale,
+    String? remark,
     String? currency,
     double? totalLocalAmount,
     String? localCurrency,
@@ -204,6 +207,7 @@ class InvoicePrintService extends PrintServices {
         creditAmount: creditAmount,
         account: account,
         language: language,
+        remark: remark,
         orientation: orientation,
         company: company,
         pageFormat: pageFormat,
@@ -251,6 +255,7 @@ class InvoicePrintService extends PrintServices {
     required ReportModel company,
     required pw.PdfPageFormat pageFormat,
     required bool isSale,
+    String? remark,
     String? currency,
     double? totalLocalAmount,
     String? localCurrency,
@@ -277,6 +282,7 @@ class InvoicePrintService extends PrintServices {
       pageFormat: pageFormat,
       currency: currency,
       isSale: isSale,
+      remark: remark,
       totalLocalAmount: totalLocalAmount,
       localCurrency: localCurrency,
       exchangeRate: exchangeRate,
@@ -305,6 +311,7 @@ class InvoicePrintService extends PrintServices {
     required pw.PdfPageFormat pageFormat,
     required bool isSale,
     String? currency,
+    String? remark,
     double? totalLocalAmount,
     String? localCurrency,
     double? exchangeRate,
@@ -356,6 +363,7 @@ class InvoicePrintService extends PrintServices {
             account: account,
             isSale: isSale,
             items: items,
+            remark: remark,
             totalLocalAmount: totalLocalAmount,
             localCurrency: localCurrency,
             baseCurrency: currency,
@@ -1039,6 +1047,7 @@ class InvoicePrintService extends PrintServices {
     required AccountsModel? account,
     required bool isSale,
     required List<InvoiceItem> items,
+    String? remark,
     double? totalLocalAmount,
     String? localCurrency,
     String? baseCurrency,
@@ -1271,28 +1280,39 @@ class InvoicePrintService extends PrintServices {
             ),
           ],
 
-          pw.Divider(color: pw.PdfColors.grey300,height: 9),
+          pw.SizedBox(height: 3),
+          pw.Divider(color: pw.PdfColors.grey300,height: 0),
+          pw.SizedBox(height: 3),
+          zText(text: tr(text:"amountInWords",tr: language),fontSize: 7,color: pw.PdfColors.grey800),
 
           // ===== AMOUNT IN WORDS =====
           pw.Row(
             mainAxisAlignment:
-            isRTL(language) ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
+            pw.MainAxisAlignment.start,
             children: [
-              if (!isRTL(language)) ...[
-                zText(
-                  text: "$amountInWords ${accountCurrency == "USD"? tr(text: 'usd', tr: language) : accountCurrency == "AFN"? tr(text: "afn", tr: language) : accountCurrency}",
-                  fontSize: 8,
-                  textAlign: pw.TextAlign.right,
-                ),
-              ] else ...[
-                zText(
-                  text: "$amountInWords ${accountCurrency == "USD"? tr(text: 'usd', tr: language) : accountCurrency == "AFN"? tr(text: "afn", tr: language) : accountCurrency}",
-                  fontSize: 8,
-                  textAlign: pw.TextAlign.left,
-                )
-              ],
+              zText(
+                text: "$amountInWords ${accountCurrency == "USD"? tr(text: 'usd', tr: language) : accountCurrency == "AFN"? tr(text: "afn", tr: language) : accountCurrency}",
+                fontSize: 8,
+              ),
             ],
           ),
+
+          if (remark != null && remark.isNotEmpty) ...[
+          pw.Divider(color: pw.PdfColors.grey300,height: 9),
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              zText(text: tr(text:"note",tr: language),fontSize: 7,color: pw.PdfColors.grey800),
+              pw.SizedBox(width: 5),
+              pw.Expanded(
+                child: zText(
+                  text: remark,
+                  fontSize: 7
+                ),
+              ),
+            ]
+          )
+          ]
         ],
       ),
     );

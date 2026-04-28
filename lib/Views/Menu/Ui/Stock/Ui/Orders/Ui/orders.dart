@@ -7,6 +7,7 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
+import 'package:zaitoonpro/Localizations/Bloc/localizations_bloc.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
@@ -831,7 +832,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final titleStyle = textTheme.titleSmall?.copyWith(color: color.surface);
+    final titleStyle = textTheme.titleSmall?.copyWith(color: color.onSurface);
     final tr = AppLocalizations.of(context)!;
     final visibility = context.read<SettingsVisibleBloc>().state;
     return Scaffold(
@@ -857,6 +858,10 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
           ),
           BlocListener<OrdersBloc, OrdersState>(
             listener: (context, state) {
+              if(state is OrdersDeletedState){
+                Navigator.of(context).pop();
+                ToastManager.show(context: context, message: tr.successMessage,title: tr.successTitle, type: ToastType.success);
+              }
               if (!mounted) return;
               if (state is OrdersStatusUpdatedState) {
                 _showSnackBar(state.message);
@@ -944,7 +949,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
               decoration: BoxDecoration(
-                color: color.primary.withValues(alpha: .9),
+                color: color.outline.withValues(alpha: .06),
               ),
               child: Row(
                 children: [
@@ -965,11 +970,11 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     Expanded(child: Text(tr.party,style: titleStyle)),
                     SizedBox(width: 100, child: Text(tr.category,style: titleStyle)),
                     SizedBox(
-                    width: 140,
+                    width: 160,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 15),
                       child: Directionality(
-                        textDirection: TextDirection.ltr,
+                        textDirection: context.read<LocalizationBloc>().state.languageCode == "en"? TextDirection.rtl : TextDirection.ltr,
                         child: Text(tr.totalInvoice,style: titleStyle),
                       ),
                     ),
@@ -978,7 +983,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                 ]
               ),
             ),
-            const SizedBox(height: 5),
+
 
             // Orders List
             Expanded(
@@ -1088,7 +1093,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                   } else {
                                     Utils.goto(
                                         context,
-                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : NewPurchaseOrderView(editOrderId: ord.ordId)
+                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : NewPurchaseOrderView(editOrderId: ord.ordId)
                                     );
                                   }
                                 },
@@ -1106,8 +1111,8 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                   decoration: BoxDecoration(
                                     color: isSelected
                                         ? color.primary.withValues(alpha: .15)
-                                        : index.isEven
-                                        ? color.primary.withValues(alpha: .05)
+                                        : index.isOdd
+                                        ? color.surfaceContainer.withValues(alpha: .6)
                                         : Colors.transparent,
                                     border: isSelected
                                         ? Border.all(
@@ -1154,8 +1159,6 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                       ]else ...[
                                         SizedBox(width: 100, child: Text(ord.ordEntryDate?.shamsiDateString??"",style: TextStyle(fontWeight: FontWeight.w500,fontSize: 17),)),
                                       ],
-
-
                                       // Reference Number with Copy
                                       Row(
                                         children: [
@@ -1237,15 +1240,15 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                       // Total Amount
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 15),
-                                        width: 140,
+                                        width: 160,
                                         child: Directionality(
-                                          textDirection: TextDirection.ltr,
+                                          textDirection: context.read<LocalizationBloc>().state.languageCode == "en"? TextDirection.rtl : TextDirection.ltr,
                                           child: Text(
                                             "${ord.totalBill?.toAmount()} $baseCurrency",
                                             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
                                               color: isSelected ? color.primary : null,
-                                              fontSize: 15
+                                              fontSize: 14
                                             ),
                                             textAlign: TextAlign.start,
                                           ),

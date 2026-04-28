@@ -482,6 +482,11 @@ abstract class PrintServices {
         "ar": "بل نیته",
         "fa": "تاریخ بل"
       },
+      "note": {
+        "en": "Remark:",
+        "ar": "یاداشت:",
+        "fa": "یاداشت:"
+      },
       "localAmount": {
         "en": "Amount",
         "ar": "قیمت",

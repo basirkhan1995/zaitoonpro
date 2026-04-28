@@ -219,3 +219,11 @@ class LoadSaleInvoiceForEditEvent extends SaleInvoiceEvent {
   @override
   List<Object?> get props => [orderId, baseCurrency];
 }
+
+class UpdateRemarkEvent extends SaleInvoiceEvent {
+  final String remark;
+  const UpdateRemarkEvent(this.remark);
+
+  @override
+  List<Object?> get props => [remark];
+}

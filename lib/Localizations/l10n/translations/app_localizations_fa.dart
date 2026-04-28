@@ -2151,7 +2151,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get outOfStock => 'عدم موجودی';
 
   @override
-  String get available => 'موجود';
+  String get available => 'موجودی';
 
   @override
   String get driverRegistration => 'ثبت راننده';
@@ -3159,7 +3159,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get pcs => 'مقدار';
 
   @override
-  String get batchTitle => 'مقدار';
+  String get batchTitle => 'بسته';
 
   @override
   String get landedPrice => 'قیمت تمامشد';

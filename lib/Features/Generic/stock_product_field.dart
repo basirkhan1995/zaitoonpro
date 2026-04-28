@@ -481,7 +481,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     panelHeight = panelHeight.clamp(minPanelHeight, maxPanelHeight);
     final isRTL = Directionality.of(context) == TextDirection.rtl;
     final tr = AppLocalizations.of(context)!;
-    TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.surface);
+    TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.outline);
     _shouldKeepOverlayOpen = true;
 
     _overlayEntry = OverlayEntry(
@@ -601,28 +601,16 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   margin: const EdgeInsets.symmetric(horizontal: 1),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(context).colorScheme.surfaceContainer,
                                     borderRadius: BorderRadius.zero,
                                   ),
                                   child: Row(
                                     children: [
-                                      Expanded(child: Text(tr.description, style: titleStyle)),
-                                      SizedBox(width: 90,
-                                          child: Text(tr.unit,
-                                              textAlign: TextAlign.center,
-                                              style: titleStyle)),
-                                      SizedBox(width: 100,
-                                          child: Text(tr.batchTitle,
-                                              textAlign: isRTL ? TextAlign.left : TextAlign.right,
-                                              style: titleStyle)),
-                                      SizedBox(width: 100,
-                                          child: Text(tr.available,
-                                              textAlign: isRTL ? TextAlign.left : TextAlign.right,
-                                              style: titleStyle)),
-                                      SizedBox(width: 100,
-                                          child: Text(tr.unitPrice,
-                                              textAlign: isRTL ? TextAlign.left : TextAlign.right,
-                                              style: titleStyle)),
+                                      Expanded(child: Text(tr.productName, style: titleStyle)),
+                                        SizedBox(width: 60, child: Text(tr.unit, textAlign: TextAlign.center, style: titleStyle)),
+                                        SizedBox(width: 100, child: Text(tr.batchTitle, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
+                                        SizedBox(width: 120, child: Text(tr.available, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
+                                        SizedBox(width: 120, child: Text(tr.unitPrice, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
                                     ],
                                   ),
                                 ),
@@ -670,6 +658,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                       final isRTL = Directionality.of(context) == TextDirection.rtl;
 
                                       return Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                         decoration: BoxDecoration(
                                           color: isHighlighted
                                               ? Theme.of(context).colorScheme.primary.withValues(alpha: .08)
@@ -793,75 +782,58 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   }
 
   Widget _buildDefaultListItem(T product) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              widget.getProductName(product) ?? '',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+    final isRTL = Directionality.of(context) == TextDirection.rtl;
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            widget.getProductName(product) ?? '',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        SizedBox(
+          width: 60,
+          child: Text(
+            widget.getProductUnit!(product) ?? '0',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+        ),
+        SizedBox(
+          width: 100,
+          child: Text(
+            widget.getBatch(product).toString(),
+            textAlign: isRTL ? TextAlign.left : TextAlign.right,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
-          Row(
-            spacing: 8,
-            children: [
-              SizedBox(
-                width: 60,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      widget.getProductUnit!(product) ?? '0',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 100,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      widget.getBatch(product).toString(),
-                      style: TextStyle(fontWeight: FontWeight.bold,
-                          fontSize: 14, color: Theme.of(context).colorScheme.primary),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 100,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      widget.getAvailable(product) ?? '0',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: _getAvailabilityColor(widget.getAvailable(product) ?? '0')),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                width: 100,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      widget.getSellPrice(product).toAmount(),
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        ),
+        SizedBox(
+          width: 120,
+          child: Text(
+            widget.getAvailable(product) ?? '0',
+            textAlign: isRTL ? TextAlign.left : TextAlign.right,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: _getAvailabilityColor(widget.getAvailable(product) ?? '0'),
+            ),
           ),
-        ],
-      ),
+        ),
+        SizedBox(
+          width: 120,
+          child: Text(
+            widget.getSellPrice(product).toAmount(),
+            textAlign: isRTL ? TextAlign.left : TextAlign.right,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+        ),
+      ],
     );
   }
 

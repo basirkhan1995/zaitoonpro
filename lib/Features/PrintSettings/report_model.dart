@@ -58,9 +58,10 @@ class ReportModel {
     String? endDate,
     String? partyAddress,
     String? partyPhone,
+    String? partyCity,
+    String? partyProvince,
     SettingsVisibilityState? visible
-    }) =>
-      ReportModel(
+    }) => ReportModel(
         comName: comName ?? this.comName,
         compPhone: compPhone ?? this.compPhone,
         comEmail: comEmail ?? this.comEmail,
@@ -75,6 +76,8 @@ class ReportModel {
         baseCurrency: baseCurrency ?? this.baseCurrency,
         partyAddress: partyAddress ?? this.partyAddress,
         partyPhone:  partyPhone ?? this.partyPhone,
+        partyCity: partyCity ?? this.partyCity,
+        partyProvince: partyProvince ?? this.partyProvince,
         visible: visible ?? this.visible
       );
 }

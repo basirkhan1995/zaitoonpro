@@ -10,8 +10,6 @@ class OrderParser {
   static const int stakeholderMin = 500000;
 
 
-
-
 // Get expenses - take the Dr entries for expense accounts (40404040 - 40404999)
   static List<Map<String, dynamic>> getExpenses(List<Map<String, dynamic>> payments) {
     return payments.where((p) {
@@ -82,6 +80,9 @@ class OrderParser {
         'storageId': record['stkStorage'],
         'quantity': double.tryParse(record['stkQuantity']?.toString() ?? '0') ?? 0,
         'batch': double.tryParse(record['stkQtyInBatch']?.toString() ?? '0') ?? 0,
+        'productName': record['proName'] ?? '',
+        'storageName': record['stgName'] ?? '',
+        'unit': record['proUnit'] ?? '',
         'purchasePrice': double.tryParse(record['stkPurPrice']?.toString() ?? '0') ?? 0,
         'salePrice': double.tryParse(record['stkSalePrice']?.toString() ?? '0') ?? 0,
         'landedPrice': double.tryParse(record['stkLandedPurPrice']?.toString() ?? '0') ?? 0,

@@ -81,11 +81,13 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       for (var record in records) {
         final salePrice = record['salePrice'] as double;
         final localAmount = salePrice * accountExchangeRate;
-
+        final productName = record['productName'] as String;
+        final unit = record['unit'] as String;
+        final storageName = record['storageName'] as String;
         items.add(SaleInvoiceItem(
           itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_${items.length}',
           productId: record['productId'].toString(),
-          productName: '',
+          productName: productName,
           qty: record['quantity'].toInt(),
           batch: record['batch'].toInt(),
           purPrice: record['purchasePrice'],
@@ -93,8 +95,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           landedPrice: record['landedPrice'],
           discount: record['discount'],
           storageId: record['storageId'],
-          storageName: '',
-          unit: '',
+          storageName: storageName,
+          unit: unit,
           exchangeRate: accountExchangeRate,
           localAmount: localAmount,
         ));

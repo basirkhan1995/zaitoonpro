@@ -426,7 +426,7 @@ class InvoicePrintService extends PrintServices {
                               fontWeight: pw.FontWeight.bold
                           ),
                           zText(
-                            text: "$invoiceNumber :",
+                            text: invoiceNumber,
                             fontSize: 10,
                           ),
                         ]

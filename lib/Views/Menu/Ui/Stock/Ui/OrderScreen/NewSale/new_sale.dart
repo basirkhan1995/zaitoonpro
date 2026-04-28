@@ -402,11 +402,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             elevation: 0,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
             titleSpacing: 0,
-            title: Text(tr.saleEntry,style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.saleEntry.toUpperCase()}" : tr.saleEntry,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
             actionsPadding: EdgeInsets.symmetric(horizontal: 10),
             actions: [
               if (_accountController.text.isNotEmpty) ...[
-                const SizedBox(width: 8),
                 ZOutlineButton(
                   icon: Icons.alarm_rounded,
                   onPressed: () {
@@ -423,6 +423,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   },
                   label: Text(tr.setReminder),
                 ),
+                const SizedBox(width: 8),
               ],
               if(widget.orderId !=null && widget.orderId!> 0)
               ZOutlineButton(
@@ -431,12 +432,16 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 onPressed: _confirmDeleteOrder,
                 label: Text(tr.delete),
               ),
-              const SizedBox(width: 8),
-              ZOutlineButton(
-                icon: Icons.refresh,
-                onPressed: _resetForm,
-                label: Text(tr.newSale),
-              ),
+
+              if(widget.orderId ==null)...[
+                const SizedBox(width: 8),
+                ZOutlineButton(
+                  icon: Icons.refresh,
+                  onPressed: _resetForm,
+                  label: Text(tr.newSale),
+                ),
+              ],
+
               const SizedBox(width: 8),
               ZOutlineButton(
                 icon: Icons.receipt,
@@ -457,7 +462,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
                       final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
                       final isSaving = state is SaleInvoiceSaving;
-
                       return ZOutlineButton(
                         isActive: true,
                         icon: Icons.save_rounded,
@@ -482,7 +486,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                   builder: (context, state) {
                     if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                      final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                    //  final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
                       final isSaving = state is SaleInvoiceSaving;
 
                       return ZOutlineButton(
@@ -490,7 +494,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                         icon: Icons.refresh,
                         onPressed: (isSaving)
                             ? null  // Just disable the button, no error message
-                            : () => _saveInvoice(context, current),
+                            :  null,
                         label: isSaving
                             ? SizedBox(
                           width: 20,
@@ -500,7 +504,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             color: Theme.of(context).colorScheme.surface,
                           ),
                         )
-                            : Text(tr.update.toUpperCase()),
+                            : Text(tr.update),
                       );
                     }
                     return const SizedBox();

@@ -3,6 +3,7 @@
 class OrderParser {
   // Account definitions
   static const int cashAccount = 10101010;
+  static const int pettyCashAccount = 10101018;
   static const int cogsAccount = 10101011;
   static const int extraChargesAccount = 10101018;
   static const int revenueAccount = 30303031;

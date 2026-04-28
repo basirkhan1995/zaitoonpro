@@ -47,10 +47,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<LoadPurchaseInvoiceForEditEvent>(_onLoadPurchaseInvoiceForEdit);
   }
 
-  Future<void> _onLoadPurchaseInvoiceForEdit(
-      LoadPurchaseInvoiceForEditEvent event,
-      Emitter<PurchaseInvoiceState> emit
-      ) async {
+  Future<void> _onLoadPurchaseInvoiceForEdit(LoadPurchaseInvoiceForEditEvent event, Emitter<PurchaseInvoiceState> emit) async {
     emit(PurchaseInvoiceLoading());
 
     try {
@@ -70,14 +67,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       for (var record in records) {
         items.add(PurchaseInvoiceItem(
           productId: record['productId'].toString(),
-          productName: '',
           qty: (record['quantity'] as double).toInt(),
           stkBatch: (record['batch'] as double).toInt(),
+          productName: record['productName'] as String,
+          unit: record['unit'] as String,
           purPrice: record['purchasePrice'],
           landedPrice: record['landedPrice'],
           sellPriceAmount: 0,
           storageId: record['storageId'],
-          storageName: '',
+          storageName: record['storageName'] as String,
         ));
       }
 

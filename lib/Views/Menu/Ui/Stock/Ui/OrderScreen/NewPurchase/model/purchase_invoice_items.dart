@@ -11,6 +11,7 @@ class PurchaseInvoiceItem {
   String storageName;
   double? localAmount;
   double? exchangeRate;
+  String? unit;
 
   PurchaseInvoiceItem({
     String? itemId,
@@ -25,6 +26,7 @@ class PurchaseInvoiceItem {
     required this.storageId,
     this.localAmount,
     this.exchangeRate,
+    this.unit
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   double get totalQty => qty.toDouble() * stkBatch;
@@ -61,6 +63,7 @@ class PurchaseInvoiceItem {
     String? storageName,
     double? localAmount,
     double? exchangeRate,
+    String? unit,
   }) {
     return PurchaseInvoiceItem(
       itemId: rowId,
@@ -75,6 +78,7 @@ class PurchaseInvoiceItem {
       storageName: storageName ?? this.storageName,
       localAmount: localAmount ?? this.localAmount,
       exchangeRate: exchangeRate ?? this.exchangeRate,
+      unit: unit ?? this.unit
     );
   }
 }

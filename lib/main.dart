@@ -262,7 +262,6 @@ class MyApp extends StatelessWidget {
                     const SingleActivator(
                       LogicalKeyboardKey.f10,
                     ): () => ZNavigator.goto(CashBalancesBranchWiseView()),
-
                   if(authState is AuthenticatedState && (authState.loginData.hasPermission(113) ?? false))
                   const SingleActivator(
                     LogicalKeyboardKey.f12,

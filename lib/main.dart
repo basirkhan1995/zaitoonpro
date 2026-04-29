@@ -230,7 +230,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => DailyGrossBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => TotalDailyBloc(Repositories(ApiServices()))),
       ],
-
       child: BlocBuilder<LocalizationBloc, Locale>(
         builder: (context, locale) {
           return BlocBuilder<ThemeBloc, ThemeMode>(

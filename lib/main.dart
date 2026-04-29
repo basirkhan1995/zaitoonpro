@@ -237,7 +237,6 @@ class MyApp extends StatelessWidget {
             builder: (context, themeMode) {
               final theme = AppThemes(TextTheme.of(context));
               final authState = context.watch<AuthBloc>().state;
-
               return GlobalShortcuts(
                 shortcuts: {
                   if(authState is AuthenticatedState && (authState.loginData.hasPermission(96) ?? false))

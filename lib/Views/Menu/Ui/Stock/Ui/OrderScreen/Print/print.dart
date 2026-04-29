@@ -399,7 +399,39 @@ class InvoicePrintService extends PrintServices {
     );
     return document;
   }
+  List<pw.Widget> _buildAddressPhoneItems(ReportModel com) {
+    final List<pw.Widget> items = [];
 
+    if (com.partyPhone?.isNotEmpty == true) {
+      items.add(verticalDivider(height: 10, width: 1));
+      items.add(zText(text: com.partyPhone!, fontSize: 10));
+    }
+
+    if (com.partyAddress?.isNotEmpty == true) {
+      items.add(verticalDivider(height: 10, width: 1));
+      items.add(zText(text: com.partyAddress!, fontSize: 10));
+    }
+
+    if (com.partyCity?.isNotEmpty == true) {
+      items.add(verticalDivider(height: 10, width: 1));
+      items.add(zText(text: com.partyCity!, fontSize: 10));
+    }
+
+    if (com.partyProvince?.isNotEmpty == true) {
+      items.add(verticalDivider(height: 10, width: 1));
+      items.add(zText(text: com.partyProvince!, fontSize: 10));
+    }
+
+    return items;
+  }
+
+
+  bool _hasAnyAddressPhoneInfo(ReportModel com) {
+    return (com.partyPhone?.isNotEmpty == true) ||
+        (com.partyAddress?.isNotEmpty == true) ||
+        (com.partyCity?.isNotEmpty == true) ||
+        (com.partyProvince?.isNotEmpty == true);
+  }
   // ==================== HEADER WIDGET ====================
   pw.Widget _invoiceHeaderWidget({
     required String language,
@@ -449,39 +481,17 @@ class InvoicePrintService extends PrintServices {
                 ),
                 pw.Spacer(),
 
-                pw.Row(
+                if (_hasAnyAddressPhoneInfo(com))
+                  pw.Row(
                     children: [
                       zText(
                         text: tr(text: 'addressAndPhone', tr: language),
                         fontSize: 10,
                         fontWeight: pw.FontWeight.bold,
                       ),
-                      zText(
-                        text: com.partyPhone??"",
-                        fontSize: 10,
-
-                      ),
-                      verticalDivider(height: 10, width: 1),
-                      zText(
-                        text: com.partyAddress??"",
-                        fontSize: 10,
-
-                      ),
-                      verticalDivider(height: 10, width: 1),
-                      zText(
-                        text: com.partyCity??"",
-                        fontSize: 10,
-
-                      ),
-                      verticalDivider(height: 10, width: 1),
-                      zText(
-                        text: com.partyProvince??"",
-                        fontSize: 10,
-
-                      ),
-                    ]
-                ),
-
+                      ..._buildAddressPhoneItems(com),
+                    ],
+                  ),
               ]
           ),
           pw.SizedBox(height: 4),
@@ -1080,7 +1090,6 @@ class InvoicePrintService extends PrintServices {
     }
 
     final totalQty = items.fold<double>(0, (sum, item) => sum + item.quantity);
-
     final lang = NumberToWords.getLanguageFromLocale(Locale(language));
 
     final safeBaseCurrency = baseCurrency ?? '';

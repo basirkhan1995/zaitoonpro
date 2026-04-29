@@ -2022,8 +2022,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   if (state.paymentMode == PaymentMode.cash) {
       if(state.cashPayment <= 0 || state.cashPaymentLocal <=0 && state.cashPayment != state.grandTotal || state.cashPaymentLocal != state.grandTotalLocal){
         _showPaymentDialog(state);
+        return;
       }
-      return;
     }
 
     // Let Bloc handle all validation and show errors
@@ -2234,7 +2234,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         buildPreview: ({required data, required language, required orientation, required pageFormat}) {
           return StockDocumentPrintService().previewStockDocument(
             documentType: "Sale",
-            documentNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            documentNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",

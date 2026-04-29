@@ -25,6 +25,8 @@ import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/txn_reference.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/stk_acc_model.dart';
+import '../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
+import '../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import '../../TransactionRef/transaction_ref.dart';
 import 'PDF/pdf.dart';
 import 'bloc/acc_statement_bloc.dart';
@@ -942,6 +944,9 @@ class _DesktopState extends State<_Desktop> {
                               bool isOp =
                                   stmt.trdNarration == "Opening Balance" ||
                                   stmt.trdNarration == "Closing Balance";
+                              bool isSale = stmt.trnReference?.contains("SALE") ?? false;
+                              bool isPurchase = stmt.trnReference?.contains("PRCH") ?? false;
+
                               return InkWell(
                                 hoverColor: Theme.of(
                                   context,
@@ -951,13 +956,12 @@ class _DesktopState extends State<_Desktop> {
                                 ).colorScheme.primary.withValues(alpha: 0.05),
                                 onTap: isOp
                                     ? null
-                                    : () {
-                                        context.read<TxnReferenceBloc>().add(
-                                          FetchTxnByReferenceEvent(
-                                            stmt.trnReference ?? "",
-                                          ),
-                                        );
-                                      },
+                                    : isSale || isPurchase?  () {
+                                  Utils.goto(
+                                      context,
+                                      isSale? NewSaleView(orderId: 305, ref: stmt.trnReference) : isPurchase? NewPurchaseOrderView(orderId: null, ref: stmt.trnReference) : SizedBox()
+                                  );
+                                      } : null,
                                 child: Container(
                                   padding: EdgeInsets.symmetric(
                                     horizontal: 15,

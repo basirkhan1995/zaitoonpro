@@ -429,184 +429,188 @@ class _DesktopState extends State<_Desktop> {
     final totalsMatch = (calculatedDebitBase - calculatedCreditBase).abs() < 0.01;
     final difference = (calculatedDebitBase - calculatedCreditBase).abs();
 
-    return Column(
-      children: [
-        // Header Section
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              if (hasError && fxState is FxApiErrorState)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 15),
-                  margin: const EdgeInsets.only(bottom: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.red),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.error_outline, color: Colors.red, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "${fxState.error} ${fxState.accountNo}",
-                          style: const TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: CurrencyDropdown(
-                      height: 40,
-                      title: tr.baseCurrency,
-                      initiallySelectedSingle: CurrenciesModel(
-                        ccyCode: baseCurrency,
-                      ),
-                      isMulti: false,
-                      onMultiChanged: (_) {},
-                      onSingleChanged: (e) {
-                        final newCurrency = e?.ccyCode;
-                        if (newCurrency != baseCurrency) {
-                          this.baseCurrency = newCurrency;
-                          context.read<FxBloc>().add(UpdateBaseCurrencyEvent(newCurrency));
-
-                          // Clear exchange rates when base currency changes
-                          _exchangeRates.clear();
-                          _originalExchangeRates.clear();
-                          _pendingRateRequests.clear();
-                          _rateCurrencyPairs.clear();
-
-                          // Fetch new rates for all entries
-                          for (final entry in debitEntries) {
-                            if (entry.currency != null && entry.currency != newCurrency) {
-                              _fetchExchangeRate(entry.currency!, newCurrency!);
-                            }
-                          }
-                          for (final entry in creditEntries) {
-                            if (entry.currency != null && entry.currency != newCurrency) {
-                              _fetchExchangeRate(entry.currency!, newCurrency!);
-                            }
-                          }
-
-                          // Update UI
-                          setState(() {});
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    flex: 6,
-                    child: ZTextFieldEntitled(
-                      title: AppLocalizations.of(context)!.narration,
-                      controller: _narrationController,
-                      onChanged: (value) {
-                        context.read<FxBloc>().add(UpdateNarrationEvent(value));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  _buildSaveButton(
-                    context,
-                    baseCurrency: baseCurrency,
-                    debitEntries: debitEntries,
-                    creditEntries: creditEntries,
-                    totalsMatch: totalsMatch,
-                    isSaving: isSaving,
-                  ),
-                ],
-              ),
-
-              // Validation message
-              if (!totalsMatch && hasEntries)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.red, size: 16),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          '${tr.debitNotEqualBaseCurrency} '
-                              '${tr.difference}: ${baseCurrency ?? ''} ${difference.toAmount()}',
-                          style: const TextStyle(color: Colors.red, fontSize: 12),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        // Debit and Credit Sections
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
+    return Padding(
+      padding: const EdgeInsets.all(5.0),
+      child: Column(
+        children: [
+          // Header Section
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(8),
+            ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Debit Section
-                Flexible(
-                  child: _buildSideSection(
-                    context,
-                    title: AppLocalizations.of(context)!.debitSide,
-                    entries: debitEntries,
-                    isDebit: true,
-                    totalAmount: debitEntries.fold(0.0, (sum, entry) => sum + entry.amount),
-                    totalBase: calculatedDebitBase,
-                    baseCurrency: baseCurrency,
+                if (hasError && fxState is FxApiErrorState)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 15),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.red),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "${fxState.error} ${fxState.accountNo}",
+                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: CurrencyDropdown(
+                        height: 40,
+                        title: tr.baseCurrency,
+                        initiallySelectedSingle: CurrenciesModel(
+                          ccyCode: baseCurrency,
+                        ),
+                        isMulti: false,
+                        onMultiChanged: (_) {},
+                        onSingleChanged: (e) {
+                          final newCurrency = e?.ccyCode;
+                          if (newCurrency != baseCurrency) {
+                            this.baseCurrency = newCurrency;
+                            context.read<FxBloc>().add(UpdateBaseCurrencyEvent(newCurrency));
+
+                            // Clear exchange rates when base currency changes
+                            _exchangeRates.clear();
+                            _originalExchangeRates.clear();
+                            _pendingRateRequests.clear();
+                            _rateCurrencyPairs.clear();
+
+                            // Fetch new rates for all entries
+                            for (final entry in debitEntries) {
+                              if (entry.currency != null && entry.currency != newCurrency) {
+                                _fetchExchangeRate(entry.currency!, newCurrency!);
+                              }
+                            }
+                            for (final entry in creditEntries) {
+                              if (entry.currency != null && entry.currency != newCurrency) {
+                                _fetchExchangeRate(entry.currency!, newCurrency!);
+                              }
+                            }
+
+                            // Update UI
+                            setState(() {});
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    Expanded(
+                      flex: 6,
+                      child: ZTextFieldEntitled(
+                        title: AppLocalizations.of(context)!.narration,
+                        controller: _narrationController,
+                        onChanged: (value) {
+                          context.read<FxBloc>().add(UpdateNarrationEvent(value));
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 5),
+                    _buildSaveButton(
+                      context,
+                      baseCurrency: baseCurrency,
+                      debitEntries: debitEntries,
+                      creditEntries: creditEntries,
+                      totalsMatch: totalsMatch,
+                      isSaving: isSaving,
+                    ),
+                  ],
                 ),
 
-                const SizedBox(height: 10),
-
-                // Credit Section
-                Flexible(
-                  child: _buildSideSection(
-                    context,
-                    title: AppLocalizations.of(context)!.creditSide,
-                    entries: creditEntries,
-                    isDebit: false,
-                    totalAmount: creditEntries.fold(0.0, (sum, entry) => sum + entry.amount),
-                    totalBase: calculatedCreditBase,
-                    baseCurrency: baseCurrency,
+                // Validation message
+                if (!totalsMatch && hasEntries)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.error, color: Colors.red, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${tr.debitNotEqualBaseCurrency} '
+                                '${tr.difference}: ${baseCurrency ?? ''} ${difference.toAmount()}',
+                            style: const TextStyle(color: Colors.red, fontSize: 12),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),
-        ),
 
-        // Summary Section
-        if (hasEntries)
-          Padding(
-            padding: const EdgeInsets.only(top: 16),
-            child: _buildSummarySection(
-              context,
-              totalDebitBase: calculatedDebitBase,
-              totalCreditBase: calculatedCreditBase,
-              totalsMatch: totalsMatch,
-              difference: difference,
-              baseCurrency: baseCurrency,
+          const SizedBox(height: 8),
+
+          // Debit and Credit Sections
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 2),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 4,
+                children: [
+                  // Debit Section
+                  Flexible(
+                    child: _buildSideSection(
+                      context,
+                      title: AppLocalizations.of(context)!.debitSide,
+                      entries: debitEntries,
+                      isDebit: true,
+                      totalAmount: debitEntries.fold(0.0, (sum, entry) => sum + entry.amount),
+                      totalBase: calculatedDebitBase,
+                      baseCurrency: baseCurrency,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Credit Section
+                  Flexible(
+                    child: _buildSideSection(
+                      context,
+                      title: AppLocalizations.of(context)!.creditSide,
+                      entries: creditEntries,
+                      isDebit: false,
+                      totalAmount: creditEntries.fold(0.0, (sum, entry) => sum + entry.amount),
+                      totalBase: calculatedCreditBase,
+                      baseCurrency: baseCurrency,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-      ],
+
+          // Summary Section
+          if (hasEntries)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: _buildSummarySection(
+                context,
+                totalDebitBase: calculatedDebitBase,
+                totalCreditBase: calculatedCreditBase,
+                totalsMatch: totalsMatch,
+                difference: difference,
+                baseCurrency: baseCurrency,
+              ),
+            ),
+        ],
+      ),
     );
   }
 

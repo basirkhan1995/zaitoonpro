@@ -207,7 +207,7 @@ abstract class PrintServices {
                   if (report.comAddress != null && report.comAddress!.isNotEmpty)...[
                     pw.Row(
                       children: [
-                        pw.Image(addressIcon, width: 11, height: 11),
+                        pw.Image(addressIcon, width: 10, height: 10),
                         pw.SizedBox(width: 2),
                         zText(
                           text: report.comAddress!,

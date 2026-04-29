@@ -40,9 +40,9 @@ import '../Print/stock_document.dart';
 import 'model/sale_invoice_items.dart';
 
 class NewSaleView extends StatelessWidget {
-  final int? orderId;
+  final dynamic orderId;
   final String? ref;
-  const NewSaleView({super.key,this.orderId,this.ref});
+  const NewSaleView({super.key, this.orderId,this.ref});
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class NewSaleView extends StatelessWidget {
 
 
 class _DesktopNewSaleView extends StatefulWidget {
-  final int? orderId;
+  final dynamic orderId;
   final String? ref;
   const _DesktopNewSaleView(this.orderId,this.ref);
 
@@ -140,7 +140,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     _debounce = Timer(const Duration(milliseconds: 300), () {
       final rate = double.tryParse(value.replaceAll(',', ''));
       final state = context.read<SaleInvoiceBloc>().state;
-
       if (rate != null && rate > 0 && state is SaleInvoiceLoaded) {
         final current = state;
         if (current.exchangeRate != rate &&
@@ -256,7 +255,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         _isEditMode = true;
         saleBloc.add(LoadSaleInvoiceForEditEvent(
           orderId: widget.orderId!,
-          baseCurrency: baseCurrency ?? 'USD',
+          baseCurrency: baseCurrency ?? '',
         ));
       } else {
         saleBloc.add(InitializeSaleInvoiceEvent());
@@ -427,7 +426,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
                 const SizedBox(width: 8),
               ],
-              if(widget.orderId !=null && widget.orderId!> 0)
+              if(widget.orderId !=null || widget.orderId!> 0)
               ZOutlineButton(
                 icon: Icons.delete_outline_rounded,
                 backgroundHover: Theme.of(context).colorScheme.error,
@@ -2061,7 +2060,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
       // Case 1: After saving, use the returned invoice number
       finalInvoiceNumber = invoiceNumber;
-    } else if (widget.orderId != null && widget.orderId! > 0) {
+    } else if (widget.orderId != null || widget.orderId! > 0) {
       // Case 2: When loading an existing invoice, use the widget.orderId
       finalInvoiceNumber = widget.orderId.toString();
     } else {

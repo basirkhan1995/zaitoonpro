@@ -393,7 +393,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           appBar: AppBar(
-            title: Text(tr.purchaseEntry),
+            title: Text(widget.orderId == null ? tr.purchaseEntry : "${tr.update.toUpperCase()} ${tr.purchaseEntry.toUpperCase()}"),
             elevation: 0,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
             titleSpacing: 0,
@@ -441,10 +441,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
                     return ZOutlineButton(
                       isActive: true,
-                      icon: Icons.save_rounded,
+                      icon: widget.orderId == null ? Icons.save_rounded : Icons.refresh,
                       onPressed: (isSaving || !current.isFormValid)
                           ? null
-                          : () => _saveInvoice(context, current),
+                          : widget.orderId == null ? () => _saveInvoice(context, current) : null,
                       label: isSaving
                           ? SizedBox(
                               width: 20,
@@ -454,7 +454,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 color: Theme.of(context).colorScheme.surface,
                               ),
                             )
-                          : Text(tr.saveTitle),
+                          : Text(widget.orderId == null? tr.saveTitle : tr.update),
                     );
                   }
                   return const SizedBox();

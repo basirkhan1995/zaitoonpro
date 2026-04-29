@@ -1254,39 +1254,38 @@ class InvoicePrintService extends PrintServices {
               currency: accountCurrency,
             ),
             // ===== EXCHANGE =====
+            // In _paymentSummary method, update the exchange rate display section:
             if (needsConversion)
-             pw.Padding(
-               padding: pw.EdgeInsets.symmetric(horizontal: 5),
-               child:  pw.Row(
-                 mainAxisAlignment:
-                 isRTL(language) ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
-                 children: [
-                   if (!isRTL(language)) ...[
-                     zText(
-                       text: tr(text: 'exchangeRate', tr: language),
-                       fontSize: 10,
-                     ),
-                     pw.Spacer(),
-                     zText(
-                       text:
-                       "1 $safeBaseCurrency = ${safeExchangeRate.toStringAsFixed(4)} $safeLocalCurrency",
-                       fontSize: 10,
-                     ),
-                   ] else ...[
-                     zText(
-                       text: tr(text: 'exchangeRate', tr: language),
-                       fontSize: 10,
-                     ),
-                     pw.Spacer(),
-                     zText(
-                       text:
-                       "1 $safeBaseCurrency = ${safeExchangeRate.toStringAsFixed(4)} $safeLocalCurrency",
-                       fontSize: 10,
-                     ),
-                   ],
-                 ],
-               ),
-             ),
+              pw.Padding(
+                padding: pw.EdgeInsets.symmetric(horizontal: 5),
+                child: pw.Row(
+                  mainAxisAlignment:
+                  isRTL(language) ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
+                  children: [
+                    if (!isRTL(language)) ...[
+                      zText(
+                        text: tr(text: 'exchangeRate', tr: language),
+                        fontSize: 10,
+                      ),
+                      pw.Spacer(),
+                      zText(
+                        text: "1 ${_getLocalizedCurrency(safeBaseCurrency, language)} = ${safeExchangeRate.toStringAsFixed(4)} ${_getLocalizedCurrency(safeLocalCurrency, language)}",
+                        fontSize: 10,
+                      ),
+                    ] else ...[
+                      zText(
+                        text: tr(text: 'exchangeRate', tr: language),
+                        fontSize: 10,
+                      ),
+                      pw.Spacer(),
+                      zText(
+                        text: "1 ${_getLocalizedCurrency(safeBaseCurrency, language)} = ${safeExchangeRate.toStringAsFixed(4)} ${_getLocalizedCurrency(safeLocalCurrency, language)}",
+                        fontSize: 10,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
 
             _buildCompactRow(
               language: language,
@@ -1335,7 +1334,8 @@ class InvoicePrintService extends PrintServices {
     pw.PdfColor color = pw.PdfColors.blue700,
   }) {
     final displayValue = value.toAmount(decimal: decimalRange);
-    final displayCurrency = currency.isEmpty ? '' : ' $currency';
+    final localizedCurrency = _getLocalizedCurrency(currency, language);
+    final displayCurrency = currency.isEmpty ? '' : ' $localizedCurrency';
 
     return pw.Container(
       margin: const pw.EdgeInsets.only(top: 3),
@@ -1352,10 +1352,8 @@ class InvoicePrintService extends PrintServices {
               text: label,
               fontSize: 12,
               fontWeight: pw.FontWeight.bold,
-
             ),
           ),
-
           /// 🔹 Value (right side)
           zText(
             text: "$displayValue$displayCurrency",
@@ -1370,7 +1368,6 @@ class InvoicePrintService extends PrintServices {
       ),
     );
   }
-
   pw.Widget _buildGrandTotalRow({
     required String label,
     required double value,
@@ -1379,7 +1376,8 @@ class InvoicePrintService extends PrintServices {
     int decimalRange = 2,
   }) {
     final displayValue = value.toAmount(decimal: decimalRange);
-    final displayCurrency = currency.isEmpty ? '' : ' $currency';
+    final localizedCurrency = _getLocalizedCurrency(currency, language);
+    final displayCurrency = currency.isEmpty ? '' : ' $localizedCurrency';
 
     final isNegative = value < 0;
 
@@ -1396,7 +1394,7 @@ class InvoicePrintService extends PrintServices {
       padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 5),
       decoration: pw.BoxDecoration(
         color: bgColor,
-        borderRadius: pw.BorderRadius.circular(1), // 👈 radius here
+        borderRadius: pw.BorderRadius.circular(1),
       ),
       child: pw.Row(
         children: [
@@ -1408,7 +1406,6 @@ class InvoicePrintService extends PrintServices {
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-
           /// 🔹 Value
           zText(
             text: "$displayValue$displayCurrency",
@@ -1436,10 +1433,12 @@ class InvoicePrintService extends PrintServices {
     double fontSize = 9,
   }) {
     final displayValue = value.toAmount(decimal: decimalRange ?? 2);
-    final displayCurrency = currency.isEmpty ? '' : ' $currency';
+    // Get localized currency name
+    final localizedCurrency = _getLocalizedCurrency(currency, language);
+    final displayCurrency = currency.isEmpty ? '' : ' $localizedCurrency';
 
     return pw.Padding(
-      padding: pw.EdgeInsets.symmetric(vertical: 1,horizontal: 5),
+      padding: pw.EdgeInsets.symmetric(vertical: 1, horizontal: 5),
       child: pw.Row(
         children: [
           // Label - fixed width, left aligned
@@ -1459,12 +1458,33 @@ class InvoicePrintService extends PrintServices {
               text: "$displayValue$displayCurrency",
               fontSize: fontSize,
               fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
-              textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign. left,
+              textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
               color: color,
             ),
           ),
         ],
       ),
     );
+  }
+
+  // Helper function to get localized currency name
+  String _getLocalizedCurrency(String currencyCode, String language) {
+    // If language is English, return the standard currency code
+    if (language == 'en') {
+      return currencyCode;
+    }
+
+    // For non-English languages (Farsi, Arabic, etc.)
+    switch (currencyCode.toUpperCase()) {
+      case 'USD':
+        return 'دالر';
+      case 'AFN':
+        return 'افغانی';
+      case 'EUR':
+      case 'EURO':
+        return 'یورو';
+      default:
+        return currencyCode;
+    }
   }
 }

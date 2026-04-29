@@ -1459,10 +1459,7 @@ class Repositories {
     return [];
   }
 
-  Future<List<OrderByIdModel>> getOrderById({
-    int? orderId,
-    CancelToken? cancelToken,
-  }) async {
+  Future<List<OrderByIdModel>> getOrderById({dynamic orderId, CancelToken? cancelToken}) async {
     final queryParams = {'ordID': orderId};
     final response = await api.get(
       endpoint: "/inventory/salePurchase.php",
@@ -1810,7 +1807,7 @@ class Repositories {
   /// Purchase Invoice...........................................................................
 
   Future<Map<String, dynamic>> fetchOrderById({
-    required int orderId,
+    required dynamic orderId,
   }) async {
     final response = await api.get(
       endpoint: "/inventory/salePurchase.php",

@@ -225,6 +225,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       company.compPhone = auth.company?.comPhone ?? "";
       company.comEmail = auth.company?.comEmail ?? "";
       company.slogan = auth.company?.comDetails ?? '';
+      company.usrPrintedBy = auth.usrName??'';
+      company.comWhatsApp = auth.company?.comWhatsapp??"";
 
       company.statementDate = DateTime.now().toFullDateTime;
       final base64Logo = auth.company?.comLogo;
@@ -2183,6 +2185,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
   void _onPrintStockPaper({String? invoiceNumber}) {
     final state = context.read<SaleInvoiceBloc>().state;
+    final visibilityState = context.read<SettingsVisibleBloc>().state;
     SaleInvoiceLoaded? current;
 
     if (state is SaleInvoiceLoaded) {
@@ -2239,7 +2242,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             totalQuantity: totalQuantity,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
           );
         },
@@ -2254,7 +2257,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             totalQuantity: totalQuantity,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company.copyWith(visible: visibilityState),
             selectedPrinter: selectedPrinter,
             pageFormat: pageFormat,
             copies: copies,
@@ -2271,7 +2274,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             totalQuantity: totalQuantity,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
           );
         },

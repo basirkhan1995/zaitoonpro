@@ -136,7 +136,6 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
     await PrintServices.initializeFonts();
   }
 
-
   Future<void> _sharePDF() async {
     if (!mounted) return;
 
@@ -183,78 +182,6 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
       if (mounted) setState(() => _isSharing = false);
     }
   }
-  // Future<void> _sharePDF() async {
-  //   if (!mounted) return;
-  //
-  //   setState(() {
-  //     _isSharing = true;
-  //   });
-  //
-  //   try {
-  //
-  //     final language = _cachedLanguage ?? context.read<LocalizationBloc>().state.toString();
-  //     final pageFormat = _cachedPageFormat ?? context.read<PaperSizeCubit>().state;
-  //     final orientation = _cachedOrientation ?? context.read<PageOrientationCubit>().state;
-  //
-  //     // Generate PDF
-  //     final pdf = await widget.buildPreview(
-  //       data: widget.data,
-  //       language: language,
-  //       orientation: orientation,
-  //       pageFormat: pageFormat,
-  //     );
-  //
-  //     if (!mounted) return;
-  //
-  //     // Save PDF
-  //     final bytes = await pdf.save();
-  //     final tempDir = await getTemporaryDirectory();
-  //     final timestamp = DateTime.now().millisecondsSinceEpoch;
-  //     final fileName = 'document_$timestamp.pdf';
-  //     final file = File('${tempDir.path}/$fileName');
-  //     await file.writeAsBytes(bytes);
-  //
-  //     if (!mounted) return;
-  //
-  //     final xFile = XFile(
-  //       file.path,
-  //       mimeType: 'application/pdf',
-  //       name: fileName,
-  //     );
-  //
-  //     // Use the new SharePlus API
-  //     await SharePlus.instance.share(
-  //       ShareParams(
-  //         files: [xFile],
-  //         text: 'Document from Zaitoon Petroleum',
-  //       ),
-  //     );
-  //
-  //     // Optional delete after sharing
-  //     Future.delayed(const Duration(seconds: 2), () async {
-  //       if (await file.exists()) {
-  //         await file.delete();
-  //       }
-  //     });
-  //   } catch (e) {
-  //     if (!mounted) return;
-  //
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(
-  //         content: Text('Error sharing PDF: ${e.toString()}'),
-  //         backgroundColor: Colors.red,
-  //         duration: const Duration(seconds: 3),
-  //       ),
-  //     );
-  //   } finally {
-  //     if (mounted) {
-  //       setState(() {
-  //         _isSharing = false;
-  //       });
-  //     }
-  //   }
-  // }
-
 
   @override
   Widget build(BuildContext context) {

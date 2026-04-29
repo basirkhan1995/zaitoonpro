@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -169,6 +170,7 @@ class StockDocumentPrintService extends PrintServices {
   }
 
   // ==================== GENERATE STOCK DOCUMENT ====================
+
   Future<pw.Document> generateStockDocument({
     required String documentType,
     required String documentNumber,
@@ -190,44 +192,55 @@ class StockDocumentPrintService extends PrintServices {
     final isSale = documentType.toLowerCase().contains('sale');
     final title = "stockPaper";
 
+
+    final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
+    final Uint8List imageBytes = imageData.buffer.asUint8List();
+    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+
     document.addPage(
-      pw.Page(
+      pw.MultiPage(
+        maxPages: 1000,  // ✅ Same as invoice
         margin: pw.EdgeInsets.all(25),
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
         orientation: orientation,
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            _stockDocumentHeader(
-              com: company,
-              language: language,
-              title: tr(text: title, tr: language),
-              documentDate: documentDate,
-              reference: reference,
-            ),
-            _customerInfo(
-              com: company,
-              language: language,
-              totalQuantity: totalQuantity,
-              documentNumber: documentNumber,
-              customerSupplierName: customerSupplierName,
-              isSale: isSale,
-            ),
-            pw.SizedBox(height: 4),
-            _stockItemsTable(
-              items: items,
-              language: language,
-            ),
-            pw.SizedBox(height: 8),
-            _stockFooter(
-              language: language,
-              driverName: driverName,
-              executedBy: executedBy,
-              authorizedBy: authorizedBy,
-              isSale: isSale,
-            ),
-          ],
+        build: (context) => [
+          _stockDocumentHeader(
+            com: company,
+            language: language,
+            title: tr(text: title, tr: language),
+            documentDate: documentDate,
+            reference: reference,
+          ),
+          _customerInfo(
+            com: company,
+            language: language,
+            totalQuantity: totalQuantity,
+            documentNumber: documentNumber,
+            customerSupplierName: customerSupplierName,
+            isSale: isSale,
+          ),
+          pw.SizedBox(height: 4),
+          _stockItemsTable(
+            report: company,
+            items: items,
+            language: language,
+          ),
+          pw.SizedBox(height: 8),
+          _stockFooter(
+            language: language,
+            driverName: driverName,
+            executedBy: executedBy,
+            authorizedBy: authorizedBy,
+            isSale: isSale,
+          ),
+        ],
+
+        footer: (context) => footer(
+          report: company,
+          context: context,
+          language: language,
+          logoImage: logoImage,
         ),
       ),
     );
@@ -288,7 +301,7 @@ class StockDocumentPrintService extends PrintServices {
         : tr(text: 'supplier', tr: language);
     final isRtl = language == 'fa' || language == 'ar';
     return pw.Container(
-      padding: pw.EdgeInsets.symmetric(horizontal: 4),
+      padding: pw.EdgeInsets.symmetric(horizontal: 0),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -297,20 +310,21 @@ class StockDocumentPrintService extends PrintServices {
             children: [
               zText(
                 text: "$title:",
-                fontSize: 12,
+                fontSize: 9,
                 fontWeight: pw.FontWeight.bold,
                 color: pw.PdfColors.grey800,
               ),
-              pw.SizedBox(width: 8),
+              pw.SizedBox(width: 3),
               zText(
                 text: customerSupplierName,
-                fontSize: 12,
+                fontSize: 9,
                 fontWeight: pw.FontWeight.normal,
               ),
             ],
           ),
           pw.Spacer(),
-          pw.SizedBox(width: 5),
+          pw.SizedBox(width: 3),
+
           // Total Quantity Row
           pw.Container(
             padding: pw.EdgeInsets.symmetric(horizontal: 5),
@@ -319,21 +333,27 @@ class StockDocumentPrintService extends PrintServices {
               children: [
                 zText(
                   text: "${tr(text: 'totalBox', tr: language)}:",
-                  fontSize: 12,
+                  fontSize: 9,
                   fontWeight: pw.FontWeight.bold,
                 ),
-                pw.SizedBox(width: 8),
+                pw.SizedBox(width: 5),
                 zText(
                   text: totalQuantity.toStringAsFixed(0),
-                  fontSize: 13,
+                  fontSize: 9,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ],
             ),
           ),
-          pw.SizedBox(width: 5),
+          pw.SizedBox(width: 10),
           zText(
-            text: tr(text: "invoiceDate", tr: language),
+            text: "${tr(text: 'documentNumber', tr: language)}: $documentNumber",
+            fontSize: 9,
+            fontWeight: pw.FontWeight.bold,
+          ),
+          pw.SizedBox(width: 15),
+          zText(
+            text: "${tr(text: "invoiceDate", tr: language)}:",
             fontSize: 9,
             fontWeight: pw.FontWeight.bold,
           ),
@@ -343,75 +363,108 @@ class StockDocumentPrintService extends PrintServices {
             fontSize: 9,
             fontWeight: pw.FontWeight.normal,
           ),
-          pw.SizedBox(width: 10),
-          zText(
-            text: "${tr(text: 'documentNumber', tr: language)}: $documentNumber",
-            fontSize: 10,
-            fontWeight: pw.FontWeight.bold,
-          ),
-          pw.SizedBox(width: 20),
         ],
       ),
     );
   }
 
-// ==================== STOCK ITEMS TABLE ====================
+  // ==================== STOCK ITEMS TABLE ====================
   pw.Widget _stockItemsTable({
     required List<StockDocumentItem> items,
+    required ReportModel report,
     required String language,
   }) {
     final isRtl = language == 'fa' || language == 'ar';
+    final isWholeSale = report.visible?.isWholeSale ?? false;
 
-    // Adjusted column widths for larger fonts
-    const numberWidth = 20.0;
+    // Column widths
+    const numberWidth = 25.0;
     const descriptionWidth = 130.0;
-    const qtyWidth = 35.0;
-    const batchWidth = 35.0;
-    const totalWidth = 40.0;  // New column for total
-    const unitWidth = 30.0;
+    const qtyWidth = 40.0;
+    const batchWidth = 45.0;
+    const totalWidth = 50.0;
+    const unitWidth = 35.0;
     const storageWidth = 60.0;
 
     final Map<int, pw.TableColumnWidth> columnWidths;
     final List<String> headers;
 
     if (isRtl) {
-      columnWidths = {
-        0: pw.FixedColumnWidth(storageWidth),
-        1: pw.FixedColumnWidth(unitWidth),
-        2: pw.FixedColumnWidth(totalWidth),  // Total column
-        3: pw.FixedColumnWidth(batchWidth),
-        4: pw.FixedColumnWidth(qtyWidth),
-        5: pw.FixedColumnWidth(descriptionWidth),
-        6: pw.FixedColumnWidth(numberWidth),
-      };
-      headers = [
-        tr(text: 'storage', tr: language),
-        tr(text: 'unit', tr: language),
-        tr(text: 'total', tr: language),  // Total header
-        tr(text: 'packing', tr: language),
-        tr(text: 'quantity', tr: language),
-        tr(text: 'items', tr: language),
-        '#',
-      ];
+      if (isWholeSale) {
+        // RTL with wholesale - Order: Storage, Unit, Total Qty, Packing, Quantity, Description, #
+        columnWidths = {
+          0: pw.FixedColumnWidth(storageWidth),      // Storage
+          1: pw.FixedColumnWidth(unitWidth),         // Unit
+          2: pw.FixedColumnWidth(totalWidth),        // Total Qty
+          3: pw.FixedColumnWidth(batchWidth),        // Packing
+          4: pw.FixedColumnWidth(qtyWidth),          // Quantity
+          5: pw.FixedColumnWidth(descriptionWidth),  // Description
+          6: pw.FixedColumnWidth(numberWidth),       // #
+        };
+        headers = [
+          tr(text: 'storage', tr: language),
+          tr(text: 'unit', tr: language),
+          tr(text: 'totalQty', tr: language),
+          tr(text: 'packing', tr: language),
+          tr(text: 'quantity', tr: language),
+          tr(text: 'items', tr: language),
+          '#',
+        ];
+      } else {
+        // RTL without wholesale - Order: Storage, Unit, Quantity, Description, #
+        columnWidths = {
+          0: pw.FixedColumnWidth(storageWidth),
+          1: pw.FixedColumnWidth(unitWidth),
+          2: pw.FixedColumnWidth(qtyWidth),
+          3: pw.FixedColumnWidth(descriptionWidth),
+          4: pw.FixedColumnWidth(numberWidth),
+        };
+        headers = [
+          tr(text: 'storage', tr: language),
+          tr(text: 'unit', tr: language),
+          tr(text: 'quantity', tr: language),
+          tr(text: 'items', tr: language),
+          '#',
+        ];
+      }
     } else {
-      columnWidths = {
-        0: pw.FixedColumnWidth(numberWidth),
-        1: pw.FixedColumnWidth(descriptionWidth),
-        2: pw.FixedColumnWidth(qtyWidth),
-        3: pw.FixedColumnWidth(batchWidth),
-        4: pw.FixedColumnWidth(totalWidth),  // Total column
-        5: pw.FixedColumnWidth(unitWidth),
-        6: pw.FixedColumnWidth(storageWidth),
-      };
-      headers = [
-        '#',
-        tr(text: 'items', tr: language),
-        tr(text: 'quantity', tr: language),
-        tr(text: 'packing', tr: language),
-        tr(text: 'total', tr: language),  // Total header
-        tr(text: 'unit', tr: language),
-        tr(text: 'storage', tr: language),
-      ];
+      if (isWholeSale) {
+        // LTR with wholesale - Order: #, Description, Quantity, Packing, Unit, Total Qty, Storage
+        columnWidths = {
+          0: pw.FixedColumnWidth(numberWidth),       // #
+          1: pw.FixedColumnWidth(descriptionWidth),  // Description
+          2: pw.FixedColumnWidth(qtyWidth),          // Quantity
+          3: pw.FixedColumnWidth(batchWidth),        // Packing
+          4: pw.FixedColumnWidth(unitWidth),         // Unit
+          5: pw.FixedColumnWidth(totalWidth),        // Total Qty
+          6: pw.FixedColumnWidth(storageWidth),      // Storage
+        };
+        headers = [
+          '#',
+          tr(text: 'items', tr: language),
+          tr(text: 'quantity', tr: language),
+          tr(text: 'packing', tr: language),
+          tr(text: 'unit', tr: language),
+          tr(text: 'totalQty', tr: language),
+          tr(text: 'storage', tr: language),
+        ];
+      } else {
+        // LTR without wholesale - Order: #, Description, Quantity, Unit, Storage
+        columnWidths = {
+          0: pw.FixedColumnWidth(numberWidth),
+          1: pw.FixedColumnWidth(descriptionWidth),
+          2: pw.FixedColumnWidth(qtyWidth),
+          3: pw.FixedColumnWidth(unitWidth),
+          4: pw.FixedColumnWidth(storageWidth),
+        };
+        headers = [
+          '#',
+          tr(text: 'items', tr: language),
+          tr(text: 'quantity', tr: language),
+          tr(text: 'unit', tr: language),
+          tr(text: 'storage', tr: language),
+        ];
+      }
     }
 
     return pw.Table(
@@ -436,7 +489,6 @@ class StockDocumentPrintService extends PrintServices {
             );
           }).toList(),
         ),
-
         // Data Rows
         for (int i = 0; i < items.length; i++)
           pw.TableRow(
@@ -444,161 +496,180 @@ class StockDocumentPrintService extends PrintServices {
                 ? pw.BoxDecoration(color: pw.PdfColors.grey50)
                 : null,
             children: isRtl
-                ? _buildRtlStockRow(items[i], i)
-                : _buildLtrStockRow(items[i], i),
+                ? _buildRtlStockRow(items[i], i, isWholeSale)
+                : _buildLtrStockRow(items[i], i, isWholeSale),
           ),
       ],
     );
   }
 
 // ==================== LTR STOCK ROW ====================
-  List<pw.Widget> _buildLtrStockRow(StockDocumentItem item, int index) {
+  List<pw.Widget> _buildLtrStockRow(StockDocumentItem item, int index, bool isWholeSale) {
     final total = (item.quantity * item.batch).toStringAsFixed(0);
+    final widgets = <pw.Widget>[];
 
-    return [
-      // Number
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: (index + 1).toString(),
-          fontSize: 9,
-          textAlign: pw.TextAlign.center,
-        ),
+    // # (Number)
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: (index + 1).toString(),
+        fontSize: 9,
+        textAlign: pw.TextAlign.center,
       ),
-      // Description
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
-        child: zText(
-          text: item.productName,
-          textAlign: pw.TextAlign.left,
-          fontSize: 9,
-          fontWeight: pw.FontWeight.normal,
-        ),
+    ));
+
+    // Description
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+      child: zText(
+        text: item.productName,
+        textAlign: pw.TextAlign.left,
+        fontSize: 12,
+        fontWeight: pw.FontWeight.normal,
       ),
-      // Quantity
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: item.quantity.toStringAsFixed(0),
-          fontSize: 9,
-          textAlign: pw.TextAlign.center,
-        ),
+    ));
+
+    // Quantity
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.quantity.toStringAsFixed(0),
+        fontSize: 10,
+        textAlign: pw.TextAlign.center,
       ),
-      // Batch
-      pw.Container(
+    ));
+
+    if (isWholeSale) {
+      // Packing (Batch)
+      widgets.add(pw.Container(
         padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.batch.toString(),
-          fontSize: 9,
+          fontSize: 10,
           textAlign: pw.TextAlign.center,
         ),
+      ));
+    }
+
+    // Unit
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.unit,
+        fontSize: 10,
+        textAlign: pw.TextAlign.center,
       ),
-      // Total (Qty × Batch)
-      pw.Container(
+    ));
+
+    if (isWholeSale) {
+      // Total Qty (quantity × batch)
+      widgets.add(pw.Container(
         padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: total,
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: pw.FontWeight.bold,
           color: pw.PdfColors.blue700,
           textAlign: pw.TextAlign.center,
         ),
+      ));
+    }
+
+    // Storage
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.storageName,
+        fontSize: 8,
+        textAlign: pw.TextAlign.center,
       ),
-      // Unit
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: item.unit,
-          fontSize: 9,
-          textAlign: pw.TextAlign.center,
-        ),
-      ),
-      // Storage
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: item.storageName,
-          fontSize: 8,
-          textAlign: pw.TextAlign.center,
-        ),
-      ),
-    ];
+    ));
+
+    return widgets;
   }
 
 // ==================== RTL STOCK ROW ====================
-  List<pw.Widget> _buildRtlStockRow(StockDocumentItem item, int index) {
+  List<pw.Widget> _buildRtlStockRow(StockDocumentItem item, int index, bool isWholeSale) {
     final total = (item.quantity * item.batch).toStringAsFixed(0);
+    final widgets = <pw.Widget>[];
 
-    return [
-      // Storage
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: item.storageName,
-          fontSize: 8,
-          textAlign: pw.TextAlign.center,
-        ),
+    // Storage (appears first on right side)
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.storageName,
+        fontSize: 8,
+        textAlign: pw.TextAlign.center,
       ),
-      // Unit
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: item.unit,
-          fontSize: 9,
-          textAlign: pw.TextAlign.center,
-        ),
+    ));
+
+    // Unit
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.unit,
+        fontSize: 10,
+        textAlign: pw.TextAlign.center,
       ),
-      // Total (Qty × Batch)
-      pw.Container(
+    ));
+
+    if (isWholeSale) {
+      // Total Qty (quantity × batch)
+      widgets.add(pw.Container(
         padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: total,
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: pw.FontWeight.bold,
           color: pw.PdfColors.blue700,
           textAlign: pw.TextAlign.center,
         ),
-      ),
-      // Batch
-      pw.Container(
+      ));
+
+      // Packing (Batch)
+      widgets.add(pw.Container(
         padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
         child: zText(
           text: item.batch.toString(),
-          fontSize: 9,
+          fontSize: 10,
           textAlign: pw.TextAlign.center,
         ),
-      ),
-      // Quantity
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: item.quantity.toStringAsFixed(0),
-          fontSize: 9,
-          textAlign: pw.TextAlign.center,
-        ),
-      ),
-      // Description
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
-        child: zText(
-          text: item.productName,
-          fontSize: 9,
-          fontWeight: pw.FontWeight.normal,
-          textAlign: pw.TextAlign.right,
-        ),
-      ),
-      // Number
-      pw.Container(
-        padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-        child: zText(
-          text: (index + 1).toString(),
-          fontSize: 9,
-          textAlign: pw.TextAlign.center,
-        ),
-      ),
-    ];
-  }
+      ));
+    }
 
+    // Quantity
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.quantity.toStringAsFixed(0),
+        fontSize: 10,
+        textAlign: pw.TextAlign.center,
+      ),
+    ));
+
+    // Description
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 6),
+      child: zText(
+        text: item.productName,
+        fontSize: 12,
+        fontWeight: pw.FontWeight.normal,
+        textAlign: pw.TextAlign.right,
+      ),
+    ));
+
+    // # (Number - appears last on left side)
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: (index + 1).toString(),
+        fontSize: 9,
+        textAlign: pw.TextAlign.center,
+      ),
+    ));
+
+    return widgets;
+  }
   // ==================== SIMPLIFIED STOCK FOOTER WITH SIGNATURES ====================
   pw.Widget _stockFooter({
     required String language,

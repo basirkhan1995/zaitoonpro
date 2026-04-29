@@ -6,6 +6,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/features/Visibility/bloc/setti
 class ReportModel {
   String? comName;
   String? compPhone;
+  String? comWhatsApp;
   String? slogan;
   int? invoiceNumber;
   String? comEmail;
@@ -21,12 +22,15 @@ class ReportModel {
   String? partyPhone;
   String? partyCity;
   String? partyProvince;
+  String? usrMaker;
+  String? usrPrintedBy;
   SettingsVisibilityState? visible;
 
   ReportModel({
     this.comName,
     this.compPhone,
     this.slogan,
+    this.comWhatsApp,
     this.comEmail,
     this.comLogo,
     this.comAddress,
@@ -40,6 +44,8 @@ class ReportModel {
     this.partyPhone,
     this.partyCity,
     this.partyProvince,
+    this.usrMaker,
+    this.usrPrintedBy,
     this.visible
   });
 
@@ -47,6 +53,7 @@ class ReportModel {
     String? comName,
     String? compPhone,
     String? slogan,
+    String? comWhatsApp,
     int? invoiceNumber,
     String? comEmail,
     Uint8List? comLogo,
@@ -60,6 +67,8 @@ class ReportModel {
     String? partyPhone,
     String? partyCity,
     String? partyProvince,
+    String? usrMaker,
+    String? usrPrintedBy,
     SettingsVisibilityState? visible
     }) => ReportModel(
         comName: comName ?? this.comName,
@@ -67,6 +76,7 @@ class ReportModel {
         comEmail: comEmail ?? this.comEmail,
         comLogo: comLogo ?? this.comLogo,
         slogan: slogan ?? this.slogan,
+        comWhatsApp: comWhatsApp ?? this.comWhatsApp,
         comAddress: comAddress ?? this.comAddress,
         invoiceNumber: invoiceNumber ?? this.invoiceNumber,
         statementDate: statementDate ?? this.statementDate,
@@ -78,6 +88,8 @@ class ReportModel {
         partyPhone:  partyPhone ?? this.partyPhone,
         partyCity: partyCity ?? this.partyCity,
         partyProvince: partyProvince ?? this.partyProvince,
-        visible: visible ?? this.visible
+        usrMaker: usrMaker ?? this.usrMaker,
+        usrPrintedBy: usrPrintedBy ?? this.usrPrintedBy,
+        visible: visible ?? this.visible,
       );
 }

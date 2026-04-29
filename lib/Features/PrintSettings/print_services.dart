@@ -15,6 +15,8 @@ abstract class PrintServices {
   static late pw.Font _persianRegular;
   static late pw.Font _persianBold;
 
+
+
   // Initialize fonts
   static Future<void> initializeFonts() async {
     await _loadEnglishFonts();
@@ -59,27 +61,6 @@ abstract class PrintServices {
 
   static Future<void> _loadWebPersianFonts() async {
     try {
-      // Try Amiri Regular for web
-      final ByteData persianRegularData = await rootBundle.load(
-        'assets/fonts/Amiri/Amiri-Regular.ttf',
-      );
-      _persianRegular = pw.Font.ttf(persianRegularData);
-
-      // Try Amiri Bold for web
-      final ByteData persianBoldData = await rootBundle.load(
-        'assets/fonts/Amiri/Amiri-Bold.ttf',
-      );
-      _persianBold = pw.Font.ttf(persianBoldData);
-
-    } catch (e) {
-      debugPrint('❌ Amiri font failed, trying NotoNaskh: $e');
-      // Fallback to NotoNaskh
-      await _loadNativePersianFonts();
-    }
-  }
-
-  static Future<void> _loadNativePersianFonts() async {
-    try {
       // Load regular font
       final ByteData persianRegularData = await rootBundle.load(
         'assets/fonts/NotoNaskh/NotoNaskhArabic-Regular.ttf',
@@ -91,8 +72,26 @@ abstract class PrintServices {
         'assets/fonts/NotoNaskh/NotoNaskhArabic-Bold.ttf',
       );
       _persianBold = pw.Font.ttf(persianBoldData);
+
     } catch (e) {
-      debugPrint('❌ NotoNaskh font failed: $e');
+      await _loadNativePersianFonts();
+    }
+  }
+
+  static Future<void> _loadNativePersianFonts() async {
+    try {
+
+      final ByteData persianRegularData = await rootBundle.load(
+        'assets/fonts/Amiri/Amiri-Regular.ttf',
+      );
+      _persianRegular = pw.Font.ttf(persianRegularData);
+
+      final ByteData persianBoldData = await rootBundle.load(
+        'assets/fonts/Amiri/Amiri-Bold.ttf',
+      );
+
+      _persianBold = pw.Font.ttf(persianBoldData);
+    } catch (e) {
       rethrow;
     }
   }
@@ -140,14 +139,29 @@ abstract class PrintServices {
   }
 
   Future<pw.Widget> header({required ReportModel report}) async {
-    // Check if company logo exists and is valid
+    /// 🔹 Load Icons
+    final phoneIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/phone.png')).buffer.asUint8List(),
+    );
+
+    final whatsappIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/whatsapp.png')).buffer.asUint8List(),
+    );
+
+    final emailIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/email.png')).buffer.asUint8List(),
+    );
+
+    final addressIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/location.png')).buffer.asUint8List(),
+    );
+
+    /// 🔹 Check Logo
     final bool hasCompanyLogo = report.comLogo != null &&
         report.comLogo is Uint8List &&
         report.comLogo!.isNotEmpty;
 
     pw.ImageProvider? logoImage;
-
-    // Only load company logo if it exists
     if (hasCompanyLogo) {
       logoImage = pw.MemoryImage(report.comLogo!);
     }
@@ -156,68 +170,122 @@ abstract class PrintServices {
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            // Company info (left side)
+            /// 🔸 LEFT SIDE (Logo + Company Info)
             pw.Expanded(
               flex: 3,
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
+                  /// ✅ Logo ABOVE name
+                  if (logoImage != null)
+                    pw.Container(
+                      width: 60,
+                      height: 60,
+                      child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+                    ),
+
+                  /// Company Name
                   zText(
-                      text: report.comName ?? "",
-                      fontSize: 20,
-                      tightBounds: true,
-                      fontWeight: pw.FontWeight.bold
+                    text: report.comName ?? "",
+                    fontSize: 20,
+                    tightBounds: true,
+                    fontWeight: pw.FontWeight.bold,
                   ),
 
-                  if(report.comAddress != null && report.comAddress!.isNotEmpty)
+                  /// Slogan
+                  if (report.slogan != null && report.slogan!.isNotEmpty)
                     zText(
-                      text: report.comAddress ?? "",
-                      fontSize: 9,
-                      color: pw.PdfColors.grey600,
+                      text: report.slogan!,
+                      fontSize: 11,
+                      color: pw.PdfColors.blueGrey,
                     ),
-                  pw.Row(
+
+                  /// Address
+                  if (report.comAddress != null && report.comAddress!.isNotEmpty)...[
+                    pw.Row(
                       children: [
-                        if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
-                          zText(
-                            text: report.compPhone ?? "",
-                            fontSize: 9,
-                            color: pw.PdfColors.grey600,
-                          ),
-                        ],
-                        if (report.comEmail != null && report.comEmail!.isNotEmpty) ...[
-                          verticalDivider(height: 10, width: 1),
-                          zText(
-                            text: report.comEmail ?? "",
-                            fontSize: 9,
-                            color: pw.PdfColors.grey600,
-                          ),
-                        ],
-                         if (report.slogan != null && report.slogan!.isNotEmpty)
-                        verticalDivider(height: 10, width: 1),
+                        pw.Image(addressIcon, width: 11, height: 11),
+                        pw.SizedBox(width: 2),
                         zText(
-                          text: report.slogan ?? "",
-                          fontSize: 9,
-                          color: pw.PdfColors.grey600,
+                          text: report.comAddress!,
+                          fontSize: 10,
+                          color: pw.PdfColors.grey900,
                         ),
                       ]
-                  ),
+                    )
+                  ],
+
                 ],
               ),
             ),
-            // Logo (right side) - only show if company logo exists
-            if (logoImage != null)
-              pw.Container(
-                width: 85,
-                height: 85,
-                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
-              ),
+
+            /// 🔸 RIGHT SIDE (Contacts with icons on RIGHT)
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                if (report.compPhone != null &&
+                    report.compPhone!.isNotEmpty) ...[
+
+                  /// 📞 Phone (icon on RIGHT)
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      zText(
+                        text: report.compPhone??"",
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: pw.PdfColors.grey800,
+                      ),
+                      pw.SizedBox(width: 4),
+                      pw.Image(phoneIcon, width: 11, height: 11),
+                    ],
+                  ),
+
+                  pw.SizedBox(height: 3),
+
+                  /// 💬 WhatsApp
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      zText(
+                        text: report.comWhatsApp??"",
+                        fontSize: 9,
+                        color: pw.PdfColors.grey700,
+                      ),
+                      pw.SizedBox(width: 4),
+                      pw.Image(whatsappIcon, width: 11, height: 11),
+                    ],
+                  ),
+                ],
+
+                if (report.comEmail != null &&
+                    report.comEmail!.isNotEmpty) ...[
+                  pw.SizedBox(height: 4),
+
+                  /// ✉️ Email
+                  pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      zText(
+                        text: report.comEmail!,
+                        fontSize: 9,
+                        color: pw.PdfColors.grey700,
+                      ),
+                      pw.SizedBox(width: 4),
+                      pw.Image(emailIcon, width: 11, height: 11),
+                    ],
+                  ),
+                ],
+              ],
+            ),
           ],
         ),
-        pw.SizedBox(height: 4),
-        horizontalDivider(),
+
+        pw.SizedBox(height: 6),
+        pw.Divider(height: 0),
       ],
     );
   }
@@ -232,9 +300,17 @@ abstract class PrintServices {
       mainAxisSize: pw.MainAxisSize.min,
       children: [
         pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.end,
           children: [
             buildPage(context.pageNumber, context.pagesCount, language),
+            pw.Row(
+              children: [
+                zText(text: tr(text: 'printedBy', tr: language),color: pw.PdfColors.grey700,fontSize: 9),
+                pw.SizedBox(width: 5),
+                zText(text: report.usrPrintedBy??'',fontSize: 9)
+              ]
+            )
           ],
         ),
       ],
@@ -482,6 +558,11 @@ abstract class PrintServices {
         "ar": "بل نیته",
         "fa": "تاریخ بل"
       },
+      "printedBy": {
+        "en": "Printed By:",
+        "ar": "چاپ کونکی:",
+        "fa": "چاپ کننده:"
+      },
       "note": {
         "en": "Remark:",
         "ar": "یاداشت:",
@@ -499,8 +580,8 @@ abstract class PrintServices {
       },
       "invoiceAmount": {
         "en": "Receivable Amount",
-        "ar": "ترلاسه کولو وړ مقدار",
-        "fa": "مبلغ دریافتنی"
+        "ar": "پاتی وړ مقدار",
+        "fa": "الباقی مبلغ بل"
       },
       "noDebitEntries": {
         "en": "No debit entries",
@@ -1964,14 +2045,14 @@ abstract class PrintServices {
         'ar': 'گدام خروجی سند',
       },
       'documentNumber': {
-        'en': 'Document No',
+        'en': 'INV',
         'fa': 'نمبر سند',
         'ar': 'سند شمیره',
       },
       'totalBox': {
         'en': 'Total Items',
-        'fa': 'مجموعه کارتن',
-        'ar': 'کارتن مجموعه',
+        'fa': 'مجموعه تعداد',
+        'ar': 'کارتن تعداد',
       },
       "subtotal": {
         "en": "Subtotal",
@@ -2008,8 +2089,6 @@ abstract class PrintServices {
         "fa": "پرداخت اعتباری",
         "ar": "پور تادیه"
       },
-
-
 
     };
 

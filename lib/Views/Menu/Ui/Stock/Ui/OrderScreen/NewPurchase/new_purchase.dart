@@ -206,6 +206,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       }
     });
   }
+  final company = ReportModel();
   bool _isEditMode = false;
   @override
   void initState() {
@@ -366,6 +367,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               if (state.supplier != null) {
                 _personController.text = state.supplier!.perName ?? '';
                 signatory = state.supplier!.perId;
+
+                company.partyAddress = state.supplier!.addName;
+                company.partyPhone = state.supplier!.perPhone;
+                company.partyCity = state.supplier!.addCity;
+                company.partyProvince = state.supplier!.addProvince;
               }
 
               // Set account
@@ -1395,13 +1401,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     // Determine the invoice number to use
     final String finalInvoiceNumber;
     if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
-      // Case 1: After saving, use the returned invoice number
       finalInvoiceNumber = invoiceNumber;
     } else if (widget.orderId != null && widget.orderId! > 0) {
-      // Case 2: When loading an existing invoice, use the widget.orderId
       finalInvoiceNumber = widget.orderId.toString();
     } else {
-      // Case 3: New invoice - leave empty, API will generate
       finalInvoiceNumber = '';
     }
 
@@ -1419,19 +1422,19 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return;
     }
 
-    final company = ReportModel(
-      comName: authState.loginData.company?.comName ?? "",
-      comAddress: authState.loginData.company?.comAddress ?? "",
-      compPhone: authState.loginData.company?.comPhone ?? "",
-      comEmail: authState.loginData.company?.comEmail ?? "",
-      slogan: authState.loginData.company?.comDetails ?? "",
-      comWebsite: authState.loginData.company?.comWebsite ?? "",
-      comFacebook: authState.loginData.company?.comFb ?? "",
-      comInstagram: authState.loginData.company?.comInsta ?? "",
-      comWhatsApp: authState.loginData.company?.comWhatsapp ?? "",
-      invoiceNumber: widget.orderId,
-      statementDate: DateTime.now().toFullDateTime,
-    );
+    // FIX: Use the class-level `company` field which already has party details set
+    // Only update company info fields, preserving party details
+    company.comName = authState.loginData.company?.comName ?? "";
+    company.comAddress = authState.loginData.company?.comAddress ?? "";
+    company.compPhone = authState.loginData.company?.comPhone ?? "";
+    company.comEmail = authState.loginData.company?.comEmail ?? "";
+    company.slogan = authState.loginData.company?.comDetails ?? "";
+    company.comWebsite = authState.loginData.company?.comWebsite ?? "";
+    company.comFacebook = authState.loginData.company?.comFb ?? "";
+    company.comInstagram = authState.loginData.company?.comInsta ?? "";
+    company.comWhatsApp = authState.loginData.company?.comWhatsapp ?? "";
+    company.invoiceNumber = widget.orderId;
+    company.statementDate = DateTime.now().toFullDateTime;
 
     final base64Logo = authState.loginData.company?.comLogo;
     if (base64Logo != null && base64Logo.isNotEmpty) {
@@ -1463,7 +1466,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       context: context,
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
-        company: company,
+        company: company, // Use class-level company which has party details
         buildPreview: ({
           required data,
           required language,
@@ -1483,7 +1486,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             account: current.supplierAccount,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company, // Use class-level company
             pageFormat: pageFormat,
             currency: baseCurrency,
             isSale: false,
@@ -1516,7 +1519,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             account: current.supplierAccount,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company, // Use class-level company
             selectedPrinter: selectedPrinter,
             pageFormat: pageFormat,
             copies: copies,
@@ -1548,7 +1551,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             account: current.supplierAccount,
             language: language,
             orientation: orientation,
-            company: company,
+            company: company, // Use class-level company
             pageFormat: pageFormat,
             currency: baseCurrency,
             isSale: false,

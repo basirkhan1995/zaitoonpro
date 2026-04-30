@@ -30,20 +30,13 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<SavePurchaseInvoiceEvent>(_onSaveInvoice);
     on<LoadPurchaseStoragesEvent>(_onLoadStorages);
     on<ClearSupplierAccountEvent>(_onClearSupplierAccount);
-
-    // Payment handlers (unified)
     on<AddPaymentEvent>(_onAddPayment);
     on<RemovePaymentEvent>(_onRemovePayment);
     on<UpdatePaymentEvent>(_onUpdatePayment);
     on<UpdateAllLandedPricesEvent>(_onUpdateAllLandedPrices);
-
-    // Exchange rate handlers
     on<UpdateExchangeRateForInvoiceEvent>(_onUpdateExchangeRate);
     on<UpdateExchangeRateManuallyEvent>(_onUpdateExchangeRateManually);
-
     on<UpdateCashCurrencyEvent>(_onUpdateCashCurrency);
-
-
     on<LoadPurchaseInvoiceForEditEvent>(_onLoadPurchaseInvoiceForEdit);
   }
 
@@ -121,11 +114,28 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         );
       }
 
-      // Get supplier
-      final supplier = IndividualsModel(
-        perId: parsed['partyId'],
-        perName: parsed['partyName'],
-      );
+      // FIX: Fetch full supplier details by ID
+      IndividualsModel? supplier;
+      final partyId = parsed['partyId'] as int?;
+
+      if (partyId != null) {
+        try {
+          // Fetch the full stakeholder profile to get address, phone, etc.
+          final fullSupplier = await repo.getPersonProfileById(perId: partyId);
+          supplier = fullSupplier;
+        } catch (e) {
+          // Fallback to basic info if fetch fails
+          supplier = IndividualsModel(
+            perId: partyId,
+            perName: parsed['partyName'] as String?,
+          );
+        }
+      } else {
+        supplier = IndividualsModel(
+          perId: parsed['partyId'] as int?,
+          perName: parsed['partyName'] as String?,
+        );
+      }
 
       // Calculate totals
       final itemsTotal = items.fold(0.0, (sum, item) => sum + (item.totalPurchase));
@@ -158,29 +168,28 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
 
       emit(PurchaseInvoiceLoaded(
-        items: items,
-        payments: expenses,
-        supplier: supplier,
-        supplierAccount: supplierAccount,
-        cashPayment: cashPaymentInBase,
-        paymentMode: paymentMode,
-        exchangeRate: exchangeRate,
-        fromCurrency: event.baseCurrency,
-        toCurrency: toCurrency,
-        cashCurrency: cashCurrency != event.baseCurrency ? cashCurrency : null,
-        cashExchangeRate: exchangeRate,
-        xRef: parsed['reference'],
-        remark: parsed['remarks'],
-        orderId: orderId
+          items: items,
+          payments: expenses,
+          supplier: supplier,
+          supplierAccount: supplierAccount,
+          cashPayment: cashPaymentInBase,
+          paymentMode: paymentMode,
+          exchangeRate: exchangeRate,
+          fromCurrency: event.baseCurrency,
+          toCurrency: toCurrency,
+          cashCurrency: cashCurrency != event.baseCurrency ? cashCurrency : null,
+          cashExchangeRate: exchangeRate,
+          xRef: parsed['reference'],
+          remark: parsed['remarks'],
+          orderId: orderId
       ));
 
     } catch (e) {
       emit(PurchaseInvoiceError('Failed to load invoice: $e'));
     }
   }
-// Helper to extract clean narration without rate info
+
   String _extractExpenseNarration(String narration) {
-    // Remove @Rate: ... part if present
     final rateMatch = RegExp(r'\s*@Rate:\s*[\d.]+').firstMatch(narration);
     if (rateMatch != null) {
       return narration.substring(0, rateMatch.start).trim();

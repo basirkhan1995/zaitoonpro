@@ -23,9 +23,10 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final String? hintText;
   final bool enabled;
   final B? bloc;
+  final FocusNode? focusNode; // ADDED: External focus node
   final BlocSearchFunction<B>? searchFunction;
   final BlocFetchAllFunction<B>? fetchAllFunction;
-  final BlocFetchByIdFunction<B>? fetchByIdFunction; // NEW: Function to fetch product by ID
+  final BlocFetchByIdFunction<B>? fetchByIdFunction;
   final List<T> Function(S state) stateToItems;
   final bool Function(S state)? stateToLoading;
   final ItemToString<T> itemToString;
@@ -62,10 +63,8 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final bool openOverlayOnFocus;
   final VoidCallback? onSubmit;
 
-  // Header search controller (different from main controller)
   final TextEditingController? headerSearchController;
 
-  // NEW PARAMETERS FOR INITIAL PRODUCT
   final int? initialProductId;
   final bool autoSelectInitialProduct;
 
@@ -89,6 +88,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     required this.getAveragePrice,
     required this.getRecentPrice,
     required this.getSellPrice,
+    this.focusNode, // ADDED
     this.getProductUnit,
     this.onSubmit,
     this.getProductBrand,
@@ -109,7 +109,6 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     this.showAllOnFocus = true,
     this.openOverlayOnFocus = false,
     this.headerSearchController,
-    // NEW PARAMETERS
     this.initialProductId,
     this.fetchByIdFunction,
     this.autoSelectInitialProduct = true,
@@ -126,7 +125,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   final GlobalKey _fieldKey = GlobalKey();
   List<T> _currentSuggestions = [];
   Timer? _debounce;
-  late FocusNode _focusNode;
+  late FocusNode _internalFocusNode; // RENAMED from _focusNode
   bool _firstFocus = true;
   final FocusNode _keyboardListenerFocusNode = FocusNode(skipTraversal: true);
   T? _selectedItem;
@@ -135,39 +134,34 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   bool _isLoading = false;
   String? baseCurrency;
 
-  // Search TextField controller inside overlay
   final TextEditingController _overlaySearchController = TextEditingController();
 
-  // Sync flags
   bool _isSyncingFromMain = false;
   bool _isSyncingFromOverlay = false;
   bool _isSyncingFromHeader = false;
 
-  // Track if overlay should stay open
   bool _shouldKeepOverlayOpen = false;
 
-  // Track current search query to prevent stale responses
   String _currentSearchQuery = '';
 
-  // Timeout for loading state
   Timer? _loadingTimeout;
 
-  // NEW: Initialization flags
   bool _isInitializing = false;
   bool _initialLoadDone = false;
+
+  // ADDED: Use provided focusNode or internal one
+  FocusNode get _effectiveFocusNode => widget.focusNode ?? _internalFocusNode;
 
   @override
   void initState() {
     super.initState();
-    _focusNode = FocusNode();
-    _focusNode.addListener(_onFocusChange);
+    _internalFocusNode = FocusNode(); // Create internal focus node
+    _effectiveFocusNode.addListener(_onFocusChange); // Listen on effective node
     widget.controller.addListener(_onMainControllerChanged);
     _overlaySearchController.addListener(_onOverlaySearchChanged);
 
-    // Sync with header search controller if provided (must be different from main controller)
     if (widget.headerSearchController != null && widget.headerSearchController != widget.controller) {
       widget.headerSearchController!.addListener(_onHeaderSearchChanged);
-      // Initialize header controller with main controller value
       if (widget.headerSearchController!.text != widget.controller.text) {
         widget.headerSearchController!.text = widget.controller.text;
       }
@@ -180,15 +174,14 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _keyboardListenerFocusNode.requestFocus();
-      // NEW: Initialize from product ID if provided
       _initializeFromProductId();
     });
   }
 
   @override
   void dispose() {
-    _focusNode.removeListener(_onFocusChange);
-    _focusNode.dispose();
+    _effectiveFocusNode.removeListener(_onFocusChange);
+    _internalFocusNode.dispose(); // Always dispose internal node
     _keyboardListenerFocusNode.dispose();
     widget.controller.removeListener(_onMainControllerChanged);
     _overlaySearchController.removeListener(_onOverlaySearchChanged);
@@ -205,30 +198,22 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     super.dispose();
   }
 
-  // NEW METHOD: Initialize product from ID using BLoC
   void _initializeFromProductId() {
-    // Prevent multiple initializations
     if (_isInitializing || _initialLoadDone) return;
 
-    // Check if we have an initial product ID and fetch function
     final hasInitialId = widget.initialProductId != null &&
         widget.initialProductId! > 0 &&
         widget.fetchByIdFunction != null;
 
     if (!hasInitialId) return;
 
-    // Don't initialize if controller already has text
     if (widget.controller.text.isNotEmpty) {
       _initialLoadDone = true;
       return;
     }
 
     _isInitializing = true;
-
-    // Show loading state
     _setLoading(true);
-
-    // Dispatch BLoC event to fetch product by ID
     widget.fetchByIdFunction!(widget.bloc!, widget.initialProductId!);
   }
 
@@ -284,7 +269,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       _overlaySearchController.text = headerText;
     }
 
-    // Only trigger search if header text changed and is not empty
     if (headerText != _currentSearchQuery) {
       _triggerSearch(headerText);
     }
@@ -295,11 +279,9 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   void _setLoading(bool loading) {
     if (!mounted) return;
 
-    // Clear any existing timeout
     _loadingTimeout?.cancel();
 
     if (loading) {
-      // Set a timeout to clear loading state if no response
       _loadingTimeout = Timer(const Duration(seconds: 10), () {
         if (mounted && _isLoading) {
           debugPrint('Loading timeout - clearing loading state');
@@ -307,7 +289,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
             _isLoading = false;
           });
           _loadingTimeout = null;
-          // Refresh overlay to remove loading indicator
           _refreshOverlay();
         }
       });
@@ -317,15 +298,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       _isLoading = loading;
     });
 
-    // Refresh overlay to show/hide loading indicator
     _refreshOverlay();
   }
 
   void _triggerSearch(String query) {
-    // Cancel any pending debounce
     _debounce?.cancel();
-
-    // Clear loading timeout on new search
     _loadingTimeout?.cancel();
 
     if (_selectedItem != null && query != widget.itemToString(_selectedItem as T)) {
@@ -348,20 +325,16 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       return;
     }
 
-    // Show loading state
     _setLoading(true);
     _currentSearchQuery = query;
 
-    // Only show overlay if the field has focus
-    if (_focusNode.hasFocus) {
+    if (_effectiveFocusNode.hasFocus) { // CHANGED from _focusNode
       _showOverlay();
     }
 
-    // Debounce the actual search
     _debounce = Timer(const Duration(milliseconds: 500), () {
       if (!mounted) return;
 
-      // Only search if query hasn't changed during debounce
       if (query.isNotEmpty && widget.searchFunction != null && query == _currentSearchQuery) {
         try {
           widget.searchFunction!(widget.bloc!, query);
@@ -381,7 +354,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       _currentHighlightedItem = null;
     });
     if (shouldResetFocus) {
-      _focusNode.unfocus();
+      _effectiveFocusNode.unfocus(); // CHANGED from _focusNode
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _keyboardListenerFocusNode.requestFocus();
@@ -393,19 +366,17 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   void _onFocusChange() {
     if (!mounted) return;
 
-    if (_focusNode.hasFocus) {
+    if (_effectiveFocusNode.hasFocus) { // CHANGED from _focusNode
       if (widget.showAllOnFocus && _firstFocus && widget.fetchAllFunction != null) {
         widget.fetchAllFunction!(widget.bloc!);
         _firstFocus = false;
       }
 
-      // Only show overlay if we have content or explicitly asked to
       if ((_currentSuggestions.isNotEmpty || _isLoading || widget.controller.text.isNotEmpty || widget.openOverlayOnFocus) &&
           widget.controller.text.isNotEmpty) {
         _showOverlay();
       }
     } else {
-      // Only close overlay if we're not keeping it open
       if (!_shouldKeepOverlayOpen) {
         _closeOverlay(shouldResetFocus: false);
       }
@@ -450,7 +421,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   }
 
   void _showOverlay() {
-    // If overlay already exists, just refresh it
     if (_overlayEntry != null) {
       _refreshOverlay();
       return;
@@ -489,7 +459,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         color: Colors.transparent,
         child: Stack(
           children: [
-            // Background overlay - clicking this closes
             Positioned.fill(
               child: GestureDetector(
                 onTap: () => _closeOverlay(),
@@ -525,14 +494,12 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Left panel - product list
                         Flexible(
                           flex: 5,
                           child: Container(
                             margin: const EdgeInsets.all(8),
                             child: Column(
                               children: [
-                                // Search TextField inside overlay
                                 Container(
                                   padding: const EdgeInsets.symmetric(vertical: 8),
                                   decoration: BoxDecoration(
@@ -596,7 +563,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                     },
                                   ),
                                 ),
-                                // Header row
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   margin: const EdgeInsets.symmetric(horizontal: 1),
@@ -607,10 +573,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   child: Row(
                                     children: [
                                       Expanded(child: Text(tr.productName, style: titleStyle)),
-                                        SizedBox(width: 60, child: Text(tr.unit, textAlign: TextAlign.center, style: titleStyle)),
-                                        SizedBox(width: 100, child: Text(tr.batchTitle, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
-                                        SizedBox(width: 120, child: Text(tr.available, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
-                                        SizedBox(width: 120, child: Text(tr.unitPrice, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
+                                      SizedBox(width: 60, child: Text(tr.unit, textAlign: TextAlign.center, style: titleStyle)),
+                                      SizedBox(width: 100, child: Text(tr.batchTitle, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
+                                      SizedBox(width: 120, child: Text(tr.available, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
+                                      SizedBox(width: 120, child: Text(tr.unitPrice, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
                                     ],
                                   ),
                                 ),
@@ -707,7 +673,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                             ),
                           ),
                         ),
-                        // Right panel - details
                         if (_currentHighlightedItem != null && !_isLoading && _currentSuggestions.isNotEmpty)
                           Container(
                             width: 350,
@@ -1023,7 +988,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   void _handleItemSelection(T item) {
     final selectedProductName = widget.itemToString(item);
 
-    // Update all controllers without sync loops
     _isSyncingFromMain = true;
     _isSyncingFromOverlay = true;
     _isSyncingFromHeader = true;
@@ -1077,7 +1041,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         _isSyncingFromOverlay = false;
         _isSyncingFromHeader = false;
 
-        // Clear all states
         _debounce?.cancel();
         _loadingTimeout?.cancel();
 
@@ -1175,7 +1138,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                 focusNode: _keyboardListenerFocusNode,
                 onKeyEvent: _handleKeyEvent,
                 child: TextFormField(
-                  focusNode: _focusNode,
+                  focusNode: _effectiveFocusNode, // CHANGED from _focusNode
                   enabled: widget.enabled,
                   key: _fieldKey,
                   controller: widget.controller,
@@ -1235,7 +1198,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
               BlocListener<B, S>(
                 bloc: widget.bloc,
                 listener: (context, state) {
-                  // Clear loading timeout when we get a response
                   _loadingTimeout?.cancel();
 
                   final items = widget.stateToItems(state);
@@ -1246,15 +1208,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                       _currentSuggestions = items;
                       _isLoading = isLoading;
 
-                      // If not loading and we have results or empty, update highlight
                       if (!isLoading) {
-                        // NEW: Handle initial product selection
                         if (_isInitializing && items.isNotEmpty && !_initialLoadDone) {
-                          // This is the response from fetching by ID
                           final product = items.first;
                           final productName = widget.itemToString(product);
 
-                          // Update controllers
                           _isSyncingFromMain = true;
                           _isSyncingFromOverlay = true;
                           _isSyncingFromHeader = true;
@@ -1281,7 +1239,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                           _isInitializing = false;
                         }
 
-                        // Regular highlight logic
                         if (_selectedItem != null && items.isNotEmpty) {
                           final selectedIndex = items.indexWhere(
                                 (item) => widget.itemToString(item) == widget.itemToString(_selectedItem as T),
@@ -1308,12 +1265,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                       }
                     });
 
-                    // Refresh the overlay to show results
                     _refreshOverlay();
                   }
 
                   final hasText = widget.controller.text.isNotEmpty;
-                  if (_focusNode.hasFocus && (hasText || isLoading || widget.openOverlayOnFocus)) {
+                  if (_effectiveFocusNode.hasFocus && (hasText || isLoading || widget.openOverlayOnFocus)) { // CHANGED from _focusNode
                     _showOverlay();
                   }
                 },

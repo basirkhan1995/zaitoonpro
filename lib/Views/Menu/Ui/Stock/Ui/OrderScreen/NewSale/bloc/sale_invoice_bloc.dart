@@ -66,6 +66,28 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
       final orderId = parsed['orderId'] as dynamic ?? event.orderId;
 
+      IndividualsModel? customer;
+      final partyId = parsed['partyId'] as int?;
+
+      if (partyId != null) {
+        try {
+          // Fetch the full stakeholder profile
+          final fullStakeholder = await repo.getPersonProfileById(perId: partyId);
+          customer = fullStakeholder;
+        } catch (e) {
+          // Fallback to basic info if fetch fails
+          customer = IndividualsModel(
+            perId: partyId,
+            perName: parsed['partyName'] as String?,
+          );
+        }
+      } else {
+        customer = IndividualsModel(
+          perId: parsed['partyId'] as int?,
+          perName: parsed['partyName'] as String?,
+        );
+      }
+
       // FIX: Use OrderParser.getExchangeRate() to get rate ONLY from stakeholder accounts
       double accountExchangeRate = OrderParser.getExchangeRate(payments);
 
@@ -145,10 +167,10 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         toCurrency = customerAccountData['currency'] as String;
       }
 
-      final customer = IndividualsModel(
-        perId: parsed['partyId'],
-        perName: parsed['partyName'],
-      );
+      // final customer = IndividualsModel(
+      //   perId: parsed['partyId'],
+      //   perName: parsed['partyName'],
+      // );
 
       // Get extra charges
       double extraCharges = 0;
@@ -228,6 +250,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       emit(SaleInvoiceError('Failed to load invoice: $e'));
     }
   }
+
   void setBaseCurrency(String currency) {
     _baseCurrency = currency;
   }

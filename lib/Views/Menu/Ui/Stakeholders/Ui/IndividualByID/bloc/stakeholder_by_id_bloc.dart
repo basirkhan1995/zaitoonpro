@@ -8,7 +8,6 @@ part 'stakeholder_by_id_state.dart';
 class StakeholderByIdBloc extends Bloc<StakeholderByIdEvent, StakeholderByIdState> {
   final Repositories repo;
   StakeholderByIdBloc(this.repo) : super(StakeholderByIdInitial()) {
-
     on<LoadStakeholderByIdEvent>((event, emit) async{
        emit(StakeholderByIdLoadingState());
        try{

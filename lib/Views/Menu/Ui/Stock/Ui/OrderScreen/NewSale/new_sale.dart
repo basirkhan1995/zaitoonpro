@@ -356,13 +356,18 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               );
             }
           }
-          // Add this BEFORE your existing SaleInvoiceLoaded case
+
           if (state is SaleInvoiceLoaded && _isEditMode) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               // Set customer name
               if (state.customer != null) {
                 _personController.text = state.customer!.perName ?? '';
                 signatory = state.customer!.perId;
+
+                company.partyAddress = state.customer!.addName;
+                company.partyPhone = state.customer!.perPhone;
+                company.partyCity = state.customer!.addCity;
+                company.partyProvince = state.customer!.addProvince;
               }
 
               // Set account (SHOW ACCOUNT NUMBER ONLY since name is empty)
@@ -1022,8 +1027,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                       productController.clear();
                       headerProductController.clear();
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (nodes.isNotEmpty && nodes[0].canRequestFocus) {
-                          nodes[0].requestFocus();
+                        if (nodes.length > 1 && nodes[1].canRequestFocus) {
+                          nodes[1].requestFocus(); // Focus quantity field
                         }
                       });
                       return KeyEventResult.handled;
@@ -1068,8 +1073,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ),
                           child: Row(
                             children: [
-
-
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
@@ -1240,9 +1243,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                         productController.clear();
                                         headerProductController.clear();
                                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                                          if (nodes.isNotEmpty && nodes[0].canRequestFocus) {
-                                            nodes[0].requestFocus();
-                                          }
+                                          Future.delayed(const Duration(milliseconds: 50), () {
+                                            if (mounted && nodes.isNotEmpty && nodes[0].canRequestFocus) {
+                                              nodes[0].requestFocus();
+                                            }
+                                          });
                                         });
                                       },
 
@@ -1308,6 +1313,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   controller: productController,
                   headerSearchController: headerProductController,
                   hintText: tr.products,
+                  focusNode: nodes[0],
                   bloc: context.read<ProductsBloc>(),
                   searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
                   fetchAllFunction: (bloc) => bloc.add(LoadProductsStockEvent()),
@@ -1388,14 +1394,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     _updateLocalAmountText(item, localAmountController);
                   },
                   onSubmitted: (_) {
-                    if (isLastRow) {
-                      _addNewRowAndFocus();
-                    } else {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        if (index + 1 < _rowFocusNodes.length) {
-                          _rowFocusNodes[index + 1][0].requestFocus();
-                        }
-                      });
+                    // IMPORTANT: Focus the discount field next, not the next row
+                    if (nodes.length > 3) {
+                      nodes[3].requestFocus(); // Focus discount field
                     }
                   },
                 ),
@@ -1427,7 +1428,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     },
                   ),
                 ),
-              // In the discount column
+
+              ///Discount Field
               SizedBox(
                 width: 140,
                 child: Row(
@@ -1447,15 +1449,14 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           final discount = double.tryParse(value) ?? 0;
                           context.read<SaleInvoiceBloc>().add(UpdateItemDiscountValueEvent(rowId: item.rowId, discountValue: discount));
                         },
+
                         onSubmitted: (_) {
                           if (isLastRow) {
                             _addNewRowAndFocus();
                           } else {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (index + 1 < _rowFocusNodes.length) {
-                                _rowFocusNodes[index + 1][0].requestFocus();
-                              }
-                            });
+                            if (index + 1 < _rowFocusNodes.length && _rowFocusNodes[index + 1].isNotEmpty) {
+                              _rowFocusNodes[index + 1][0].requestFocus();
+                            }
                           }
                         },
                       ),
@@ -1569,12 +1570,14 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   }
 
   void _addNewRowAndFocus() {
-    // Check if the last row has a product selected before adding new row
     final state = context.read<SaleInvoiceBloc>().state;
     if (state is SaleInvoiceLoaded && state.items.isNotEmpty) {
       final lastItem = state.items.last;
       if (lastItem.productId.isEmpty) {
-        // Last row is empty, don't add new row
+        // Focus the existing empty row's product field
+        if (_rowFocusNodes.isNotEmpty && _rowFocusNodes.last.isNotEmpty) {
+          _rowFocusNodes.last[0].requestFocus();
+        }
         return;
       }
     }
@@ -1864,7 +1867,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                             _buildProfitSection(
                               current: current,
                               baseCurr: baseCurr,
-                              profitLabel: tr.pAndLTitle.toUpperCase(),
+                              profitLabel: tr.profitAndLoss.toUpperCase(),
                             ),
                           ],
                         ],

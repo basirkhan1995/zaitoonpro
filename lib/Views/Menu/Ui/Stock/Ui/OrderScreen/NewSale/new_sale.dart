@@ -230,6 +230,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       company.comWebsite = auth.company?.comWebsite??"";
       company.comInstagram = auth.company?.comInsta??"";
       company.statementDate = DateTime.now().toFullDateTime;
+
       final base64Logo = auth.company?.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
         try {

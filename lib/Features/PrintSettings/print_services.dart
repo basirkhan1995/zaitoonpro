@@ -156,6 +156,10 @@ abstract class PrintServices {
       (await rootBundle.load('assets/images/internet.png')).buffer.asUint8List(),
     );
 
+    final instagramIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/instagram.png')).buffer.asUint8List(),
+    );
+
     final facebookIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/facebook.png')).buffer.asUint8List(),
     );
@@ -234,8 +238,7 @@ abstract class PrintServices {
             pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.end,
               children: [
-                if (report.compPhone != null &&
-                    report.compPhone!.isNotEmpty) ...[
+                if (report.compPhone != null && report.compPhone!.isNotEmpty) ...[
 
                   /// 📞 Phone (icon on RIGHT)
                   pw.Row(
@@ -245,13 +248,14 @@ abstract class PrintServices {
                         text: report.compPhone??"",
                         fontSize: 9,
                         fontWeight: pw.FontWeight.bold,
-                        color: pw.PdfColors.grey800,
+                        color: pw.PdfColors.grey900,
                       ),
                       pw.SizedBox(width: 4),
                       pw.Image(phoneIcon, width: 11, height: 11),
                     ],
                   ),
 
+                 if (report.comWhatsApp != null && report.comWhatsApp!.isNotEmpty) ...[
                   pw.SizedBox(height: 3),
 
                   /// 💬 WhatsApp
@@ -261,40 +265,42 @@ abstract class PrintServices {
                       zText(
                         text: report.comWhatsApp??"",
                         fontSize: 9,
-                        color: pw.PdfColors.grey700,
+                        color: pw.PdfColors.grey900,
                       ),
                       pw.SizedBox(width: 4),
                       pw.Image(whatsappIcon, width: 11, height: 11),
                     ],
                   ),
                 ],
-
+                ],
                 /// Facebook
                 if (report.comFacebook != null && report.comFacebook!.isNotEmpty)...[
+                  pw.SizedBox(height: 3),
                   pw.Row(
                       children: [
-                        pw.Image(facebookIcon, width: 10, height: 10),
-                        pw.SizedBox(width: 2),
                         zText(
                           text: report.comFacebook!,
                           fontSize: 10,
                           color: pw.PdfColors.grey900,
                         ),
+                        pw.SizedBox(width: 4),
+                        pw.Image(facebookIcon, width: 10, height: 10),
                       ]
                   )
                 ],
 
                 /// Instagram
                 if (report.comInstagram != null && report.comInstagram!.isNotEmpty)...[
+                  pw.SizedBox(height: 3),
                   pw.Row(
                       children: [
-                        pw.Image(websiteIcon, width: 10, height: 10),
-                        pw.SizedBox(width: 2),
                         zText(
                           text: report.comInstagram!,
                           fontSize: 10,
                           color: pw.PdfColors.grey900,
                         ),
+                        pw.SizedBox(width: 4),
+                        pw.Image(instagramIcon, width: 10, height: 10),
                       ]
                   )
                 ],
@@ -302,23 +308,22 @@ abstract class PrintServices {
 
                 /// Website
                 if (report.comWebsite != null && report.comWebsite!.isNotEmpty)...[
+                  pw.SizedBox(height: 3),
                   pw.Row(
                       children: [
-                        pw.Image(websiteIcon, width: 10, height: 10),
-                        pw.SizedBox(width: 2),
                         zText(
                           text: report.comWebsite!,
                           fontSize: 10,
                           color: pw.PdfColors.grey900,
                         ),
+                        pw.SizedBox(width: 4),
+                        pw.Image(websiteIcon, width: 10, height: 10),
                       ]
                   )
                 ],
 
-                if (report.comEmail != null &&
-                    report.comEmail!.isNotEmpty) ...[
-                  pw.SizedBox(height: 4),
-
+                if (report.comEmail != null && report.comEmail!.isNotEmpty) ...[
+                  pw.SizedBox(height: 3),
                   /// ✉️ Email
                   pw.Row(
                     mainAxisSize: pw.MainAxisSize.min,
@@ -326,9 +331,9 @@ abstract class PrintServices {
                       zText(
                         text: report.comEmail!,
                         fontSize: 9,
-                        color: pw.PdfColors.grey700,
+                        color: pw.PdfColors.grey900,
                       ),
-                      pw.SizedBox(width: 4),
+                      pw.SizedBox(width: 3),
                       pw.Image(emailIcon, width: 11, height: 11),
                     ],
                   ),
@@ -337,8 +342,7 @@ abstract class PrintServices {
             ),
           ],
         ),
-
-        pw.SizedBox(height: 6),
+        pw.SizedBox(height: 5),
         pw.Divider(height: 0),
       ],
     );

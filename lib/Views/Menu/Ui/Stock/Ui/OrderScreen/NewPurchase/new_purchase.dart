@@ -1425,6 +1425,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       compPhone: authState.loginData.company?.comPhone ?? "",
       comEmail: authState.loginData.company?.comEmail ?? "",
       slogan: authState.loginData.company?.comDetails ?? "",
+      comWebsite: authState.loginData.company?.comWebsite ?? "",
+      comFacebook: authState.loginData.company?.comFb ?? "",
+      comInstagram: authState.loginData.company?.comInsta ?? "",
+      comWhatsApp: authState.loginData.company?.comWhatsapp ?? "",
       invoiceNumber: widget.orderId,
       statementDate: DateTime.now().toFullDateTime,
     );
@@ -1444,7 +1448,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         quantity: item.qty.toDouble(),
         unitPrice: item.purPrice ?? 0.0,
         batch: item.stkBatch,
-        unit: '',
+        unit: item.unit ?? "",
         total: item.totalPurchase,
         storageName: item.storageName,
         localAmount: item.singleLocalAmount,
@@ -1468,7 +1472,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         }) {
           return InvoicePrintService().printInvoicePreview(
             invoiceType: "Purchase",
-            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
@@ -1501,7 +1505,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         }) {
           return InvoicePrintService().printInvoiceDocument(
             invoiceType: "Purchase",
-            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",
@@ -1533,7 +1537,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         }) {
           return InvoicePrintService().createInvoiceDocument(
             invoiceType: "Purchase",
-            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current?.supplier?.perName ?? "",

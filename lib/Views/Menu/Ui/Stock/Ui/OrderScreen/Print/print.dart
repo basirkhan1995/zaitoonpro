@@ -343,6 +343,7 @@ class InvoicePrintService extends PrintServices {
             invoiceNumber: invoiceNumber,
             invoiceDate: invoiceDate,
             reference: reference,
+            account: account
           ),
 
           pw.SizedBox(height: 5),
@@ -442,6 +443,7 @@ class InvoicePrintService extends PrintServices {
     required bool isSale,
     required ReportModel com,
     required String? reference,
+    required AccountsModel? account,  // Add this parameter
   }) {
     final invoiceTitle = invoiceType.toLowerCase().contains('sale')
         ? tr(text: 'SEL', tr: language)
@@ -498,9 +500,13 @@ class InvoicePrintService extends PrintServices {
           pw.Row(
             children: [
               pw.Expanded(
-                child: _customerSupplierInfo(language: language, customerSupplierName: customerSupplierName, isSale: isSale),
+                child: _customerSupplierInfo(
+                  language: language,
+                  customerSupplierName: customerSupplierName,
+                  isSale: isSale,
+                  account: account,  // Pass account here
+                ),
               ),
-
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
@@ -515,41 +521,57 @@ class InvoicePrintService extends PrintServices {
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
                   ),
-
                 ],
               ),
             ],
           ),
-
         ],
       ),
     );
   }
 
-  // ==================== CUSTOMER/SUPPLIER INFO ====================
+
+// ==================== CUSTOMER/SUPPLIER INFO ====================
   pw.Widget _customerSupplierInfo({
     required String language,
     required String customerSupplierName,
     required bool isSale,
+    required AccountsModel? account,  // Add account parameter
   }) {
     final title = isSale
         ? tr(text: 'customer', tr: language)
         : tr(text: 'supplier', tr: language);
+
+    // Format account info if account exists and creditAmount > 0
+    String accountInfo = '';
+    if (account != null && account.accNumber != null && account.accName?.isNotEmpty == true) {
+      accountInfo = "${account.accName}";
+    }
 
     return pw.Container(
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
           zText(
-            text: "$title :",
-            fontSize: 10,
-            fontWeight: pw.FontWeight.bold
+              text: "$title :",
+              fontSize: 10,
+              fontWeight: pw.FontWeight.bold
           ),
           pw.SizedBox(width: 4),
           zText(
             text: customerSupplierName,
             fontSize: 10,
           ),
+
+          // Add account info if available
+          if (accountInfo.isNotEmpty) ...[
+            verticalDivider(height: 8, width: 1),
+            zText(
+              text: accountInfo,
+              fontSize: 10,
+              color: pw.PdfColors.grey600,
+            ),
+          ],
         ],
       ),
     );
@@ -1212,40 +1234,6 @@ class InvoicePrintService extends PrintServices {
 
           // ===== ACCOUNT =====
           if (account != null && creditAmount > 0) ...[
-
-            pw.Padding(
-              padding: pw.EdgeInsets.symmetric(horizontal: 5),
-              child:  pw.Row(
-                mainAxisAlignment:
-                isRTL(language) ? pw.MainAxisAlignment.end : pw.MainAxisAlignment.start,
-                children: [
-                  if (!isRTL(language)) ...[
-                    zText(
-                      text: tr(text: 'account', tr: language),
-                      fontSize: 11,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                    pw.Spacer(),
-                    zText(
-                      text: "${account.accNumber} | ${account.accName}",
-                      fontSize: 11,
-                    ),
-                  ] else ...[
-                    zText(
-                      text: tr(text: 'account', tr: language),
-                      fontSize: 11,
-                      fontWeight: pw.FontWeight.bold,
-                    ),
-                    pw.Spacer(),
-                    zText(
-                      text: "${account.accNumber} | ${account.accName}",
-                      fontSize: 11,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
             _buildCompactRow(
               language: language,
               label: tr(text: 'previousBalance', tr: language),

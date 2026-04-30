@@ -172,7 +172,7 @@ class UpdateExchangeRateManuallyEvent extends PurchaseInvoiceEvent {
 }
 
 class LoadPurchaseInvoiceForEditEvent extends PurchaseInvoiceEvent {
-  final int orderId;
+  final dynamic orderId;
   final String baseCurrency;
   const LoadPurchaseInvoiceForEditEvent({
     required this.orderId,

@@ -210,7 +210,7 @@ class UpdateCashCurrencyEvent extends SaleInvoiceEvent {
 
 
 class LoadSaleInvoiceForEditEvent extends SaleInvoiceEvent {
-  final int orderId;
+  final dynamic orderId;
   final String baseCurrency;
   const LoadSaleInvoiceForEditEvent({
     required this.orderId,

@@ -152,6 +152,14 @@ abstract class PrintServices {
       (await rootBundle.load('assets/images/email.png')).buffer.asUint8List(),
     );
 
+    final websiteIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/internet.png')).buffer.asUint8List(),
+    );
+
+    final facebookIcon = pw.MemoryImage(
+      (await rootBundle.load('assets/images/facebook.png')).buffer.asUint8List(),
+    );
+
     final addressIcon = pw.MemoryImage(
       (await rootBundle.load('assets/images/location.png')).buffer.asUint8List(),
     );
@@ -259,6 +267,52 @@ abstract class PrintServices {
                       pw.Image(whatsappIcon, width: 11, height: 11),
                     ],
                   ),
+                ],
+
+                /// Facebook
+                if (report.comFacebook != null && report.comFacebook!.isNotEmpty)...[
+                  pw.Row(
+                      children: [
+                        pw.Image(facebookIcon, width: 10, height: 10),
+                        pw.SizedBox(width: 2),
+                        zText(
+                          text: report.comFacebook!,
+                          fontSize: 10,
+                          color: pw.PdfColors.grey900,
+                        ),
+                      ]
+                  )
+                ],
+
+                /// Instagram
+                if (report.comInstagram != null && report.comInstagram!.isNotEmpty)...[
+                  pw.Row(
+                      children: [
+                        pw.Image(websiteIcon, width: 10, height: 10),
+                        pw.SizedBox(width: 2),
+                        zText(
+                          text: report.comInstagram!,
+                          fontSize: 10,
+                          color: pw.PdfColors.grey900,
+                        ),
+                      ]
+                  )
+                ],
+
+
+                /// Website
+                if (report.comWebsite != null && report.comWebsite!.isNotEmpty)...[
+                  pw.Row(
+                      children: [
+                        pw.Image(websiteIcon, width: 10, height: 10),
+                        pw.SizedBox(width: 2),
+                        zText(
+                          text: report.comWebsite!,
+                          fontSize: 10,
+                          color: pw.PdfColors.grey900,
+                        ),
+                      ]
+                  )
                 ],
 
                 if (report.comEmail != null &&

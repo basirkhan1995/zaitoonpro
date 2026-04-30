@@ -7,6 +7,10 @@ class ReportModel {
   String? comName;
   String? compPhone;
   String? comWhatsApp;
+  String? comWebsite;
+  String? comFacebook;
+  String? comInstagram;
+
   String? slogan;
   int? invoiceNumber;
   String? comEmail;
@@ -32,6 +36,9 @@ class ReportModel {
     this.slogan,
     this.comWhatsApp,
     this.comEmail,
+    this.comWebsite,
+    this.comFacebook,
+    this.comInstagram,
     this.comLogo,
     this.comAddress,
     this.invoiceNumber,
@@ -54,6 +61,9 @@ class ReportModel {
     String? compPhone,
     String? slogan,
     String? comWhatsApp,
+    String? comWebsite,
+    String? comInstagram,
+    String? comFacebook,
     int? invoiceNumber,
     String? comEmail,
     Uint8List? comLogo,
@@ -77,6 +87,9 @@ class ReportModel {
         comLogo: comLogo ?? this.comLogo,
         slogan: slogan ?? this.slogan,
         comWhatsApp: comWhatsApp ?? this.comWhatsApp,
+        comFacebook: comFacebook ?? this.comFacebook,
+        comInstagram: comInstagram ?? this.comInstagram,
+        comWebsite: comWebsite ?? this.comWebsite,
         comAddress: comAddress ?? this.comAddress,
         invoiceNumber: invoiceNumber ?? this.invoiceNumber,
         statementDate: statementDate ?? this.statementDate,

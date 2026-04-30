@@ -958,7 +958,7 @@ class _DesktopState extends State<_Desktop> {
                                     : isSale || isPurchase?  () {
                                   Utils.goto(
                                       context,
-                                      isSale? NewSaleView(orderId: stmt.trnReference, ref: stmt.trnReference) : isPurchase? NewPurchaseOrderView(orderId: null, ref: stmt.trnReference) : SizedBox()
+                                      isSale? NewSaleView(orderId: stmt.trnReference, ref: stmt.trnReference) : isPurchase? NewPurchaseOrderView(orderId: stmt.trnReference, ref: stmt.trnReference) : SizedBox()
                                   );
                                       } : null,
                                 child: Container(

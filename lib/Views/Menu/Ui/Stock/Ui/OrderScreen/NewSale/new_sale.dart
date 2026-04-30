@@ -226,7 +226,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       company.slogan = auth.company?.comDetails ?? '';
       company.usrPrintedBy = auth.usrName??'';
       company.comWhatsApp = auth.company?.comWhatsapp??"";
-
+      company.comFacebook = auth.company?.comFb??"";
+      company.comWebsite = auth.company?.comWebsite??"";
+      company.comInstagram = auth.company?.comInsta??"";
       company.statementDate = DateTime.now().toFullDateTime;
       final base64Logo = auth.company?.comLogo;
       if (base64Logo != null && base64Logo.isNotEmpty) {
@@ -238,7 +240,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         }
       }
     }
-
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final saleBloc = context.read<SaleInvoiceBloc>();
@@ -426,7 +427,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
                 const SizedBox(width: 8),
               ],
-              if(widget.orderId !=null || widget.orderId!> 0)
+              if(widget.orderId !=null)
               ZOutlineButton(
                 icon: Icons.delete_outline_rounded,
                 backgroundHover: Theme.of(context).colorScheme.error,
@@ -2060,7 +2061,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
       // Case 1: After saving, use the returned invoice number
       finalInvoiceNumber = invoiceNumber;
-    } else if (widget.orderId != null || widget.orderId! > 0) {
+    } else if (widget.orderId != null) {
       // Case 2: When loading an existing invoice, use the widget.orderId
       finalInvoiceNumber = widget.orderId.toString();
     } else {
@@ -2095,7 +2096,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         buildPreview: ({required data, required language, required orientation, required pageFormat}) {
           return InvoicePrintService().printInvoicePreview(
             invoiceType: "Sale",
-            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2123,7 +2124,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         onPrint: ({required data, required language, required orientation, required pageFormat, required selectedPrinter, required copies, required pages}) {
           return InvoicePrintService().printInvoiceDocument(
             invoiceType: "Sale",
-            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
@@ -2153,7 +2154,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         onSave: ({required data, required language, required orientation, required pageFormat}) {
           return InvoicePrintService().createInvoiceDocument(
             invoiceType: "Sale",
-            invoiceNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
+            invoiceNumber: finalInvoiceNumber,
             reference: _xRefController.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",

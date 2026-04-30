@@ -64,7 +64,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       final parsed = OrderParser.parseOrderResponse(response);
       final records = parsed['records'] as List<Map<String, dynamic>>;
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
-      final orderId = parsed['orderId'] as int? ?? event.orderId;
+      final orderId = parsed['orderId'] as dynamic ?? event.orderId;
 
       // FIX: Use OrderParser.getExchangeRate() to get rate ONLY from stakeholder accounts
       double accountExchangeRate = OrderParser.getExchangeRate(payments);

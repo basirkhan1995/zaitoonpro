@@ -43,7 +43,7 @@ import 'expense_section.dart';
 import 'model/purchase_invoice_items.dart';
 
 class NewPurchaseOrderView extends StatelessWidget {
-  final int? orderId;
+  final dynamic orderId;
   final String? ref;
   const NewPurchaseOrderView({super.key,this.orderId,this.ref});
 
@@ -59,7 +59,7 @@ class NewPurchaseOrderView extends StatelessWidget {
 
 // Desktop Version (Original)
 class _DesktopPurchaseOrderView extends StatefulWidget {
-  final int? orderId;
+  final dynamic orderId;
   final String? ref;
   const _DesktopPurchaseOrderView(this.orderId,this.ref);
 
@@ -93,7 +93,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               Navigator.pop(context);
               context.read<OrdersBloc>().add(
                 DeleteOrderEvent(
-                  orderId: widget.orderId!,
+                  orderId: widget.orderId,
                   usrName: _userName??"",
                   ref: widget.ref,
                   orderName: 'Purchase',
@@ -221,7 +221,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       if (widget.orderId != null) {
         _isEditMode = true;
         purchaseBloc.add(LoadPurchaseInvoiceForEditEvent(
-          orderId: widget.orderId!,
+          orderId: widget.orderId,
           baseCurrency: baseCurrency ?? '',
         ));
       } else {
@@ -399,7 +399,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             titleSpacing: 0,
             actionsPadding: const EdgeInsets.symmetric(horizontal: 12),
             actions: [
-              if(widget.orderId !=null && widget.orderId!> 0)
+              if(widget.orderId !=null)
                 ZOutlineButton(
                   icon: Icons.delete_outline_rounded,
                   backgroundHover: Theme.of(context).colorScheme.error,

@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/PrintSettings/print_services.dart';
@@ -29,7 +28,6 @@ class CashFlowTransactionPrint extends PrintServices{
           pageFormat: pageFormat
       );
 
-      // Save the document
       await saveDocument(
         suggestedName: "transaction.pdf",
         pdf: document,
@@ -38,15 +36,14 @@ class CashFlowTransactionPrint extends PrintServices{
       throw e.toString();
     }
   }
-// Add this method to your PrintServices class (around line 300)
+
   pw.PdfPageFormat _getPrinterFriendlyFormat(pw.PdfPageFormat format) {
-    // Round to nearest integer to match printer expectations
     return pw.PdfPageFormat(
       format.width.roundToDouble(),
       format.height.roundToDouble(),
     );
   }
-  // In CashFlowTransactionPrint.printDocument method
+
   Future<void> printDocument({
     required TransactionsModel data,
     required String language,
@@ -58,7 +55,6 @@ class CashFlowTransactionPrint extends PrintServices{
     required String pages,
   }) async {
     try {
-
       final document = await generateStatement(
         report: company,
         data: data,
@@ -67,12 +63,9 @@ class CashFlowTransactionPrint extends PrintServices{
         pageFormat: pageFormat,
       );
 
-
-      // Create printer-friendly format
       final printerFormat = _getPrinterFriendlyFormat(pageFormat);
 
       for (int i = 0; i < copies; i++) {
-
         await Printing.directPrintPdf(
           printer: selectedPrinter,
           onLayout: (pw.PdfPageFormat format) async {
@@ -86,11 +79,16 @@ class CashFlowTransactionPrint extends PrintServices{
           await Future.delayed(const Duration(milliseconds: 500));
         }
       }
-
     } catch (e) {
       rethrow;
     }
   }
+
+  bool _isRtl(String language) {
+    final code = language.toLowerCase();
+    return code.startsWith('fa') || code.startsWith('ar') || code.startsWith('ps') || code.startsWith('prs');
+  }
+
   Future<pw.Document> generateStatement({
     required String language,
     required ReportModel report,
@@ -99,39 +97,33 @@ class CashFlowTransactionPrint extends PrintServices{
     required pw.PdfPageFormat pageFormat,
   }) async {
     final document = pw.Document();
-    final prebuiltHeader = await header(report: report);
 
-    // Load your image asset
-    final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
-    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+    // Load logo
+    pw.ImageProvider? logoProvider;
+    if (report.comLogo != null && report.comLogo is Uint8List && report.comLogo!.isNotEmpty) {
+      logoProvider = pw.MemoryImage(report.comLogo!);
+    }
+
+    final isRtl = _isRtl(language);
 
     document.addPage(
       pw.MultiPage(
         maxPages: 1000,
-        margin: pw.EdgeInsets.symmetric(horizontal: 25, vertical: 10),
+        margin: pw.EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: isRtl ? 8 : 12,
+        ),
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
         orientation: orientation,
         build: (context) => [
-          horizontalDivider(),
-          pw.SizedBox(height: 5),
-          voucher(data: data,language: language),
+          voucher(data: data, language: language, report: report, logoProvider: logoProvider, isRtl: isRtl),
         ],
-        header: (context) => prebuiltHeader,
-        footer: (context) => footer(
-          report: report,
-          context: context,
-          language: language,
-          logoImage: logoImage,
-        ),
       ),
     );
     return document;
   }
 
-
-  //Real Time document show
   Future<pw.Document> printPreview({
     required String language,
     required ReportModel company,
@@ -148,10 +140,12 @@ class CashFlowTransactionPrint extends PrintServices{
     );
   }
 
-
   pw.Widget voucher({
     required TransactionsModel data,
     required String language,
+    required ReportModel report,
+    pw.ImageProvider? logoProvider,
+    required bool isRtl,
   }) {
     final lang = NumberToWords.getLanguageFromLocale(Locale(language));
 
@@ -160,126 +154,275 @@ class CashFlowTransactionPrint extends PrintServices{
       double.tryParse(cleanAmount)?.toStringAsFixed(0) ?? "0",
     ) ?? 0;
 
-    final rows = <Map<String, String>>[
-      {"title": "date", "value": data.trnEntryDate?.toFullDateTime ?? ""},
-      {"title": "reference", "value": data.trnReference ?? ""},
-      {"title": "branch", "value": data.trdBranch.toString()},
-      {"title": "trnType", "value": data.trnType.toString()},
-      {"title": "accountNumber", "value": data.trdAccount.toString()},
-      {"title": "amount", "value": "${data.trdAmount?.toAmount()} ${data.trdCcy}"},
-      {"title": "narration", "value": data.trdNarration ?? ""},
-    ];
+    final String voucherDate = data.trnEntryDate?.toFullDateTime ?? "";
+    final String amountText = "${data.trdAmount?.toAmount()} ${data.trdCcy}";
+    final String amountWords = "${NumberToWords.convert(parsedAmount, lang)} ${data.trdCcy}";
+
+    // Company info lines
+    final List<String> companyLines = [];
+    if (report.comName != null && report.comName!.isNotEmpty) {
+      companyLines.add(report.comName!);
+    }
+    if (report.comAddress != null && report.comAddress!.isNotEmpty) {
+      companyLines.add(report.comAddress!);
+    }
+    String contactLine = "";
+    if (report.compPhone != null && report.compPhone!.isNotEmpty) {
+      contactLine += "${isRtl ? 'تلفن' : 'Tel'}: ${report.compPhone!}";
+    }
+    if (report.comWhatsApp != null && report.comWhatsApp!.isNotEmpty) {
+      if (contactLine.isNotEmpty) contactLine += " | ";
+      contactLine += "WhatsApp: ${report.comWhatsApp!}";
+    }
+    if (report.comEmail != null && report.comEmail!.isNotEmpty) {
+      if (contactLine.isNotEmpty) contactLine += " | ";
+      contactLine += report.comEmail!;
+    }
+    if (contactLine.isNotEmpty) {
+      companyLines.add(contactLine);
+    }
 
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      mainAxisAlignment: pw.MainAxisAlignment.start,
       children: [
-        pw.SizedBox(height: 5),
+        _buildSingleVoucher(data, language, voucherDate, amountText, amountWords, false, companyLines, logoProvider, isRtl),
+        pw.SizedBox(height: isRtl ? 10 : 16),
+        // Cut line
         pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              zText(text: tr(text: 'moneyReceipt', tr: language),fontWeight: pw.FontWeight.bold),
-              zText(text: tr(text: data.trnType??"", tr: language),fontWeight: pw.FontWeight.bold),
-            ]
+          children: [
+            pw.Expanded(child: pw.Container(height: 0.5, color: pw.PdfColors.grey400)),
+            pw.SizedBox(width: 10),
+            zText(text: "--- ${tr(text: 'cutHere', tr: language)} ---", fontSize: 8, color: pw.PdfColors.grey500),
+            pw.SizedBox(width: 10),
+            pw.Expanded(child: pw.Container(height: 0.5, color: pw.PdfColors.grey400)),
+          ],
         ),
-        pw.SizedBox(height: 5),
-        pw.Container(
-          decoration: pw.BoxDecoration(
-            border: pw.Border.all(width: 0.1),
-          ),
-          child: pw.Column(
-            children: rows.map((r) => pw.Container(padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 5,
-                  vertical: 3,
-                ),
-                decoration: pw.BoxDecoration(
-                  border: pw.Border(
-                    bottom: pw.BorderSide(width: 0.1),
-                  ),
-                ),
-                child: pw.Row(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  mainAxisAlignment: pw.MainAxisAlignment.start,
-                  children: [
-
-                    pw.Container(
-                      width: 90,
-                      child: zText(
-                        text: "${tr(text: r["title"]!, tr: language)}:",
-                        fontSize: 8
-                      ),
-                    ),
-
-                    pw.SizedBox(width: 5),
-
-                    zText(
-                      text: r["value"]!,
-                      fontSize: 8,
-                    ),
-                  ],
-                ),
-              ),
-            )
-                .toList(),
-          ),
-        ),
-
-        pw.SizedBox(height: 5),
-
-        zText(
-          text: tr(text: 'amountInWords', tr: language),
-          fontSize:8,
-        ),
-        horizontalDivider(),
-
-        zText(
-          text: "${NumberToWords.convert(parsedAmount, lang)} ${data.trdCcy}",
-          fontSize: 7,
-        ),
-        pw.SizedBox(height: 5),
-       signatory(language: language, data: data)
-
+        pw.SizedBox(height: isRtl ? 10 : 16),
+        _buildSingleVoucher(data, language, voucherDate, amountText, amountWords, true, companyLines, logoProvider, isRtl),
       ],
     );
   }
 
-
-  //Signature
-  pw.Padding signatory({required String language, required TransactionsModel data}) {
-    return pw.Padding(
-      padding: pw.EdgeInsets.symmetric(horizontal: 0, vertical: 10),
-      child: pw.Row(
-        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+  pw.Widget _buildSingleVoucher(
+      TransactionsModel data,
+      String language,
+      String voucherDate,
+      String amountText,
+      String amountWords,
+      bool isCopy,
+      List<String> companyLines,
+      pw.ImageProvider? logoProvider,
+      bool isRtl,
+      ) {
+    return pw.Container(
+      padding: pw.EdgeInsets.all(isRtl ? 10 : 14),
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(width: 1.5, color: pw.PdfColors.blueGrey800),
+      ),
+      child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisSize: pw.MainAxisSize.min,
         children: [
-          pw.Column(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
+          // Company Header with Logo
+          pw.Row(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              horizontalDivider(width: 120),
+              // Company Info
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    for (int i = 0; i < companyLines.length; i++)
+                      pw.Padding(
+                        padding: pw.EdgeInsets.only(bottom: isRtl ? 1 : 2),
+                        child: zText(
+                          text: companyLines[i],
+                          fontSize: i == 0 ? (isRtl ? 14 : 15) : (isRtl ? 9 : 9),
+                          fontWeight: i == 0 ? pw.FontWeight.bold : pw.FontWeight.normal,
+                          color: pw.PdfColors.blueGrey900,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+
+              // Logo
+              if (logoProvider != null)
+                pw.Container(
+                  width: isRtl ? 90 : 85,
+                  height: isRtl ? 90 : 85,
+                  margin: pw.EdgeInsets.symmetric(horizontal: isRtl ? 8 : 10),
+                  child: pw.Image(logoProvider, fit: pw.BoxFit.contain),
+                ),
+            ],
+          ),
+
+          pw.SizedBox(height: isRtl ? 5 : 8),
+          pw.Container(height: 1, color: pw.PdfColors.grey300),
+          pw.SizedBox(height: isRtl ? 5 : 8),
+
+          // Title Row
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
               pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.start,
                 children: [
-                  zText(text: tr(text: 'createdBy', tr: language), fontSize: 7),
-                  zText(text: " ${data.maker} ", fontSize: 7),
+                  zText(
+                    text: tr(text: 'moneyReceipt', tr: language).toUpperCase(),
+                    fontWeight: pw.FontWeight.bold,
+                    fontSize: isRtl ? 16 : 17,
+                    color: pw.PdfColors.blueGrey900,
+                  ),
+                  if (isCopy) ...[
+                    pw.SizedBox(width: isRtl ? 8 : 10),
+                    pw.Container(
+                      padding: pw.EdgeInsets.symmetric(
+                        horizontal: isRtl ? 8 : 10,
+
+                      ),
+                      color: pw.PdfColors.blueGrey50,
+                      child: zText(
+                        text: tr(text: 'copy', tr: language).toUpperCase(),
+                        fontSize: isRtl ? 9 : 10,
+                        fontWeight: pw.FontWeight.bold,
+                        color: pw.PdfColors.blueGrey800,
+                      ),
+                    ),
+                  ],
                 ],
+              ),
+              zText(
+                text: "${tr(text: 'date', tr: language)}: $voucherDate",
+                fontSize: isRtl ? 10 : 11,
+                color: pw.PdfColors.blueGrey700,
               ),
             ],
           ),
-          pw.Column(
-            mainAxisAlignment: pw.MainAxisAlignment.start,
-            crossAxisAlignment: pw.CrossAxisAlignment.center,
-            children: [
-              horizontalDivider(width: 120),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.start,
-                children: [
-                  zText(text: tr(text: 'authorizedBy', tr: language), fontSize: 7),
-                  zText(text: data.checker??"", fontSize: 7),
-                ],
-              ),
 
+          pw.SizedBox(height: isRtl ? 6 : 10),
+
+          // Details
+          _voucherRow(tr(text: 'trnType', tr: language), data.trnType ?? "", isRtl),
+          _voucherRow(tr(text: 'reference', tr: language), data.trnReference ?? "-", isRtl),
+          _voucherRow(tr(text: 'branch', tr: language), data.trdBranch.toString(), isRtl),
+          _voucherRow(tr(text: 'accountNumber', tr: language), data.trdAccount.toString(), isRtl),
+          _voucherRow(tr(text: 'narration', tr: language), data.trdNarration ?? "-", isRtl),
+
+          pw.SizedBox(height: isRtl ? 6 : 10),
+
+          // Amount
+          pw.Container(
+            width: double.infinity,
+            padding: pw.EdgeInsets.symmetric(
+              vertical: isRtl ? 8 : 6,
+              horizontal: isRtl ? 12 : 14,
+            ),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(width: 1, color: pw.PdfColors.blueGrey600),
+              color: pw.PdfColors.blueGrey50,
+            ),
+            child: pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                zText(
+                  text: "${tr(text: 'amount', tr: language)}:",
+                  fontSize: isRtl ? 11 : 12,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                zText(
+                  text: amountText,
+                  fontSize: isRtl ? 15 : 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ],
+            ),
+          ),
+
+          pw.SizedBox(height: isRtl ? 5 : 8),
+
+          // Amount in Words
+          pw.Container(
+            width: double.infinity,
+            padding: pw.EdgeInsets.all(isRtl ? 7 : 3),
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(width: 0.5, color: pw.PdfColors.grey300),
+            ),
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                zText(
+                  text: tr(text: 'amountInWords', tr: language),
+                  fontSize: isRtl ? 8 : 9,
+                  color: pw.PdfColors.grey700,
+                ),
+                zText(
+                  text: amountWords,
+                  fontSize: isRtl ? 8 : 9,
+                  color: pw.PdfColors.grey900,
+                ),
+              ],
+            ),
+          ),
+
+          pw.SizedBox(height: isRtl ? 5 : 8),
+
+          // Signatures
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    horizontalDivider(width: isRtl ? 120 : 130),
+                    pw.SizedBox(height: isRtl ? 4 : 5),
+                    zText(text: tr(text: 'createdBy', tr: language), fontSize: isRtl ? 8 : 9, color: pw.PdfColors.grey600),
+                    pw.SizedBox(height: isRtl ? 1 : 2),
+                    zText(text: data.maker ?? "___________", fontSize: isRtl ? 9 : 10, fontWeight: pw.FontWeight.bold),
+                  ],
+                ),
+              ),
+              pw.SizedBox(width: isRtl ? 15 : 20),
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    horizontalDivider(width: isRtl ? 120 : 130),
+                    pw.SizedBox(height: isRtl ? 2 : 3),
+                    zText(text: tr(text: 'authorizedBy', tr: language), fontSize: isRtl ? 8 : 9, color: pw.PdfColors.grey600),
+                    pw.SizedBox(height: isRtl ? 1 : 2),
+                    zText(text: data.checker ?? "___________", fontSize: isRtl ? 9 : 10, fontWeight: pw.FontWeight.bold),
+                  ],
+                ),
+              ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  pw.Widget _voucherRow(String label, String value, bool isRtl) {
+    return pw.Padding(
+      padding: pw.EdgeInsets.only(bottom: isRtl ? 1 : 5),
+      child: pw.Row(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.SizedBox(
+            width: isRtl ? 120 : 150,
+            child: zText(
+              text: "$label:",
+              fontSize: isRtl ? 12 : 10,
+              fontWeight: pw.FontWeight.bold,
+              color: pw.PdfColors.grey700,
+            ),
+          ),
+          pw.Expanded(
+            child: zText(
+              text: value,
+              textAlign: isRtl? pw.TextAlign.end : pw.TextAlign.start,
+              fontSize: isRtl ? 12 : 10,
+              color: pw.PdfColors.grey900,
+            ),
           ),
         ],
       ),

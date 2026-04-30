@@ -15,8 +15,6 @@ abstract class PrintServices {
   static late pw.Font _persianRegular;
   static late pw.Font _persianBold;
 
-
-
   // Initialize fonts
   static Future<void> initializeFonts() async {
     await _loadEnglishFonts();
@@ -703,8 +701,8 @@ abstract class PrintServices {
       },
       "amount": {
         "en": "Amount",
-        "ar": "مقدار",
-        "fa": "مقدار"
+        "ar": "مبلغ",
+        "fa": "مبلغ"
       },
       "currency": {
         "en": "Currency",
@@ -1603,6 +1601,11 @@ abstract class PrintServices {
         'en': 'LIABILITIES AND EQUITY',
         'fa': 'بدهی ها و حقوق صاحبان سهام',
         'ar': 'الالتزامات وحقوق الملكية',
+      },
+      'copy': {
+        'en': 'Copy',
+        'fa': 'نسخه کاپی',
+        'ar': 'کاپی نسخه',
       },
       'currentAssets': {
         'en': 'Current Assets',

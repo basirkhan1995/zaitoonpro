@@ -380,17 +380,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
               }
 
-              _isEditMode = false; // Reset flag
+              _isEditMode = false;
             });
           }
 
-
-          if (state is SaleInvoiceLoaded) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _focusNewRowIfNeeded(state);
-              _updateControllersFromState(state);
-            });
-          }
           if (state is SaleInvoiceLoaded) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _focusNewRowIfNeeded(state);

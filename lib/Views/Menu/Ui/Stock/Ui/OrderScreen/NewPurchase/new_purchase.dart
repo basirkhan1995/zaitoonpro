@@ -1870,13 +1870,11 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   textAlign: TextAlign.center,
                 ),
               ),
-
               /// Product Search Field - Index 0
               Expanded(
                 child: PurchaseProductSearchField(
                   controller: productController,
-                  headerSearchController:
-                      headerProductController, // Optional: for header sync
+                  headerSearchController: headerProductController,
                   focusNode: safeNode(0),
                   bloc: context.read<ProductsBloc>(),
                   onProductSelected: (product) {
@@ -1888,7 +1886,11 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       );
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
-                          focusNext(1);
+                          // Always focus on Qty field (index 1)
+                          final qtyNode = safeNode(1);
+                          if (qtyNode != null && qtyNode.canRequestFocus) {
+                            qtyNode.requestFocus();
+                          }
                         }
                       });
                     }
@@ -1896,14 +1898,17 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   onSubmitted: () {
                     Future.delayed(const Duration(milliseconds: 50), () {
                       if (mounted && widget.item.productId.isNotEmpty) {
-                        focusNext(1);
+                        // Always focus on Qty field (index 1)
+                        final qtyNode = safeNode(1);
+                        if (qtyNode != null && qtyNode.canRequestFocus) {
+                          qtyNode.requestFocus();
+                        }
                       }
                     });
                   },
                   hintText: AppLocalizations.of(context)!.products,
                   showAllOnFocus: true,
-                  openOverlayOnFocus:
-                      true, // Opens overlay when field gets focus
+                  openOverlayOnFocus: true,
                 ),
               ),
 

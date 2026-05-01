@@ -93,7 +93,6 @@ class _DesktopState extends State<_Desktop> {
           // ),
           // const SizedBox(width: 8),
           ZOutlineButton(
-            width: 110,
             label: Text(tr.refresh),
             icon: Icons.refresh,
             onPressed: () {
@@ -103,7 +102,6 @@ class _DesktopState extends State<_Desktop> {
           const SizedBox(width: 8),
           ZOutlineButton(
             isActive: true,
-            width: 150,
             label: Text(tr.eoyClosing),
             icon: Icons.access_time_outlined,
             onPressed: eoyClosing,

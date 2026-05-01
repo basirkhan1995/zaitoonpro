@@ -23,6 +23,8 @@ import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_b
 import '../../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../Stock/Ui/OrderScreen/GetOrderById/order_by_id.dart';
+import '../../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
+import '../../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import '../features/in_out_drop.dart';
 import '../features/stock_summary_widget.dart';
 
@@ -913,8 +915,8 @@ class _DesktopState extends State<_Desktop> {
                           highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
                           onTap: (){
                             Utils.goto(
-                              context,
-                              OrderByIdView(orderId: stock.orderId!,ordName: stock.entryType == "IN"? "Purchase" : "Sale"),
+                                context,
+                                stock.entryType == "OUT"? NewSaleView(orderId: stock.orderId, ref: null) : NewPurchaseOrderView(orderId: stock.orderId)
                             );
                           },
                           child: Container(

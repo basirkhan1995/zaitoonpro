@@ -1232,8 +1232,8 @@ class _InvoiceShimmerContent extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
 
-    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.8);
-    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.4);
+    final highlightColor = colorScheme.primaryContainer.withValues(alpha: 2);
 
     return Shimmer.fromColors(
       baseColor: baseColor,

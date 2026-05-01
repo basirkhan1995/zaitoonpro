@@ -256,7 +256,7 @@ class ProductReportPrintSettings extends PrintServices {
           ),
           _buildStatItem(
             tr(text: 'totalQuantity', tr: language),
-            totalQty.toAmount(decimal: 4),
+            totalQty.toAmount(decimal: 0),
             pw.PdfColors.green700,
           ),
           _buildStatItem(
@@ -394,7 +394,7 @@ class ProductReportPrintSettings extends PrintServices {
               // Quantity
               pw.Expanded(
                 flex: 2,
-                child: _buildNumberCell(qty.toAmount(decimal: 4), language, align: pw.TextAlign.right),
+                child: _buildNumberCell(qty.toAmount(decimal: 0), language, align: pw.TextAlign.right),
               ),
               // Total with currency
               pw.Expanded(
@@ -485,7 +485,7 @@ class ProductReportPrintSettings extends PrintServices {
           pw.Expanded(
             flex: 2,
             child: zText(
-              text: "${totalQuantity.toAmount(decimal: 2)} Ton",
+              text: totalQuantity.toAmount(decimal: 0),
               fontSize: 10,
               fontWeight: pw.FontWeight.bold,
               textAlign: pw.TextAlign.right,

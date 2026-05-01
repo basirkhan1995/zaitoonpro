@@ -476,207 +476,114 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             radius: 8,
             child: Form(
               key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                  builder: (context, state) {
-                    // Check if we're in loading state
-                    final isLoading = state is PurchaseInvoiceLoading ||
-                        (state is PurchaseInvoiceLoaded &&
-                            state.items.isEmpty &&
-                            state.supplier == null &&
-                            _isEditMode);
+              child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                builder: (context, state) {
+                  // Check if we're in loading state
+                  final isLoading = state is PurchaseInvoiceLoading ||
+                      (state is PurchaseInvoiceLoaded &&
+                          state.items.isEmpty &&
+                          state.supplier == null &&
+                          _isEditMode);
 
-                    if (isLoading) {
-                      // Show full shimmer while loading
-                      return UniversalShimmer.invoiceLoading();
-                    }
-
-                    // Handle error state
-                    if (state is PurchaseInvoiceError) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                            const SizedBox(height: 16),
-                            Text('Error: ${state.message}'),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
-                              },
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-
-                    // Handle loaded and saving states
+                  if (isLoading) {
+                    // Show full shimmer while loading
                     return Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(10.0),
+                      child: UniversalShimmer.invoiceLoading(),
+                    );
+                  }
+
+                  // Handle error state
+                  if (state is PurchaseInvoiceError) {
+                    return Center(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Supplier and Account Selection
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                flex: 2,
-                                child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
-                                  key: const ValueKey('person_field'),
-                                  controller: _personController,
-                                  title: tr.supplier,
-                                  hintText: tr.supplier,
-                                  isRequired: true,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return tr.required(tr.supplier);
-                                    }
-                                    return null;
-                                  },
-                                  bloc: context.read<IndividualsBloc>(),
-                                  fetchAllFunction: (bloc) =>
-                                      bloc.add(LoadIndividualsEvent()),
-                                  searchFunction: (bloc, query) =>
-                                      bloc.add(LoadIndividualsEvent()),
-                                  itemBuilder: (context, ind) => Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text(
-                                      "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
-                                    ),
+                          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          const SizedBox(height: 16),
+                          Text('Error: ${state.message}'),
+                          const SizedBox(height: 16),
+                          ZOutlineButton(
+                            icon: Icons.refresh,
+                            onPressed: () {
+                              context.read<PurchaseInvoiceBloc>().add(InitializePurchaseInvoiceEvent());
+                            },
+                            label: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Handle loaded and saving states
+                  return Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Supplier and Account Selection
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
+                                key: const ValueKey('person_field'),
+                                controller: _personController,
+                                title: tr.supplier,
+                                hintText: tr.supplier,
+                                isRequired: true,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return tr.required(tr.supplier);
+                                  }
+                                  return null;
+                                },
+                                bloc: context.read<IndividualsBloc>(),
+                                fetchAllFunction: (bloc) =>
+                                    bloc.add(LoadIndividualsEvent()),
+                                searchFunction: (bloc, query) =>
+                                    bloc.add(LoadIndividualsEvent()),
+                                itemBuilder: (context, ind) => Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "${ind.perName ?? ''} ${ind.perLastName ?? ''}",
                                   ),
-                                  itemToString: (individual) =>
-                                  "${individual.perName} ${individual.perLastName}",
-                                  stateToLoading: (state) =>
-                                  state is IndividualLoadingState,
-                                  stateToItems: (state) {
-                                    if (state is IndividualLoadedState) {
-                                      return state.individuals;
-                                    }
-                                    return [];
-                                  },
-                                  onSelected: (value) {
-                                    _personController.text =
-                                    "${value.perName} ${value.perLastName}";
-                                    context.read<PurchaseInvoiceBloc>().add(
-                                      SelectSupplierEvent(value),
-                                    );
-                                    context.read<AccountsBloc>().add(
-                                      LoadAccountsEvent(ownerId: value.perId),
-                                    );
-                                    setState(() {
-                                      signatory = value.perId;
-                                    });
-                                  },
-                                  showClearButton: true,
                                 ),
+                                itemToString: (individual) =>
+                                "${individual.perName} ${individual.perLastName}",
+                                stateToLoading: (state) =>
+                                state is IndividualLoadingState,
+                                stateToItems: (state) {
+                                  if (state is IndividualLoadedState) {
+                                    return state.individuals;
+                                  }
+                                  return [];
+                                },
+                                onSelected: (value) {
+                                  _personController.text =
+                                  "${value.perName} ${value.perLastName}";
+                                  context.read<PurchaseInvoiceBloc>().add(
+                                    SelectSupplierEvent(value),
+                                  );
+                                  context.read<AccountsBloc>().add(
+                                    LoadAccountsEvent(ownerId: value.perId),
+                                  );
+                                  setState(() {
+                                    signatory = value.perId;
+                                  });
+                                },
+                                showClearButton: true,
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                flex: 2,
-                                child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                                  builder: (context, state) {
-                                    if (state is PurchaseInvoiceLoaded) {
-                                      final current = state;
-                                      return GenericTextField<
-                                          AccountsModel,
-                                          AccountsBloc,
-                                          AccountsState
-                                      >(
-                                        key: const ValueKey('account_field'),
-                                        controller: _accountController,
-                                        title: tr.accounts,
-                                        hintText: tr.selectAccount,
-                                        isRequired:
-                                        current.paymentMode != PaymentMode.cash,
-                                        validator: (value) {
-                                          if (current.paymentMode !=
-                                              PaymentMode.cash &&
-                                              (value == null || value.isEmpty)) {
-                                            return tr.selectCreditAccountMsg;
-                                          }
-                                          return null;
-                                        },
-                                        bloc: context.read<AccountsBloc>(),
-                                        fetchAllFunction: (bloc) => bloc.add(
-                                          LoadAccountsEvent(ownerId: signatory),
-                                        ),
-                                        searchFunction: (bloc, query) => bloc.add(
-                                          LoadAccountsEvent(ownerId: signatory),
-                                        ),
-                                        itemBuilder: (context, account) => ListTile(
-                                          visualDensity: const VisualDensity(
-                                            vertical: -4,
-                                            horizontal: -4,
-                                          ),
-                                          contentPadding: const EdgeInsets.symmetric(
-                                            horizontal: 5,
-                                          ),
-                                          title: Text(account.accName ?? ''),
-                                          subtitle: Text('${account.accNumber}'),
-                                          trailing: Text(
-                                            "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
-                                          ),
-                                        ),
-                                        itemToString: (account) =>
-                                        '${account.accName} (${account.accNumber})',
-                                        stateToLoading: (state) =>
-                                        state is AccountLoadingState,
-                                        stateToItems: (state) {
-                                          if (state is AccountLoadedState) {
-                                            return state.accounts;
-                                          }
-                                          return [];
-                                        },
-                                        onSelected: (value) {
-                                          _accountController.text =
-                                          '${value.accName} (${value.accNumber})';
-                                          setState(() {
-                                            accountCcy = value.actCurrency;
-                                          });
-                                          context.read<PurchaseInvoiceBloc>().add(
-                                            SelectSupplierAccountEvent(value),
-                                          );
-
-                                          final companyState = context
-                                              .read<CompanyProfileBloc>()
-                                              .state;
-                                          if (companyState
-                                          is CompanyProfileLoadedState) {
-                                            final baseCurr =
-                                                companyState.company.comLocalCcy ??
-                                                    '';
-                                            final accountCurrency =
-                                                value.actCurrency ?? '';
-
-                                            if (baseCurr.isNotEmpty &&
-                                                accountCurrency.isNotEmpty &&
-                                                baseCurr != accountCurrency) {
-                                              context.read<PurchaseInvoiceBloc>().add(
-                                                UpdateExchangeRateForInvoiceEvent(
-                                                  fromCurrency: baseCurr,
-                                                  toCurrency: accountCurrency,
-                                                ),
-                                              );
-                                            } else {
-                                              context.read<PurchaseInvoiceBloc>().add(
-                                                UpdateExchangeRateManuallyEvent(
-                                                  rate: 1.0,
-                                                  fromCurrency: baseCurr,
-                                                  toCurrency: accountCurrency,
-                                                ),
-                                              );
-                                            }
-                                          }
-                                          _exchangeRateController.clear();
-                                        },
-                                        showClearButton: true,
-                                      );
-                                    }
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 2,
+                              child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                                builder: (context, state) {
+                                  if (state is PurchaseInvoiceLoaded) {
+                                    final current = state;
                                     return GenericTextField<
                                         AccountsModel,
                                         AccountsBloc,
@@ -686,27 +593,36 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                       controller: _accountController,
                                       title: tr.accounts,
                                       hintText: tr.selectAccount,
-                                      isRequired: false,
+                                      isRequired:
+                                      current.paymentMode != PaymentMode.cash,
+                                      validator: (value) {
+                                        if (current.paymentMode !=
+                                            PaymentMode.cash &&
+                                            (value == null || value.isEmpty)) {
+                                          return tr.selectCreditAccountMsg;
+                                        }
+                                        return null;
+                                      },
                                       bloc: context.read<AccountsBloc>(),
                                       fetchAllFunction: (bloc) => bloc.add(
-                                        LoadAccountsFilterEvent(
-                                          include: '8',
-                                          exclude: '',
-                                        ),
+                                        LoadAccountsEvent(ownerId: signatory),
                                       ),
                                       searchFunction: (bloc, query) => bloc.add(
-                                        LoadAccountsFilterEvent(
-                                          input: query,
-                                          include: '8',
-                                          exclude: '',
-                                        ),
+                                        LoadAccountsEvent(ownerId: signatory),
                                       ),
                                       itemBuilder: (context, account) => ListTile(
-                                        title: Text(account.accName ?? ''),
-                                        subtitle: Text(
-                                          '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                                        visualDensity: const VisualDensity(
+                                          vertical: -4,
+                                          horizontal: -4,
                                         ),
-                                        trailing: Text(account.actCurrency ?? ""),
+                                        contentPadding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                        ),
+                                        title: Text(account.accName ?? ''),
+                                        subtitle: Text('${account.accNumber}'),
+                                        trailing: Text(
+                                          "${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                        ),
                                       ),
                                       itemToString: (account) =>
                                       '${account.accName} (${account.accNumber})',
@@ -719,123 +635,208 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                         return [];
                                       },
                                       onSelected: (value) {
+                                        _accountController.text =
+                                        '${value.accName} (${value.accNumber})';
                                         setState(() {
                                           accountCcy = value.actCurrency;
                                         });
-                                        _accountController.text =
-                                        '${value.accName} (${value.accNumber})';
                                         context.read<PurchaseInvoiceBloc>().add(
                                           SelectSupplierAccountEvent(value),
                                         );
+
+                                        final companyState = context
+                                            .read<CompanyProfileBloc>()
+                                            .state;
+                                        if (companyState
+                                        is CompanyProfileLoadedState) {
+                                          final baseCurr =
+                                              companyState.company.comLocalCcy ??
+                                                  '';
+                                          final accountCurrency =
+                                              value.actCurrency ?? '';
+
+                                          if (baseCurr.isNotEmpty &&
+                                              accountCurrency.isNotEmpty &&
+                                              baseCurr != accountCurrency) {
+                                            context.read<PurchaseInvoiceBloc>().add(
+                                              UpdateExchangeRateForInvoiceEvent(
+                                                fromCurrency: baseCurr,
+                                                toCurrency: accountCurrency,
+                                              ),
+                                            );
+                                          } else {
+                                            context.read<PurchaseInvoiceBloc>().add(
+                                              UpdateExchangeRateManuallyEvent(
+                                                rate: 1.0,
+                                                fromCurrency: baseCurr,
+                                                toCurrency: accountCurrency,
+                                              ),
+                                            );
+                                          }
+                                        }
+                                        _exchangeRateController.clear();
                                       },
                                       showClearButton: true,
                                     );
+                                  }
+                                  return GenericTextField<
+                                      AccountsModel,
+                                      AccountsBloc,
+                                      AccountsState
+                                  >(
+                                    key: const ValueKey('account_field'),
+                                    controller: _accountController,
+                                    title: tr.accounts,
+                                    hintText: tr.selectAccount,
+                                    isRequired: false,
+                                    bloc: context.read<AccountsBloc>(),
+                                    fetchAllFunction: (bloc) => bloc.add(
+                                      LoadAccountsFilterEvent(
+                                        include: '8',
+                                        exclude: '',
+                                      ),
+                                    ),
+                                    searchFunction: (bloc, query) => bloc.add(
+                                      LoadAccountsFilterEvent(
+                                        input: query,
+                                        include: '8',
+                                        exclude: '',
+                                      ),
+                                    ),
+                                    itemBuilder: (context, account) => ListTile(
+                                      title: Text(account.accName ?? ''),
+                                      subtitle: Text(
+                                        '${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}',
+                                      ),
+                                      trailing: Text(account.actCurrency ?? ""),
+                                    ),
+                                    itemToString: (account) =>
+                                    '${account.accName} (${account.accNumber})',
+                                    stateToLoading: (state) =>
+                                    state is AccountLoadingState,
+                                    stateToItems: (state) {
+                                      if (state is AccountLoadedState) {
+                                        return state.accounts;
+                                      }
+                                      return [];
+                                    },
+                                    onSelected: (value) {
+                                      setState(() {
+                                        accountCcy = value.actCurrency;
+                                      });
+                                      _accountController.text =
+                                      '${value.accName} (${value.accNumber})';
+                                      context.read<PurchaseInvoiceBloc>().add(
+                                        SelectSupplierAccountEvent(value),
+                                      );
+                                    },
+                                    showClearButton: true,
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: ZTextFieldEntitled(
+                                controller: _xRefController,
+                                title: tr.invoiceNumber,
+                              ),
+                            ),
+                            if (needsConversion) ...[
+                              const SizedBox(width: 4),
+                              Expanded(
+                                flex: 1,
+                                child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                                  builder: (context, state) {
+                                    if (state is PurchaseInvoiceLoaded) {
+                                      final isLoading = state.exchangeRate == null;
+                                      return ZTextFieldEntitled(
+                                        showClearButton: true,
+                                        controller: _exchangeRateController,
+                                        title: tr.exchangeRate,
+                                        hint: isLoading
+                                            ? "Loading rate..."
+                                            : "Enter rate",
+                                        inputFormat: [
+                                          FilteringTextInputFormatter.allow(
+                                            RegExp(r'^\d*\.?\d{0,6}'),
+                                          ),
+                                        ],
+                                        onChanged: _onExchangeRateChanged,
+                                        onSubmit: _onExchangeRateChanged,
+                                        end: isLoading
+                                            ? const SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                            : null,
+                                        isEnabled: !isLoading,
+                                      );
+                                    }
+                                    return const SizedBox();
                                   },
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ZTextFieldEntitled(
-                                  controller: _xRefController,
-                                  title: tr.invoiceNumber,
-                                ),
-                              ),
-                              if (needsConversion) ...[
-                                const SizedBox(width: 4),
-                                Expanded(
-                                  flex: 1,
-                                  child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                                    builder: (context, state) {
-                                      if (state is PurchaseInvoiceLoaded) {
-                                        final isLoading = state.exchangeRate == null;
-                                        return ZTextFieldEntitled(
-                                          showClearButton: true,
-                                          controller: _exchangeRateController,
-                                          title: tr.exchangeRate,
-                                          hint: isLoading
-                                              ? "Loading rate..."
-                                              : "Enter rate",
-                                          inputFormat: [
-                                            FilteringTextInputFormatter.allow(
-                                              RegExp(r'^\d*\.?\d{0,6}'),
-                                            ),
-                                          ],
-                                          onChanged: _onExchangeRateChanged,
-                                          onSubmit: _onExchangeRateChanged,
-                                          end: isLoading
-                                              ? const SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                              : null,
-                                          isEnabled: !isLoading,
-                                        );
-                                      }
-                                      return const SizedBox();
-                                    },
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(width: 4),
-                              Expanded(
-                                flex: 2,
-                                child: ZTextFieldEntitled(
-                                  controller: _remark,
-                                  title: tr.remark,
-                                ),
-                              ),
                             ],
-                          ),
-                          const SizedBox(height: 8),
-                          _buildItemsHeader(context),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
-                              builder: (context, state) {
-                                if (state is PurchaseInvoiceLoaded ||
-                                    state is PurchaseInvoiceSaving) {
-                                  final current = state is PurchaseInvoiceSaving
-                                      ? state
-                                      : (state as PurchaseInvoiceLoaded);
-                                  _synchronizeFocusNodes(current.items.length);
-                                  return SingleChildScrollView(
-                                    child: Column(
-                                      children: [
-                                        ListView.builder(
-                                          shrinkWrap: true,
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          itemCount: current.items.length,
-                                          itemBuilder: (context, index) {
-                                            final item = current.items[index];
-                                            final isLastRow = index == current.items.length - 1;
-                                            final nodes = _rowFocusNodes[index];
-                                            return _buildItemRow(
-                                              item: item,
-                                              nodes: nodes,
-                                              isLastRow: isLastRow,
-                                              context: context,
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
-                              },
+                            const SizedBox(width: 4),
+                            Expanded(
+                              flex: 2,
+                              child: ZTextFieldEntitled(
+                                controller: _remark,
+                                title: tr.remark,
+                              ),
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        _buildItemsHeader(context),
+                        const SizedBox(height: 8),
+                        Expanded(
+                          child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
+                            builder: (context, state) {
+                              if (state is PurchaseInvoiceLoaded ||
+                                  state is PurchaseInvoiceSaving) {
+                                final current = state is PurchaseInvoiceSaving
+                                    ? state
+                                    : (state as PurchaseInvoiceLoaded);
+                                _synchronizeFocusNodes(current.items.length);
+                                return SingleChildScrollView(
+                                  child: Column(
+                                    children: [
+                                      ListView.builder(
+                                        shrinkWrap: true,
+                                        physics: const NeverScrollableScrollPhysics(),
+                                        itemCount: current.items.length,
+                                        itemBuilder: (context, index) {
+                                          final item = current.items[index];
+                                          final isLastRow = index == current.items.length - 1;
+                                          final nodes = _rowFocusNodes[index];
+                                          return _buildItemRow(
+                                            item: item,
+                                            nodes: nodes,
+                                            isLastRow: isLastRow,
+                                            context: context,
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return const Center(
+                                child: CircularProgressIndicator(),
+                              );
+                            },
                           ),
-                          _buildSummarySection(context),
-                        ],
-                      ),
-                    );
-                  },
-                ),
+                        ),
+                        _buildSummarySection(context),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
           ),

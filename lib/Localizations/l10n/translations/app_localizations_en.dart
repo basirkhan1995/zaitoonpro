@@ -3322,4 +3322,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cashReceipt => 'Cash Receipt';
+
+  @override
+  String get fullCreditMessage => 'Total Invoice Amount Added to Receivable';
+
+  @override
+  String get fullCashPayment => 'Full Cash Payment';
+
+  @override
+  String get mixPayment => 'Cash and Receivable';
 }

@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
+import 'package:zaitoonpro/Features/Other/alert_dialog.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
@@ -95,31 +96,19 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(tr.areYouSure),
-        content: Text('Confirm Delete Order #${widget.orderId}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(tr.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<OrdersBloc>().add(
-                DeleteOrderEvent(
-                  orderId: widget.orderId!,
-                  usrName: _userName??"",
-                  ref: widget.ref,
-                  orderName: 'Sale',
-                ),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(tr.delete),
-          ),
-        ],
-      ),
+      builder: (context) => ZAlertDialog(
+          title: tr.areYouSure,
+          content: tr.deleteMessage,
+          onYes: (){
+            context.read<OrdersBloc>().add(
+              DeleteOrderEvent(
+                orderId: widget.orderId!,
+                usrName: _userName??"",
+                ref: widget.ref,
+                orderName: 'Sale',
+              ),
+            );
+          })
     );
   }
 
@@ -1709,7 +1698,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             padding: const EdgeInsets.all(15),
             radius: 10,
             borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            shadowColor: Theme.of(context).colorScheme.surfaceContainer,
             color: Theme.of(context).colorScheme.surface,
             child: IntrinsicHeight(
               child: Row(
@@ -1719,6 +1707,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     child: SingleChildScrollView(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Row(
                             spacing: 8,
@@ -2330,11 +2319,11 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     // Get base currency from auth state
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthenticatedState) {
-      _baseCurrency = authState.loginData.company?.comLocalCcy ?? 'USD';
+      _baseCurrency = authState.loginData.company?.comLocalCcy ?? '';
     }
 
     if (_baseCurrency.isEmpty) {
-      _baseCurrency = _currentState.fromCurrency ?? 'USD';
+      _baseCurrency = _currentState.fromCurrency ?? '';
     }
 
     // Load existing cash currency from state
@@ -2827,7 +2816,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                   ZGenericTextField(
                     controller: _cashPaymentController,
                     title: _isPureCashMode
-                        ? "${tr.cashAmount} ($_selectedCashCurrency) - Full Amount"
+                        ? "${tr.cashAmount} ($_selectedCashCurrency) - ${tr.fullCashPayment}"
                         : "${tr.cashAmount} ($_selectedCashCurrency)",
                     hint: "0.00",
                     readOnly: _isPureCashMode, // Make read-only in pure cash mode
@@ -2956,7 +2945,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "Cash + Account Receivable",
+                              tr.mixPayment,
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),
@@ -2964,7 +2953,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "Full Cash Payment",
+                              tr.fullCashPayment,
                               style: TextStyle(fontSize: 12, color: Colors.green),
                             ),
                           ),
@@ -2972,7 +2961,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           Padding(
                             padding: const EdgeInsets.only(top: 1),
                             child: Text(
-                              "Total Invoice Amount Added to Receivable",
+                              tr.fullCreditMessage,
                               style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
                             ),
                           ),

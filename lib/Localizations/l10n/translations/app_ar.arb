@@ -291,7 +291,7 @@
   "maker": "اجراء کننده",
   "branchLimits": "حد معاملات شعبه",
   "branchInformation": "شعبه معلومات",
-  "currentBalance": "اوسنی موجودی",
+  "currentBalance": "اوسنی صورتحساب",
   "availableBalance": "د لاسرسي وړ موجودی ",
   "txnDetails": "جزئیات معامله",
   "transactionRef": "ریفرنس شمیره",
@@ -617,7 +617,7 @@
   "invoiceType": "بل ډول",
   "totalInvoice": "ټولیزه بل",
   "saleTitle": "فروش",
-  "newBalance": "نوې پاتې شونې",
+  "newBalance": "نهایی پاتې شونې",
   "cashPaymentSubtitle": "پرداخت کامل به صورت نقدی",
   "accountCredit": "د حساب اعتبار",
   "accountCreditSubtitle": "ټول مبلغ د حساب اعتبار ته اضافه کړئ",
@@ -705,7 +705,7 @@
   "retainedEarnings": "سود انباشته",
   "eoyClosing": "بستن دوره مالی",
   "plMessage": "د ګټې او تاوان بستل به د اوسني مالي دورې د ټولو عاید او مصرف حسابونه بشپړ کړي.",
-  "openingBalance": "مانده افتتاحیه",
+  "openingBalance": "بیلانس افتتاحیه",
   "currencyBalances": "موجودی - اسعار",
   "opening": "افتتاحیه",
   "closing": "اختتامیه",
@@ -1097,5 +1097,8 @@
   "addValidPrice": "لطفا قیمت را درست وارد نمایید",
   "addValidQty": "لطفا تعداد یا مقدار را درست وارید نمایید.",
   "invalidCashAmount": "مقدار نقدی معادل قابل دریافت بل نمیباشد.",
-  "cashReceipt": "نقدی رسید"
+  "cashReceipt": "نقدی رسید",
+  "fullCreditMessage": "د بل ټوله بیه ترلاسه کېدو ته ور اضافه شوه",
+  "fullCashPayment": "بشپړ نقدي تادیه",
+  "mixPayment": "نقد او ترلاسه کېدونکی"
 }

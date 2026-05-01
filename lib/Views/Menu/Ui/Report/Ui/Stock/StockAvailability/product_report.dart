@@ -1240,7 +1240,7 @@ class _DesktopState extends State<_Desktop> {
                     child: Text(tr.unitPrice,style: titleStyle)),
                 SizedBox(
                     width: 120,
-                    child: Text(tr.qty,style: titleStyle)),
+                    child: Text(tr.available,style: titleStyle)),
                 SizedBox(
                     width: 120,
                     child: Text(tr.totalTitle,style: titleStyle)),
@@ -1305,7 +1305,7 @@ class _DesktopState extends State<_Desktop> {
                                   Expanded(child: Text(stk.proName ?? "")),
                                   SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
-                                  SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 2))),
+                                  SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0))),
                                   SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy")),
                                 ],
                               ),
@@ -1345,7 +1345,7 @@ class _DesktopState extends State<_Desktop> {
                             SizedBox(
                               width: 120,
                               child: Text(
-                                "${totalQuantity.toStringAsFixed(2)} ${tr.tonTitle}",
+                                "${totalQuantity.toStringAsFixed(0)} ${tr.items}",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,

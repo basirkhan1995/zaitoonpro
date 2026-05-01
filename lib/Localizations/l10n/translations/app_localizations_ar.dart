@@ -837,7 +837,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get branchInformation => 'شعبه معلومات';
 
   @override
-  String get currentBalance => 'اوسنی موجودی';
+  String get currentBalance => 'اوسنی صورتحساب';
 
   @override
   String get availableBalance => 'د لاسرسي وړ موجودی ';
@@ -1852,7 +1852,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get saleTitle => 'فروش';
 
   @override
-  String get newBalance => 'نوې پاتې شونې';
+  String get newBalance => 'نهایی پاتې شونې';
 
   @override
   String get cashPaymentSubtitle => 'پرداخت کامل به صورت نقدی';
@@ -2120,7 +2120,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'د ګټې او تاوان بستل به د اوسني مالي دورې د ټولو عاید او مصرف حسابونه بشپړ کړي.';
 
   @override
-  String get openingBalance => 'مانده افتتاحیه';
+  String get openingBalance => 'بیلانس افتتاحیه';
 
   @override
   String get currencyBalances => 'موجودی - اسعار';
@@ -3313,4 +3313,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get cashReceipt => 'نقدی رسید';
+
+  @override
+  String get fullCreditMessage => 'د بل ټوله بیه ترلاسه کېدو ته ور اضافه شوه';
+
+  @override
+  String get fullCashPayment => 'بشپړ نقدي تادیه';
+
+  @override
+  String get mixPayment => 'نقد او ترلاسه کېدونکی';
 }

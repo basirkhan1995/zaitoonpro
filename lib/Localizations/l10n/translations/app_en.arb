@@ -1097,5 +1097,8 @@
   "addValidPrice": "Please enter a valid price",
   "addValidQty": "Please enter valid quantity.",
   "invalidCashAmount": "Cash payment is not not equal to receivable amount",
-  "cashReceipt": "Cash Receipt"
+  "cashReceipt": "Cash Receipt",
+  "fullCreditMessage": "Total Invoice Amount Added to Receivable",
+  "fullCashPayment": "Full Cash Payment",
+  "mixPayment": "Cash and Receivable"
 }

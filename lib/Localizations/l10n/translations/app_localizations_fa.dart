@@ -836,7 +836,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get branchInformation => 'معلومات شعبه';
 
   @override
-  String get currentBalance => 'موجودی فعلی';
+  String get currentBalance => 'صورتحساب قبلی';
 
   @override
   String get availableBalance => 'موجودی قابل برداشت';
@@ -1849,7 +1849,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get saleTitle => 'فروش';
 
   @override
-  String get newBalance => 'مانده جدید';
+  String get newBalance => 'صورتحساب نهایی';
 
   @override
   String get cashPaymentSubtitle => 'پرداخت کامل به صورت نقدی';
@@ -2117,7 +2117,7 @@ class AppLocalizationsFa extends AppLocalizations {
       'بستن سود و زیان تمام حساب‌های درآمد و هزینه دوره مالی جاری را نهایی خواهد کرد.';
 
   @override
-  String get openingBalance => 'مانده افتتاحیه';
+  String get openingBalance => 'بیلانس افتتاحیه';
 
   @override
   String get currencyBalances => 'موجودی - اسعار';
@@ -3310,4 +3310,13 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get cashReceipt => 'دریافت نقدی';
+
+  @override
+  String get fullCreditMessage => 'کل مبلغ بل به اعتبار حساب افزوده میشود';
+
+  @override
+  String get fullCashPayment => 'تسویه نقدی';
+
+  @override
+  String get mixPayment => 'نقد و اعتبار حساب';
 }

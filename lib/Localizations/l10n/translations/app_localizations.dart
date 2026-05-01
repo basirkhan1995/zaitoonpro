@@ -6567,6 +6567,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cash Receipt'**
   String get cashReceipt;
+
+  /// No description provided for @fullCreditMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Invoice Amount Added to Receivable'**
+  String get fullCreditMessage;
+
+  /// No description provided for @fullCashPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Full Cash Payment'**
+  String get fullCashPayment;
+
+  /// No description provided for @mixPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Cash and Receivable'**
+  String get mixPayment;
 }
 
 class _AppLocalizationsDelegate

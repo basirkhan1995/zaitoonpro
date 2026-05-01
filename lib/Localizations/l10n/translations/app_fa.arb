@@ -291,7 +291,7 @@
   "maker": "اجراء کننده",
   "branchLimits": "حد معاملات شعبه",
   "branchInformation": "معلومات شعبه",
-  "currentBalance": "موجودی فعلی",
+  "currentBalance": "صورتحساب قبلی",
   "availableBalance": "موجودی قابل برداشت",
   "txnDetails": "جزئیات معامله",
   "transactionRef": "ریفرنس نمبر",
@@ -617,7 +617,7 @@
   "invoiceType": "نوع بل",
   "totalInvoice": "جمع کل",
   "saleTitle": "فروش",
-  "newBalance": "مانده جدید",
+  "newBalance": "صورتحساب نهایی",
   "cashPaymentSubtitle": "پرداخت کامل به صورت نقدی",
   "accountCredit": "اعتبار حساب",
   "accountCreditSubtitle": "افزودن کل مبلغ به حساب به عنوان اعتبار",
@@ -705,7 +705,7 @@
   "retainedEarnings": "سود انباشته",
   "eoyClosing": "بستن دوره مالی",
   "plMessage": "بستن سود و زیان تمام حساب‌های درآمد و هزینه دوره مالی جاری را نهایی خواهد کرد.",
-  "openingBalance": "مانده افتتاحیه",
+  "openingBalance": "بیلانس افتتاحیه",
   "currencyBalances": "موجودی - اسعار",
   "opening": "افتتاحیه",
   "closing": "اختتامیه",
@@ -1097,5 +1097,8 @@
   "addValidPrice": "لطفا قیمت را درست وارد نمایید",
   "addValidQty": "لطفا تعداد یا مقدار را درست وارید نمایید.",
   "invalidCashAmount": "مقدار نقدی معادل قابل دریافت بل نمیباشد.",
-  "cashReceipt": "دریافت نقدی"
+  "cashReceipt": "دریافت نقدی",
+  "fullCreditMessage": "کل مبلغ بل به اعتبار حساب افزوده میشود",
+  "fullCashPayment": "تسویه نقدی",
+  "mixPayment": "نقد و اعتبار حساب"
 }

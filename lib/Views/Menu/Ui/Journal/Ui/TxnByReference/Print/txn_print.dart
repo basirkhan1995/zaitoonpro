@@ -329,9 +329,6 @@ class TransactionReferencePrintSettings extends PrintServices {
           pw.Container(
             width: double.infinity,
             padding: pw.EdgeInsets.all(isRtl ? 7 : 3),
-            decoration: pw.BoxDecoration(
-              border: pw.Border.all(width: 0.5, color: pw.PdfColors.grey300),
-            ),
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
@@ -355,6 +352,7 @@ class TransactionReferencePrintSettings extends PrintServices {
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
+
               pw.Expanded(
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.center,
@@ -374,9 +372,22 @@ class TransactionReferencePrintSettings extends PrintServices {
                   children: [
                     horizontalDivider(width: isRtl ? 120 : 130),
                     pw.SizedBox(height: isRtl ? 2 : 3),
-                    zText(text: tr(text: 'authorizedBy', tr: language), fontSize: isRtl ? 8 : 9, color: pw.PdfColors.grey600),
+                    zText(text: tr(text: 'cashier', tr: language), fontSize: isRtl ? 8 : 9, color: pw.PdfColors.grey600),
                     pw.SizedBox(height: isRtl ? 1 : 2),
                     zText(text: data.checker ?? "___________", fontSize: isRtl ? 9 : 10, fontWeight: pw.FontWeight.bold),
+                  ],
+                ),
+              ),
+              pw.SizedBox(width: isRtl ? 15 : 20),
+              pw.Expanded(
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+                  children: [
+                    horizontalDivider(width: isRtl ? 120 : 130),
+                    pw.SizedBox(height: isRtl ? 4 : 5),
+                    zText(text: tr(text: 'accountHolder', tr: language), fontSize: isRtl ? 8 : 9, color: pw.PdfColors.grey600),
+                    pw.SizedBox(height: isRtl ? 1 : 2),
+                    zText(text: data.accNameText, fontSize: isRtl ? 9 : 10, fontWeight: pw.FontWeight.bold),
                   ],
                 ),
               ),

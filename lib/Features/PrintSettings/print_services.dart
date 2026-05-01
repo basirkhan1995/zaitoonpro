@@ -609,6 +609,21 @@ abstract class PrintServices {
         "ar": "د بدهکار ننوتل",
         "fa": "ورودی‌های بدهکار"
       },
+      "receivedBy": {
+        "en": "Received By",
+        "ar": "دریافت کننده",
+        "fa": "دریافت کننده"
+      },
+      "cashier": {
+        "en": "Cashier",
+        "ar": "خزانه دار",
+        "fa": "خزانه دار"
+      },
+      "accountHolder": {
+        "en": "Account Holder",
+        "ar": "طرف حساب",
+        "fa": "طرف حساب"
+      },
       "invoiceDate": {
         "en": "Invoice Date",
         "ar": "بل نیته",
@@ -1208,13 +1223,13 @@ abstract class PrintServices {
         'ar':'زیتون سافت لخوا وړاندې شوی',
       },
       'createdBy':{
-        'en':'Issued by: ',
-        'fa':'تهیه شده توسط: ',
-        'ar':'چمتو شوی لخوا: ',
+        'en':'Issued By',
+        'fa':'تهیه کننده',
+        'ar':'چمتو کونکی',
       },
       'reference':{
         'en':'Reference',
-        'fa':'شماره مرجع',
+        'fa':'نمبر حواله',
         'ar':'حوالې شمیره',
       },
       'debtor':{

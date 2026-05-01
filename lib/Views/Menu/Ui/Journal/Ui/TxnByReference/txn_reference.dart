@@ -697,6 +697,7 @@ class _DesktopState extends State<_Desktop> {
                                 const SizedBox(height: 20),
                                 ZTextFieldEntitled(
                                   isRequired: true,
+                                  isEnabled: showUpdateButton,
                                   keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
                                   inputFormat: [
                                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]*')),
@@ -718,6 +719,7 @@ class _DesktopState extends State<_Desktop> {
                                 ),
                                 const SizedBox(height: 10),
                                 ZTextFieldEntitled(
+                                  isEnabled: showUpdateButton,
                                   keyboardInputType: TextInputType.multiline,
                                   controller: narration,
                                   title: locale.narration,

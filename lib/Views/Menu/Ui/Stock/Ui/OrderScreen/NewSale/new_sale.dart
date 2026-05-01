@@ -532,7 +532,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                     if (isLoading) {
                       // Show full shimmer while loading
-                      return UniversalShimmer.saleInvoiceLoading();
+                      return UniversalShimmer.invoiceLoading();
                     }
                     if(state is SaleInvoiceLoaded || state is SaleInvoiceSaving){
                       final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);

@@ -7,8 +7,8 @@ import '../../Localizations/l10n/translations/app_localizations.dart';
 class UniversalShimmer {
   // ==================== ACCOUNT LIST SHIMMER (YOUR DESIGN WITH YOUR COLORS) ====================
 
-  static Widget saleInvoiceLoading() {
-    return _SaleInvoiceShimmerContent();
+  static Widget invoiceLoading() {
+    return _InvoiceShimmerContent();
   }
 
   /// Account list shimmer - matches your exact account list design
@@ -576,7 +576,7 @@ class _OrderListShimmerContent extends StatelessWidget {
                     height: 28,
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ],
@@ -1009,7 +1009,7 @@ class _ProfileDetailsShimmerContent extends StatelessWidget {
                     width: 140,
                     decoration: BoxDecoration(
                       color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -1222,17 +1222,17 @@ class _ShimmerHorizontalList extends StatelessWidget {
 
 // ==================== SALE INVOICE SHIMMER ====================
 
-/// Sale invoice loading shimmer - Matches the invoice screen design
+/// Invoice loading shimmer - Matches the invoice screen design
 
-class _SaleInvoiceShimmerContent extends StatelessWidget {
-  const _SaleInvoiceShimmerContent();
+class _InvoiceShimmerContent extends StatelessWidget {
+  const _InvoiceShimmerContent();
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
 
-    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.3);
+    final baseColor = colorScheme.primaryContainer.withValues(alpha: 0.8);
     final highlightColor = colorScheme.primaryContainer.withValues(alpha: 0.9);
 
     return Shimmer.fromColors(
@@ -1272,7 +1272,7 @@ class _SaleInvoiceShimmerContent extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: Row(
@@ -1411,7 +1411,7 @@ class _SaleInvoiceShimmerContent extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8),
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.1)),
       ),
       child: Column(

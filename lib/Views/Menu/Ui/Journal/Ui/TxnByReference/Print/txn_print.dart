@@ -403,23 +403,23 @@ class TransactionReferencePrintSettings extends PrintServices {
       padding: pw.EdgeInsets.only(bottom: isRtl ? 1 : 5),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
+        mainAxisAlignment: pw.MainAxisAlignment.start,
         children: [
           pw.SizedBox(
-            width: isRtl ? 120 : 150,
+            width: isRtl ? 80 : 150,
             child: zText(
               text: "$label:",
               fontSize: isRtl ? 12 : 10,
               fontWeight: pw.FontWeight.bold,
+              textAlign: pw.TextAlign.start,
               color: pw.PdfColors.grey700,
             ),
           ),
-          pw.Expanded(
-            child: zText(
-              text: value,
-              textAlign: isRtl ? pw.TextAlign.end : pw.TextAlign.start,
-              fontSize: isRtl ? 12 : 10,
-              color: pw.PdfColors.grey900,
-            ),
+          pw.SizedBox(width: 30),
+          zText(
+            text: value,
+            fontSize: isRtl ? 12 : 10,
+            color: pw.PdfColors.grey900,
           ),
         ],
       ),

@@ -1315,23 +1315,23 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
     while (_rowFocusNodes.length < itemCount) {
       if (isWholeSale) {
-        // All 6 fields visible
+        // Full mode: Product, Qty, Batch, UnitPrice, SellPrice, Storage (6 fields)
         _rowFocusNodes.add([
-          FocusNode(), // Product
-          FocusNode(), // Qty
-          FocusNode(), // Batch
-          FocusNode(), // Unit Price
-          FocusNode(), // Sell Price
-          FocusNode(), // Storage
+          FocusNode(), // 0: Product
+          FocusNode(), // 1: Qty
+          FocusNode(), // 2: Batch
+          FocusNode(), // 3: Unit Price
+          FocusNode(), // 4: Sell Price
+          FocusNode(), // 5: Storage
         ]);
       } else {
-        // Batch and Total Qty hidden (only 4 fields)
+        // Non-wholesale mode: Product, Qty, UnitPrice, SellPrice, Storage (5 fields)
         _rowFocusNodes.add([
-          FocusNode(), // Product
-          FocusNode(), // Qty
-          FocusNode(), // Unit Price (index 2 instead of 3)
-          FocusNode(), // Sell Price (index 3 instead of 4)
-          FocusNode(), // Storage (index 4 instead of 5)
+          FocusNode(), // 0: Product
+          FocusNode(), // 1: Qty
+          FocusNode(), // 2: Unit Price
+          FocusNode(), // 3: Sell Price
+          FocusNode(), // 4: Storage
         ]);
       }
     }
@@ -1762,24 +1762,46 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final visibility = context.read<SettingsVisibleBloc>().state;
     final isWholeSale = visibility.isWholeSale;
 
-    // Calculate next index based on visibility
     int nextIndex;
+
     if (isWholeSale) {
-      // Normal flow: 0->1->2->3->4->5
-      nextIndex = currentIndex + 1;
+      // Full mode with batch: Product(0) -> Qty(1) -> Batch(2) -> UnitPrice(3) -> SellPrice(4) -> Storage(5)
+      switch (currentIndex) {
+        case 0: // Product
+          nextIndex = 1; // Qty
+          break;
+        case 1: // Qty
+          nextIndex = 2; // Batch
+          break;
+        case 2: // Batch
+          nextIndex = 3; // Unit Price
+          break;
+        case 3: // Unit Price
+          nextIndex = 4; // Sell Price
+          break;
+        case 4: // Sell Price
+          nextIndex = 5; // Storage
+          break;
+        default:
+          nextIndex = currentIndex + 1;
+      }
     } else {
-      // Without batch: Skip index 2 (batch)
-      if (currentIndex == 1) {
-        // After Qty (index 1), go to Unit Price which is index 2 (was index 3 in full mode)
-        nextIndex = 2;
-      } else if (currentIndex == 2) {
-        // After Unit Price (index 2), go to Sell Price (index 3)
-        nextIndex = 3;
-      } else if (currentIndex == 3) {
-        // After Sell Price (index 3), go to Storage (index 4)
-        nextIndex = 4;
-      } else {
-        nextIndex = currentIndex + 1;
+      // Non-wholesale mode (no batch): Product(0) -> Qty(1) -> UnitPrice(3 was 2) -> SellPrice(4 was 3) -> Storage(5 was 4)
+      switch (currentIndex) {
+        case 0: // Product
+          nextIndex = 1; // Qty
+          break;
+        case 1: // Qty
+          nextIndex = 2; // Unit Price
+          break;
+        case 2: // Unit Price
+          nextIndex = 3; // Sell Price
+          break;
+        case 3: // Sell Price
+          nextIndex = 4; // Storage
+          break;
+        default:
+          nextIndex = currentIndex + 1;
       }
     }
 
@@ -1793,28 +1815,34 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     }
   }
 
-  FocusNode? safeNode(int index) {
+  FocusNode? safeNode(int virtualIndex) {
     final visibility = context.read<SettingsVisibleBloc>().state;
     final isWholeSale = visibility.isWholeSale;
 
-    if (!isWholeSale) {
-      // Remap indices when batch is hidden
-      if (index == 2) {
-        // Index 2 in UI (Unit Price) maps to nodes[2] in non-wholesale
-        return widget.nodes.length > 2 ? widget.nodes[2] : null;
-      } else if (index == 3) {
-        // Index 3 in UI (Sell Price) maps to nodes[3] in non-wholesale
-        return widget.nodes.length > 3 ? widget.nodes[3] : null;
-      } else if (index == 4) {
-        // Index 4 in UI (Storage) maps to nodes[4] in non-wholesale
-        return widget.nodes.length > 4 ? widget.nodes[4] : null;
+    if (isWholeSale) {
+      // Full mode: virtual index matches node index
+      if (virtualIndex >= 0 && virtualIndex < widget.nodes.length) {
+        return widget.nodes[virtualIndex];
+      }
+    } else {
+      // Non-wholesale mode: map virtual indices to node indices
+      // Virtual indices: 0=Product, 1=Qty, 2=UnitPrice, 3=SellPrice, 4=Storage
+      // Node indices:    0=Product, 1=Qty, 2=UnitPrice, 3=SellPrice, 4=Storage
+      final nodeIndexMap = {
+        0: 0, // Product
+        1: 1, // Qty
+        2: 2, // Unit Price (node index 2)
+        3: 3, // Sell Price (node index 3)
+        4: 4, // Storage (node index 4)
+      };
+
+      final nodeIndex = nodeIndexMap[virtualIndex];
+      if (nodeIndex != null && nodeIndex < widget.nodes.length) {
+        return widget.nodes[nodeIndex];
       }
     }
 
-    // Default mapping
-    return (index >= 0 && index < widget.nodes.length)
-        ? widget.nodes[index]
-        : null;
+    return null;
   }
 
   void _addNewRowAndFocus() {
@@ -1837,6 +1865,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   Widget build(BuildContext context) {
     final locale = AppLocalizations.of(context)!;
     final visibility = context.read<SettingsVisibleBloc>().state;
+    final isWholeSale = visibility.isWholeSale;
     final productController = TextEditingController(
       text: widget.item.productName,
     );
@@ -1952,18 +1981,17 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     widget.onQtyChanged(widget.item.rowId, qty);
                   },
                   onSubmitted: (_) {
-                    final visibility = context.read<SettingsVisibleBloc>().state;
-                    if (visibility.isWholeSale) {
-                      focusNext(2); // Move to Batch
+                    if (isWholeSale) {
+                      focusNext(1); // CHANGE THIS: Move from Qty (index 1) to Batch (index 2)
+                      // The focusNext method handles the mapping: currentIndex 1 -> nextIndex 2
                     } else {
-                      focusNext(1); // Move to Unit Price (skipping batch)
+                      focusNext(1); // Move from Qty (index 1) to Unit Price (index 2 in non-wholesale)
                     }
                   },
                 ),
               ),
 
-              if(visibility.isWholeSale)...[
-                /// Batch - Index 2
+              if (isWholeSale) ...[
                 SizedBox(
                   width: 100,
                   child: TextField(
@@ -1983,10 +2011,10 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       }
                       widget.onBatchChanged(widget.item.rowId, effectiveBatch);
                     },
-                    onSubmitted: (_) => focusNext(2), // Move to Unit Price
+                    onSubmitted: (_) => focusNext(2), // Move to Unit Price (virtual index 3)
                   ),
                 ),
-                /// Total (read-only) - No focus
+                /// Total Qty (read-only) - No focus
                 SizedBox(
                   width: 100,
                   child: Text(
@@ -2005,7 +2033,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 width: 150,
                 child: TextField(
                   controller: priceController,
-                  focusNode: safeNode(visibility.isWholeSale ? 3 : 2),
+                  focusNode: safeNode(isWholeSale ? 3 : 2),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
@@ -2020,17 +2048,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
                   onSubmitted: (_) {
-                    if (widget.isLastRow) {
-                      _addNewRowAndFocus();
-                    } else {
-                      // Move to next appropriate field
-                      final visibility = context.read<SettingsVisibleBloc>().state;
-                      if (visibility.isWholeSale) {
-                        focusNext(3); // Move to Sell Price (index 4 in full mode)
-                      } else {
-                        focusNext(2); // Move to Sell Price (index 3 in non-wholesale)
-                      }
-                    }
+                    // Move to Sell Price
+                    focusNext(isWholeSale ? 3 : 2);
                   },
                 ),
               ),
@@ -2060,7 +2079,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 width: 150,
                 child: TextField(
                   controller: sellPriceController,
-                  focusNode: safeNode(visibility.isWholeSale ? 4 : 3),
+                  focusNode: safeNode(isWholeSale ? 4 : 3),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   decoration: InputDecoration(
                     hintText: locale.salePercentage,
@@ -2071,7 +2090,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onSellPriceChanged(widget.item.rowId, parsed);
                   },
-                  onSubmitted: (_) => focusNext(visibility.isWholeSale ? 4 : 3), // Move to Storage
+                  onSubmitted: (_) {
+                    if (widget.isLastRow) {
+                      // Add new row and focus its product field
+                      _addNewRowAndFocus();
+                    } else {
+                      // Move to Storage field in current row
+                      focusNext(isWholeSale ? 4 : 3);
+                    }
+                  },
                 ),
               ),
 

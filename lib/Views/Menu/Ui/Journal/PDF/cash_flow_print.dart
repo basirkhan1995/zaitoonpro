@@ -108,11 +108,10 @@ class CashFlowTransactionPrint extends PrintServices{
 
     document.addPage(
       pw.MultiPage(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        mainAxisAlignment: pw.MainAxisAlignment.center,
         maxPages: 1000,
-        margin: pw.EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: isRtl ? 8 : 12,
-        ),
+        margin: pw.EdgeInsets.all(20),
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
         orientation: orientation,
@@ -307,7 +306,7 @@ class CashFlowTransactionPrint extends PrintServices{
           _voucherRow(tr(text: 'accountNumber', tr: language), "${data.trdAccount.toString()} - ${data.accName}", isRtl),
           _voucherRow(tr(text: 'narration', tr: language), data.trdNarration ?? "-", isRtl),
 
-          pw.SizedBox(height: isRtl ? 6 : 10),
+          pw.SizedBox(height: isRtl ? 6 : 7),
 
           // Amount
           pw.Container(
@@ -414,7 +413,7 @@ class CashFlowTransactionPrint extends PrintServices{
 
   pw.Widget _voucherRow(String label, String value, bool isRtl) {
     return pw.Padding(
-      padding: pw.EdgeInsets.only(bottom: isRtl ? 1 : 5),
+      padding: pw.EdgeInsets.only(bottom: isRtl ? 1 : 2),
       child: pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         mainAxisAlignment: pw.MainAxisAlignment.start,

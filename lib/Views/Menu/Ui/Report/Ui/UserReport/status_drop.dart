@@ -38,7 +38,6 @@ class StatusDropdown extends StatelessWidget {
       title: l10n.status,
       items: dropdownItems,
       selectedItem: selectedItem,
-      customTitle: Text(AppLocalizations.of(context)!.status,style: Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12),),
       initialValue: selectedItem.label,
       disableAction: disable,
       itemLabel: (item) => item.label,

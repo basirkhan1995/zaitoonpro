@@ -66,36 +66,6 @@ class _StorageDropDownState extends State<StorageDropDown> {
       builder: (context, state) {
         final bool isLoading = state is StorageLoadingState;
 
-        Widget buildTitle() {
-          if (isLoading) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  widget.title ?? AppLocalizations.of(context)!.storage,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(fontSize: 12),
-                ),
-                const SizedBox(width: 8),
-                const SizedBox(
-                  width: 15,
-                  height: 15,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              ],
-            );
-          }
-          return Text(
-            widget.title ?? AppLocalizations.of(context)!.storage,
-            style: Theme.of(context)
-                .textTheme
-                .titleSmall
-                ?.copyWith(fontSize: 12),
-          );
-        }
-
         if (state is StorageErrorState) {
           return Text('Error: ${state.error}');
         }
@@ -130,7 +100,7 @@ class _StorageDropDownState extends State<StorageDropDown> {
           children: [
             ZDropdown<StorageModel>(
               disableAction: widget.disableAction,
-              title: '',
+              title: widget.title ?? AppLocalizations.of(context)!.storage,
               height: widget.height,
               items: items,
               multiSelect: false,
@@ -143,9 +113,6 @@ class _StorageDropDownState extends State<StorageDropDown> {
                 widget.onChanged?.call(storage.stgId == null ? null : storage);
               },
               isLoading: isLoading,
-              customTitle: (widget.title != null && widget.title!.isNotEmpty)
-                  ? buildTitle()
-                  : const SizedBox.shrink(),
             ),
           ],
         );

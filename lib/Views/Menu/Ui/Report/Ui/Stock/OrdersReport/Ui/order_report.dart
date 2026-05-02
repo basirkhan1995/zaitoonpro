@@ -19,6 +19,8 @@ import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_b
 import '../../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../../../../../Stock/Ui/OrderScreen/GetOrderById/order_by_id.dart';
+import '../../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
+import '../../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 
 class OrderReportView extends StatelessWidget {
   final String? orderName;
@@ -1171,7 +1173,6 @@ class _DesktopState extends State<_Desktop> {
               },
               backgroundHover: Theme.of(context).colorScheme.error,
               isActive: true,
-              width: 140,
               icon: Icons.filter_alt_off_outlined,
               label: Text(tr.clearFilters),
             ),
@@ -1179,7 +1180,6 @@ class _DesktopState extends State<_Desktop> {
           ],
           ZOutlineButton(
             onPressed: () {},
-            width: 120,
             icon: Icons.print,
             label: Text(tr.print),
           ),
@@ -1198,7 +1198,6 @@ class _DesktopState extends State<_Desktop> {
               }
             },
             isActive: true,
-            width: 120,
             icon: Icons.filter_alt_outlined,
             label: Text(tr.apply),
           ),
@@ -1372,8 +1371,8 @@ class _DesktopState extends State<_Desktop> {
                     return InkWell(
                       onTap: (){
                         Utils.goto(
-                          context,
-                          OrderByIdView(orderId: ord.ordId!,ordName: ord.ordName),
+                            context,
+                            ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : ord.ordName == "Purchase"? NewPurchaseOrderView(orderId: ord.ordId) : SizedBox()
                         );
                       },
                       child: Container(

@@ -56,10 +56,12 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
       final orderId = parsed['orderId'] as int? ?? event.orderId;
 
-      // Build items with UNIQUE IDs
       final List<PurchaseInvoiceItem> items = [];
-      for (var record in records) {
+      for (var i = 0; i < records.length; i++) {
+        final record = records[i];
+
         items.add(PurchaseInvoiceItem(
+          itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_$i',
           productId: record['productId'].toString(),
           qty: (record['quantity'] as double).toInt(),
           stkBatch: (record['batch'] as double).toInt(),
@@ -114,17 +116,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         );
       }
 
-      // FIX: Fetch full supplier details by ID
+      // Fetch full supplier details by ID
       IndividualsModel? supplier;
       final partyId = parsed['partyId'] as int?;
 
       if (partyId != null) {
         try {
-          // Fetch the full stakeholder profile to get address, phone, etc.
           final fullSupplier = await repo.getPersonProfileById(perId: partyId);
           supplier = fullSupplier;
         } catch (e) {
-          // Fallback to basic info if fetch fails
           supplier = IndividualsModel(
             perId: partyId,
             perName: parsed['partyName'] as String?,
@@ -142,15 +142,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final expensesTotal = OrderParser.getExpensesTotal(payments);
       final totalInvoice = itemsTotal + expensesTotal;
 
-      // FIX: Convert cash payment to base currency (DIVIDE, not multiply)
+      // Convert cash payment to base currency (DIVIDE, not multiply)
       double cashPaymentInBase = cashPayment;
       if (cashCurrency.isNotEmpty &&
           cashCurrency != event.baseCurrency &&
           exchangeRate > 0) {
-        cashPaymentInBase = cashPayment / exchangeRate; // DIVIDE to convert to base
+        cashPaymentInBase = cashPayment / exchangeRate;
       }
 
-      // Determine payment mode based on cash payment and supplier account
+      // Determine payment mode
       PaymentMode paymentMode;
       final hasCreditPayment = supplierAccountData != null &&
           (supplierAccountData['amount'] as double) > 0;
@@ -188,7 +188,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       emit(PurchaseInvoiceError('Failed to load invoice: $e'));
     }
   }
-
   String _extractExpenseNarration(String narration) {
     final rateMatch = RegExp(r'\s*@Rate:\s*[\d.]+').firstMatch(narration);
     if (rateMatch != null) {

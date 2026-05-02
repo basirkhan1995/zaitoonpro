@@ -870,6 +870,9 @@ class _DesktopState extends State<_Desktop> {
                       child: Text(tr.qty,style: titleStyle, textAlign: TextAlign.center)),
                   SizedBox(
                       width: 120,
+                      child: Text(tr.batchTitle,style: titleStyle, textAlign: TextAlign.center)),
+                  SizedBox(
+                      width: 120,
                       child: Text(tr.rate,style: titleStyle, textAlign: TextAlign.center)),
                   SizedBox(
                       width: 120,
@@ -958,6 +961,9 @@ class _DesktopState extends State<_Desktop> {
                                   ),
                                 ),
                               ),
+                              SizedBox(
+                                  width: 120,
+                                  child: Text(stock.batch.toAmount(decimal: 0), textAlign: TextAlign.center)),
 
                               SizedBox(
                                   width: 120,

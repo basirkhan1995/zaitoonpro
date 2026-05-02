@@ -20,6 +20,7 @@ class StockRecordModel {
   final String? entryType;
   final DateTime? entryDate;
   final String? quantity;
+  final int? batch;
   final String? price;
   final String? runningQuantity;
 
@@ -35,6 +36,7 @@ class StockRecordModel {
     this.entryType,
     this.entryDate,
     this.quantity,
+    this.batch,
     this.price,
     this.runningQuantity,
   });
@@ -53,6 +55,7 @@ class StockRecordModel {
     String? quantity,
     String? price,
     String? runningQuantity,
+    int? batch,
   }) =>
       StockRecordModel(
         no: no ?? this.no,
@@ -68,6 +71,7 @@ class StockRecordModel {
         quantity: quantity ?? this.quantity,
         price: price ?? this.price,
         runningQuantity: runningQuantity ?? this.runningQuantity,
+        batch: batch ?? this.batch,
       );
 
   factory StockRecordModel.fromMap(Map<String, dynamic> json) => StockRecordModel(
@@ -84,6 +88,7 @@ class StockRecordModel {
     quantity: json["quantity"]?.toString(),
     price: json["price"],
     runningQuantity: json["runningQuantity"],
+    batch: json["batch"]
   );
 
   Map<String, dynamic> toMap() => {

@@ -1099,7 +1099,6 @@ class _DesktopState extends State<_Desktop> {
         actions: [
           if(hasAnyFilter)...[
             ZOutlineButton(
-                width: 140,
                 icon: Icons.filter_alt_off_outlined,
                 backgroundHover: Theme.of(context).colorScheme.error,
                 onPressed: _clearFilters,
@@ -1107,14 +1106,12 @@ class _DesktopState extends State<_Desktop> {
             SizedBox(width: 8),
           ],
           ZOutlineButton(
-              width: 100,
               icon: Icons.print,
               backgroundHover: Theme.of(context).colorScheme.error,
               onPressed: _printProductReport,
               label: Text(tr.print)),
           SizedBox(width: 8),
           ZOutlineButton(
-              width: 100,
               icon: Icons.filter_alt,
               isActive: true,
               onPressed: (){
@@ -1124,7 +1121,7 @@ class _DesktopState extends State<_Desktop> {
                   productId: productId,
                 ));
               },
-              label: Text(tr.apply)),
+              label: Text(tr.applyFilter)),
         ],
       ),
 
@@ -1243,13 +1240,13 @@ class _DesktopState extends State<_Desktop> {
                     child: Text(tr.unitPrice,style: titleStyle)),
                 SizedBox(
                     width: 120,
-                    child: Text(tr.available,style: titleStyle)),
+                    child: Text(tr.qty,style: titleStyle)),
                 SizedBox(
                     width: 120,
-                    child: Text(tr.batchTitle,style: titleStyle)),
+                    child: Text(tr.totalItems,style: titleStyle)),
                 SizedBox(
                     width: 120,
-                    child: Text(tr.totalTitle,style: titleStyle)),
+                    child: Text(tr.totalAmount,style: titleStyle)),
               ],
             ),
           ),
@@ -1283,15 +1280,6 @@ class _DesktopState extends State<_Desktop> {
                     );
                   }
 
-                  // Calculate totals
-                  double totalQuantity = 0;
-                  double totalValue = 0;
-
-                  for (var item in state.stock) {
-                    totalQuantity += double.tryParse(item.availableQuantity ?? '0') ?? 0;
-                    totalValue += double.tryParse(item.total ?? '0') ?? 0;
-                  }
-
                   return Column(
                     children: [
                       Expanded(
@@ -1308,12 +1296,12 @@ class _DesktopState extends State<_Desktop> {
                               child: Row(
                                 children: [
                                   SizedBox(width: 50, child: Text((index + 1).toString())),
-                                  SizedBox(width: 120, child: Text(stk.proCode ?? "")),
+                                  SizedBox(width: 150, child: Text(stk.proCode ?? "")),
                                   Expanded(child: Text(stk.proName ?? "")),
                                   SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
                                   SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0))),
-                                  SizedBox(width: 120, child: Text(stk.stkQtyInbatch.toAmount(decimal: 0))),
+                                  SizedBox(width: 120, child: Text(stk.totalItem.toAmount(decimal: 0))),
                                   SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy")),
                                 ],
                               ),
@@ -1322,63 +1310,6 @@ class _DesktopState extends State<_Desktop> {
                         ),
                       ),
 
-                      // Total Summary Section
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        margin: const EdgeInsets.all(15),
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .3)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                tr.totalTitle,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.surface,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            // Total Quantity
-                            SizedBox(
-                              width: 120,
-                              child: Text(
-                                "${totalQuantity.toStringAsFixed(0)} ${tr.items}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                            const SizedBox(width: 24),
-                            // Total Value
-                            SizedBox(
-                              width: 120,
-                              child: Text(
-                                "${totalValue.toAmount()} $baseCcy",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Theme.of(context).colorScheme.primary,
-                                ),
-                                textAlign: TextAlign.right,
-                              ),
-                            ),
-                            const SizedBox(width: 40),
-                          ],
-                        ),
-                      ),
                       const SizedBox(height: 10),
                     ],
                   );
@@ -1412,24 +1343,6 @@ class _DesktopState extends State<_Desktop> {
         );
       }
 
-      // Get storage name if selected
-      String? storageName;
-      if (storageId != null) {
-        storageName = await _getStorageName(storageId);
-      }
-
-      // Get product name if selected
-      String? selectedProductName;
-      if (productId != null && productController.text.isNotEmpty) {
-        selectedProductName = productController.text;
-      }
-
-      // Get status name
-      String? statusName;
-      if (isNoStock != null) {
-        statusName = isNoStock == 1 ? "Available" : "Out of Stock";
-      }
-
       // CHECK MOUNTED HERE - immediately after async operations
       if (!mounted) return;
 
@@ -1451,12 +1364,7 @@ class _DesktopState extends State<_Desktop> {
               company: company,
               pageFormat: pageFormat,
               baseCurrency: baseCcy,
-              storageId: storageId,
-              storageName: storageName,
-              productId: productId,
-              productName: selectedProductName,
-              stockStatus: isNoStock,
-              statusName: statusName,
+              // REMOVED: storageId, storageName, productId, productName, stockStatus, statusName
             );
           },
           onPrint: ({
@@ -1478,12 +1386,7 @@ class _DesktopState extends State<_Desktop> {
               copies: copies,
               pages: pages,
               baseCurrency: baseCcy,
-              storageId: storageId,
-              storageName: storageName,
-              productId: productId,
-              productName: selectedProductName,
-              stockStatus: isNoStock,
-              statusName: statusName,
+              // REMOVED: storageId, storageName, productId, productName, stockStatus, statusName
             );
           },
           onSave: ({
@@ -1499,28 +1402,14 @@ class _DesktopState extends State<_Desktop> {
               company: company,
               pageFormat: pageFormat,
               baseCurrency: baseCcy,
-              storageId: storageId,
-              storageName: storageName,
-              productId: productId,
-              productName: selectedProductName,
-              stockStatus: isNoStock,
-              statusName: statusName,
+              // REMOVED: storageId, storageName, productId, productName, stockStatus, statusName
             );
           },
         ),
       );
     } else {
       if (!mounted) return;
-      ToastManager.show(context: context, title: "Attention", message: "Please load the date first.", type: ToastType.warning);
+      ToastManager.show(context: context, title: "Attention", message: "Please load the data first.", type: ToastType.warning);
     }
-  }
-
-// Helper to get storage name (implement based on your app)
-  Future<String?> _getStorageName(int? storageId) async {
-    if (storageId == null) return null;
-    // You can get this from your StorageBloc or database
-    // For now, return a placeholder
-    await Future.delayed(Duration.zero); // Simulate async
-    return "Storage $storageId";
   }
 }

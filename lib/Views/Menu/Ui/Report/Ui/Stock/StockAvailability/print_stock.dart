@@ -19,12 +19,6 @@ class ProductReportPrintSettings extends PrintServices {
     required ReportModel company,
     required pw.PdfPageFormat pageFormat,
     String? baseCurrency,
-    int? storageId,
-    String? storageName,
-    int? productId,
-    String? productName,
-    int? stockStatus,
-    String? statusName,
   }) async {
     try {
       final document = await generateReport(
@@ -34,12 +28,6 @@ class ProductReportPrintSettings extends PrintServices {
         company: company,
         pageFormat: pageFormat,
         baseCurrency: baseCurrency,
-        storageId: storageId,
-        storageName: storageName,
-        productId: productId,
-        productName: productName,
-        stockStatus: stockStatus,
-        statusName: statusName,
       );
 
       await saveDocument(
@@ -62,12 +50,6 @@ class ProductReportPrintSettings extends PrintServices {
     required int copies,
     required String pages,
     String? baseCurrency,
-    int? storageId,
-    String? storageName,
-    int? productId,
-    String? productName,
-    int? stockStatus,
-    String? statusName,
   }) async {
     try {
       // Use clean format for PDF generation
@@ -80,12 +62,6 @@ class ProductReportPrintSettings extends PrintServices {
         company: company,
         pageFormat: cleanFormat,
         baseCurrency: baseCurrency,
-        storageId: storageId,
-        storageName: storageName,
-        productId: productId,
-        productName: productName,
-        stockStatus: stockStatus,
-        statusName: statusName,
       );
 
       final bytes = await document.save();
@@ -109,12 +85,6 @@ class ProductReportPrintSettings extends PrintServices {
     required ReportModel company,
     required pw.PdfPageFormat pageFormat,
     String? baseCurrency,
-    int? storageId,
-    String? storageName,
-    int? productId,
-    String? productName,
-    int? stockStatus,
-    String? statusName,
   }) async {
     return generateReport(
       products: products,
@@ -123,12 +93,6 @@ class ProductReportPrintSettings extends PrintServices {
       company: company,
       pageFormat: pageFormat,
       baseCurrency: baseCurrency,
-      storageId: storageId,
-      storageName: storageName,
-      productId: productId,
-      productName: productName,
-      stockStatus: stockStatus,
-      statusName: statusName,
     );
   }
 
@@ -140,12 +104,6 @@ class ProductReportPrintSettings extends PrintServices {
     required ReportModel company,
     required pw.PdfPageFormat pageFormat,
     String? baseCurrency,
-    int? storageId,
-    String? storageName,
-    int? productId,
-    String? productName,
-    int? stockStatus,
-    String? statusName,
   }) async {
     final document = pw.Document();
     final prebuiltHeader = await header(report: company);
@@ -157,11 +115,11 @@ class ProductReportPrintSettings extends PrintServices {
 
     // Calculate totals
     double totalQuantity = 0;
-    double totalValue = 0;
+    double totalTotalItem = 0;
 
     for (var product in products) {
       totalQuantity += double.tryParse(product.availableQuantity ?? '0') ?? 0;
-      totalValue += double.tryParse(product.total ?? '0') ?? 0;
+      totalTotalItem += double.tryParse(product.totalItem ?? '0') ?? 0;
     }
 
     document.addPage(
@@ -180,12 +138,12 @@ class ProductReportPrintSettings extends PrintServices {
         ),
         build: (context) => [
           // Report Title
-          _buildTitle(language, baseCurrency, storageName, productName, statusName),
-          pw.SizedBox(height: 10),
+          _buildTitle(language, baseCurrency),
+          pw.SizedBox(height: 5),
 
           // Summary Stats
-          _buildSummaryStats(products.length, totalQuantity, totalValue, baseCurrency, language),
-          pw.SizedBox(height: 15),
+          _buildSummaryStats(products.length, totalQuantity, totalTotalItem, baseCurrency, language),
+          pw.SizedBox(height: 5),
 
           // Table Header
           _buildTableHeader(language, baseCurrency),
@@ -194,10 +152,6 @@ class ProductReportPrintSettings extends PrintServices {
           // Data Rows
           ..._buildProductRows(products, language, baseCurrency),
 
-          pw.SizedBox(height: 15),
-
-          // Grand Total
-          _buildGrandTotal(totalQuantity, totalValue, baseCurrency, language),
         ],
       ),
     );
@@ -205,27 +159,15 @@ class ProductReportPrintSettings extends PrintServices {
     return document;
   }
 
-  // Report Title with Filters
-  pw.Widget _buildTitle(String language, String? baseCurrency, String? storageName, String? productName, String? statusName) {
-    List<String> filters = [];
-    if (storageName != null && storageName.isNotEmpty) filters.add(storageName);
-    if (productName != null && productName.isNotEmpty) filters.add(productName);
-    if (statusName != null && statusName.isNotEmpty) filters.add(statusName);
-
-    String filterText = filters.isNotEmpty ? ' (${filters.join(' • ')})' : '';
-
+  // Report Title
+  pw.Widget _buildTitle(String language, String? baseCurrency) {
     return pw.Row(
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
-        pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            zText(
-              text: '${tr(text: 'stockReport', tr: language)}$filterText',
-              fontSize: 16,
-              fontWeight: pw.FontWeight.bold,
-            ),
-          ],
+        zText(
+          text: tr(text: 'stockReport', tr: language),
+          fontSize: 16,
+          fontWeight: pw.FontWeight.bold,
         ),
         zText(
           text: _getCurrentDate(),
@@ -237,10 +179,10 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Summary Stats
-  pw.Widget _buildSummaryStats(int itemCount, double totalQty, double totalVal, String? baseCurrency, String language) {
+  // Summary Stats - Updated to show total_item instead of totalValue
+  pw.Widget _buildSummaryStats(int itemCount, double totalQty, double totalTotalItem, String? baseCurrency, String language) {
     return pw.Container(
-      padding: const pw.EdgeInsets.all(8),
+      padding: const pw.EdgeInsets.all(5),
       decoration: pw.BoxDecoration(
         color: pw.PdfColors.grey50,
         border: pw.Border.all(color: pw.PdfColors.grey300, width: 0.5),
@@ -249,6 +191,7 @@ class ProductReportPrintSettings extends PrintServices {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
         children: [
+
           _buildStatItem(
             tr(text: 'totalItems', tr: language),
             itemCount.toString(),
@@ -260,10 +203,11 @@ class ProductReportPrintSettings extends PrintServices {
             pw.PdfColors.green700,
           ),
           _buildStatItem(
-            tr(text: 'totalValue', tr: language),
-            '${totalVal.toAmount(decimal: 2)} $baseCurrency',
-            pw.PdfColors.purple700,
+            tr(text: 'totalItemSum', tr: language), // Sum of total_item
+            totalTotalItem.toAmount(decimal: 0),
+            pw.PdfColors.orange700,
           ),
+
         ],
       ),
     );
@@ -288,7 +232,7 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Table Header - FIXED with proper flex ratios
+  // Table Header - UPDATED to include total_item column
   pw.Widget _buildTableHeader(String language, String? baseCurrency) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 4),
@@ -300,34 +244,39 @@ class ProductReportPrintSettings extends PrintServices {
       ),
       child: pw.Row(
         children: [
-          // Serial No - small flex
+          // Serial No
           pw.SizedBox(
-            width: 20,
+            width: 30,
             child: _buildHeaderCell(tr(text: 'no', tr: language), language),
           ),
-          // Product Name with ID - larger flex
+          // Product Name
           pw.Expanded(
-            flex: 5,
+            flex: 4,
             child: _buildHeaderCell(tr(text: 'productName', tr: language), language),
           ),
-          // Storage - medium flex
+          // Storage
           pw.Expanded(
             flex: 2,
             child: _buildHeaderCell(tr(text: 'storage', tr: language), language),
           ),
-          // Unit Price - small flex
+          // Unit Price
           pw.Expanded(
             flex: 2,
             child: _buildHeaderCell(tr(text: 'unitPrice', tr: language), language, align: pw.TextAlign.right),
           ),
-          // Quantity - small flex
+          // Available Quantity
           pw.Expanded(
             flex: 2,
             child: _buildHeaderCell(tr(text: 'quantity', tr: language), language, align: pw.TextAlign.right),
           ),
-          // Total - medium flex (to accommodate currency symbol)
+          // Total Item (NEW COLUMN)
           pw.Expanded(
-            flex: 3,
+            flex: 2,
+            child: _buildHeaderCell(tr(text: 'totalItem', tr: language), language, align: pw.TextAlign.right),
+          ),
+          // Total Amount
+          pw.Expanded(
+            flex: 2,
             child: _buildHeaderCell(tr(text: 'total', tr: language), language, align: pw.TextAlign.right),
           ),
         ],
@@ -344,7 +293,7 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Product Rows - FIXED with proper flex ratios and product ID + name combined
+  // Product Rows - UPDATED to include total_item
   List<pw.Widget> _buildProductRows(List<ProductReportModel> products, String language, String? baseCurrency) {
     final rows = <pw.Widget>[];
 
@@ -353,16 +302,15 @@ class ProductReportPrintSettings extends PrintServices {
       final isEven = i % 2 == 0;
       final qty = double.tryParse(product.availableQuantity ?? '0') ?? 0;
       final price = double.tryParse(product.pricePerUnit ?? '0') ?? 0;
+      final totalItem = double.tryParse(product.totalItem ?? '0') ?? 0;
       final total = double.tryParse(product.total ?? '0') ?? 0;
 
       // Combine product ID and name
-      String productDisplay = '';
-
-      productDisplay = product.proName ?? '';
+      String productDisplay = product.proName ?? '';
 
       rows.add(
         pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          padding: const pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
           decoration: pw.BoxDecoration(
             color: isEven ? pw.PdfColors.grey50 : pw.PdfColors.white,
             border: pw.Border(
@@ -373,12 +321,12 @@ class ProductReportPrintSettings extends PrintServices {
             children: [
               // Serial No
               pw.SizedBox(
-                width: 20,
-                child: _buildCell(product.proId.toString(), language),
+                width: 30,
+                child: _buildCell((i + 1).toString(), language),
               ),
-              // Product Name with ID (combined)
+              // Product Name
               pw.Expanded(
-                flex: 5,
+                flex: 4,
                 child: _buildCell(productDisplay, language),
               ),
               // Storage
@@ -391,14 +339,19 @@ class ProductReportPrintSettings extends PrintServices {
                 flex: 2,
                 child: _buildNumberCell(price.toAmount(), language, align: pw.TextAlign.right),
               ),
-              // Quantity
+              // Available Quantity
               pw.Expanded(
                 flex: 2,
                 child: _buildNumberCell(qty.toAmount(decimal: 0), language, align: pw.TextAlign.right),
               ),
-              // Total with currency
+              // Total Item (NEW COLUMN)
               pw.Expanded(
-                flex: 3,
+                flex: 2,
+                child: _buildNumberCell(totalItem.toAmount(decimal: 0), language, align: pw.TextAlign.right),
+              ),
+              // Total Amount with currency
+              pw.Expanded(
+                flex: 2,
                 child: _buildCurrencyCell(total, baseCurrency, language),
               ),
             ],
@@ -448,76 +401,6 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Grand Total - FIXED with consistent flex ratios
-  pw.Widget _buildGrandTotal(double totalQuantity, double totalValue, String? baseCurrency, String language) {
-    return pw.Container(
-      padding: const pw.EdgeInsets.all(10),
-      decoration: pw.BoxDecoration(
-        color: pw.PdfColors.blue50,
-        border: pw.Border.all(color: pw.PdfColors.blue200, width: 0.5),
-        borderRadius: pw.BorderRadius.circular(2),
-      ),
-      child: pw.Row(
-        children: [
-
-
-          // Grand Total label (aligned with product name column)
-          pw.Expanded(
-            flex: 5,
-            child: pw.Container(
-              padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: zText(
-                text: tr(text: 'grandTotal', tr: language),
-                fontSize: 9,
-                fontWeight: pw.FontWeight.bold,
-
-              ),
-            ),
-          ),
-
-          // Empty for storage column
-          pw.Expanded(flex: 2, child: pw.Container()),
-
-          // Empty for unit price column
-          pw.Expanded(flex: 2, child: pw.Container()),
-
-          // Total Quantity
-          pw.Expanded(
-            flex: 2,
-            child: zText(
-              text: totalQuantity.toAmount(decimal: 0),
-              fontSize: 10,
-              fontWeight: pw.FontWeight.bold,
-              textAlign: pw.TextAlign.right,
-            ),
-          ),
-
-          // Total Value with currency
-          pw.Expanded(
-            flex: 3,
-            child: pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.end,
-              children: [
-                zText(
-                  text: totalValue.toAmount(decimal: 2),
-                  fontSize: 10,
-                  fontWeight: pw.FontWeight.bold,
-                  color: pw.PdfColors.blue800,
-                ),
-                pw.SizedBox(width: 2),
-                zText(
-                  text: baseCurrency ?? '',
-                  fontSize: 8,
-                  color: pw.PdfColors.grey600,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   String _getCurrentDate() {
     final now = DateTime.now();
     return now.toFullDateTime;
@@ -548,25 +431,25 @@ class ProductReportPrintSettings extends PrintServices {
                   ),
                   pw.SizedBox(height: 3),
                   pw.Row(
-                    children: [
-                      zText(
-                        text: report.comAddress ?? "",
-                        fontSize: 8,
-                        color: pw.PdfColors.grey600,
-                      ),
-                      verticalDivider(height: 10, width: 1),
-                      zText(
-                        text: report.compPhone ?? "",
-                        fontSize: 8,
-                        color: pw.PdfColors.grey600,
-                      ),
-                      verticalDivider(height: 10, width: 1),
-                      zText(
-                        text: report.comEmail ?? "",
-                        fontSize: 8,
-                        color: pw.PdfColors.grey600,
-                      ),
-                    ]
+                      children: [
+                        zText(
+                          text: report.comAddress ?? "",
+                          fontSize: 8,
+                          color: pw.PdfColors.grey600,
+                        ),
+                        verticalDivider(height: 10, width: 1),
+                        zText(
+                          text: report.compPhone ?? "",
+                          fontSize: 8,
+                          color: pw.PdfColors.grey600,
+                        ),
+                        verticalDivider(height: 10, width: 1),
+                        zText(
+                          text: report.comEmail ?? "",
+                          fontSize: 8,
+                          color: pw.PdfColors.grey600,
+                        ),
+                      ]
                   )
                 ],
               ),

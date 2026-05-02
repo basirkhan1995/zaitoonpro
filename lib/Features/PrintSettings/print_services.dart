@@ -614,6 +614,16 @@ abstract class PrintServices {
         "ar": "دریافت کننده",
         "fa": "دریافت کننده"
       },
+      "totalItem": {
+        "en": "Total Item",
+        "ar": "کل تعداد",
+        "fa": "کل تعداد"
+      },
+      "totalItemSum": {
+        "en": "Total Items",
+        "ar": "کل تعداد",
+        "fa": "کل تعداد"
+      },
       "cashier": {
         "en": "Cashier",
         "ar": "خزانه دار",

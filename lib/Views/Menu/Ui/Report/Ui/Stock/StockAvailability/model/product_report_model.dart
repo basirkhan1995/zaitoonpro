@@ -16,8 +16,8 @@ class ProductReportModel {
   final String? stgName;
   final int? stkStorage;
   final String? availableQuantity;
+  final String? totalItem;
   final String? pricePerUnit;
-  final int? stkQtyInbatch;
   final String? total;
 
   ProductReportModel({
@@ -28,8 +28,8 @@ class ProductReportModel {
     this.stgName,
     this.stkStorage,
     this.availableQuantity,
+    this.totalItem,
     this.pricePerUnit,
-    this.stkQtyInbatch,
     this.total,
   });
 
@@ -41,8 +41,8 @@ class ProductReportModel {
     String? stgName,
     int? stkStorage,
     String? availableQuantity,
+    String? totalItem,
     String? pricePerUnit,
-    int? stkQtyInbatch,
     String? total,
   }) =>
       ProductReportModel(
@@ -53,8 +53,8 @@ class ProductReportModel {
         stgName: stgName ?? this.stgName,
         stkStorage: stkStorage ?? this.stkStorage,
         availableQuantity: availableQuantity ?? this.availableQuantity,
+        totalItem: totalItem ?? this.totalItem,
         pricePerUnit: pricePerUnit ?? this.pricePerUnit,
-        stkQtyInbatch: stkQtyInbatch ?? this.stkQtyInbatch,
         total: total ?? this.total,
       );
 
@@ -66,8 +66,8 @@ class ProductReportModel {
     stgName: json["stgName"],
     stkStorage: json["stkStorage"],
     availableQuantity: json["available_quantity"],
+    totalItem: json["total_item"],
     pricePerUnit: json["pricePerUnit"],
-    stkQtyInbatch: json["stkQtyInbatch"],
     total: json["total"],
   );
 
@@ -79,8 +79,8 @@ class ProductReportModel {
     "stgName": stgName,
     "stkStorage": stkStorage,
     "available_quantity": availableQuantity,
+    "total_item": totalItem,
     "pricePerUnit": pricePerUnit,
-    "stkQtyInbatch": stkQtyInbatch,
     "total": total,
   };
 }

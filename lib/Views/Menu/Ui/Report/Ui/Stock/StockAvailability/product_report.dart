@@ -1228,8 +1228,11 @@ class _DesktopState extends State<_Desktop> {
             child: Row(
               children: [
                 SizedBox(
-                    width: 40,
-                    child: Text(tr.id,style: titleStyle)),
+                    width: 50,
+                    child: Text("#",style: titleStyle)),
+                SizedBox(
+                    width: 150,
+                    child: Text(tr.productCode,style: titleStyle)),
                 Expanded(
                     child: Text(tr.productName,style: titleStyle)),
                 SizedBox(
@@ -1304,7 +1307,8 @@ class _DesktopState extends State<_Desktop> {
                               ),
                               child: Row(
                                 children: [
-                                  SizedBox(width: 40, child: Text(stk.no.toString())),
+                                  SizedBox(width: 50, child: Text((index + 1).toString())),
+                                  SizedBox(width: 120, child: Text(stk.proCode ?? "")),
                                   Expanded(child: Text(stk.proName ?? "")),
                                   SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),

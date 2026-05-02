@@ -479,7 +479,7 @@
   "glDependentMsg": "This account is not deleted.",
   "glTypes": "TXN Types",
   "productName": "Name",
-  "productCode": "Product code",
+  "productCode": "SKU",
   "transactionType": "Transaction Types",
   "deactive": "Inactive",
   "userLogActivity": "Users Log Activity",

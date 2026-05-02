@@ -736,8 +736,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         }
       }
 
-      final xRef = event.xRef ?? 'PUR-${DateTime.now().millisecondsSinceEpoch}';
-
+      final xRef = event.xRef ?? '';
       final response = await repo.addPurchaseInvoice(
         usrName: event.usrName,
         perID: event.ordPersonal,

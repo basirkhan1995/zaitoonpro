@@ -1424,7 +1424,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productName => 'Name';
 
   @override
-  String get productCode => 'Product code';
+  String get productCode => 'SKU';
 
   @override
   String get transactionType => 'Transaction Types';

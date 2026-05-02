@@ -2857,7 +2857,7 @@ abstract class AppLocalizations {
   /// No description provided for @productCode.
   ///
   /// In en, this message translates to:
-  /// **'Product code'**
+  /// **'SKU'**
   String get productCode;
 
   /// No description provided for @transactionType.

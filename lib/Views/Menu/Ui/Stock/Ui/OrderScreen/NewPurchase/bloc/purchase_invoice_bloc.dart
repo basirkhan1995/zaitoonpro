@@ -244,6 +244,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             productId: event.productId ?? item.productId,
             productName: event.productName ?? item.productName,
             qty: event.qty ?? item.qty,
+            unit: event.unit ?? item.unit,
             purPrice: event.purPrice ?? item.purPrice,
             storageName: event.storageName ?? item.storageName,
             storageId: event.storageId ?? item.storageId,

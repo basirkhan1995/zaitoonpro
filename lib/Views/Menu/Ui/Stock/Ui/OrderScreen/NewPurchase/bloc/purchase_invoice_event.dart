@@ -51,6 +51,7 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
   final double? purPrice;
   final double? sellPriceAmount;
   final int? storageId;
+  final String? unit;
   final String? storageName;
   const UpdatePurchaseItemEvent({
     required this.rowId,
@@ -61,10 +62,11 @@ class UpdatePurchaseItemEvent extends PurchaseInvoiceEvent {
     this.purPrice,
     this.sellPriceAmount,
     this.storageId,
+    this.unit,
     this.storageName,
   });
   @override
-  List<Object?> get props => [rowId, productId, productName, qty, batch, purPrice, sellPriceAmount, storageId, storageName];
+  List<Object?> get props => [rowId, productId, productName, qty, batch, purPrice, sellPriceAmount, storageId,unit, storageName];
 }
 
 class UpdateCashPaymentEvent extends PurchaseInvoiceEvent {

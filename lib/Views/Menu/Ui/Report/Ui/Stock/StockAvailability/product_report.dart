@@ -1243,6 +1243,9 @@ class _DesktopState extends State<_Desktop> {
                     child: Text(tr.available,style: titleStyle)),
                 SizedBox(
                     width: 120,
+                    child: Text(tr.batchTitle,style: titleStyle)),
+                SizedBox(
+                    width: 120,
                     child: Text(tr.totalTitle,style: titleStyle)),
               ],
             ),
@@ -1306,6 +1309,7 @@ class _DesktopState extends State<_Desktop> {
                                   SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
                                   SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0))),
+                                  SizedBox(width: 120, child: Text(stk.stkQtyInbatch.toAmount(decimal: 0))),
                                   SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy")),
                                 ],
                               ),

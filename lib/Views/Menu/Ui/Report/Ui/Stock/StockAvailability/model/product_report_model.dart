@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
-List<ProductReportModel> productReportModelFromMap(String str) => List<ProductReportModel>.from(json.decode(str).map((x) => ProductReportModel.fromMap(x)));
+ProductReportModel productReportModelFromMap(String str) => ProductReportModel.fromMap(json.decode(str));
 
-String productReportModelToMap(List<ProductReportModel> data) => json.encode(List<dynamic>.from(data.map((x) => x.toMap())));
+String productReportModelToMap(ProductReportModel data) => json.encode(data.toMap());
 
 class ProductReportModel {
   final int? no;
@@ -17,6 +17,7 @@ class ProductReportModel {
   final int? stkStorage;
   final String? availableQuantity;
   final String? pricePerUnit;
+  final int? stkQtyInbatch;
   final String? total;
 
   ProductReportModel({
@@ -28,6 +29,7 @@ class ProductReportModel {
     this.stkStorage,
     this.availableQuantity,
     this.pricePerUnit,
+    this.stkQtyInbatch,
     this.total,
   });
 
@@ -40,6 +42,7 @@ class ProductReportModel {
     int? stkStorage,
     String? availableQuantity,
     String? pricePerUnit,
+    int? stkQtyInbatch,
     String? total,
   }) =>
       ProductReportModel(
@@ -51,6 +54,7 @@ class ProductReportModel {
         stkStorage: stkStorage ?? this.stkStorage,
         availableQuantity: availableQuantity ?? this.availableQuantity,
         pricePerUnit: pricePerUnit ?? this.pricePerUnit,
+        stkQtyInbatch: stkQtyInbatch ?? this.stkQtyInbatch,
         total: total ?? this.total,
       );
 
@@ -63,6 +67,7 @@ class ProductReportModel {
     stkStorage: json["stkStorage"],
     availableQuantity: json["available_quantity"],
     pricePerUnit: json["pricePerUnit"],
+    stkQtyInbatch: json["stkQtyInbatch"],
     total: json["total"],
   );
 
@@ -75,6 +80,7 @@ class ProductReportModel {
     "stkStorage": stkStorage,
     "available_quantity": availableQuantity,
     "pricePerUnit": pricePerUnit,
+    "stkQtyInbatch": stkQtyInbatch,
     "total": total,
   };
 }

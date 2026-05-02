@@ -541,10 +541,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   return null;
                                 },
                                 bloc: context.read<IndividualsBloc>(),
-                                fetchAllFunction: (bloc) =>
-                                    bloc.add(LoadIndividualsEvent()),
-                                searchFunction: (bloc, query) =>
-                                    bloc.add(LoadIndividualsEvent()),
+                                fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
+                                searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent()),
                                 itemBuilder: (context, ind) => Padding(
                                   padding: const EdgeInsets.all(8.0),
                                   child: Text(
@@ -584,11 +582,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                 builder: (context, state) {
                                   if (state is PurchaseInvoiceLoaded) {
                                     final current = state;
-                                    return GenericTextField<
-                                        AccountsModel,
-                                        AccountsBloc,
-                                        AccountsState
-                                    >(
+                                    return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                       key: const ValueKey('account_field'),
                                       controller: _accountController,
                                       title: tr.accounts,
@@ -644,20 +638,15 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                           SelectSupplierAccountEvent(value),
                                         );
 
-                                        final companyState = context
-                                            .read<CompanyProfileBloc>()
-                                            .state;
+                                        final companyState = context.read<CompanyProfileBloc>().state;
                                         if (companyState
                                         is CompanyProfileLoadedState) {
-                                          final baseCurr =
-                                              companyState.company.comLocalCcy ??
+                                          final baseCurr = companyState.company.comLocalCcy ??
                                                   '';
                                           final accountCurrency =
                                               value.actCurrency ?? '';
 
-                                          if (baseCurr.isNotEmpty &&
-                                              accountCurrency.isNotEmpty &&
-                                              baseCurr != accountCurrency) {
+                                          if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
                                             context.read<PurchaseInvoiceBloc>().add(
                                               UpdateExchangeRateForInvoiceEvent(
                                                 fromCurrency: baseCurr,
@@ -679,11 +668,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                       showClearButton: true,
                                     );
                                   }
-                                  return GenericTextField<
-                                      AccountsModel,
-                                      AccountsBloc,
-                                      AccountsState
-                                  >(
+                                  return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                     key: const ValueKey('account_field'),
                                     controller: _accountController,
                                     title: tr.accounts,
@@ -964,12 +949,13 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
           ),
         );
       },
-      onProductSelected: (rowId, productId, productName) {
+      onProductSelected: (rowId, productId, productName, unit) {
         context.read<PurchaseInvoiceBloc>().add(
           UpdatePurchaseItemEvent(
             rowId: rowId,
             productId: productId,
             productName: productName,
+            unit: unit
           ),
         );
         _autoSelectFirstStorage(context, rowId);
@@ -1413,6 +1399,10 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     final state = context.read<PurchaseInvoiceBloc>().state;
     PurchaseInvoiceLoaded? current;
 
+    // Make sure to set the visible property from your settings
+    final visibilityState = context.read<SettingsVisibleBloc>().state;
+
+
     if (state is PurchaseInvoiceLoaded) {
       current = state;
     } else if (state is PurchaseInvoiceSaved && state.invoiceData != null) {
@@ -1452,8 +1442,6 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       return;
     }
 
-    // FIX: Use the class-level `company` field which already has party details set
-    // Only update company info fields, preserving party details
     company.comName = authState.loginData.company?.comName ?? "";
     company.comAddress = authState.loginData.company?.comAddress ?? "";
     company.compPhone = authState.loginData.company?.comPhone ?? "";
@@ -1496,7 +1484,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       context: context,
       builder: (_) => PrintPreviewDialog<dynamic>(
         data: null,
-        company: company, // Use class-level company which has party details
+        company: company,
         buildPreview: ({
           required data,
           required language,
@@ -1516,7 +1504,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             account: current.supplierAccount,
             language: language,
             orientation: orientation,
-            company: company, // Use class-level company
+            company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
             currency: baseCurrency,
             isSale: false,
@@ -1549,7 +1537,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             account: current.supplierAccount,
             language: language,
             orientation: orientation,
-            company: company, // Use class-level company
+            company: company.copyWith(visible: visibilityState),
             selectedPrinter: selectedPrinter,
             pageFormat: pageFormat,
             copies: copies,
@@ -1581,7 +1569,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
             account: current.supplierAccount,
             language: language,
             orientation: orientation,
-            company: company, // Use class-level company
+            company: company.copyWith(visible: visibilityState),
             pageFormat: pageFormat,
             currency: baseCurrency,
             isSale: false,
@@ -1614,7 +1602,7 @@ class _PurchaseItemRow extends StatefulWidget {
   final Function(String, double) onPurchasePriceChanged;
   final Function(String, double) onSellPriceChanged;
   final Function(String, int, String) onStorageSelected;
-  final Function(String, String, String) onProductSelected;
+  final Function(String, String, String, String) onProductSelected;
 
   const _PurchaseItemRow({
     required this.item,
@@ -1916,6 +1904,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         widget.item.rowId,
                         product.proId.toString(),
                         product.proName ?? '',
+                        product.proUnit ?? ''
                       );
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
@@ -2125,11 +2114,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       });
                     }
 
-                    return GenericUnderlineTextfield<
-                      StorageModel,
-                      StorageBloc,
-                      StorageState
-                    >(
+                    return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
                       title: "",
                       focusNode: storageFocus,
                       controller: _storageController,
@@ -2941,11 +2926,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                         builder: (context, state) {
                           if (state is PurchaseInvoiceLoaded) {
                             final current = state;
-                            return GenericTextField<
-                              AccountsModel,
-                              AccountsBloc,
-                              AccountsState
-                            >(
+                            return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                               key: const ValueKey('account_field'),
                               controller: _accountController,
                               title: tr.accounts,
@@ -3000,11 +2981,7 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
                               showClearButton: true,
                             );
                           }
-                          return GenericTextField<
-                            AccountsModel,
-                            AccountsBloc,
-                            AccountsState
-                          >(
+                          return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                             key: const ValueKey('account_field'),
                             controller: _accountController,
                             title: tr.accounts,
@@ -4509,19 +4486,13 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                 Expanded(
                   flex: 3,
                   child:
-                      GenericUnderlineTextfield<
-                        ProductsModel,
-                        ProductsBloc,
-                        ProductsState
-                      >(
+                      GenericUnderlineTextfield<ProductsModel, ProductsBloc, ProductsState>(
                         title: "",
                         controller: productController,
                         hintText: tr.products,
                         bloc: context.read<ProductsBloc>(),
-                        fetchAllFunction: (bloc) =>
-                            bloc.add(LoadProductsEvent()),
-                        searchFunction: (bloc, query) =>
-                            bloc.add(LoadProductsEvent()),
+                        fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
+                        searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
                         itemBuilder: (context, product) => Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
@@ -4543,6 +4514,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                               rowId: item.rowId,
                               productId: product.proId.toString(),
                               productName: product.proName ?? '',
+                              unit: product.proUnit ?? ''
                             ),
                           );
                           _autoSelectFirstStorage(item.rowId);

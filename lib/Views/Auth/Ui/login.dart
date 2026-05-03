@@ -623,15 +623,16 @@ class _DesktopState extends State<_Desktop> {
       children: [
         /// ================= LEFT SIDE (IMAGE) =================
         Expanded(
-          flex: 5,
+          flex: 4,
           child: Container(
+            padding: EdgeInsets.all(35),
             color: theme.colorScheme.surfaceContainerLowest,
             child: Stack(
               fit: StackFit.expand,
               children: [
                 /// Image
                 Opacity(
-                  opacity: 0.9, // 👈 makes it softer (no harsh bg)
+                  opacity: 0.9,
                   child: Image.asset(
                     "assets/images/bg.png",
                     fit: BoxFit.contain,

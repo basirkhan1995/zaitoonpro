@@ -93,7 +93,9 @@ class ZTextFieldEntitled extends StatelessWidget {
             minLines:
             keyboardInputType == TextInputType.multiline ? 3 : 1,
             decoration: InputDecoration(
-              filled: !isEnabled,
+              fillColor: Theme.of(context).colorScheme.surfaceContainer.withValues(alpha: .3),
+              hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: .03),
+              filled: true,
               suffixIcon: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

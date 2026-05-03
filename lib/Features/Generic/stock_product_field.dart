@@ -572,11 +572,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                   ),
                                   child: Row(
                                     children: [
-                                      Expanded(child: Text(tr.productName, style: titleStyle)),
-                                      SizedBox(width: 60, child: Text(tr.unit, textAlign: TextAlign.center, style: titleStyle)),
-                                      SizedBox(width: 100, child: Text(tr.batchTitle, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
-                                      SizedBox(width: 120, child: Text(tr.available, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
-                                      SizedBox(width: 120, child: Text(tr.unitPrice, textAlign: isRTL ? TextAlign.left : TextAlign.right, style: titleStyle)),
+                                      Expanded(child: Text(tr.productName, style: titleStyle?.copyWith(fontSize: 15))),
+                                      SizedBox(width: 80, child: Text(tr.unit, textAlign: TextAlign.center, style: titleStyle)),
+                                      SizedBox(width: 120, child: Text(tr.available, textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
+                                      SizedBox(width: 100, child: Text(tr.batchTitle, textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
+                                      SizedBox(width: 100, child: Text(tr.unitPrice, textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
                                     ],
                                   ),
                                 ),
@@ -753,49 +753,50 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         Expanded(
           child: Text(
             widget.getProductName(product) ?? '',
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
         ),
         SizedBox(
-          width: 60,
+          width: 80,
           child: Text(
             widget.getProductUnit!(product) ?? '0',
             textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+
+        SizedBox(
+          width: 120,
+          child: Text(
+            widget.getAvailable(product) ?? '0',
+            textAlign: isRTL ? TextAlign.center : TextAlign.center,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: _getAvailabilityColor(widget.getAvailable(product) ?? '0'),
+            ),
           ),
         ),
         SizedBox(
           width: 100,
           child: Text(
             widget.getBatch(product).toString(),
-            textAlign: isRTL ? TextAlign.left : TextAlign.right,
+            textAlign: isRTL ? TextAlign.center : TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 14,
+              fontSize: 16,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
         ),
         SizedBox(
-          width: 120,
-          child: Text(
-            widget.getAvailable(product) ?? '0',
-            textAlign: isRTL ? TextAlign.left : TextAlign.right,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-              color: _getAvailabilityColor(widget.getAvailable(product) ?? '0'),
-            ),
-          ),
-        ),
-        SizedBox(
-          width: 120,
+          width: 100,
           child: Text(
             widget.getSellPrice(product).toAmount(),
-            textAlign: isRTL ? TextAlign.left : TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            textAlign: isRTL ? TextAlign.center : TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
         ),
       ],
@@ -820,8 +821,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.outline.withValues(alpha: .03),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Theme.of(context).colorScheme.primary.withValues(alpha: .3)),
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: Theme.of(context).colorScheme.surfaceContainerHighest),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

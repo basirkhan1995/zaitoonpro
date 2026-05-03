@@ -88,7 +88,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
     required this.getAveragePrice,
     required this.getRecentPrice,
     required this.getSellPrice,
-    this.focusNode, // ADDED
+    this.focusNode,
     this.getProductUnit,
     this.onSubmit,
     this.getProductBrand,
@@ -1138,7 +1138,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                 focusNode: _keyboardListenerFocusNode,
                 onKeyEvent: _handleKeyEvent,
                 child: TextFormField(
-                  focusNode: _effectiveFocusNode, // CHANGED from _focusNode
+                  focusNode: _effectiveFocusNode,
                   enabled: widget.enabled,
                   key: _fieldKey,
                   controller: widget.controller,
@@ -1184,11 +1184,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                       widget.onSubmit?.call();
                     }
                   },
+
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     suffixIconConstraints: const BoxConstraints(),
                     suffixIcon: _buildSuffixIcon(),
                     isDense: true,
+
                     hintText: widget.hintText,
                   ),
                 ),

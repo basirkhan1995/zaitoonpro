@@ -82,7 +82,6 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/bloc/stk_tab_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Adjustment/bloc/adjustment_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Estimate/bloc/estimate_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/GoodsShift/bloc/goods_shift_bloc.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/GetOrderById/bloc/order_by_id_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/bloc/sale_invoice_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/bloc/orders_bloc.dart';
@@ -186,7 +185,6 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => OrdersBloc(Repositories(ApiServices()))..add(LoadOrdersEvent())),
         BlocProvider(create: (context) => EstimateBloc(Repositories(ApiServices()))..add(LoadEstimatesEvent())),
         BlocProvider(create: (context) => PurchaseInvoiceBloc(Repositories(ApiServices()))),
-        BlocProvider(create: (context) => OrderByIdBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => SaleInvoiceBloc(Repositories(ApiServices()))..add(InitializeSaleInvoiceEvent())),
         BlocProvider(create: (context) => OrderTxnBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => GlCategoryBloc(Repositories(ApiServices()))),

@@ -22,7 +22,6 @@ import '../../../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
-import '../../../../../Stock/Ui/OrderScreen/GetOrderById/order_by_id.dart';
 import '../../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import '../../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import '../features/in_out_drop.dart';
@@ -411,15 +410,7 @@ class _MobileState extends State<_Mobile> {
                         color: color.surface,
                         margin: const EdgeInsets.only(bottom: 8),
                         child: InkWell(
-                          onTap: () {
-                            Utils.goto(
-                              context,
-                              OrderByIdView(
-                                orderId: stock.orderId!,
-                                ordName: stock.entryType == "IN" ? "Purchase" : "Sale",
-                              ),
-                            );
-                          },
+                          onTap: () {},
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(

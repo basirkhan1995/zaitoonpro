@@ -9,6 +9,7 @@ import 'package:zaitoonpro/Features/Other/alert_dialog.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/shortcut.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Reminder/add_edit_reminders.dart';
@@ -301,6 +302,37 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       return const SizedBox();
     }
 
+    void triggerSave() {
+      final state = context.read<SaleInvoiceBloc>().state;
+
+      if (state is SaleInvoiceLoaded) {
+        _saveInvoice(context, state);
+      }
+    }
+
+    void onReminder(){
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AddEditReminderView(
+            accNumber: _selectedAccountNumber,
+            dueParameter: "Receivable",
+            isEnable: true,
+          );
+        },
+      );
+    }
+
+    @override
+    final shortcuts = {
+      const SingleActivator(LogicalKeyboardKey.f9): () => _onSalePrint(),
+      const SingleActivator(LogicalKeyboardKey.f10): () => _onPrintStockPaper(),
+      const SingleActivator(LogicalKeyboardKey.f8): () => triggerSave(),
+
+      const SingleActivator(LogicalKeyboardKey.f1): () => _resetForm(),
+      const SingleActivator(LogicalKeyboardKey.f2): () => onReminder(),
+    };
+
     final login = state.loginData;
     _userName = login.usrName ?? "";
 
@@ -310,315 +342,363 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           _userName = state.loginData.usrName ?? '';
         }
       },
-      child: BlocListener<SaleInvoiceBloc, SaleInvoiceState>(
-        listener: (context, state) {
-          if (state is SaleInvoiceError) {
-            ToastManager.show(
-              context: context,
-              title: tr.errorTitle,
-              message: state.message,
-              type: ToastType.error,
-            );
-          }
-          if (state is SaleInvoiceSaved) {
-            Navigator.of(context).pop();
-            if (state.success) {
-              String? savedInvoiceNumber = state.invoiceNumber;
+      child: GlobalShortcuts(
+        shortcuts: shortcuts,
+        child: BlocListener<SaleInvoiceBloc, SaleInvoiceState>(
+          listener: (context, state) {
+            if (state is SaleInvoiceError) {
               ToastManager.show(
                 context: context,
-                title: tr.successTitle,
-                message: tr.successPurchaseInvoiceMsg,
-                type: ToastType.success,
-              );
-              _clearAllControllers();
-
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
-                  _onSalePrint(invoiceNumber: savedInvoiceNumber);
-                }
-              });
-            } else {
-              Utils.showOverlayMessage(
-                context,
-                message: "Failed to create invoice",
-                isError: true,
+                title: tr.errorTitle,
+                message: state.message,
+                type: ToastType.error,
               );
             }
-          }
+            if (state is SaleInvoiceSaved) {
+              Navigator.of(context).pop();
+              if (state.success) {
+                String? savedInvoiceNumber = state.invoiceNumber;
+                ToastManager.show(
+                  context: context,
+                  title: tr.successTitle,
+                  message: tr.successPurchaseInvoiceMsg,
+                  type: ToastType.success,
+                );
+                _clearAllControllers();
 
-          if (state is SaleInvoiceLoaded && _isEditMode) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              // Set customer name
-              if (state.customer != null) {
-                _personController.text = state.customer!.perName ?? '';
-                signatory = state.customer!.perId;
-
-                company.partyAddress = state.customer!.addName;
-                company.partyPhone = state.customer!.perPhone;
-                company.partyCity = state.customer!.addCity;
-                company.partyProvince = state.customer!.addProvince;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (savedInvoiceNumber != null && savedInvoiceNumber.isNotEmpty) {
+                    _onSalePrint(invoiceNumber: savedInvoiceNumber);
+                  }
+                });
+              } else {
+                Utils.showOverlayMessage(
+                  context,
+                  message: "Failed to create invoice",
+                  isError: true,
+                );
               }
+            }
 
-              // Set account (SHOW ACCOUNT NUMBER ONLY since name is empty)
-              if (state.customerAccount != null) {
-                _accountController.text = '${state.customerAccount!.accNumber}';
-                _selectedAccountNumber = state.customerAccount!.accNumber;
-              }
+            if (state is SaleInvoiceLoaded && _isEditMode) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                // Set customer name
+                if (state.customer != null) {
+                  _personController.text = state.customer!.perName ?? '';
+                  signatory = state.customer!.perId;
 
-              // Set reference and remark
-              _xRefController.text = state.xRef ?? '';
-              _remarkController.text = state.remark ?? '';
+                  company.partyAddress = state.customer!.addName;
+                  company.partyPhone = state.customer!.perPhone;
+                  company.partyCity = state.customer!.addCity;
+                  company.partyProvince = state.customer!.addProvince;
+                }
 
-              // Set exchange rate
-              if (state.exchangeRate != null && state.exchangeRate! > 0) {
-                _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
-              }
+                // Set account (SHOW ACCOUNT NUMBER ONLY since name is empty)
+                if (state.customerAccount != null) {
+                  _accountController.text = '${state.customerAccount!.accNumber}';
+                  _selectedAccountNumber = state.customerAccount!.accNumber;
+                }
 
-              _isEditMode = false;
-            });
-          }
+                // Set reference and remark
+                _xRefController.text = state.xRef ?? '';
+                _remarkController.text = state.remark ?? '';
 
-          if (state is SaleInvoiceLoaded) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              _focusNewRowIfNeeded(state);
-              _updateControllersFromState(state);
-            });
-          }
-        },
+                // Set exchange rate
+                if (state.exchangeRate != null && state.exchangeRate! > 0) {
+                  _exchangeRateController.text = state.exchangeRate!.toStringAsFixed(4);
+                }
 
-        child: Scaffold(
-          backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
-          appBar: AppBar(
-            elevation: 0,
+                _isEditMode = false;
+              });
+            }
+
+            if (state is SaleInvoiceLoaded) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                _focusNewRowIfNeeded(state);
+                _updateControllersFromState(state);
+              });
+            }
+          },
+
+
+          child: Scaffold(
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
-            titleSpacing: 0,
-            title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.saleEntry.toUpperCase()}" : tr.saleEntry,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-            actionsPadding: EdgeInsets.symmetric(horizontal: 10),
-            actions: [
-              if (_accountController.text.isNotEmpty) ...[
+            appBar: AppBar(
+              elevation: 0,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+              titleSpacing: 0,
+              title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.saleEntry.toUpperCase()}" : tr.saleEntry,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              actionsPadding: EdgeInsets.symmetric(horizontal: 10),
+              actions: [
+                if (_accountController.text.isNotEmpty) ...[
+                  ZOutlineButton(
+                    toolTip: "${tr.setReminder} - F2",
+                    icon: Icons.alarm_rounded,
+                    onPressed: onReminder,
+                    label: Text(tr.setReminder),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                if(widget.orderId !=null)...[
+                  ZOutlineButton(
+                    icon: Icons.delete_outline_rounded,
+                    backgroundHover: Theme.of(context).colorScheme.error,
+                    onPressed: _confirmDeleteOrder,
+                    label: Text(tr.delete),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+
+                if(widget.orderId ==null)...[
+                  ZOutlineButton(
+                    toolTip: "${tr.newSale} - F1",
+                    icon: Icons.refresh,
+                    onPressed: _resetForm,
+                    label: Text(tr.newSale),
+                  ),
+                ],
+
+                const SizedBox(width: 8),
                 ZOutlineButton(
-                  icon: Icons.alarm_rounded,
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AddEditReminderView(
-                          accNumber: _selectedAccountNumber,
-                          dueParameter: "Receivable",
-                          isEnable: true,
+                  toolTip: "${tr.stockPaper} - F10",
+                  icon: Icons.receipt,
+                  onPressed: () => _onPrintStockPaper(),
+                  label: Text(tr.stockPaper),
+                ),
+                const SizedBox(width: 8),
+                ZOutlineButton(
+                  toolTip: "${tr.print} - F9",
+                  icon: FontAwesomeIcons.print,
+                  onPressed: () => _onSalePrint(invoiceNumber: null),
+                  label: Text(tr.print.toUpperCase()),
+                ),
+                const SizedBox(width: 8),
+
+                if(widget.orderId == null)...[
+                  BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                    builder: (context, state) {
+                      if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
+                        final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                        final isSaving = state is SaleInvoiceSaving;
+                        return ZOutlineButton(
+                          toolTip: "${tr.print} - F8",
+                          isActive: true,
+                          icon: Icons.save_rounded,
+                          onPressed: (isSaving)
+                              ? null
+                              : () => _saveInvoice(context, current),
+                          label: isSaving
+                              ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                          ) : Text(tr.saveTitle),
                         );
-                      },
-                    );
-                  },
-                  label: Text(tr.setReminder),
-                ),
-                const SizedBox(width: 8),
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ] else ...[
+                  BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                    builder: (context, state) {
+                      if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
+                      //  final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                        final isSaving = state is SaleInvoiceSaving;
+
+                        return ZOutlineButton(
+                          isActive: true,
+                          icon: Icons.refresh,
+                          onPressed: (isSaving)
+                              ? null
+                              :  null,
+                          label: isSaving
+                              ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context).colorScheme.surface,
+                            ),
+                          )
+                              : Text(tr.update),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ]
               ],
-              if(widget.orderId !=null)
-              ZOutlineButton(
-                icon: Icons.delete_outline_rounded,
-                backgroundHover: Theme.of(context).colorScheme.error,
-                onPressed: _confirmDeleteOrder,
-                label: Text(tr.delete),
-              ),
+            ),
+            body: ZCover(
+              color: Theme.of(context).colorScheme.surface,
+              borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              shadowColor: Theme.of(context).colorScheme.surfaceContainerHigh,
+              margin: EdgeInsets.all(8),
+              radius: 10,
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                    builder: (context,state) {
+                      // Check if we're in loading state
+                      final isLoading = state is SaleInvoiceLoading ||
+                          (state is SaleInvoiceLoaded && state.items.isEmpty && state.customer == null && _isEditMode);
 
-              if(widget.orderId ==null)...[
-                const SizedBox(width: 8),
-                ZOutlineButton(
-                  icon: Icons.refresh,
-                  onPressed: _resetForm,
-                  label: Text(tr.newSale),
-                ),
-              ],
-
-              const SizedBox(width: 8),
-              ZOutlineButton(
-                icon: Icons.receipt,
-                onPressed: () => _onPrintStockPaper(),
-                label: Text(tr.stockPaper),
-              ),
-              const SizedBox(width: 8),
-              ZOutlineButton(
-                icon: FontAwesomeIcons.print,
-                onPressed: () => _onSalePrint(invoiceNumber: null),
-                label: Text(tr.print.toUpperCase()),
-              ),
-              const SizedBox(width: 8),
-
-              if(widget.orderId == null)...[
-                BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                  builder: (context, state) {
-                    if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                      final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
-                      final isSaving = state is SaleInvoiceSaving;
-                      return ZOutlineButton(
-                        isActive: true,
-                        icon: Icons.save_rounded,
-                        onPressed: (isSaving)
-                            ? null
-                            : () => _saveInvoice(context, current),
-                        label: isSaving
-                            ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.surface,
-                          ),
-                        ) : Text(tr.saveTitle),
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                ),
-              ] else ...[
-                BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                  builder: (context, state) {
-                    if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                    //  final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
-                      final isSaving = state is SaleInvoiceSaving;
-
-                      return ZOutlineButton(
-                        isActive: true,
-                        icon: Icons.refresh,
-                        onPressed: (isSaving)
-                            ? null  // Just disable the button, no error message
-                            :  null,
-                        label: isSaving
-                            ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Theme.of(context).colorScheme.surface,
-                          ),
-                        )
-                            : Text(tr.update),
-                      );
-                    }
-                    return const SizedBox();
-                  },
-                ),
-              ]
-            ],
-          ),
-          body: ZCover(
-            color: Theme.of(context).colorScheme.surface,
-            borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-            shadowColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-            margin: EdgeInsets.all(8),
-            radius: 10,
-            child: Form(
-              key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                  builder: (context,state) {
-                    // Check if we're in loading state
-                    final isLoading = state is SaleInvoiceLoading ||
-                        (state is SaleInvoiceLoaded && state.items.isEmpty && state.customer == null && _isEditMode);
-
-                    if (isLoading) {
-                      // Show full shimmer while loading
-                      return UniversalShimmer.invoiceLoading();
-                    }
-                    if(state is SaleInvoiceLoaded || state is SaleInvoiceSaving){
-                      final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
-                      _synchronizeFocusNodes(current.items.length);
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Customer and Account Selection
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Expanded(
-                                child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
-                                  key: const ValueKey('person_field'),
-                                  controller: _personController,
-                                  title: tr.customer,
-                                  hintText: tr.customer,
-                                  isRequired: true,
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return tr.required(tr.customer);
-                                    }
-                                    return null;
-                                  },
-                                  bloc: context.read<IndividualsBloc>(),
-                                  fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
-                                  searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
-                                  itemBuilder: (context, ind) => Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                      if (isLoading) {
+                        // Show full shimmer while loading
+                        return UniversalShimmer.invoiceLoading();
+                      }
+                      if(state is SaleInvoiceLoaded || state is SaleInvoiceSaving){
+                        final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                        _synchronizeFocusNodes(current.items.length);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Customer and Account Selection
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Expanded(
+                                  child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
+                                    key: const ValueKey('person_field'),
+                                    controller: _personController,
+                                    title: tr.customer,
+                                    hintText: tr.customer,
+                                    isRequired: true,
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return tr.required(tr.customer);
+                                      }
+                                      return null;
+                                    },
+                                    bloc: context.read<IndividualsBloc>(),
+                                    fetchAllFunction: (bloc) => bloc.add(const LoadIndividualsEvent()),
+                                    searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
+                                    itemBuilder: (context, ind) => Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Text("${ind.perName ?? ''} ${ind.perLastName ?? ''}"),
+                                    ),
+                                    itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
+                                    stateToLoading: (state) => state is IndividualLoadingState,
+                                    stateToItems: (state) {
+                                      if (state is IndividualLoadedState) {
+                                        return state.individuals;
+                                      }
+                                      return [];
+                                    },
+                                    onSelected: (value) {
+                                      _personController.text = "${value.perName} ${value.perLastName}";
+                                      context.read<SaleInvoiceBloc>().add(SelectCustomerEvent(value));
+                                      context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
+                                      setState(() {
+                                        signatory = value.perId;
+                                        company.partyAddress = value.addName;
+                                        company.partyPhone = value.perPhone;
+                                        company.partyCity = value.addCity;
+                                        company.partyProvince = value.addProvince;
+                                      });
+                                    },
+                                    showClearButton: true,
                                   ),
-                                  itemToString: (individual) => "${individual.perName} ${individual.perLastName}",
-                                  stateToLoading: (state) => state is IndividualLoadingState,
-                                  stateToItems: (state) {
-                                    if (state is IndividualLoadedState) {
-                                      return state.individuals;
-                                    }
-                                    return [];
-                                  },
-                                  onSelected: (value) {
-                                    _personController.text = "${value.perName} ${value.perLastName}";
-                                    context.read<SaleInvoiceBloc>().add(SelectCustomerEvent(value));
-                                    context.read<AccountsBloc>().add(LoadAccountsEvent(ownerId: value.perId));
-                                    setState(() {
-                                      signatory = value.perId;
-                                      company.partyAddress = value.addName;
-                                      company.partyPhone = value.perPhone;
-                                      company.partyCity = value.addCity;
-                                      company.partyProvince = value.addProvince;
-                                    });
-                                  },
-                                  showClearButton: true,
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                                  builder: (context, state) {
-                                    if (state is SaleInvoiceLoaded) {
-                                      final current = state;
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                                    builder: (context, state) {
+                                      if (state is SaleInvoiceLoaded) {
+                                        final current = state;
+                                        return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
+                                          key: const ValueKey('account_field'),
+                                          controller: _accountController,
+                                          title: tr.accounts,
+                                          hintText: tr.selectAccount,
+                                          isRequired: current.paymentMode != PaymentMode.cash,
+                                          validator: (value) {
+                                            if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                              return tr.selectCreditAccountMsg;
+                                            }
+                                            return null;
+                                          },
+                                          bloc: context.read<AccountsBloc>(),
+                                          fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                          searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                          itemBuilder: (context, account) => ListTile(
+                                            visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                                            title: Text(account.accName ?? ''),
+                                            subtitle: Text('${account.accNumber}'),
+                                            trailing: Column(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  tr.balance,
+                                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                    color: Theme.of(context).colorScheme.outline,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                                  style: Theme.of(context).textTheme.titleSmall,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          itemToString: (account) => '${account.accName} (${account.accNumber})',
+                                          stateToLoading: (state) => state is AccountLoadingState,
+                                          stateToItems: (state) {
+                                            if (state is AccountLoadedState) {
+                                              return state.accounts;
+                                            }
+                                            return [];
+                                          },
+                                          onSelected: (value) {
+                                            setState(() {
+                                              _accountController.text = '${value.accName} (${value.accNumber})';
+                                              _selectedAccountNumber = value.accNumber;
+                                            });
+                                            context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                            final authState = context.read<AuthBloc>().state;
+                                            if (authState is AuthenticatedState) {
+                                              final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
+                                              final accountCurrency = value.actCurrency ?? '';
+
+                                              if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
+                                                _fetchExchangeRate(baseCurr, accountCurrency);
+                                              } else {
+                                                context.read<SaleInvoiceBloc>().add(
+                                                  UpdateExchangeRateEvent(
+                                                    rate: 1.0,
+                                                    fromCurrency: baseCurr,
+                                                    toCurrency: accountCurrency,
+                                                  ),
+                                                );
+                                                _exchangeRateController.text = "1.0000";
+                                              }
+                                            }
+                                          },
+                                          showClearButton: true,
+                                        );
+                                      }
                                       return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                         key: const ValueKey('account_field'),
                                         controller: _accountController,
                                         title: tr.accounts,
                                         hintText: tr.selectAccount,
-                                        isRequired: current.paymentMode != PaymentMode.cash,
-                                        validator: (value) {
-                                          if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
-                                            return tr.selectCreditAccountMsg;
-                                          }
-                                          return null;
-                                        },
+                                        isRequired: false,
                                         bloc: context.read<AccountsBloc>(),
-                                        fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                        searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                        fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
+                                        searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
                                         itemBuilder: (context, account) => ListTile(
-                                          visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
-                                          contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                                           title: Text(account.accName ?? ''),
-                                          subtitle: Text('${account.accNumber}'),
-                                          trailing: Column(
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            crossAxisAlignment: CrossAxisAlignment.end,
-                                            children: [
-                                              Text(
-                                                tr.balance,
-                                                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                                  color: Theme.of(context).colorScheme.outline,
-                                                ),
-                                              ),
-                                              Text(
-                                                "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
-                                                style: Theme.of(context).textTheme.titleSmall,
-                                              ),
-                                            ],
-                                          ),
+                                          subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                          trailing: Text(account.actCurrency ?? ""),
                                         ),
                                         itemToString: (account) => '${account.accName} (${account.accNumber})',
                                         stateToLoading: (state) => state is AccountLoadingState,
@@ -633,7 +713,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                             _accountController.text = '${value.accName} (${value.accNumber})';
                                             _selectedAccountNumber = value.accNumber;
                                           });
+
                                           context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+
                                           final authState = context.read<AuthBloc>().state;
                                           if (authState is AuthenticatedState) {
                                             final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
@@ -655,158 +737,107 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                         },
                                         showClearButton: true,
                                       );
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                                  builder: (context, state) {
+                                    // Check condition INSIDE the builder
+                                    bool shouldShowExchangeRate = false;
+                                    if (state is SaleInvoiceLoaded) {
+                                      final base = baseCurrency ?? state.fromCurrency ?? '';
+                                      final toCcy = state.toCurrency ?? '';
+                                      shouldShowExchangeRate = base.isNotEmpty && toCcy.isNotEmpty && base != toCcy;
                                     }
-                                    return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
-                                      key: const ValueKey('account_field'),
-                                      controller: _accountController,
-                                      title: tr.accounts,
-                                      hintText: tr.selectAccount,
-                                      isRequired: false,
-                                      bloc: context.read<AccountsBloc>(),
-                                      fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                                      searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
-                                      itemBuilder: (context, account) => ListTile(
-                                        title: Text(account.accName ?? ''),
-                                        subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
-                                        trailing: Text(account.actCurrency ?? ""),
-                                      ),
-                                      itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                      stateToLoading: (state) => state is AccountLoadingState,
-                                      stateToItems: (state) {
-                                        if (state is AccountLoadedState) {
-                                          return state.accounts;
-                                        }
-                                        return [];
-                                      },
-                                      onSelected: (value) {
-                                        setState(() {
-                                          _accountController.text = '${value.accName} (${value.accNumber})';
-                                          _selectedAccountNumber = value.accNumber;
-                                        });
 
-                                        context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
-
-                                        final authState = context.read<AuthBloc>().state;
-                                        if (authState is AuthenticatedState) {
-                                          final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
-                                          final accountCurrency = value.actCurrency ?? '';
-
-                                          if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
-                                            _fetchExchangeRate(baseCurr, accountCurrency);
-                                          } else {
-                                            context.read<SaleInvoiceBloc>().add(
-                                              UpdateExchangeRateEvent(
-                                                rate: 1.0,
-                                                fromCurrency: baseCurr,
-                                                toCurrency: accountCurrency,
-                                              ),
-                                            );
-                                            _exchangeRateController.text = "1.0000";
-                                          }
-                                        }
-                                      },
-                                      showClearButton: true,
-                                    );
+                                    if (shouldShowExchangeRate && state is SaleInvoiceLoaded && state.needsExchangeRate) {
+                                      final isLoading = state.isExchangeRateLoading;
+                                      return Expanded(
+                                        child: ZTextFieldEntitled(
+                                          controller: _exchangeRateController,
+                                          isRequired: true,
+                                          title: tr.exchangeRate,
+                                          hint: isLoading ? tr.loading : tr.exchangeRate,
+                                          isEnabled: !isLoading,
+                                          validator: (value){
+                                            if(value.isEmpty){
+                                              return tr.required(tr.exchangeRate);
+                                            }
+                                            return null;
+                                          },
+                                          compactMode: true,
+                                          onSubmit: _onExchangeRateChanged,
+                                          trailing: isLoading ? Container(
+                                            padding: EdgeInsets.all(2),
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ) : null,
+                                          inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
+                                        ),
+                                      );
+                                    }
+                                    return const SizedBox();
                                   },
                                 ),
-                              ),
-                              const SizedBox(width: 4),
-                              BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                                builder: (context, state) {
-                                  // Check condition INSIDE the builder
-                                  bool shouldShowExchangeRate = false;
-                                  if (state is SaleInvoiceLoaded) {
-                                    final base = baseCurrency ?? state.fromCurrency ?? '';
-                                    final toCcy = state.toCurrency ?? '';
-                                    shouldShowExchangeRate = base.isNotEmpty && toCcy.isNotEmpty && base != toCcy;
-                                  }
-
-                                  if (shouldShowExchangeRate && state is SaleInvoiceLoaded && state.needsExchangeRate) {
-                                    final isLoading = state.isExchangeRateLoading;
-                                    return Expanded(
-                                      child: ZTextFieldEntitled(
-                                        controller: _exchangeRateController,
-                                        isRequired: true,
-                                        title: tr.exchangeRate,
-                                        hint: isLoading ? tr.loading : tr.exchangeRate,
-                                        isEnabled: !isLoading,
-                                        validator: (value){
-                                          if(value.isEmpty){
-                                            return tr.required(tr.exchangeRate);
-                                          }
-                                          return null;
-                                        },
-                                        compactMode: true,
-                                        onSubmit: _onExchangeRateChanged,
-                                        trailing: isLoading ? Container(
-                                          padding: EdgeInsets.all(2),
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ) : null,
-                                        inputFormat: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))],
-                                      ),
-                                    );
-                                  }
-                                  return const SizedBox();
-                                },
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                flex: 2,
-                                child: ZTextFieldEntitled(
-                                  showClearButton: true,
-                                  controller: _remarkController,
-                                  maxLength: 100,
-                                  title: tr.remark,
-                                  onChanged: _onRemarkChanged
+                                const SizedBox(width: 4),
+                                Expanded(
+                                  flex: 2,
+                                  child: ZTextFieldEntitled(
+                                    showClearButton: true,
+                                    controller: _remarkController,
+                                    maxLength: 100,
+                                    title: tr.remark,
+                                    onChanged: _onRemarkChanged
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            ),
 
-                          const SizedBox(height: 8),
+                            const SizedBox(height: 8),
 
-                          BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                            builder: (context, state) {
-                              return _buildItemsHeader(context);
-                            },
-                          ),
-                          const SizedBox(height: 8),
-
-                          Expanded(
-                            child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                            BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                               builder: (context, state) {
-                                if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                                  final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
-                                  _synchronizeFocusNodes(current.items.length);
-                                  return ListView.builder(
-                                    itemCount: current.items.length,
-                                    itemBuilder: (context, index) {
-                                      final item = current.items[index];
-                                      final isLastRow = index == current.items.length - 1;
-                                      final nodes = _rowFocusNodes[index];
-                                      return _buildItemRow(
-                                        item: item,
-                                        nodes: nodes,
-                                        isLastRow: isLastRow,
-                                        index: index,
-                                        context: context,
-                                      );
-                                    },
-                                  );
-                                }
-                                return const Center(child: CircularProgressIndicator());
+                                return _buildItemsHeader(context);
                               },
                             ),
-                          ),
+                            const SizedBox(height: 8),
 
-                          _buildSummarySection(context),
-                        ],
-                      );
+                            Expanded(
+                              child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                                builder: (context, state) {
+                                  if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
+                                    final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                                    _synchronizeFocusNodes(current.items.length);
+                                    return ListView.builder(
+                                      itemCount: current.items.length,
+                                      itemBuilder: (context, index) {
+                                        final item = current.items[index];
+                                        final isLastRow = index == current.items.length - 1;
+                                        final nodes = _rowFocusNodes[index];
+                                        return _buildItemRow(
+                                          item: item,
+                                          nodes: nodes,
+                                          isLastRow: isLastRow,
+                                          index: index,
+                                          context: context,
+                                        );
+                                      },
+                                    );
+                                  }
+                                  return const Center(child: CircularProgressIndicator());
+                                },
+                              ),
+                            ),
+
+                            _buildSummarySection(context),
+                          ],
+                        );
+                      }
+                      return const SizedBox();
                     }
-                    return const SizedBox();
-                  }
+                  ),
                 ),
               ),
             ),
@@ -872,11 +903,11 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           Expanded(child: Text(locale.products, style: title)),
             SizedBox(width: 80, child: Text(locale.qty)),
             if(visibility.isWholeSale)
-            SizedBox(width: 80, child: Text(locale.batchTitle)),
-            SizedBox(width: 80, child: Text(locale.unit)),
-          SizedBox(width: 120, child: Text("${locale.unitPrice} ($baseCurrency)")),
+            SizedBox(width: 100, child: Text(locale.batchTitle)),
+            SizedBox(width: 100, child: Text(locale.unit)),
+          SizedBox(width: 130, child: Text("${locale.unitPrice} ($baseCurrency)")),
           if (needsLocalConv)
-            SizedBox(width: 120, child: Text("${locale.unitPrice} (${_getAccountCurrency(context)})")),
+            SizedBox(width: 130, child: Text("${locale.unitPrice} (${_getAccountCurrency(context)})")),
             SizedBox(width: 140, child: Text(locale.discountTitle)),
           SizedBox(width: 140, child: Text("${locale.totalTitle} ($baseCurrency)")),
             SizedBox(width: 60, child: Text(locale.actions)),
@@ -1072,7 +1103,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
-
                                         letterSpacing: 0.5,
                                       ),
                                     ),
@@ -1296,12 +1326,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           ),
           child: Row(
             children: [
-              SizedBox(width: 30, child: Text((index + 1).toString(), textAlign: TextAlign.center)),
+              SizedBox(width: 50, child: Text((index + 1).toString(), textAlign: TextAlign.center)),
               Expanded(
                 child: ProductSearchField<ProductsStockModel, ProductsBloc, ProductsState>(
                   controller: productController,
                   headerSearchController: headerProductController,
                   hintText: tr.products,
+
                   focusNode: nodes[0],
                   bloc: context.read<ProductsBloc>(),
                   searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
@@ -1354,7 +1385,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ),
               if(visibility.isWholeSale)
               SizedBox(
-                width: 80,
+                width: 100,
                 child: TextField(
                   controller: batchController,
                   readOnly: true,
@@ -1362,7 +1393,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
               ),
               SizedBox(
-                width: 80,
+                width: 100,
                 child: TextField(
                   controller: unitController,
                   readOnly: true,
@@ -1370,7 +1401,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ),
               ),
               SizedBox(
-                width: 120,
+                width: 130,
                 child: TextField(
                   controller: salePriceController,
                   focusNode: nodes[2],
@@ -1392,7 +1423,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               ),
               if (_needsLocalConversion(context))
                 SizedBox(
-                  width: 120,
+                  width: 130,
                   child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                     builder: (context, state) {
                       if (state is SaleInvoiceLoaded && state.isExchangeRateLoading) {

@@ -65,7 +65,6 @@ class _MobileView extends StatefulWidget {
   @override
   State<_MobileView> createState() => _MobileViewState();
 }
-
 class _MobileViewState extends State<_MobileView> {
   String? currentLocale;
   String? trnCurrency;

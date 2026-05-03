@@ -70,7 +70,6 @@ import '../Views/Menu/Ui/Settings/Ui/General/Ui/UserRole/model/role_model.dart';
 import '../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
 import '../Views/Menu/Ui/Stock/Ui/GoodsShift/model/shift_model.dart';
-import '../Views/Menu/Ui/Stock/Ui/OrderScreen/GetOrderById/model/ord_by_id_model.dart';
 import '../Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/model/purchase_invoice_items.dart';
 
 class Repositories {
@@ -1453,42 +1452,6 @@ class Repositories {
       return (response.data as List)
           .whereType<Map<String, dynamic>>() // ensure map type
           .map((json) => OrdersModel.fromMap(json))
-          .toList();
-    }
-
-    return [];
-  }
-
-  Future<List<OrderByIdModel>> getOrderById({dynamic orderId, CancelToken? cancelToken}) async {
-    final queryParams = {'ordID': orderId};
-    final response = await api.get(
-      endpoint: "/inventory/salePurchase.php",
-      queryParams: queryParams,
-      cancelToken: cancelToken,
-    );
-
-    if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
-      throw Exception(response.data['msg']);
-    }
-
-    if (response.data == null) {
-      return [];
-    }
-
-    // Your API returns a single order with records and payments included
-    if (response.data is Map<String, dynamic>) {
-      final orderData = response.data as Map<String, dynamic>;
-      if (orderData.containsKey('ordID') || orderData.containsKey('ordId')) {
-        final order = OrderByIdModel.fromMap(orderData);
-        return [order];
-      }
-    }
-
-    // If it's a list
-    if (response.data is List) {
-      return (response.data as List)
-          .whereType<Map<String, dynamic>>()
-          .map((json) => OrderByIdModel.fromMap(json))
           .toList();
     }
 

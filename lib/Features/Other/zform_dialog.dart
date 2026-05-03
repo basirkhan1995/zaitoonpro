@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../Localizations/l10n/translations/app_localizations.dart';
 import '../Widgets/button.dart';
 import '../Widgets/outline_button.dart';
+import 'package:flutter/services.dart';
 
 class ZFormDialog extends StatefulWidget {
   final VoidCallback? onAction;
@@ -55,27 +56,52 @@ class _ZFormDialogState extends State<ZFormDialog> {
               insetPadding: EdgeInsets.zero,
               titlePadding: EdgeInsets.zero,
               actionsPadding: EdgeInsets.zero,
-              content: Container(
-                  margin: EdgeInsets.zero,
-                  padding: EdgeInsets.zero,
-                  width: widget.width ?? MediaQuery.sizeOf(context).width * .4,
-                  decoration: BoxDecoration(
-                    color: widget.backgroundColor ?? Theme.of(context).colorScheme.surface,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      buildHeader(),
-                      Flexible(
-                        child: Container(
-                          padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 5,vertical: 5),
-                          child: widget.child,
-                        ),
+              content: Shortcuts(
+                shortcuts: {
+                  LogicalKeySet(LogicalKeyboardKey.enter): const ActivateIntent(),
+                },
+                child: Actions(
+                  actions: {
+                    ActivateIntent: CallbackAction<ActivateIntent>(
+                      onInvoke: (intent) {
+                        // prevent null + disabled button execution
+                        if (widget.isButtonEnabled && widget.onAction != null) {
+                          widget.onAction!();
+                        }
+                        return null;
+                      },
+                    ),
+                  },
+                  child: Focus(
+                    autofocus: true,
+                    child: Container(
+                      margin: EdgeInsets.zero,
+                      padding: EdgeInsets.zero,
+                      width: widget.width ?? MediaQuery.sizeOf(context).width * .4,
+                      decoration: BoxDecoration(
+                        color: widget.backgroundColor ??
+                            Theme.of(context).colorScheme.surface,
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                      if(widget.isActionTrue)buildAction(context),
-                    ],
-                  )
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          buildHeader(),
+
+                          Flexible(
+                            child: Container(
+                              padding: widget.padding ??
+                                  const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                              child: widget.child,
+                            ),
+                          ),
+
+                          if (widget.isActionTrue) buildAction(context),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
             ),
           );

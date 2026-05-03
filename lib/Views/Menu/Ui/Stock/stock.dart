@@ -21,7 +21,6 @@ import '../../../Auth/bloc/auth_bloc.dart';
 import '../Report/Ui/Stock/Cardx/Ui/cardx.dart';
 import 'Ui/Adjustment/adjustment.dart';
 import 'Ui/GoodsShift/goods_shift.dart';
-import 'Ui/OrderScreen/GetOrderById/order_by_id.dart';
 import 'bloc/stock_tab_bloc.dart';
 
 class StockView extends StatefulWidget {
@@ -544,16 +543,7 @@ class _StockViewState extends State<StockView> {
         return ZFormDialog(
           padding: const EdgeInsets.all(14),
           width: 500,
-          onAction: () {
-            if (invController.text.isNotEmpty) {
-              Utils.goto(
-                context,
-                OrderByIdView(orderId: int.parse(invController.text)),
-              );
-            } else {
-              Navigator.of(context).pop();
-            }
-          },
+          onAction: () {},
           actionLabel: Text(tr.submit),
           title: tr.findInvoice,
           child: Column(
@@ -562,16 +552,7 @@ class _StockViewState extends State<StockView> {
               ZTextFieldEntitled(
                 inputFormat: [FilteringTextInputFormatter.digitsOnly],
                 icon: Icons.numbers,
-                onSubmit: (e) {
-                  if (e.isNotEmpty) {
-                    Utils.goto(
-                      context,
-                      OrderByIdView(orderId: int.parse(e)),
-                    );
-                  } else {
-                    Navigator.of(context).pop();
-                  }
-                },
+                onSubmit: (e) {},
                 controller: invController,
                 hint: tr.enterInvoiceNumber,
                 title: tr.orderId,

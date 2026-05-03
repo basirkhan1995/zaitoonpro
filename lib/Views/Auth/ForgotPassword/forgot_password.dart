@@ -1112,8 +1112,7 @@ class AnimatedIllustration extends StatelessWidget {
           CurvedAnimation(parent: animationController, curve: Curves.easeOut),
         ),
         child: Container(
-
-          constraints: const BoxConstraints(maxWidth: 400),
+          constraints: const BoxConstraints(maxWidth: 600),
           child: Image.asset(
           "assets/images/forgot_password.png",
             fit: BoxFit.contain,

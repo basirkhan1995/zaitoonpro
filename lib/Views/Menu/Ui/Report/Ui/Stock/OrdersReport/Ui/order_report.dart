@@ -18,7 +18,6 @@ import '../../../../../../../../Localizations/l10n/translations/app_localization
 import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
 import '../../../../../Stakeholders/Ui/Individuals/model/individual_model.dart';
-import '../../../../../Stock/Ui/OrderScreen/GetOrderById/order_by_id.dart';
 import '../../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import '../../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 
@@ -459,15 +458,7 @@ class _MobileState extends State<_Mobile> {
                       return Card(
                         margin: const EdgeInsets.only(bottom: 8),
                         child: InkWell(
-                          onTap: () {
-                            Utils.goto(
-                              context,
-                              OrderByIdView(
-                                orderId: ord.ordId!,
-                                ordName: ord.ordName,
-                              ),
-                            );
-                          },
+                          onTap: () {},
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
@@ -947,13 +938,6 @@ class _TabletState extends State<_Tablet> {
                       return Card(
                         child: InkWell(
                           onTap: () {
-                            Utils.goto(
-                              context,
-                              OrderByIdView(
-                                orderId: ord.ordId!,
-                                ordName: ord.ordName,
-                              ),
-                            );
                           },
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(

@@ -22,7 +22,6 @@ import '../../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
-import '../../OrderScreen/GetOrderById/order_by_id.dart';
 import '../model/orders_model.dart';
 
 class OrdersView extends StatelessWidget {
@@ -176,15 +175,7 @@ class _MobileOrdersViewState extends State<_MobileOrdersView> {
                           ),
                           radius: 4,
                           child: InkWell(
-                            onTap: () {
-                              Utils.goto(
-                                context,
-                                OrderByIdView(
-                                  orderId: ord.ordId!,
-                                  ordName: ord.ordName,
-                                ),
-                              );
-                            },
+                            onTap: () {},
                             borderRadius: BorderRadius.circular(12),
                             child: Padding(
                               padding: const EdgeInsets.all(12),

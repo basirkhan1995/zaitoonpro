@@ -576,7 +576,7 @@ class _DesktopState extends State<_Desktop> {
                 border: Border.all(
                   color: Theme.of(
                     context,
-                  ).colorScheme.primary.withValues(alpha: .09),
+                  ).colorScheme.primary.withValues(alpha: .2),
                 ),
               ),
               child: Image.asset('assets/images/zaitoonLogo.png'),
@@ -590,7 +590,7 @@ class _DesktopState extends State<_Desktop> {
               children: [
                 Text(
                   AppLocalizations.of(context)!.zPetroleum.toUpperCase(),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
                     fontFamily: "NotoSans",
                     fontSize: 40,
                     color: Theme.of(context).colorScheme.primary,
@@ -617,99 +617,154 @@ class _DesktopState extends State<_Desktop> {
   Widget _body() {
     final locale = AppLocalizations.of(context)!;
     final isLoading = context.watch<AuthBloc>().state is AuthLoadingState;
+    final theme = Theme.of(context);
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(8),
-            boxShadow: [
-              BoxShadow(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: .5),
-                blurRadius: 3,
-                spreadRadius: .5,
-              ),
-            ],
-          ),
-          width: 400,
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        /// ================= LEFT SIDE (IMAGE) =================
+        Expanded(
+          flex: 5,
+          child: Container(
+            color: theme.colorScheme.surfaceContainerLowest,
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(
-                    locale.welcomeBoss,
-                    style: Theme.of(context).textTheme.titleMedium,
+                /// Image
+                Opacity(
+                  opacity: 0.9, // 👈 makes it softer (no harsh bg)
+                  child: Image.asset(
+                    "assets/images/bg.png",
+                    fit: BoxFit.contain,
                   ),
                 ),
-                SizedBox(height: 10),
-                ZTextFieldEntitled(
-                  controller: _emailController,
-                  onSubmit: (_) => onSubmit(),
-                  title: locale.emailOrUsrname,
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return locale.required(locale.emailOrUsrname);
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 10),
 
-                ZTextFieldEntitled(
-                  controller: _passwordController,
-                  securePassword: isPasswordSecure,
-                  onSubmit: (_) => onSubmit(),
-                  title: locale.password,
-                  trailing: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        isPasswordSecure = !isPasswordSecure;
-                      });
-                    },
-                    icon: Icon(
-                      isPasswordSecure
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return locale.required(locale.password);
-                    }
-                    return null;
-                  },
+                /// VERY LIGHT overlay (not gradient)
+                Container(
+                  color: theme.colorScheme.surface.withValues(alpha: 0.1),
                 ),
 
-                SizedBox(height: 15),
-
-                ZButton(
-                  onPressed: onSubmit,
-                  label: isLoading
-                      ? SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 4,
-                            color: Theme.of(context).colorScheme.surface,
-                          ),
-                        )
-                      : Text(locale.login),
-                ),
-                SizedBox(height: 15),
-                TextButton(
-                  onPressed: () {
-                    Utils.goto(context, ForgotPasswordView());
-                  },
-                  child: Text(locale.forgotPassword),
-                ),
               ],
+            ),
+          ),
+        ),
+
+        /// ================= RIGHT SIDE (LOGIN) =================
+        Expanded(
+          flex: 4,
+          child: Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 420),
+              padding: const EdgeInsets.all(25),
+              margin: const EdgeInsets.symmetric(horizontal: 40),
+
+              /// ❌ NO SHADOW
+              /// ✅ USE BORDER + SOFT SURFACE
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 0.8,
+                ),
+              ),
+
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// Title
+                    Text(
+                      locale.welcomeBoss,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    Text(
+                      locale.login,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    /// Email
+                    ZTextFieldEntitled(
+                      controller: _emailController,
+                      title: locale.emailOrUsrname,
+                      onSubmit: (_) => onSubmit(),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return locale.required(locale.emailOrUsrname);
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    /// Password
+                    ZTextFieldEntitled(
+                      controller: _passwordController,
+                      securePassword: isPasswordSecure,
+                      title: locale.password,
+                      onSubmit: (_) => onSubmit(),
+                      trailing: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            isPasswordSecure = !isPasswordSecure;
+                          });
+                        },
+                        icon: Icon(
+                          isPasswordSecure
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value.isEmpty) {
+                          return locale.required(locale.password);
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: 25),
+
+                    /// ✅ YOUR BUTTON
+                    ZButton(
+                      onPressed: onSubmit,
+                      label: isLoading
+                          ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      )
+                          : Text(locale.login),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    Align(
+                      alignment: Alignment.center,
+                      child: TextButton(
+                        onPressed: () {
+                          Utils.goto(context, ForgotPasswordView());
+                        },
+                        child: Text(locale.forgotPassword),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

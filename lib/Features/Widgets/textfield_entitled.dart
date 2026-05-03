@@ -63,7 +63,7 @@ class ZTextFieldEntitled extends StatelessWidget {
     this.trailing,
     this.keyboardInputType,
     this.inputAction,
-    this.suggestions, // 👈 added
+    this.suggestions,
   });
 
   @override

@@ -222,7 +222,6 @@ class _ExpenseRowState extends State<_ExpenseRow> {
     String? currency,
   }) {
     _isUpdating = true;
-
     context.read<PurchaseInvoiceBloc>().add(
       UpdatePaymentEvent(
         index: widget.index,

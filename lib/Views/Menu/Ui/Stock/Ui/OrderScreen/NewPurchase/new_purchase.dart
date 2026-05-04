@@ -1633,6 +1633,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _localAmountController;
   double? _lastExchangeRate;
   double? _lastPurPrice;
+
   @override
   void initState() {
     super.initState();
@@ -1742,12 +1743,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
-    // FIX: Use post frame callback to avoid setState during build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _updateLocalAmount();
-      }
-    });
+    // Schedule the local amount update for the next frame
+    // This avoids setState() during build
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _updateLocalAmount();
+        }
+      });
+    }
   }
 
   @override

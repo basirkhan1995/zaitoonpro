@@ -242,7 +242,7 @@ class _ExpenseRowState extends State<_ExpenseRow> {
 
   void _debounceUpdate(VoidCallback action) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), action);
+    _debounce = Timer(const Duration(milliseconds: 500), action);
   }
 
   @override

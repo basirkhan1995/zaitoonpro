@@ -239,7 +239,6 @@ class _ExpenseRowState extends State<_ExpenseRow> {
       if (mounted) _isUpdating = false;
     });
   }
-
   void _debounceUpdate(VoidCallback action) {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), action);

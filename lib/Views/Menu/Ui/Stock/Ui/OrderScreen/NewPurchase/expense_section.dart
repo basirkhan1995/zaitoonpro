@@ -48,29 +48,31 @@ class _ExpensesDialogContent extends StatelessWidget {
       title: tr.manageExpenses,
       icon: Icons.outbond_outlined,
       isActionTrue: false,
-      padding: EdgeInsets.all(10),
-      width: MediaQuery.of(context).size.width * .6,
-      height: MediaQuery.of(context).size.width * .8,
+      padding: EdgeInsets.all(15),
+      width: MediaQuery.of(context).size.width * .7,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header with Add Button
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${tr.expenses} (${payments.length})",
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              ZOutlineButton(
-                onPressed: () {
-                  context.read<PurchaseInvoiceBloc>().add(const AddPaymentEvent(isExpense: true));
-                },
-                icon: Icons.add,
-                isActive: true,
-                label: Text(tr.addItem),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${tr.expenses} (${payments.length})",
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                ZOutlineButton(
+                  onPressed: () {
+                    context.read<PurchaseInvoiceBloc>().add(const AddPaymentEvent(isExpense: true));
+                  },
+                  icon: Icons.add,
+                  isActive: true,
+                  label: Text(tr.addItem),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -314,7 +316,7 @@ class _ExpenseRowState extends State<_ExpenseRow> {
 
             /// Narration
             Expanded(
-              flex: 2,
+              flex: 4,
               child: TextField(
                 controller: _narrationController,
                 decoration: InputDecoration(

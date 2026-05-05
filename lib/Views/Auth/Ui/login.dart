@@ -519,7 +519,6 @@ class _DesktopState extends State<_Desktop> {
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthenticatedState) {

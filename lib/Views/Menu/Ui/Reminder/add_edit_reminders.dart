@@ -23,14 +23,23 @@ class AddEditReminderView extends StatelessWidget {
   final int? accNumber;
   final bool? isEnable;
   final ReminderModel? r;
-  const AddEditReminderView({super.key,this.r, this.dueParameter, this.accNumber, this.isEnable = false});
+  final double? autoFillAmount; // NEW: Optional auto-fill amount
+
+  const AddEditReminderView({
+    super.key,
+    this.r,
+    this.dueParameter,
+    this.accNumber,
+    this.isEnable = false,
+    this.autoFillAmount, // NEW
+  });
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: _Desktop(r,accNumber, dueParameter, isEnable),
-      desktop: _Desktop(r,accNumber, dueParameter, isEnable),
-      tablet: _Desktop(r,accNumber, dueParameter, isEnable),
+      mobile: _Desktop(r, accNumber, dueParameter, isEnable, autoFillAmount),
+      desktop: _Desktop(r, accNumber, dueParameter, isEnable, autoFillAmount),
+      tablet: _Desktop(r, accNumber, dueParameter, isEnable, autoFillAmount),
     );
   }
 }
@@ -40,8 +49,15 @@ class _Desktop extends StatefulWidget {
   final int? accNumber;
   final String? dueParameter;
   final bool? isEnable;
+  final double? autoFillAmount; // NEW
 
-  const _Desktop(this.reminder,this.accNumber, this.dueParameter,this.isEnable);
+  const _Desktop(
+      this.reminder,
+      this.accNumber,
+      this.dueParameter,
+      this.isEnable,
+      this.autoFillAmount, // NEW
+      );
 
   @override
   State<_Desktop> createState() => _DesktopState();
@@ -55,7 +71,6 @@ class _DesktopState extends State<_Desktop> {
   String? usrName;
   String? dueType;
   String dueDate = DateTime.now().add(Duration(days: 1)).toFormattedDate();
-
 
   @override
   void initState() {
@@ -73,15 +88,20 @@ class _DesktopState extends State<_Desktop> {
     }
 
     if (r != null) {
+      // Edit mode - populate from existing reminder
       account.text = r.rmdAccount?.toString() ?? widget.accNumber.toString();
       accNumber = r.rmdAccount ?? widget.accNumber;
       amount.text = r.rmdAmount.toAmount();
       details.text = r.rmdDetails ?? "";
       dueDate = r.rmdAlertDate?.toFormattedDate() ?? "";
       dueType = r.rmdName;
+    } else {
+      // Create mode - auto-fill amount if provided
+      if (widget.autoFillAmount != null && widget.autoFillAmount! > 0) {
+        amount.text = widget.autoFillAmount!.toAmount();
+      }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -150,7 +170,7 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ],
               ),
-          
+
               /// Account
               if(widget.isEnable == false)...[
                 GenericTextField<StakeholdersAccountsModel, AccountsBloc,
@@ -216,11 +236,14 @@ class _DesktopState extends State<_Desktop> {
                   showClearButton: true,
                 ),
               ],
-          
+
               /// Amount
               ZTextFieldEntitled(
                 controller: amount,
                 title: tr.amount,
+                hint: widget.autoFillAmount != null && widget.autoFillAmount! > 0
+                    ? null
+                    : null,
                 keyboardInputType:
                 const TextInputType.numberWithOptions(decimal: true),
                 isRequired: true,
@@ -232,19 +255,18 @@ class _DesktopState extends State<_Desktop> {
                   if (value == null || value.isEmpty) {
                     return tr.required(tr.amount);
                   }
-          
-                  // Remove formatting (e.g. commas)
+
                   final clean = value.replaceAll(RegExp(r'[^\d.]'), '');
                   final amountValue = double.tryParse(clean);
-          
+
                   if (amountValue == null || amountValue <= 0.0) {
                     return tr.amountGreaterZero;
                   }
-          
+
                   return null;
                 },
               ),
-          
+
               /// Details
               ZTextFieldEntitled(
                 controller: details,
@@ -252,7 +274,7 @@ class _DesktopState extends State<_Desktop> {
                 keyboardInputType: TextInputType.multiline,
                 maxLength: 100,
               ),
-          
+
               const SizedBox(height: 10),
             ],
           ),

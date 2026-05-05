@@ -310,7 +310,26 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       }
     }
 
-    void onReminder(){
+    // In _DesktopNewSaleView, update the onReminder function:
+    void onReminder() {
+      // Calculate the credit amount that will go to the account
+      double? creditAmount;
+
+      final saleState = context.read<SaleInvoiceBloc>().state;
+      if (saleState is SaleInvoiceLoaded) {
+        if (saleState.paymentMode == PaymentMode.credit) {
+          // Full credit - use grand total
+          creditAmount = saleState.needsExchangeRate
+              ? saleState.grandTotalLocal
+              : saleState.grandTotal;
+        } else if (saleState.paymentMode == PaymentMode.mixed) {
+          // Mixed payment - use the credit portion
+          creditAmount = saleState.needsExchangeRate
+              ? saleState.creditAmountLocal
+              : saleState.creditAmount;
+        }
+      }
+
       showDialog(
         context: context,
         builder: (context) {
@@ -318,6 +337,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
             accNumber: _selectedAccountNumber,
             dueParameter: "Receivable",
             isEnable: true,
+            autoFillAmount: creditAmount, // Pass the credit amount
           );
         },
       );

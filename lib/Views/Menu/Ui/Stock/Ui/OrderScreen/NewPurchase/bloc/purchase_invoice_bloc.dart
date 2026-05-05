@@ -807,29 +807,32 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     if (state is PurchaseInvoiceLoaded) {
       final current = state as PurchaseInvoiceLoaded;
 
-      // Calculate total expenses from payments where isExpense = true
+      // Step 1: Calculate total expenses from all expense payments
       final totalExpenses = current.expenses.fold(0.0, (sum, expense) => sum + expense.amount);
 
-      // Calculate grand total purchase value (invoice total excluding expenses)
-      final grandTotal = current.items.fold(0.0, (sum, item) => sum + item.totalPurchase);
+      // Step 2: Calculate total pieces (qty × batch for each item)
+      final totalPieces = current.items.fold(0.0, (sum, item) => sum + (item.qty * item.stkBatch));
 
-      // Update each item's landed price
-      final updatedItems = current.items.map((item) {
-        double landedPriceForDisplay = item.purPrice ?? 0.0;
+      // Step 3: Calculate landed price for each item
+      if (totalPieces > 0 && totalExpenses > 0) {
+        final expensePerPiece = totalExpenses / totalPieces;
 
-        // Allocate expenses to items based on their proportion of total purchase value
-        if (grandTotal > 0 && totalExpenses > 0 && item.totalPurchase > 0) {
-          final allocationRatio = item.totalPurchase / grandTotal;
-          final allocatedExpense = totalExpenses * allocationRatio;
-          // Landed price = purchase price + (allocated expense / quantity)
-          landedPriceForDisplay = (item.purPrice ?? 0.0) + (allocatedExpense / item.qty);
-        }
-        return item.copyWith(landedPrice: landedPriceForDisplay);
-      }).toList();
+        final updatedItems = current.items.map((item) {
+          final landedPrice = (item.purPrice ?? 0.0) + expensePerPiece;
+          return item.copyWith(landedPrice: landedPrice);
+        }).toList();
 
-      emit(current.copyWith(items: updatedItems));
+        emit(current.copyWith(items: updatedItems));
+      } else {
+        // No expenses, landed price = purchase price
+        final updatedItems = current.items.map((item) {
+          return item.copyWith(landedPrice: item.purPrice);
+        }).toList();
+        emit(current.copyWith(items: updatedItems));
+      }
     }
   }
+
   Future<void> _onLoadStorages(LoadPurchaseStoragesEvent event, Emitter<PurchaseInvoiceState> emit) async {
     try {
       if (state is PurchaseInvoiceLoaded) {

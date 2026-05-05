@@ -4249,7 +4249,7 @@ abstract class AppLocalizations {
   /// No description provided for @systemEquivalent.
   ///
   /// In en, this message translates to:
-  /// **'SYSTEM EQUIVALENT'**
+  /// **'System Equivalent'**
   String get systemEquivalent;
 
   /// No description provided for @cashBalances.
@@ -6585,6 +6585,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cash and Receivable'**
   String get mixPayment;
+
+  /// No description provided for @grandTotalCashFlow.
+  ///
+  /// In en, this message translates to:
+  /// **'GRAND TOTAL CASH FLOW'**
+  String get grandTotalCashFlow;
 }
 
 class _AppLocalizationsDelegate

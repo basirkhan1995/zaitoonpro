@@ -1100,5 +1100,6 @@
   "cashReceipt": "دریافت نقدی",
   "fullCreditMessage": "کل مبلغ بل به اعتبار حساب افزوده میشود",
   "fullCashPayment": "تسویه نقدی",
-  "mixPayment": "نقد و اعتبار حساب"
+  "mixPayment": "نقد و اعتبار حساب",
+  "grandTotalCashFlow": "جمع کل جریان نقدی"
 }

@@ -2144,7 +2144,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get closingBalance => 'Closing Balance';
 
   @override
-  String get systemEquivalent => 'SYSTEM EQUIVALENT';
+  String get systemEquivalent => 'System Equivalent';
 
   @override
   String get cashBalances => 'Cash Balances';
@@ -3331,4 +3331,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mixPayment => 'Cash and Receivable';
+
+  @override
+  String get grandTotalCashFlow => 'GRAND TOTAL CASH FLOW';
 }

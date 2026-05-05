@@ -711,7 +711,7 @@
   "closing": "Closing",
   "sys": "SYS",
   "closingBalance": "Closing Balance",
-  "systemEquivalent": "SYSTEM EQUIVALENT",
+  "systemEquivalent": "System Equivalent",
   "cashBalances": "Cash Balances",
   "usersHintReport": "Use the filters above to quickly find the users you need.",
   "clearFilters": "Clear Filters",
@@ -1100,5 +1100,6 @@
   "cashReceipt": "Cash Receipt",
   "fullCreditMessage": "Total Invoice Amount Added to Receivable",
   "fullCashPayment": "Full Cash Payment",
-  "mixPayment": "Cash and Receivable"
+  "mixPayment": "Cash and Receivable",
+  "grandTotalCashFlow": "GRAND TOTAL CASH FLOW"
 }

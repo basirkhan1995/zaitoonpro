@@ -2138,7 +2138,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get closingBalance => 'بیلانس اختتامیه';
 
   @override
-  String get systemEquivalent => 'معادل سیستم';
+  String get systemEquivalent => 'په سیستم کې معادل';
 
   @override
   String get cashBalances => 'موجودی نقدی';
@@ -3322,4 +3322,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mixPayment => 'نقد او ترلاسه کېدونکی';
+
+  @override
+  String get grandTotalCashFlow => 'د نغدو پیسو ټولیز جریان';
 }

@@ -457,9 +457,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                     onPressed: _resetForm,
                     label: Text(tr.newSale),
                   ),
+                  const SizedBox(width: 8),
                 ],
 
-                const SizedBox(width: 8),
+
                 ZOutlineButton(
                   toolTip: "${tr.stockPaper} - F10",
                   icon: Icons.receipt,

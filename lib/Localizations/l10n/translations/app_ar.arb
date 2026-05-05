@@ -711,7 +711,7 @@
   "closing": "اختتامیه",
   "sys": "سیستم",
   "closingBalance": "بیلانس اختتامیه",
-  "systemEquivalent": "معادل سیستم",
+  "systemEquivalent": "په سیستم کې معادل",
   "cashBalances": "موجودی نقدی",
   "usersHintReport": "فلټرونه وکاروئ څو ژر هغه کاروونکي پیدا کړئ چې تاسو ورته اړتیا لرئ.\n",
   "clearFilters": "حذف فلتر",
@@ -1100,5 +1100,6 @@
   "cashReceipt": "نقدی رسید",
   "fullCreditMessage": "د بل ټوله بیه ترلاسه کېدو ته ور اضافه شوه",
   "fullCashPayment": "بشپړ نقدي تادیه",
-  "mixPayment": "نقد او ترلاسه کېدونکی"
+  "mixPayment": "نقد او ترلاسه کېدونکی",
+  "grandTotalCashFlow": "د نغدو پیسو ټولیز جریان"
 }

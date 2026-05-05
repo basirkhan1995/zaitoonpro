@@ -1675,8 +1675,6 @@ class _DesktopState extends State<_Desktop> {
             onPressed: _printReport,
             icon: Icon(Icons.print),
           ),
-
-
         ],
       ),
       body: BlocBuilder<CashBalancesBloc, CashBalancesState>(
@@ -1706,21 +1704,21 @@ class _DesktopState extends State<_Desktop> {
             final systemTotals = _calculateSystemTotals(state.cashList);
 
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(12.0),
+              padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // TOP SECTION: General Currency Totals
                   _buildGeneralTotalsSection(currencyTotals, systemTotals),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
 
                   // BOTTOM SECTION: Branch List
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
+                    padding: const EdgeInsets.only(bottom: 12.0),
                     child: Text(
                       'CASH BALANCES - BRANCH WISE',
                       style: TextStyle(
-                        fontSize: 16,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.primary,
                       ),
@@ -1738,6 +1736,64 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
+  // Calculate currency totals for all branches combined
+  Map<String, Map<String, dynamic>> _calculateCurrencyTotals(List<CashBalancesModel> cashList) {
+    final Map<String, Map<String, dynamic>> currencyTotals = {};
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          final currencyCode = record.trdCcy ?? 'UNKNOWN';
+          final currencyName = record.ccyName ?? currencyCode;
+          final symbol = record.ccySymbol ?? '';
+
+          if (!currencyTotals.containsKey(currencyCode)) {
+            currencyTotals[currencyCode] = {
+              'name': currencyName,
+              'symbol': symbol,
+              'totalClosing': 0.0,
+              'totalOpening': 0.0,
+            };
+          }
+
+          final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
+          final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
+
+          currencyTotals[currencyCode]!['totalOpening'] =
+              (currencyTotals[currencyCode]!['totalOpening'] as double) + opening;
+          currencyTotals[currencyCode]!['totalClosing'] =
+              (currencyTotals[currencyCode]!['totalClosing'] as double) + closing;
+        }
+      }
+    }
+
+    return currencyTotals;
+  }
+
+  // Calculate system totals for all branches
+  Map<String, double> _calculateSystemTotals(List<CashBalancesModel> cashList) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+
+    for (var branch in cashList) {
+      if (branch.records != null) {
+        for (var record in branch.records!) {
+          totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+          totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+        }
+      }
+    }
+
+    final totalCashFlowSys = totalClosingSys - totalOpeningSys;
+
+    return {
+      'opening': totalOpeningSys,
+      'closing': totalClosingSys,
+      'cashFlow': totalCashFlowSys,
+    };
+  }
+
+  // Print-related calculation methods
   Map<String, CurrencyTotal> _calculateCurrencyTotalsForPrint(List<CashBalancesModel> cashList) {
     final Map<String, CurrencyTotal> currencyTotals = {};
     final tempData = <String, Map<String, dynamic>>{};
@@ -1783,6 +1839,7 @@ class _DesktopState extends State<_Desktop> {
 
     return currencyTotals;
   }
+
   Map<String, double> _calculateSystemTotalsForPrint(List<CashBalancesModel> cashList) {
     double totalOpeningSys = 0;
     double totalClosingSys = 0;
@@ -1801,11 +1858,11 @@ class _DesktopState extends State<_Desktop> {
       'closing': totalClosingSys,
     };
   }
+
   Future<void> _printReport() async {
     final state = context.read<CashBalancesBloc>().state;
 
     if (state is AllCashBalancesLoadedState) {
-      // Get company info from CompanyProfileBloc
       final companyState = context.read<CompanyProfileBloc>().state;
       ReportModel company = ReportModel();
 
@@ -1822,20 +1879,15 @@ class _DesktopState extends State<_Desktop> {
         );
       }
 
-      // Get base currency from AuthBloc
       String? baseCcy;
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthenticatedState) {
         baseCcy = authState.loginData.company?.comLocalCcy;
       }
 
-      // Calculate currency totals
       final currencyTotals = _calculateCurrencyTotalsForPrint(state.cashList);
-
-      // Calculate system totals
       final systemTotals = _calculateSystemTotalsForPrint(state.cashList);
 
-      // Prepare print data
       final printData = CashBalancesPrintData(
         reportType: 'all',
         branches: state.cashList,
@@ -1915,87 +1967,23 @@ class _DesktopState extends State<_Desktop> {
     }
   }
 
-  Map<String, Map<String, dynamic>> _calculateCurrencyTotals(List<CashBalancesModel> cashList) {
-    final Map<String, Map<String, dynamic>> currencyTotals = {};
-
-    for (var branch in cashList) {
-      if (branch.records != null) {
-        for (var record in branch.records!) {
-          final currencyCode = record.trdCcy ?? 'UNKNOWN';
-          final currencyName = record.ccyName ?? currencyCode;
-          final symbol = record.ccySymbol ?? '';
-
-          if (!currencyTotals.containsKey(currencyCode)) {
-            currencyTotals[currencyCode] = {
-              'name': currencyName,
-              'symbol': symbol,
-              'totalClosing': 0.0,
-              'totalOpening': 0.0,
-            };
-          }
-
-          final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
-          final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
-
-          currencyTotals[currencyCode]!['totalOpening'] =
-              (currencyTotals[currencyCode]!['totalOpening'] as double) + opening;
-          currencyTotals[currencyCode]!['totalClosing'] =
-              (currencyTotals[currencyCode]!['totalClosing'] as double) + closing;
-        }
-      }
-    }
-
-    return currencyTotals;
-  }
-  Map<String, double> _calculateSystemTotals(List<CashBalancesModel> cashList) {
-    double totalOpeningSys = 0;
-    double totalClosingSys = 0;
-
-    for (var branch in cashList) {
-      if (branch.records != null) {
-        for (var record in branch.records!) {
-          totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
-          totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
-        }
-      }
-    }
-
-    final totalCashFlowSys = totalClosingSys - totalOpeningSys;
-
-    return {
-      'opening': totalOpeningSys,
-      'closing': totalClosingSys,
-      'cashFlow': totalCashFlowSys,
-    };
-  }
+  // UPDATED: General totals section with better sizing and reduced padding
   Widget _buildGeneralTotalsSection(Map<String, Map<String, dynamic>> currencyTotals, Map<String, double> systemTotals) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section Title
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0),
-          child: Text(
-            AppLocalizations.of(context)!.totalCashBalancesAllBranch.toUpperCase(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ),
-
-        // Currency Total Cards - Responsive Grid
+        // Currency Total Cards - Responsive Grid with better sizing
         _buildCurrencyTotalsGrid(currencyTotals),
 
         // Grand Total Card (System Equivalent)
-        const SizedBox(height: 16),
+        const SizedBox(height: 24),
         _buildGrandTotalCard(systemTotals),
       ],
     );
   }
+
+  // UPDATED: Currency totals grid with larger cards and reduced padding
   Widget _buildCurrencyTotalsGrid(Map<String, Map<String, dynamic>> currencyTotals) {
-    // Determine grid column count based on screen width
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
@@ -2016,9 +2004,9 @@ class _DesktopState extends State<_Desktop> {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 2.0, // Wider cards
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.8,
           ),
           itemCount: currencyTotals.length,
           itemBuilder: (context, index) {
@@ -2031,7 +2019,7 @@ class _DesktopState extends State<_Desktop> {
             final totalClosing = data['totalClosing'] as double;
             final cashFlow = totalClosing - totalOpening;
 
-            // Different colors for different currencies
+            // Vibrant color palette
             final colors = [
               Colors.blue,
               Colors.green,
@@ -2039,116 +2027,167 @@ class _DesktopState extends State<_Desktop> {
               Colors.purple,
               Colors.red,
               Colors.teal,
-              Colors.amber,
+              Colors.amber.shade700,
               Colors.indigo,
+              Colors.pink,
+              Colors.cyan,
             ];
             final color = colors[index % colors.length];
 
-            return ZCover(
-              color: color.withValues(alpha: .05),
-              radius: 8,
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Currency Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            currencyName,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: color,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                       ZCover(
-                           color: Utils.currencyColors(currencyCode),
-                           child: Text(currencyCode,style: TextStyle(color: Theme.of(context).colorScheme.surface),))
-                      ],
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Opening Balance
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Opening',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          "${totalOpening.toAmount()} $symbol",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 4),
-
-                    // Closing Balance
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Closing',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Theme.of(context).colorScheme.outline,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          "${totalClosing.toAmount()} $symbol",
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Cash Flow
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          AppLocalizations.of(context)!.cashFlow,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                        ),
-                        Text(
-                          "${cashFlow.toAmount()} $symbol",
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: cashFlow >= 0 ? Colors.green : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
+            return Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withValues(alpha: .08),
+                    color.withValues(alpha: .02),
                   ],
                 ),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: color.withValues(alpha: .2),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withValues(alpha: .1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(15.0), // Moderated padding
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Currency Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          currencyName,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: color,
+                            letterSpacing: 0.5,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: Text(
+                          currencyCode,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // Amounts Section
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Opening Balance
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.opening,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "${totalOpening.toAmount()} $symbol",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+
+                      // Closing Balance
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.closing,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Text(
+                            "${totalClosing.toAmount()} $symbol",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 5),
+
+                      // Divider
+                      Divider(color: color.withValues(alpha: .2), height: 1),
+                      const SizedBox(height: 5),
+
+                      // Cash Flow
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.cashFlow,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade700,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                cashFlow >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                                size: 16,
+                                color: cashFlow >= 0 ? Colors.green : Colors.red,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "${cashFlow.toAmount()} $symbol",
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: cashFlow >= 0 ? Colors.green : Colors.red,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
               ),
             );
           },
@@ -2156,100 +2195,204 @@ class _DesktopState extends State<_Desktop> {
       },
     );
   }
+
+  // UPDATED: Grand total card with better sizing and reduced padding
   Widget _buildGrandTotalCard(Map<String, double> systemTotals) {
-    return ZCover(
-      color: Colors.purple.withValues(alpha: .05),
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'GRAND TOTAL CASH FLOW',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.purple,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'System Equivalent ($baseCcy)',
-              style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Totals in a row
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTotalItem(
-                    label: AppLocalizations.of(context)!.openingBalance,
-                    value: systemTotals['opening']!,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTotalItem(
-                    label: 'Closing Balance',
-                    value: systemTotals['closing']!,
-                    color: Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTotalItem(
-                    label: AppLocalizations.of(context)!.cashFlow,
-                    value: systemTotals['cashFlow']!,
-                    color: systemTotals['cashFlow']! >= 0 ? Colors.green : Colors.red,
-                  ),
-                ),
-              ],
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.withValues(alpha: .1),
+            Colors.purple.withValues(alpha: .02),
           ],
         ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.purple.withValues(alpha: .3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.purple.withValues(alpha: .15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20.0), // Reduced padding
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                      Text(
+                      AppLocalizations.of(context)!.grandTotalCashFlow,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Colors.purple,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                    Text(
+                      '${AppLocalizations.of(context)!.systemEquivalent} | $baseCcy',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Totals in a responsive row
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth > 600) {
+                return Row(
+                  children: [
+                    Expanded(
+                      child: _buildTotalItem(
+                        label: AppLocalizations.of(context)!.openingBalance,
+                        value: systemTotals['opening']!,
+                        color: Colors.grey.shade700,
+                        icon: Icons.trending_flat_rounded,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 60,
+                      color: Colors.purple.withValues(alpha: .2),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    Expanded(
+                      child: _buildTotalItem(
+                        label: AppLocalizations.of(context)!.closingBalance,
+                        value: systemTotals['closing']!,
+                        color: Colors.green,
+                        icon: Icons.trending_up,
+                      ),
+                    ),
+                    Container(
+                      width: 1,
+                      height: 60,
+                      color: Colors.purple.withValues(alpha: .2),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    Expanded(
+                      child: _buildTotalItem(
+                        label: AppLocalizations.of(context)!.cashFlow,
+                        value: systemTotals['cashFlow']!,
+                        color: systemTotals['cashFlow']! >= 0 ? Colors.green : Colors.red,
+                        icon: systemTotals['cashFlow']! >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                      ),
+                    ),
+                  ],
+                );
+              } else {
+                // Stack vertically on small screens
+                return Column(
+                  children: [
+                    _buildTotalItem(
+                      label: AppLocalizations.of(context)!.openingBalance,
+                      value: systemTotals['opening']!,
+                      color: Colors.grey.shade700,
+                      icon: Icons.trending_flat,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTotalItem(
+                      label: 'Closing Balance',
+                      value: systemTotals['closing']!,
+                      color: Colors.green,
+                      icon: Icons.trending_up,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTotalItem(
+                      label: AppLocalizations.of(context)!.cashFlow,
+                      value: systemTotals['cashFlow']!,
+                      color: systemTotals['cashFlow']! >= 0 ? Colors.green : Colors.red,
+                      icon: systemTotals['cashFlow']! >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                    ),
+                  ],
+                );
+              }
+            },
+          ),
+        ],
       ),
     );
   }
-  Widget _buildTotalItem({required String label, required double value, required Color color}) {
+
+  // UPDATED: Individual total item with icon and better typography
+  Widget _buildTotalItem({
+    required String label,
+    required double value,
+    required Color color,
+    required IconData icon,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.outline,
-          ),
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: color.withValues(alpha: .7),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade600,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
               child: Text(
                 value.toAmount(),
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: color,
+                  letterSpacing: 0.5,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Text(
-              baseCcy ?? '',
-              style: TextStyle(
-                fontSize: 12,
-                color: color.withValues(alpha: .8),
-                fontWeight: FontWeight.w500,
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: .1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                baseCcy ?? '',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -2257,6 +2400,8 @@ class _DesktopState extends State<_Desktop> {
       ],
     );
   }
+
+  // Branch list section - unchanged but included for completeness
   Widget _buildCashBalancesList(List<CashBalancesModel> cashList) {
     return Column(
       children: List.generate(cashList.length, (index) {
@@ -2265,6 +2410,7 @@ class _DesktopState extends State<_Desktop> {
       }),
     );
   }
+
   Widget _buildBranchCard(CashBalancesModel branch) {
     final tr = AppLocalizations.of(context)!;
     return ZCover(
@@ -2293,13 +2439,10 @@ class _DesktopState extends State<_Desktop> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Branch Information
                 _buildInfoRow('${tr.address}:', branch.address ?? 'N/A'),
                 _buildInfoRow('${tr.status}:', branch.brcStatus == 1 ? tr.active : tr.inactive),
                 _buildInfoRow('${tr.date}:', branch.brcEntryDate?.toDateTime ?? 'N/A'),
                 const SizedBox(height: 20),
-
-                // Records Section
                 if (branch.records != null && branch.records!.isNotEmpty)
                   _buildRecordsList(branch.records!),
               ],
@@ -2309,34 +2452,35 @@ class _DesktopState extends State<_Desktop> {
       ),
     );
   }
+
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 100,
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.grey,
               ),
             ),
-            Expanded(
-              child: Text(value),
-            ),
-          ],
-        )
+          ),
+          Expanded(
+            child: Text(value),
+          ),
+        ],
+      ),
     );
   }
+
   Widget _buildRecordsList(List<Record> records) {
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
 
-    // Calculate branch totals for SYS equivalent
     double branchOpeningSys = 0;
     double branchClosingSys = 0;
 
@@ -2350,7 +2494,6 @@ class _DesktopState extends State<_Desktop> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // Header Row
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           decoration: BoxDecoration(
@@ -2425,15 +2568,12 @@ class _DesktopState extends State<_Desktop> {
             ],
           ),
         ),
-
-        // Records Items
         ...records.map((record) {
           final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
           final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
           final openingSys = double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
           final closingSys = double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
           final cashFlow = closing - opening;
-        //  final cashFlowSys = closingSys - openingSys;
 
           return Container(
             margin: const EdgeInsets.only(bottom: 1),
@@ -2496,8 +2636,6 @@ class _DesktopState extends State<_Desktop> {
             ),
           );
         }),
-
-        // Branch Grand Total Row (Added at the end)
         Container(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           decoration: BoxDecoration(
@@ -2521,7 +2659,7 @@ class _DesktopState extends State<_Desktop> {
               ),
               Expanded(
                 child: Text(
-                  "", // Empty for Opening Balance column
+                  "",
                   textAlign: TextAlign.right,
                 ),
               ),
@@ -2537,7 +2675,7 @@ class _DesktopState extends State<_Desktop> {
               ),
               Expanded(
                 child: Text(
-                  "", // Empty for Closing Balance column
+                  "",
                   textAlign: TextAlign.right,
                 ),
               ),
@@ -2553,7 +2691,7 @@ class _DesktopState extends State<_Desktop> {
               ),
               Expanded(
                 child: Text(
-                  "",
+                  "${branchCashFlowSys.toAmount()} $baseCcy",
                   textAlign: TextAlign.right,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,

@@ -3319,4 +3319,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get mixPayment => 'نقد و اعتبار حساب';
+
+  @override
+  String get grandTotalCashFlow => 'جمع کل جریان نقدی';
 }

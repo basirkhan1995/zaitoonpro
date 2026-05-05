@@ -15,6 +15,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/model/cash_b
 import '../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
+import '../../../../../../../Features/Widgets/amount_display.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'Print/cash_print.dart';
 import 'Print/feature_model.dart';
@@ -48,6 +49,7 @@ class _DesktopState extends State<_Desktop> {
     super.initState();
     _loadBalances();
   }
+
   void _loadBalances() {
     try {
       final auth = context.read<AuthBloc>().state;
@@ -69,7 +71,6 @@ class _DesktopState extends State<_Desktop> {
     final state = context.read<CashBalancesBloc>().state;
 
     if (state is CashBalancesLoadedState) {
-      // Get company info from CompanyProfileBloc
       final authState = context.read<AuthBloc>().state;
       ReportModel company = ReportModel();
 
@@ -92,13 +93,9 @@ class _DesktopState extends State<_Desktop> {
         }
       }
 
-      // Calculate currency totals for single branch
       final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
-
-      // Calculate system totals for single branch
       final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
 
-      // Prepare print data
       final printData = CashBalancesPrintData(
         reportType: 'single',
         branches: [state.cash],
@@ -178,6 +175,7 @@ class _DesktopState extends State<_Desktop> {
       );
     }
   }
+
   Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
     final Map<String, CurrencyTotal> currencyTotals = {};
 
@@ -198,6 +196,7 @@ class _DesktopState extends State<_Desktop> {
 
     return currencyTotals;
   }
+
   Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
     double totalOpeningSys = 0;
     double totalClosingSys = 0;
@@ -215,12 +214,11 @@ class _DesktopState extends State<_Desktop> {
     };
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        titleSpacing: 0,
         title: Text(AppLocalizations.of(context)!.cashBalances),
         actionsPadding: const EdgeInsets.symmetric(horizontal: 8),
         actions: [
@@ -292,15 +290,16 @@ class _DesktopState extends State<_Desktop> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Branch Information Card
-          _buildBranchInfoCard(branch, tr),
+          // Compact Branch Information Section
+          _buildCompactBranchInfo(branch, tr),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Currency Balances Section
-          _buildCurrencyBalancesSection(branch, tr),
+          if (branch.records != null && branch.records!.isNotEmpty)
+            _buildCurrencyBalancesSection(branch, tr),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Grand Total Card
           _buildGrandTotalCard(
@@ -308,96 +307,109 @@ class _DesktopState extends State<_Desktop> {
             totalClosingSys,
             totalCashFlowSys,
             tr,
+            branch.brcName ?? '',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildBranchInfoCard(CashBalancesModel branch, AppLocalizations tr) {
-    return ZCover(
-      color: Theme.of(context).colorScheme.surface,
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    tr.branchInformation,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 300,
-                  child: BranchDropdown(
-                    selectedId: branchId,
-                    disableAction: true,
-                    height: 40,
-                    title: "",
-                    onBranchSelected: (e) {
-                      final newBranchId = e?.brcId;
-                      setState(() {
-                        branchId = newBranchId;
-                      });
-                      context.read<CashBalancesBloc>().add(
-                        LoadCashBalanceBranchWiseEvent(branchId: newBranchId),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            const Divider(),
-            const SizedBox(height: 10),
-            _buildInfoRow('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
-            _buildInfoRow('${tr.branchName}:', branch.brcName ?? 'N/A'),
-            _buildInfoRow('${tr.address}:', branch.address ?? 'N/A'),
-            _buildInfoRow('${tr.mobile1}:', branch.brcPhone ?? 'N/A'),
-            _buildInfoRow('${tr.status}:',
-                branch.brcStatus == 1 ? tr.active : tr.inactive),
-            _buildInfoRow('${tr.entryDate}:',
-                branch.brcEntryDate?.toLocal().toString().split(' ')[0] ?? 'N/A'),
-          ],
+  // UPDATED: Compact branch info - takes much less space
+  Widget _buildCompactBranchInfo(CashBalancesModel branch, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
         ),
       ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3.0),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 180,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.outline,
+          Row(
+            children: [
+              Icon(
+                Icons.business,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
               ),
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  branch.brcName ?? 'N/A',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 250,
+                child: BranchDropdown(
+                  selectedId: branchId,
+                  height: 36,
+                  title: "",
+                  onBranchSelected: (e) {
+                    final newBranchId = e?.brcId;
+                    setState(() {
+                      branchId = newBranchId;
+                    });
+                    context.read<CashBalancesBloc>().add(
+                      LoadCashBalanceBranchWiseEvent(branchId: newBranchId),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 14),
-            ),
+          const SizedBox(height: 8),
+          // Inline branch details - more compact
+          Wrap(
+            spacing: 24,
+            runSpacing: 4,
+            children: [
+              _buildInlineInfo('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
+              _buildInlineInfo('${tr.mobile1}:', branch.brcPhone ?? 'N/A'),
+              _buildInlineInfo('${tr.status}:',
+                  branch.brcStatus == 1 ? tr.active : tr.inactive),
+              if (branch.address != null && branch.address!.isNotEmpty)
+                _buildInlineInfo('${tr.address}:', branch.address!),
+            ],
           ),
         ],
       ),
     );
   }
 
+  // Compact inline info item
+  Widget _buildInlineInfo(String label, String value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).colorScheme.outline,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // UPDATED: Currency balances section using AmountDisplay
   Widget _buildCurrencyBalancesSection(CashBalancesModel branch, AppLocalizations tr) {
     if (branch.records == null || branch.records!.isEmpty) {
       return Center(
@@ -434,12 +446,12 @@ class _DesktopState extends State<_Desktop> {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 1.4,
+                childAspectRatio: 1.5,
               ),
               itemCount: branch.records!.length,
               itemBuilder: (context, index) {
                 final record = branch.records![index];
-                return _buildCurrencyCard(record, tr);
+                return _buildCurrencyCardV2(record, tr);
               },
             );
           },
@@ -448,7 +460,8 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-  Widget _buildCurrencyCard(Record record, AppLocalizations tr) {
+  // NEW: Improved currency card using AmountDisplay
+  Widget _buildCurrencyCardV2(Record record, AppLocalizations tr) {
     final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
     final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
     final openingSys = double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
@@ -456,148 +469,241 @@ class _DesktopState extends State<_Desktop> {
     final cashFlow = closing - opening;
     final cashFlowSys = closingSys - openingSys;
 
-    return ZCover(
-      color: Theme.of(context).colorScheme.surface,
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Currency Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    record.ccyName ?? record.trdCcy ?? 'Unknown',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Utils.currencyColors(record.trdCcy ?? ""),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Utils.currencyColors(record.trdCcy ?? ''),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    record.trdCcy ?? '',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.surface,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            _buildBalanceRow(
-              label: tr.opening,
-              amount: opening,
-              symbol: record.trdCcy ?? '',
-              isSys: false,
-            ),
-            const SizedBox(height: 2),
-            _buildBalanceRow(
-              label: tr.closing,
-              amount: closing,
-              symbol: record.trdCcy ?? '',
-              isSys: false,
-              isClosing: true,
-            ),
-            const Divider(height: 12),
-            _buildBalanceRow(
-              label: '${tr.opening} (Sys)',
-              amount: openingSys,
-              symbol: baseCcy ?? '',
-              isSys: true,
-            ),
-            const SizedBox(height: 2),
-            _buildBalanceRow(
-              label: '${tr.closing} (Sys)',
-              amount: closingSys,
-              symbol: baseCcy ?? '',
-              isSys: true,
-              isClosing: true,
-            ),
-            const Divider(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  tr.cashFlow,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+    final currencyCode = record.trdCcy ?? '';
+    final isBaseCurrency = currencyCode == baseCcy;
+    final currencyColor = Utils.currencyColors(currencyCode);
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            currencyColor.withValues(alpha: 0.08),
+            currencyColor.withValues(alpha: 0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: currencyColor.withValues(alpha: 0.25),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: currencyColor.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min, // This fixes the empty space issue!
+        children: [
+          // Currency Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
                   children: [
-                    Text(
-                      "${cashFlow.toAmount()} ${record.trdCcy}",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: cashFlow >= 0 ? Colors.green : Colors.red,
+                    Container(
+                      width: 4,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: currencyColor,
+                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                    Text(
-                      "${cashFlowSys.toAmount()} $baseCcy",
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: cashFlowSys >= 0 ? Colors.green : Colors.red,
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            record.ccyName ?? currencyCode,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: currencyColor,
+                              letterSpacing: 0.3,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          if (record.ccyName != null && record.ccyName != currencyCode)
+                            Text(
+                              currencyCode,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: currencyColor.withValues(alpha: 0.7),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: currencyColor,
+                  borderRadius: BorderRadius.circular(3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: currencyColor.withValues(alpha: 0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Text(
+                  currencyCode,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ],
+          ),
 
-  Widget _buildBalanceRow({
-    required String label,
-    required double amount,
-    required String symbol,
-    required bool isSys,
-    bool isClosing = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.outline,
+          const SizedBox(height: 16),
+
+          // Opening Balance
+          AmountDisplay(
+            title: tr.opening,
+            baseAmount: opening,
+            baseCurrency: currencyCode,
+            convertedAmount: isBaseCurrency ? null : openingSys,
+            convertedCurrency: baseCcy,
+            fontSize: 14,
+            baseColor: Theme.of(context).colorScheme.onSurface,
+            convertedColor: Theme.of(context).colorScheme.outline,
           ),
-        ),
-        Flexible(
-          child: Text(
-            "${amount.toAmount()} $symbol",
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: isClosing ? FontWeight.bold : FontWeight.w500,
-              color: isClosing
-                  ? (isSys ? Colors.purple : Colors.green)
-                  : Theme.of(context).colorScheme.onSurface,
+
+          const SizedBox(height: 2),
+
+          // Closing Balance
+          AmountDisplay(
+            title: tr.closing,
+            baseAmount: closing,
+            baseCurrency: currencyCode,
+            convertedAmount: isBaseCurrency ? null : closingSys,
+            convertedCurrency: baseCcy,
+            fontSize: 14,
+            baseColor: Colors.green.shade700,
+            convertedColor: Theme.of(context).colorScheme.outline,
+          ),
+
+          const SizedBox(height: 8),
+
+          // Divider
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  currencyColor.withValues(alpha: 0.05),
+                  currencyColor.withValues(alpha: 0.2),
+                  currencyColor.withValues(alpha: 0.05),
+                ],
+              ),
             ),
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
           ),
-        ),
-      ],
+
+          const SizedBox(height: 8),
+
+          // Cash Flow
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Text(
+                tr.cashFlow,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min, // Prevents extra space in nested column
+                children: [
+                  // Main Cash Flow
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: cashFlow >= 0
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                      border: Border.all(
+                        color: cashFlow >= 0
+                            ? Colors.green.withValues(alpha: 0.3)
+                            : Colors.red.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          cashFlow >= 0 ? Icons.trending_up : Icons.trending_down,
+                          size: 16,
+                          color: cashFlow >= 0 ? Colors.green : Colors.red,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          "${cashFlow.toAmount()} $currencyCode",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: cashFlow >= 0 ? Colors.green : Colors.red,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // System Equivalent Cash Flow (if different currency)
+                  if (!isBaseCurrency)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.swap_horiz,
+                            size: 12,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${cashFlowSys.toAmount()} $baseCcy",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: cashFlowSys >= 0
+                                  ? Colors.green.withValues(alpha: 0.8)
+                                  : Colors.red.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -606,86 +712,131 @@ class _DesktopState extends State<_Desktop> {
       double closingSys,
       double cashFlowSys,
       AppLocalizations tr,
+      String branchName,
       ) {
-    return ZCover(
-      color: Colors.purple.withValues(alpha: .05),
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '${tr.branch.toUpperCase()} | ${tr.grandTotal.toUpperCase()} (${tr.systemEquivalent})',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.purple,
-              ),
-            ),
-            const SizedBox(height: 16),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                if (constraints.maxWidth < 600) {
-                  return Column(
-                    children: [
-                      _buildTotalItem(
-                        label: tr.openingBalance,
-                        value: openingSys,
-                        color: Theme.of(context).colorScheme.outline,
-                        symbol: baseCcy ?? '',
-                      ),
-                      const SizedBox(height: 12),
-                      _buildTotalItem(
-                        label: tr.closingBalance,
-                        value: closingSys,
-                        color: Colors.green,
-                        symbol: baseCcy ?? '',
-                      ),
-                      const SizedBox(height: 12),
-                      _buildTotalItem(
-                        label: tr.cashFlow,
-                        value: cashFlowSys,
-                        color: cashFlowSys >= 0 ? Colors.green : Colors.red,
-                        symbol: baseCcy ?? '',
-                      ),
-                    ],
-                  );
-                }
-                return Row(
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.purple.withValues(alpha: .08),
+            Colors.purple.withValues(alpha: .02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.purple.withValues(alpha: .2),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header with branch name
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: _buildTotalItem(
-                        label: tr.openingBalance,
-                        value: openingSys,
-                        color: Theme.of(context).colorScheme.outline,
-                        symbol: baseCcy ?? '',
+                    Text(
+                      branchName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Colors.purple,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTotalItem(
-                        label: tr.closingBalance,
-                        value: closingSys,
-                        color: Colors.green,
-                        symbol: baseCcy ?? '',
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTotalItem(
-                        label: tr.cashFlow,
-                        value: cashFlowSys,
-                        color: cashFlowSys >= 0 ? Colors.green : Colors.red,
-                        symbol: baseCcy ?? '',
+                    Text(
+                      '${tr.grandTotal} (${tr.systemEquivalent})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Totals in responsive layout
+          LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                return Column(
+                  children: [
+                    _buildTotalItem(
+                      label: tr.openingBalance,
+                      value: openingSys,
+                      color: Colors.grey.shade700,
+                      symbol: baseCcy ?? '',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTotalItem(
+                      label: tr.closingBalance,
+                      value: closingSys,
+                      color: Colors.green,
+                      symbol: baseCcy ?? '',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTotalItem(
+                      label: tr.cashFlow,
+                      value: cashFlowSys,
+                      color: cashFlowSys >= 0 ? Colors.green : Colors.red,
+                      symbol: baseCcy ?? '',
+                    ),
+                  ],
                 );
-              },
-            ),
-          ],
-        ),
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: _buildTotalItem(
+                      label: tr.openingBalance,
+                      value: openingSys,
+                      color: Colors.grey.shade700,
+                      symbol: baseCcy ?? '',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.purple.withValues(alpha: .15),
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  Expanded(
+                    child: _buildTotalItem(
+                      label: tr.closingBalance,
+                      value: closingSys,
+                      color: Colors.green,
+                      symbol: baseCcy ?? '',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.purple.withValues(alpha: .15),
+                    margin: const EdgeInsets.symmetric(horizontal: 12),
+                  ),
+                  Expanded(
+                    child: _buildTotalItem(
+                      label: tr.cashFlow,
+                      value: cashFlowSys,
+                      color: cashFlowSys >= 0 ? Colors.green : Colors.red,
+                      symbol: baseCcy ?? '',
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -704,29 +855,37 @@ class _DesktopState extends State<_Desktop> {
           style: TextStyle(
             fontSize: 12,
             color: Theme.of(context).colorScheme.outline,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         Row(
           children: [
             Flexible(
               child: Text(
                 value.toAmount(),
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(width: 4),
-            Text(
-              symbol,
-              style: TextStyle(
-                fontSize: 14,
-                color: color.withValues(alpha: .8),
-                fontWeight: FontWeight.w500,
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: .1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                symbol,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],
@@ -734,8 +893,6 @@ class _DesktopState extends State<_Desktop> {
       ],
     );
   }
-
-
 }
 
 

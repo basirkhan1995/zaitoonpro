@@ -1101,5 +1101,6 @@
   "fullCreditMessage": "کل مبلغ بل به اعتبار حساب افزوده میشود",
   "fullCashPayment": "تسویه نقدی",
   "mixPayment": "نقد و اعتبار حساب",
-  "grandTotalCashFlow": "جمع کل جریان نقدی"
+  "grandTotalCashFlow": "جمع کل جریان نقدی",
+  "payableAmount": "مبلغ پرداختنی"
 }

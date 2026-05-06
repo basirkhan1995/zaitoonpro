@@ -3325,4 +3325,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get grandTotalCashFlow => 'د نغدو پیسو ټولیز جریان';
+
+  @override
+  String get payableAmount => 'د ورکولو پیسه';
 }

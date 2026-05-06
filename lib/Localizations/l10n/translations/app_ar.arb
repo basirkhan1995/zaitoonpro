@@ -1101,5 +1101,6 @@
   "fullCreditMessage": "د بل ټوله بیه ترلاسه کېدو ته ور اضافه شوه",
   "fullCashPayment": "بشپړ نقدي تادیه",
   "mixPayment": "نقد او ترلاسه کېدونکی",
-  "grandTotalCashFlow": "د نغدو پیسو ټولیز جریان"
+  "grandTotalCashFlow": "د نغدو پیسو ټولیز جریان",
+  "payableAmount": "د ورکولو پیسه"
 }

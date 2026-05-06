@@ -1101,5 +1101,6 @@
   "fullCreditMessage": "Total Invoice Amount Added to Receivable",
   "fullCashPayment": "Full Cash Payment",
   "mixPayment": "Cash and Receivable",
-  "grandTotalCashFlow": "GRAND TOTAL CASH FLOW"
+  "grandTotalCashFlow": "GRAND TOTAL CASH FLOW",
+  "payableAmount": "Account Payable"
 }

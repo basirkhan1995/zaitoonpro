@@ -1133,7 +1133,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                         ] else if (current.paymentMode ==
                             PaymentMode.credit) ...[
                           AmountDisplay(
-                            title: tr.creditPayment,
+                            title: tr.payableAmount,
                             baseAmount: current.creditAmount,
                             baseCurrency: baseCurrency,
                             convertedAmount:

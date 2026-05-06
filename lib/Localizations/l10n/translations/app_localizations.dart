@@ -6591,6 +6591,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'GRAND TOTAL CASH FLOW'**
   String get grandTotalCashFlow;
+
+  /// No description provided for @payableAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Account Payable'**
+  String get payableAmount;
 }
 
 class _AppLocalizationsDelegate

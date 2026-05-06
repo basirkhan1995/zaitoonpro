@@ -79,7 +79,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     } else if (paymentMode == PaymentMode.mixed) {
       return subtotal - cashPayment; // Remaining after cash payment
     } else if (paymentMode == PaymentMode.cash) {
-      return 0.0; // No supplier account payment in cash mode
+      return 0.0;
     }
     return 0.0;
   }
@@ -95,9 +95,9 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
 
   double get creditAmount {
     if (paymentMode == PaymentMode.credit) {
-      return totalInvoice;
+      return subtotal;
     } else if (paymentMode == PaymentMode.mixed) {
-      return totalInvoice - cashPayment;
+      return subtotal - cashPayment;
     }
     return 0.0;
   }

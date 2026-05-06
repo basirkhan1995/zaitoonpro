@@ -3334,4 +3334,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get grandTotalCashFlow => 'GRAND TOTAL CASH FLOW';
+
+  @override
+  String get payableAmount => 'Account Payable';
 }

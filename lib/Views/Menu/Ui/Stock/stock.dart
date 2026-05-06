@@ -543,7 +543,9 @@ class _StockViewState extends State<StockView> {
         return ZFormDialog(
           padding: const EdgeInsets.all(14),
           width: 500,
-          onAction: () {},
+          onAction: () {
+
+          },
           actionLabel: Text(tr.submit),
           title: tr.findInvoice,
           child: Column(

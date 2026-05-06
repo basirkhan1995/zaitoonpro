@@ -7,7 +7,6 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
-import 'package:zaitoonpro/Localizations/Bloc/localizations_bloc.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
@@ -19,6 +18,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/search_field.dart';
+import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
@@ -535,12 +535,11 @@ class _TabletOrdersViewState extends State<_TabletOrdersView> {
                           final isCopied = _copiedStates[ord.ordTrnRef ?? ""] ?? false;
                           final reference = ord.ordTrnRef ?? "";
 
-
                           return InkWell(
                             onTap: () {
                               Utils.goto(
                                 context,
-                                 ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : NewPurchaseOrderView()
+                                 ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId,ref: ord.ordTrnRef) : NewPurchaseOrderView(orderId: ord.ordId,ref: ord.ordTrnRef!)
                               );
                             },
                             child: Container(
@@ -653,7 +652,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
   String? baseCurrency;
   final Map<String, bool> _copiedStates = {};
   final TextEditingController searchController = TextEditingController();
-
+  final invController = TextEditingController();
   // Multi-select related variables
   final Set<int> _selectedOrderIds = {};
   bool _isSelectionMode = false;
@@ -735,6 +734,13 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
       // Exit selection mode completely when deselect all
       _isSelectionMode = false;
     });
+  }
+
+  void getInvoice({required String invoiceId, required String ref, required String ord}){
+    Utils.goto(
+        context,
+        ord == "Sale"? NewSaleView(orderId: invoiceId, ref: ref) : NewPurchaseOrderView(orderId: invoiceId, ref: ref)
+    );
   }
 
   Future<void> _updateSelectedOrdersStatus() async {
@@ -906,6 +912,19 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     ),
                   ),
 
+                  Expanded(
+                    flex: 2,
+                    child: ZTextFieldEntitled(
+                      icon: Icons.numbers,
+                      onSubmit: (e) {
+                     // getInvoice(invoiceId: ord, ref: ref, ord: ord)
+                      },
+                      controller: invController,
+                      hint: "",
+                      title: '',
+                    ),
+                  ),
+
                   // Selection Mode Actions
                   if (_isSelectionMode) ...[
                     ZOutlineButton(
@@ -940,7 +959,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8),
               decoration: BoxDecoration(
-                color: color.outline.withValues(alpha: .06),
+                color: color.outline.withValues(alpha: .08),
               ),
               child: Row(
                 children: [
@@ -964,10 +983,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     width: 160,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 15),
-                      child: Directionality(
-                        textDirection: context.read<LocalizationBloc>().state.languageCode == "en"? TextDirection.rtl : TextDirection.ltr,
-                        child: Text(tr.totalInvoice,style: titleStyle),
-                      ),
+                      child: Text(tr.totalInvoice,style: titleStyle),
                     ),
                   ),
                     SizedBox(width: 115, child: Text(tr.status,style: titleStyle)),
@@ -1084,7 +1100,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                   } else {
                                     Utils.goto(
                                         context,
-                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : NewPurchaseOrderView(orderId: ord.ordId)
+                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : NewPurchaseOrderView(orderId: ord.ordId, ref: ord.ordTrnRef??"")
                                     );
                                   }
                                 },
@@ -1232,17 +1248,14 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 15),
                                         width: 160,
-                                        child: Directionality(
-                                          textDirection: context.read<LocalizationBloc>().state.languageCode == "en"? TextDirection.rtl : TextDirection.ltr,
-                                          child: Text(
-                                            "${ord.totalBill?.toAmount()} $baseCurrency",
-                                            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.normal,
-                                              color: isSelected ? color.primary : null,
-                                              fontSize: 14
-                                            ),
-                                            textAlign: TextAlign.start,
+                                        child: Text(
+                                          "${ord.totalBill?.toAmount()} $baseCurrency",
+                                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                            fontWeight: isSelected ? FontWeight.w500 : FontWeight.bold,
+                                            color: isSelected ? color.primary : null,
+                                            fontSize: 14
                                           ),
+                                          textAlign: TextAlign.start,
                                         ),
                                       ),
 

@@ -46,13 +46,13 @@ import 'model/purchase_invoice_items.dart';
 class NewPurchaseOrderView extends StatelessWidget {
   final dynamic orderId;
   final String? ref;
-  const NewPurchaseOrderView({super.key,this.orderId,this.ref});
+  const NewPurchaseOrderView({super.key,this.orderId, this.ref});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
       mobile: const _MobilePurchaseOrderView(),
-      desktop:  _DesktopPurchaseOrderView(orderId,ref),
+      desktop:  _DesktopPurchaseOrderView(orderId, ref),
       tablet: const _TabletPurchaseOrderView(),
     );
   }

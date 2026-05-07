@@ -43,15 +43,14 @@ import 'model/sale_invoice_items.dart';
 
 class NewSaleView extends StatelessWidget {
   final dynamic orderId;
-  final String? ref;
-  const NewSaleView({super.key, this.orderId,this.ref});
+  const NewSaleView({super.key, this.orderId});
 
   @override
   Widget build(BuildContext context) {
     return ResponsiveLayout(
-      mobile: _DesktopNewSaleView(orderId,ref),
-      desktop: _DesktopNewSaleView(orderId,ref),
-      tablet: _DesktopNewSaleView(orderId,ref),
+      mobile: _DesktopNewSaleView(orderId),
+      desktop: _DesktopNewSaleView(orderId),
+      tablet: _DesktopNewSaleView(orderId),
     );
   }
 }
@@ -59,8 +58,7 @@ class NewSaleView extends StatelessWidget {
 
 class _DesktopNewSaleView extends StatefulWidget {
   final dynamic orderId;
-  final String? ref;
-  const _DesktopNewSaleView(this.orderId,this.ref);
+  const _DesktopNewSaleView(this.orderId);
 
   @override
   State<_DesktopNewSaleView> createState() => _DesktopNewSaleViewState();
@@ -68,7 +66,7 @@ class _DesktopNewSaleView extends StatefulWidget {
 class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _personController = TextEditingController();
-  final TextEditingController _xRefController = TextEditingController();
+  final TextEditingController _reference = TextEditingController();
   final TextEditingController _remarkController = TextEditingController();
   final TextEditingController _generalDiscountController = TextEditingController();
   final TextEditingController _exchangeRateController = TextEditingController();
@@ -94,7 +92,15 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
   void _confirmDeleteOrder() {
     final tr = AppLocalizations.of(context)!;
+    final saleState = context.read<SaleInvoiceBloc>().state;
 
+
+    String? ref;
+    int? ordId;
+    if (saleState is SaleInvoiceLoaded) {
+      ref = saleState.trnRef;
+      ordId = saleState.orderId;
+    }
     showDialog(
       context: context,
       builder: (context) => ZAlertDialog(
@@ -103,9 +109,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           onYes: (){
             context.read<OrdersBloc>().add(
               DeleteOrderEvent(
-                orderId: widget.orderId!,
+                orderId: ordId!,
                 usrName: _userName??"",
-                ref: widget.ref,
+                ref: ref,
                 orderName: 'Sale',
               ),
             );
@@ -269,7 +275,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
     _accountController.dispose();
     _personController.dispose();
-    _xRefController.dispose();
+    _reference.dispose();
     _remarkController.dispose();
     _generalDiscountController.dispose();
     _exchangeRateController.dispose();
@@ -420,7 +426,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 }
 
                 // Set reference and remark
-                _xRefController.text = state.xRef ?? '';
+                _reference.text = state.trnRef ?? '';
                 _remarkController.text = state.remark ?? '';
 
                 // Set exchange rate
@@ -886,7 +892,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   void _clearAllControllers() {
     _accountController.clear();
     _personController.clear();
-    _xRefController.clear();
+    _reference.clear();
     _remarkController.clear();
     _generalDiscountController.clear();
     _exchangeRateController.clear();
@@ -2071,7 +2077,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         usrName: _userName ?? '',
         orderName: "Sale",
         ordPersonal: state.customer!.perId!,
-        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        reference: _reference.text.isNotEmpty ? _reference.text : null,
         remark: _remarkController.text.isNotEmpty ? _remarkController.text : null,
         completer: completer,
       ),
@@ -2135,7 +2141,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return InvoicePrintService().printInvoicePreview(
             invoiceType: "Sale",
             invoiceNumber: finalInvoiceNumber,
-            reference: _xRefController.text,
+            reference: _reference.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
             items: invoiceItems,
@@ -2163,7 +2169,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return InvoicePrintService().printInvoiceDocument(
             invoiceType: "Sale",
             invoiceNumber: finalInvoiceNumber,
-            reference: _xRefController.text,
+            reference: _reference.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
             items: invoiceItems,
@@ -2193,7 +2199,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return InvoicePrintService().createInvoiceDocument(
             invoiceType: "Sale",
             invoiceNumber: finalInvoiceNumber,
-            reference: _xRefController.text,
+            reference: _reference.text,
             invoiceDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
             items: invoiceItems,
@@ -2273,7 +2279,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return StockDocumentPrintService().previewStockDocument(
             documentType: "Sale",
             documentNumber: finalInvoiceNumber,
-            reference: _xRefController.text,
+            reference: _reference.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
             items: stockItems,
@@ -2288,7 +2294,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return StockDocumentPrintService().printStockDocument(
             documentType: "Sale",
             documentNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
-            reference: _xRefController.text,
+            reference: _reference.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
             items: stockItems,
@@ -2305,7 +2311,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return StockDocumentPrintService().createStockDocument(
             documentType: "Sale",
             documentNumber: finalInvoiceNumber,  // USE finalInvoiceNumber HERE
-            reference: _xRefController.text,
+            reference: _reference.text,
             documentDate: DateTime.now(),
             customerSupplierName: current!.customer?.perName ?? "",
             items: stockItems,

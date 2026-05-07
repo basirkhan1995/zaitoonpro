@@ -32,6 +32,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final String? cashCurrency;
   final double cashExchangeRate;
   final String? xRef;
+  final String? reference;
   final String? remark;
   final int? orderId;
 
@@ -49,6 +50,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     this.cashCurrency,
     this.cashExchangeRate = 1.0,
     this.xRef,
+    this.reference,
     this.remark,
     this.orderId
   });
@@ -186,9 +188,6 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     return subtotal + totalExpenses;
   }
 
-
-
-
   PurchaseInvoiceLoaded copyWith({
     List<PurchaseInvoiceItem>? items,
     List<PurchasePaymentRecord>? payments,
@@ -203,6 +202,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     String? cashCurrency,
     double? cashExchangeRate,
     String? xRef,
+    String? reference,
     String? remark,
     int? orderId,
   }) {
@@ -220,6 +220,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       cashCurrency: cashCurrency ?? this.cashCurrency,
       cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
       xRef: xRef ?? this.xRef,
+      reference: reference ?? this.reference,
       remark: remark ?? this.remark,
       orderId: orderId ?? this.orderId
 
@@ -241,6 +242,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     cashCurrency,
     cashExchangeRate,
     xRef,
+    reference,
     remark,
     orderId,
   ];

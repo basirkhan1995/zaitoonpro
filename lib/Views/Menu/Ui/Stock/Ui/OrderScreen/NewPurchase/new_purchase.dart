@@ -20,6 +20,7 @@ import '../../../../../../../Features/Generic/purchase_product_field.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Generic/underline_searchable_textfield.dart';
+import '../../../../../../../Features/Other/alert_dialog.dart';
 import '../../../../../../../Features/Other/thousand_separator.dart';
 import '../../../../../../../Features/Other/utils.dart';
 import '../../../../../../../Features/Other/zForm_dialog.dart';
@@ -78,34 +79,28 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   void _confirmDeleteOrder() {
     final tr = AppLocalizations.of(context)!;
-
+    final purState = context.read<PurchaseInvoiceBloc>().state;
+    String? ref;
+    int? ordId;
+    if (purState is PurchaseInvoiceLoaded) {
+      ref = purState.reference;
+      ordId = purState.orderId;
+    }
     showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(tr.areYouSure),
-        content: Text('Confirm Delete Order #${widget.orderId}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(tr.cancel),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
+        context: context,
+        builder: (context) => ZAlertDialog(
+            title: tr.areYouSure,
+            content: tr.deleteMessage,
+            onYes: (){
               context.read<OrdersBloc>().add(
                 DeleteOrderEvent(
-                  orderId: widget.orderId,
+                  orderId: ordId!,
                   usrName: _userName??"",
-                  ref: widget.ref,
+                  ref: ref,
                   orderName: 'Purchase',
                 ),
               );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(tr.delete),
-          ),
-        ],
-      ),
+            })
     );
   }
   void _showExpensesDialog(BuildContext context) {

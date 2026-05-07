@@ -910,7 +910,7 @@ class _DesktopState extends State<_Desktop> {
                           onTap: (){
                             Utils.goto(
                                 context,
-                                stock.entryType == "OUT"? NewSaleView(orderId: stock.orderId, ref: null) : NewPurchaseOrderView(orderId: stock.orderId)
+                                stock.entryType == "OUT"? NewSaleView(orderId: stock.orderId) : NewPurchaseOrderView(orderId: stock.orderId)
                             );
                           },
                           child: Container(

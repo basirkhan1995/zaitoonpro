@@ -539,7 +539,7 @@ class _TabletOrdersViewState extends State<_TabletOrdersView> {
                             onTap: () {
                               Utils.goto(
                                 context,
-                                 ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId,ref: ord.ordTrnRef) : NewPurchaseOrderView(orderId: ord.ordId,ref: ord.ordTrnRef!)
+                                 ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : NewPurchaseOrderView(orderId: ord.ordId,ref: ord.ordTrnRef!)
                               );
                             },
                             child: Container(
@@ -739,7 +739,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
   void getInvoice({required String invoiceId, required String ref, required String ord}){
     Utils.goto(
         context,
-        ord == "Sale"? NewSaleView(orderId: invoiceId, ref: ref) : NewPurchaseOrderView(orderId: invoiceId, ref: ref)
+        ord == "Sale"? NewSaleView(orderId: invoiceId) : NewPurchaseOrderView(orderId: invoiceId, ref: ref)
     );
   }
 
@@ -1100,7 +1100,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                   } else {
                                     Utils.goto(
                                         context,
-                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : NewPurchaseOrderView(orderId: ord.ordId, ref: ord.ordTrnRef??"")
+                                        ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : NewPurchaseOrderView(orderId: ord.ordId, ref: ord.ordTrnRef??"")
                                     );
                                   }
                                 },

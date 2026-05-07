@@ -116,7 +116,7 @@ class SaveSaleInvoiceEvent extends SaleInvoiceEvent {
   final String usrName;
   final String orderName;
   final int ordPersonal;
-  final String? xRef;
+  final String? reference;
 
   final String? remark;
   final Completer<String> completer;
@@ -125,13 +125,13 @@ class SaveSaleInvoiceEvent extends SaleInvoiceEvent {
     required this.usrName,
     required this.ordPersonal,
     required this.orderName,
-    this.xRef,
+    this.reference,
     this.remark,
     required this.completer,
   });
 
   @override
-  List<Object?> get props => [usrName, ordPersonal, orderName, xRef, remark, completer];
+  List<Object?> get props => [usrName, ordPersonal, orderName, reference, remark, completer];
 }
 
 class ClearCustomerAccountEvent extends SaleInvoiceEvent {

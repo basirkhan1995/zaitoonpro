@@ -1356,7 +1356,7 @@ class _DesktopState extends State<_Desktop> {
                       onTap: (){
                         Utils.goto(
                             context,
-                            ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId, ref: ord.ordTrnRef) : ord.ordName == "Purchase"? NewPurchaseOrderView(orderId: ord.ordId) : SizedBox()
+                            ord.ordName == "Sale"? NewSaleView(orderId: ord.ordId) : ord.ordName == "Purchase"? NewPurchaseOrderView(orderId: ord.ordId) : SizedBox()
                         );
                       },
                       child: Container(

@@ -34,7 +34,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final double cashPayment;
   final String? cashCurrency;
   final double cashExchangeRate;
-  final String? xRef;
+  final String? trnRef;
   final String? remark;
   final int? orderId;
 
@@ -54,7 +54,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     this.cashPayment = 0.0,
     this.cashCurrency,
     this.cashExchangeRate = 1.0,
-    this.xRef,
+    this.trnRef,
     this.remark,
     this.orderId,
   });
@@ -208,7 +208,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     double? cashPayment,
     String? cashCurrency,
     double? cashExchangeRate,
-    String? xRef,
+    String? trnRef,
     String? remark,
     int? orderId,
   }) {
@@ -228,7 +228,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       cashPayment: cashPayment ?? this.cashPayment,
       cashCurrency: cashCurrency ?? this.cashCurrency,
       cashExchangeRate: cashExchangeRate ?? this.cashExchangeRate,
-      xRef: xRef ?? this.xRef,
+      trnRef: trnRef ?? this.trnRef,
       remark: remark ?? this.remark,
       orderId: orderId ?? this.orderId
     );
@@ -238,7 +238,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   List<Object?> get props => [
     items, payments, customer, customerAccount, paymentMode, storages,
     generalDiscount, generalDiscountType, exchangeRate, fromCurrency,
-    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate, xRef, remark, orderId
+    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate, trnRef, remark, orderId
   ];
 }
 

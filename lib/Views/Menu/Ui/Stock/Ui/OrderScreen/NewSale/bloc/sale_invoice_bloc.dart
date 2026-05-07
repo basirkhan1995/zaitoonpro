@@ -241,7 +241,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         extraCharges: extraCharges,
         generalDiscount: finalGeneralDiscount,
         generalDiscountType: generalDiscountType,
-        xRef: parsed['reference'],
+        trnRef: parsed['reference'],
         remark: parsed['remarks'],
         orderId: orderId
       ));
@@ -742,7 +742,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         );
       }).toList();
 
-      final xRef = event.xRef ?? '';
+      final xRef = event.reference ?? '';
 
       // FIX: Ensure baseCurrency is not empty - get from auth state if needed
       final baseCurrency = current.fromCurrency ?? '';

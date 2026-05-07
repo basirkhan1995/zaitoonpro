@@ -35,6 +35,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
   final String? reference;
   final String? remark;
   final int? orderId;
+  final String? ordName;
 
   const PurchaseInvoiceLoaded({
     required this.items,
@@ -52,7 +53,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     this.xRef,
     this.reference,
     this.remark,
-    this.orderId
+    this.orderId,
+    this.ordName,
   });
 
   List<PurchasePaymentRecord> get expenses =>
@@ -205,6 +207,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     String? reference,
     String? remark,
     int? orderId,
+    String? ordName,
   }) {
     return PurchaseInvoiceLoaded(
       items: items ?? this.items,
@@ -222,7 +225,8 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
       xRef: xRef ?? this.xRef,
       reference: reference ?? this.reference,
       remark: remark ?? this.remark,
-      orderId: orderId ?? this.orderId
+      orderId: orderId ?? this.orderId,
+      ordName: ordName ?? this.ordName,
 
     );
   }
@@ -245,6 +249,7 @@ class PurchaseInvoiceLoaded extends PurchaseInvoiceState {
     reference,
     remark,
     orderId,
+    ordName,
   ];
 }
 

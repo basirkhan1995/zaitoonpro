@@ -243,6 +243,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         generalDiscountType: generalDiscountType,
         trnRef: parsed['reference'],
         remark: parsed['remarks'],
+        ordName: parsed['orderType'],
         orderId: orderId
       ));
 

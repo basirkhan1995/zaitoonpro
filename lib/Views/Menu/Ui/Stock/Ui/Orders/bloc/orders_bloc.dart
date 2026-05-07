@@ -13,6 +13,7 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     on<LoadOrdersEvent>(_onLoadOrders);
     on<UpdateOrdersStatusEvent>(_onUpdateOrdersStatus);
     on<DeleteOrderEvent>(_onDeleteOrder);
+    on<LoadOrderByIdEvent>(_getOrderById);
   }
 
   Future<void> _onLoadOrders(LoadOrdersEvent event, Emitter<OrdersState> emit) async {
@@ -20,6 +21,16 @@ class OrdersBloc extends Bloc<OrdersEvent, OrdersState> {
     try {
       final orders = await _repo.getOrders(orderId: event.orderId);
       emit(OrdersLoadedState(orders));
+    } catch(e) {
+      emit(OrdersErrorState(e.toString()));
+    }
+  }
+
+  Future<void> _getOrderById(LoadOrderByIdEvent event, Emitter<OrdersState> emit) async {
+    emit(OrdersLoadingState());
+    try {
+      final orders = await _repo.getOrderById(orderId: event.orderId);
+      emit(SingleOrderLoadedState(orders));
     } catch(e) {
       emit(OrdersErrorState(e.toString()));
     }

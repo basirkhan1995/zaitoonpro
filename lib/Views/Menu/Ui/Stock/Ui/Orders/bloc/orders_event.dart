@@ -5,8 +5,16 @@ sealed class OrdersEvent extends Equatable {
 }
 
 class LoadOrdersEvent extends OrdersEvent {
-  final int? orderId;
+  final dynamic orderId;
   const LoadOrdersEvent({this.orderId});
+
+  @override
+  List<Object?> get props => [orderId];
+}
+
+class LoadOrderByIdEvent extends OrdersEvent {
+  final dynamic orderId;
+  const LoadOrderByIdEvent({this.orderId});
 
   @override
   List<Object?> get props => [orderId];

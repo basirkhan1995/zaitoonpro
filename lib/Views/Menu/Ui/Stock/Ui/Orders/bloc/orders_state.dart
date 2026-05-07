@@ -35,6 +35,15 @@ final class OrdersLoadedState extends OrdersState {
   List<Object> get props => [order];
 }
 
+final class SingleOrderLoadedState extends OrdersState {
+  final Map<String, dynamic> order;
+  const SingleOrderLoadedState(this.order);
+
+  @override
+  List<Object> get props => [order];
+}
+
+
 final class OrdersStatusUpdatingState extends OrdersState {
   @override
   List<Object> get props => [];

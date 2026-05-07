@@ -181,6 +181,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           cashExchangeRate: exchangeRate,
           xRef: parsed['reference'],
           remark: parsed['remarks'],
+          ordName: parsed['orderType'],
           orderId: orderId
       ));
 

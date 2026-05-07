@@ -1458,6 +1458,46 @@ class Repositories {
     return [];
   }
 
+  Future<Map<String, dynamic>> getOrderById({
+    required dynamic orderId,
+    CancelToken? cancelToken,
+  }) async {
+
+    final value = orderId.toString().trim();
+    final queryParams = <String, dynamic>{};
+
+    if (int.tryParse(value) != null) {
+      queryParams['ordID'] = value;
+    } else {
+      queryParams['ordRef'] = value;
+    }
+
+    final response = await api.get(
+      endpoint: "/inventory/salePurchase.php",
+      queryParams: queryParams,
+      cancelToken: cancelToken,
+    );
+
+    if (response.data is Map<String, dynamic> &&
+        response.data['msg'] != null) {
+      throw Exception(response.data['msg']);
+    }
+
+    if (response.data == null) {
+      throw Exception("Invoice not found");
+    }
+
+    if (response.data is Map<String, dynamic>) {
+      return response.data;
+    }
+
+    if (response.data is List && response.data.isNotEmpty) {
+      return Map<String, dynamic>.from(response.data.first);
+    }
+
+    throw Exception("Invoice not found");
+  }
+
   ///Adjustment
   Future<List<AdjustmentModel>> allAdjustments() async {
     final response = await api.get(endpoint: "/inventory/adjustment.php");

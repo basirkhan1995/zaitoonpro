@@ -18,7 +18,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/search_field.dart';
-import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Features/Widgets/txn_status_widget.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
@@ -937,7 +936,7 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     child: ZSearchField(
                       icon: FontAwesomeIcons.magnifyingGlass,
                       controller: searchController,
-                      hint: AppLocalizations.of(context)!.orderSearchHint,
+                      hint: AppLocalizations.of(context)!.search,
                       onChanged: (e) {
                         if (!mounted) return;
                         setState(() {
@@ -952,14 +951,15 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
 
                   Expanded(
                     flex: 2,
-                    child: ZTextFieldEntitled(
+                    child: ZSearchField(
                       onSubmit: (e) {
                        getInvoice(invoiceId: invController.text.trim());
                       },
                       controller: invController,
                       hint: "Find Invoice",
+                      icon: FontAwesomeIcons.file,
                       title: '',
-                      showClearButton: true,
+
                     ),
                   ),
 

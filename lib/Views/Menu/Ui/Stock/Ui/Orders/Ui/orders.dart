@@ -984,10 +984,10 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                     ZOutlineButton(
                       toolTip: "F5",
                       width: 120,
+                      isActive: true,
                       icon: isRefreshing
                           ? null
                           : Icons.refresh,
-
                       onPressed: isRefreshing
                           ? null
                           : onRefresh,

@@ -1894,7 +1894,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 baseColor: Colors.green.withValues(alpha: .9),
                               ),
 
-                              if(needsConversion && !isLoading)...[
                                 Divider(),
                                 AmountDisplay(
                                   title: tr.accountPayment,
@@ -1905,7 +1904,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   fontSize: 16,
                                   baseColor: Colors.green.withValues(alpha: .9),
                                 ),
-                              ]
+
 
                           ],
 
@@ -2576,6 +2575,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   // Get remaining amount in ACCOUNT CURRENCY (if account is selected)
   double get _remainingAmountInAccountCurrency {
     if (_currentState.customerAccount == null) return 0.0;
+
+    // If account currency matches base currency, don't convert
+    if (_currentState.customerAccount!.actCurrency == _baseCurrency) {
+      return _remainingAmountInBase;
+    }
+
     return _remainingAmountInBase * _currentState.safeExchangeRate;
   }
 
@@ -2700,7 +2705,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     final remainingAmountInAccountCurrency = _remainingAmountInAccountCurrency;
     final newBalanceInAccountCurrency = _newBalanceInAccountCurrency;
     final paymentMode = _calculatedPaymentMode;
-    final isPaymentComplete = remainingAmountInBase <= 0.01 || _isPureCashMode;
 
     final bool isActionEnabled;
     if (_isPureCashMode) {
@@ -2899,6 +2903,13 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
                       _updateCashPayment(amountInSelectedCurrency);
                     },
+                    end: needsCashConversion? Wrap(
+                      spacing: 5,
+                      children: [
+                        Text("${grandTotal * _cashExchangeRate}".toAmount()),
+                        Text(_selectedCashCurrency)
+                      ],
+                    ) : null,
                     showFlag: true,
                     showClearButton: true,
                     showSymbol: false,
@@ -2943,89 +2954,6 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                     SizedBox(height: 10),
                     Divider(color: Theme.of(context).colorScheme.primary, endIndent: 4, indent: 4, thickness: 1.5),
                   ],
-
-                  // LIVE PAYMENT SUMMARY
-                  ZCover(
-                    margin: const EdgeInsets.only(top: 12),
-                    padding: const EdgeInsets.all(12),
-                    radius: 8,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          spacing: 5,
-                          children: [
-                            Icon(Icons.summarize_outlined, color: Theme.of(context).colorScheme.primary, size: 20),
-                            Text(
-                              tr.paymentSummary.toUpperCase(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        AmountDisplay(
-                            title: tr.cashReceipt,
-                            baseAmount: cashAmountInBase,
-                            baseCurrency: _baseCurrency,
-                            convertedAmount: (needsCashConversion && cashAmountInBase > 0)
-                                ? _currentCashAmountInSelectedCurrency
-                                : null,
-                            convertedCurrency: _selectedCashCurrency
-                        ),
-
-                        if (!_isPureCashMode && _currentState.customerAccount != null && remainingAmountInBase > 0) ...[
-                          AmountDisplay(
-                            title: tr.accountPayment,
-                            baseAmount: remainingAmountInBase,
-                            baseCurrency: _baseCurrency,
-                            convertedAmount: (needsAccountConversion && remainingAmountInBase > 0)
-                                ? remainingAmountInAccountCurrency
-                                : null,
-                            convertedCurrency: accountCurrency,
-                          ),
-                        ],
-
-                        const Divider(height: 12),
-                        if (needsCashConversion && paymentMode == PaymentMode.cash)
-                          _infoRow(
-                            label: tr.totalReceivable,
-                            value: cashAmountInBase + remainingAmountInBase,
-                            currency: _baseCurrency,
-                            fontSize: 17,
-                            isBold: true,
-                            color: isPaymentComplete ? Colors.green : Colors.red,
-                          ),
-
-                        if (!_isPureCashMode && paymentMode == PaymentMode.mixed)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 1),
-                            child: Text(
-                              tr.mixPayment,
-                              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
-                            ),
-                          ),
-                        if (!_isPureCashMode && paymentMode == PaymentMode.cash && _currentState.customerAccount != null && isPaymentComplete)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 1),
-                            child: Text(
-                              tr.fullCashPayment,
-                              style: TextStyle(fontSize: 12, color: Colors.green),
-                            ),
-                          ),
-                        if (!_isPureCashMode && paymentMode == PaymentMode.credit && _currentState.customerAccount != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 1),
-                            child: Text(
-                              tr.fullCreditMessage,
-                              style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.outline),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
 
                   // Account Payment Exchange Rate Section
                   if (needsAccountConversion && !_isPureCashMode && _currentState.toCurrency != null) ...[
@@ -3072,13 +3000,22 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                             children: [
                               Icon(Icons.credit_card, size: 20, color: Theme.of(context).colorScheme.primary),
                               const SizedBox(width: 8),
-                              Text(tr.accountInformation.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                              Text(tr.paymentSummary.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold)),
                             ],
                           ),
                           Text("${_currentState.customerAccount?.accName} (${_currentState.customerAccount?.accNumber})", style: const TextStyle(fontWeight: FontWeight.w600)),
                         ],
                       ),
                       const SizedBox(height: 3),
+                      AmountDisplay(
+                          title: tr.cashReceipt,
+                          baseAmount: cashAmountInBase,
+                          baseCurrency: _baseCurrency,
+                          convertedAmount: (needsCashConversion && cashAmountInBase > 0)
+                              ? _currentCashAmountInSelectedCurrency
+                              : null,
+                          convertedCurrency: _selectedCashCurrency
+                      ),
                       AmountDisplay(
                         title: tr.amountAddedToAR,
                         baseAmount: remainingAmountInBase,
@@ -3092,7 +3029,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         signColor: Colors.green,
                         convertedCurrency: accountCurrency,
                       ),
-                      const SizedBox(height: 4),
+
                       Divider(),
                       const SizedBox(height: 4),
                       _infoRow(

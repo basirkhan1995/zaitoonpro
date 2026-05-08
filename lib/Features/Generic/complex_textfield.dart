@@ -605,7 +605,6 @@ class _ZGenericTextFieldState extends State<ZGenericTextField> {
                   suffix: widget.end,
                   counterText: '',
                   suffixIconConstraints: const BoxConstraints(maxWidth: 80, maxHeight: 40),
-
                   disabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(3),
                     borderSide: BorderSide(

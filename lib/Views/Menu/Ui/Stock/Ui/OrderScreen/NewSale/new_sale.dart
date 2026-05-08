@@ -635,47 +635,98 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                Expanded(
-                                  child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                                    builder: (context, state) {
-                                      if (state is SaleInvoiceLoaded) {
-                                        final current = state;
+                                if(_personController.text.isNotEmpty)...[
+                                  Expanded(
+                                    child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                                      builder: (context, state) {
+                                        if (state is SaleInvoiceLoaded) {
+                                          final current = state;
+                                          return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
+                                            key: const ValueKey('account_field'),
+                                            controller: _accountController,
+                                            title: tr.accounts,
+                                            hintText: tr.selectAccount,
+                                            isRequired: current.paymentMode != PaymentMode.cash,
+                                            validator: (value) {
+                                              if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                                return tr.selectCreditAccountMsg;
+                                              }
+                                              return null;
+                                            },
+                                            bloc: context.read<AccountsBloc>(),
+                                            fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                            searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                            itemBuilder: (context, account) => ListTile(
+                                              visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
+                                              contentPadding: const EdgeInsets.symmetric(horizontal: 5),
+                                              title: Text(account.accName ?? ''),
+                                              subtitle: Text('${account.accNumber}'),
+                                              trailing: Column(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    tr.balance,
+                                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                      color: Theme.of(context).colorScheme.outline,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                                    style: Theme.of(context).textTheme.titleSmall,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            itemToString: (account) => '${account.accName} (${account.accNumber})',
+                                            stateToLoading: (state) => state is AccountLoadingState,
+                                            stateToItems: (state) {
+                                              if (state is AccountLoadedState) {
+                                                return state.accounts;
+                                              }
+                                              return [];
+                                            },
+                                            onSelected: (value) {
+                                              setState(() {
+                                                _accountController.text = '${value.accName} (${value.accNumber})';
+                                                _selectedAccountNumber = value.accNumber;
+                                              });
+                                              context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+                                              final authState = context.read<AuthBloc>().state;
+                                              if (authState is AuthenticatedState) {
+                                                final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
+                                                final accountCurrency = value.actCurrency ?? '';
+
+                                                if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
+                                                  _fetchExchangeRate(baseCurr, accountCurrency);
+                                                } else {
+                                                  context.read<SaleInvoiceBloc>().add(
+                                                    UpdateExchangeRateEvent(
+                                                      rate: 1.0,
+                                                      fromCurrency: baseCurr,
+                                                      toCurrency: accountCurrency,
+                                                    ),
+                                                  );
+                                                  _exchangeRateController.text = "1.0000";
+                                                }
+                                              }
+                                            },
+                                            showClearButton: true,
+                                          );
+                                        }
                                         return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                           key: const ValueKey('account_field'),
                                           controller: _accountController,
                                           title: tr.accounts,
                                           hintText: tr.selectAccount,
-                                          isRequired: current.paymentMode != PaymentMode.cash,
-                                          validator: (value) {
-                                            if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
-                                              return tr.selectCreditAccountMsg;
-                                            }
-                                            return null;
-                                          },
+                                          isRequired: false,
                                           bloc: context.read<AccountsBloc>(),
-                                          fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                          searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                          fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
+                                          searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
                                           itemBuilder: (context, account) => ListTile(
-                                            visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
-                                            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                                             title: Text(account.accName ?? ''),
-                                            subtitle: Text('${account.accNumber}'),
-                                            trailing: Column(
-                                              mainAxisAlignment: MainAxisAlignment.start,
-                                              crossAxisAlignment: CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  tr.balance,
-                                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                                    color: Theme.of(context).colorScheme.outline,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
-                                                  style: Theme.of(context).textTheme.titleSmall,
-                                                ),
-                                              ],
-                                            ),
+                                            subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                            trailing: Text(account.actCurrency ?? ""),
                                           ),
                                           itemToString: (account) => '${account.accName} (${account.accNumber})',
                                           stateToLoading: (state) => state is AccountLoadingState,
@@ -690,7 +741,9 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                               _accountController.text = '${value.accName} (${value.accNumber})';
                                               _selectedAccountNumber = value.accNumber;
                                             });
+
                                             context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+
                                             final authState = context.read<AuthBloc>().state;
                                             if (authState is AuthenticatedState) {
                                               final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
@@ -712,62 +765,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                           },
                                           showClearButton: true,
                                         );
-                                      }
-                                      return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
-                                        key: const ValueKey('account_field'),
-                                        controller: _accountController,
-                                        title: tr.accounts,
-                                        hintText: tr.selectAccount,
-                                        isRequired: false,
-                                        bloc: context.read<AccountsBloc>(),
-                                        fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                                        searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
-                                        itemBuilder: (context, account) => ListTile(
-                                          title: Text(account.accName ?? ''),
-                                          subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
-                                          trailing: Text(account.actCurrency ?? ""),
-                                        ),
-                                        itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                        stateToLoading: (state) => state is AccountLoadingState,
-                                        stateToItems: (state) {
-                                          if (state is AccountLoadedState) {
-                                            return state.accounts;
-                                          }
-                                          return [];
-                                        },
-                                        onSelected: (value) {
-                                          setState(() {
-                                            _accountController.text = '${value.accName} (${value.accNumber})';
-                                            _selectedAccountNumber = value.accNumber;
-                                          });
-
-                                          context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
-
-                                          final authState = context.read<AuthBloc>().state;
-                                          if (authState is AuthenticatedState) {
-                                            final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
-                                            final accountCurrency = value.actCurrency ?? '';
-
-                                            if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
-                                              _fetchExchangeRate(baseCurr, accountCurrency);
-                                            } else {
-                                              context.read<SaleInvoiceBloc>().add(
-                                                UpdateExchangeRateEvent(
-                                                  rate: 1.0,
-                                                  fromCurrency: baseCurr,
-                                                  toCurrency: accountCurrency,
-                                                ),
-                                              );
-                                              _exchangeRateController.text = "1.0000";
-                                            }
-                                          }
-                                        },
-                                        showClearButton: true,
-                                      );
-                                    },
+                                      },
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 4),
+                                  const SizedBox(width: 4),
+                                ],
+
                                 BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                                   builder: (context, state) {
                                     // Check condition INSIDE the builder
@@ -2952,11 +2955,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                       ],
                     ),
                     SizedBox(height: 10),
-                    Divider(color: Theme.of(context).colorScheme.primary, endIndent: 4, indent: 4, thickness: 1.5),
                   ],
 
                   // Account Payment Exchange Rate Section
+                  if (!_isPureCashMode && _currentState.customerAccount != null && remainingAmountInBase > 0)
                   if (needsAccountConversion && !_isPureCashMode && _currentState.toCurrency != null) ...[
+                    Divider(color: Theme.of(context).colorScheme.primary, endIndent: 4, indent: 4, thickness: 1.5),
                     const SizedBox(height: 8),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.end,

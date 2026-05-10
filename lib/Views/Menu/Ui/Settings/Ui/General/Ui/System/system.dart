@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/General/Ui/System/theme_toggle.dart';
 import '../../../../../../../../Features/Generic/generic_drop.dart';
 import '../../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../../Features/Other/labled_checkbox.dart';
 import '../../../../../../../../Features/Other/responsive.dart';
 import '../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../../../Localizations/locale_selector.dart';
-import '../../../../../../../../Themes/Ui/theme_selector.dart';
 import '../../../../features/Visibility/bloc/settings_visible_bloc.dart';
 import '../features/date_type.dart';
 
@@ -50,10 +50,22 @@ class _Desktop extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 spacing: 8,
                 children: [
-                  ThemeSelector(
+                  // For the first toggle style
+                  // ThemeToggleSelector(
+                  //   title: "Theme Mode",
+                  //   width: double.infinity,
+                  //   padding: const EdgeInsets.symmetric(horizontal: 16),
+                  //   margin: const EdgeInsets.symmetric(vertical: 8),
+                  // ),
+
+                   // Force segmented Android style
+                  ThemeSelectorWidget(
                     width: 330,
-                    title: AppLocalizations.of(context)!.theme,
+                    title: "Theme",
+                    style: ThemeSelectorStyle.toggle,
+                    usePlatformDefault: false,
                   ),
+
                   LanguageSelector(
                     width: 330,
                     title: AppLocalizations.of(context)!.language,

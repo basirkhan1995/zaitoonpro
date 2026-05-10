@@ -2901,9 +2901,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         return;
                       }
 
-                      final amountInSelectedCurrency =
-                          double.tryParse(value.replaceAll(',', '')) ?? 0;
-
+                      final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
                       _updateCashPayment(amountInSelectedCurrency);
                     },
                     end: needsCashConversion? Wrap(
@@ -2929,15 +2927,12 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                         Expanded(
                           child: ZTextFieldEntitled(
                             controller: _cashExchangeRateController,
-                            title: "${tr.exchangeRate} (1 $_baseCurrency = ? $_selectedCashCurrency)",
-                            hint: "1 $_baseCurrency = ?",
-                            readOnly: _isPureCashMode, // Make read-only in pure cash mode
+                            title: "${tr.exchangeRate} (1 $_baseCurrency = $_selectedCashCurrency)",
+                            hint: "1 $_baseCurrency = ",
                             inputFormat: [
                               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
                             ],
                             onChanged: (value) {
-                              if (_isPureCashMode) return; // Don't allow rate changes in pure cash mode
-
                               final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
                               if (rate > 0) {
                                 _updateCashExchangeRate(rate);

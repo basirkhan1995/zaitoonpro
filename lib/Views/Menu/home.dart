@@ -397,7 +397,7 @@ class _MenuFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4),
       child: Column(
         mainAxisAlignment: isExpanded
             ? MainAxisAlignment.start
@@ -408,9 +408,9 @@ class _MenuFooter extends StatelessWidget {
         children: [
           InkWell(
             onTap: onProfileTap,
-            child: Row(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ImageHelper.stakeholderProfile(
                   imageName: usrPhoto,
@@ -428,24 +428,22 @@ class _MenuFooter extends StatelessWidget {
                 if (isExpanded) const SizedBox(width: 5),
 
                 if (isExpanded)
-                  Expanded(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          adminName,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          usrRole,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11),
-                        ),
-                      ],
-                    ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        adminName,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        usrRole,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 11),
+                      ),
+                    ],
                   ),
               ],
             ),

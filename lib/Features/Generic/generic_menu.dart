@@ -501,13 +501,6 @@ class _GenericMenuWithScreenState<T> extends State<GenericMenuWithScreen<T>> {
               flex: 1,
               child: Container(
                 margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 2),
-                // decoration: BoxDecoration(
-                //   border: Border.all(
-                //     color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
-                //   ),
-                //   borderRadius: BorderRadius.circular(5),
-                //   color: Theme.of(context).colorScheme.surface,
-                // ),
                 child: selectedItem.screen,
               ),
             ),

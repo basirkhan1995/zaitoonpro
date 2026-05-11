@@ -212,6 +212,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
       );
     }
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is UnAuthenticatedState) {

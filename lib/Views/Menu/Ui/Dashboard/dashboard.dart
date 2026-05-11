@@ -181,72 +181,76 @@ class _Desktop extends StatelessWidget {
     }
     final login = state.loginData;
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: SingleChildScrollView(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                  //Stats Count - Total Accounts, Total Stakeholders ...
-                  if (login.hasPermission(2) ?? false) ...[
-                    if (visibility.statsCount) ...[
-                      DashboardStatsView(),
+                    //Stats Count - Total Accounts, Total Stakeholders ...
+                    if (login.hasPermission(2) ?? false) ...[
+                      if (visibility.statsCount) ...[
+                        DashboardStatsView(),
+                      ],
                     ],
+
+                      //Exchange Rate Graph
+                      if (login.hasPermission(3) ?? false) ...[
+                        SizedBox(height: 400, child: FxRateDashboardChart()),
+                      ],
+
+                      if (login.hasPermission(4) ?? false) ...[
+                        TotalDailyColumnView(),
+                      ],
+
+                    if (login.hasPermission(5) ?? false) ...[
+                      const TotalDailyTxnView(),
+                    ],
+
                   ],
-
-                    //Exchange Rate Graph
-                    if (login.hasPermission(3) ?? false) ...[
-                      SizedBox(height: 400, child: FxRateDashboardChart()),
-                    ],
-
-                    if (login.hasPermission(4) ?? false) ...[
-                      TotalDailyColumnView(),
-                    ],
-
-                  if (login.hasPermission(5) ?? false) ...[
-                    const TotalDailyTxnView(),
-                  ],
-
-                ],
+                ),
               ),
-            ),
 
-            SizedBox(
-              width: 500,
-              child: Column(
-                children: [
-                  if (login.hasPermission(6) ?? false) ...[
-                    if (visibility.dashboardClock) ...[
-                      const DigitalClock(),
-                      SizedBox(height: 3),
+              SizedBox(
+                width: 500,
+                child: Column(
+                  children: [
+                    if (login.hasPermission(6) ?? false) ...[
+                      if (visibility.dashboardClock) ...[
+                        const DigitalClock(),
+                        SizedBox(height: 3),
+                      ],
+                    ],
+
+                    //Exchange Rate Widget
+                    if (login.hasPermission(7) ?? false) ...[
+                      if (visibility.exchangeRate) ...[
+                        ExchangeRateDashboardView(),
+                      ],
+                    ],
+
+                    //Profit & Loss Graph
+                    if (login.hasPermission(8) ?? false) ...[
+                      if (visibility.profitAndLoss) ...[
+                        DailyGrossView(),
+                      ],
+                    ],
+
+                    //Reminder
+                    if (login.hasPermission(9) ?? false) ...[
+                      DashboardAlertReminder(),
                     ],
                   ],
-
-                  //Exchange Rate Widget
-                  if (login.hasPermission(7) ?? false) ...[
-                    if (visibility.exchangeRate) ...[
-                      ExchangeRateDashboardView(),
-                    ],
-                  ],
-
-                  //Profit & Loss Graph
-                  if (login.hasPermission(8) ?? false) ...[
-                    if (visibility.profitAndLoss) ...[
-                      DailyGrossView(),
-                    ],
-                  ],
-
-                  //Reminder
-                  if (login.hasPermission(9) ?? false) ...[
-                    DashboardAlertReminder(),
-                  ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

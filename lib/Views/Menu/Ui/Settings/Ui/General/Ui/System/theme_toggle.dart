@@ -400,7 +400,7 @@ class ThemeToggleSelector extends StatelessWidget {
               color: color.surface,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: color.outline.withValues(alpha: 0.15),
+                color: color.outline.withValues(alpha: 0.25),
               ),
             ),
             child: Row(
@@ -413,13 +413,18 @@ class ThemeToggleSelector extends StatelessWidget {
                       themeCubit.add(ChangeThemeEvent(option.mode));
                     },
                     child: Container(
+
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
                         vertical: 12,
                       ),
                       decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isSelected? color.primary : Colors.transparent,
+                          width: 0.8
+                        ),
                         color: isSelected
-                            ? color.primaryContainer.withValues(alpha: 0.9)
+                            ? color.primaryContainer.withValues(alpha: 0.5)
                             : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -428,7 +433,7 @@ class ThemeToggleSelector extends StatelessWidget {
                         children: [
                           Icon(
                             option.icon,
-                            size: 24,
+                            size: 26,
                             color: isSelected
                                 ? color.primary
                                 : color.onSurface.withValues(alpha: 0.6),
@@ -438,7 +443,7 @@ class ThemeToggleSelector extends StatelessWidget {
                             option.label,
                             textAlign: TextAlign.center,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 15,
                               fontWeight: isSelected
                                   ? FontWeight.w600
                                   : FontWeight.w400,

@@ -206,7 +206,7 @@ class _AddAdjustmentViewState extends State<AddAdjustmentView> {
                             ),
                           ),
                           validator: (value) {
-                            if (value.isEmpty) {
+                            if (value == null && value!.isEmpty) {
                               return 'Please select an expense account';
                             }
                             return null;

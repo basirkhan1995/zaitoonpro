@@ -609,7 +609,7 @@
   "cannotMarkDeliveredMsg": "د سپارلو په توګه نښه کېدای نه شي. پیسې بشپړې شوې نه دي",
   "supplier": "فروشنده",
   "purchaseEntry": "بل خرید",
-  "unitPrice": "قیمت واحد",
+  "unitPrice": "نرخ",
   "qty": "تعداد",
   "addItem": "توکی اضافه",
   "invoiceNumber": "نمبر بل #",

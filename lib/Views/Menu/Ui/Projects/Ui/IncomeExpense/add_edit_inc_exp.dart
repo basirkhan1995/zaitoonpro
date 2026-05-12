@@ -1182,7 +1182,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                     ),
                   ),
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value == null && value!.isEmpty) {
                       return tr.required(tr.accounts);
                     }
                     return null;

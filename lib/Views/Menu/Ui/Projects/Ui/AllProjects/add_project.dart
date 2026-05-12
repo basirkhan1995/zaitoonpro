@@ -210,7 +210,7 @@ class _MobileContentState extends State<_MobileContent> {
               fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
               searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
               validator: (value) {
-                if (value.isEmpty) {
+                if (value == null && value!.isEmpty) {
                   return tr.required(tr.individuals);
                 }
                 return null;
@@ -272,7 +272,7 @@ class _MobileContentState extends State<_MobileContent> {
               searchFunction: (bloc, query) =>
                   bloc.add(LoadAccountsEvent(ownerId: ownerId)),
               validator: (value) {
-                if (value.isEmpty) {
+                if (value == null && value!.isEmpty) {
                   return tr.required(tr.accounts);
                 }
                 return null;
@@ -584,7 +584,7 @@ class _TabletContentState extends State<_TabletContent> {
                       fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
                       searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
                       validator: (value) {
-                        if (value.isEmpty) {
+                        if (value == null && value!.isEmpty) {
                           return tr.required(tr.individuals);
                         }
                         return null;
@@ -641,7 +641,7 @@ class _TabletContentState extends State<_TabletContent> {
                       searchFunction: (bloc, query) =>
                           bloc.add(LoadAccountsEvent(ownerId: ownerId)),
                       validator: (value) {
-                        if (value.isEmpty) {
+                        if (value == null && value!.isEmpty) {
                           return tr.required(tr.accounts);
                         }
                         return null;
@@ -905,7 +905,7 @@ class _DesktopState extends State<_Desktop> {
                     fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
                     searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
                     validator: (value) {
-                      if (value.isEmpty) {
+                      if (value == null && value!.isEmpty) {
                         return tr.required(tr.individuals);
                       }
                       return null;
@@ -978,7 +978,7 @@ class _DesktopState extends State<_Desktop> {
                     searchFunction: (bloc, query) =>
                         bloc.add(LoadAccountsEvent(ownerId: ownerId)),
                     validator: (value) {
-                      if (value.isEmpty) {
+                      if (value == null && value!.isEmpty) {
                         return tr.required(tr.accounts);
                       }
                       return null;

@@ -80,7 +80,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   String? baseCurrency;
   int? signatory;
   bool _isEditMode = false;
-
+  final FocusNode _customerFocusNode = FocusNode();
+  final FocusNode _accountFocusNode = FocusNode();
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, TextEditingController> _qtyControllers = {};
   final Map<String, TextEditingController> _pcsControllers = {};
@@ -237,6 +238,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _customerFocusNode.requestFocus();
+      _accountFocusNode.requestFocus();
       final saleBloc = context.read<SaleInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
 
@@ -263,6 +266,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
   @override
   void dispose() {
+    _customerFocusNode.dispose();
+    _accountFocusNode.dispose();
     _debounce?.cancel();
     for (final row in _rowFocusNodes) {
       for (final node in row) {
@@ -270,7 +275,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       }
     }
     _remarkDebounce?.cancel();
-
     _accountController.dispose();
     _personController.dispose();
     _reference.dispose();
@@ -592,6 +596,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                 Expanded(
                                   child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                                     key: const ValueKey('person_field'),
+                                    focusNode: _customerFocusNode,
                                     controller: _personController,
                                     title: tr.customer,
                                     hintText: tr.customer,
@@ -640,6 +645,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                         final current = state;
                                         return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                           key: const ValueKey('account_field'),
+                                          focusNode: _accountFocusNode,
                                           controller: _accountController,
                                           title: tr.accounts,
                                           hintText: tr.selectAccount,
@@ -714,6 +720,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                       return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                         key: const ValueKey('account_field'),
                                         controller: _accountController,
+                                        focusNode: _accountFocusNode,
                                         title: tr.accounts,
                                         hintText: tr.selectAccount,
                                         isRequired: false,
@@ -1652,7 +1659,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-
+      if (_personController.text.isEmpty) return;
       for (int i = 0; i < state.items.length; i++) {
         final item = state.items[i];
         if (item.productId.isEmpty) {

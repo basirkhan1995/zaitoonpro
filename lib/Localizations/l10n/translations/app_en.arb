@@ -609,7 +609,7 @@
   "cannotMarkDeliveredMsg": "Cannot mark as delivered. Payment incomplete. Paid",
   "supplier": "Supplier",
   "purchaseEntry": "Purchase Entry",
-  "unitPrice": "Unit Price",
+  "unitPrice": "Rate",
   "qty": "QTY",
   "addItem": "Add Item",
   "invoiceNumber": "Invoice #",

@@ -609,7 +609,7 @@
   "cannotMarkDeliveredMsg": "امکان ثبت تحویل‌ وجود ندارد. پرداخت کامل نشده است",
   "supplier": "فروشنده",
   "purchaseEntry": "بل خرید",
-  "unitPrice": "قیمت واحد",
+  "unitPrice": "نرخ",
   "qty": "تعداد",
   "addItem": "افزودن قلم",
   "invoiceNumber": "نمبر بل #",

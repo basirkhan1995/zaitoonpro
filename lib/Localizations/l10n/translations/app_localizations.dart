@@ -3637,7 +3637,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitPrice.
   ///
   /// In en, this message translates to:
-  /// **'Unit Price'**
+  /// **'Rate'**
   String get unitPrice;
 
   /// No description provided for @qty.

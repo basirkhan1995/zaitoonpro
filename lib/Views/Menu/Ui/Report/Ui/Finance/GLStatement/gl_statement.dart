@@ -708,7 +708,7 @@ class _DesktopState extends State<_Desktop> {
                                   LoadGlAccountEvent(query: query),
                                 ),
                                 validator: (value) {
-                                  if (value.isEmpty) {
+                                  if (value == null && value!.isEmpty) {
                                     return tr.required(tr.accounts);
                                   }
                                   return null;

@@ -264,7 +264,7 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                             ),
                           ),
                           validator: (value) {
-                            if (value.isEmpty) {
+                            if (value == null && value!.isEmpty) {
                               return tr.required(tr.accounts);
                             }
                             return null;

@@ -203,7 +203,7 @@ class _MobileViewState extends State<_MobileView> {
                             fetchAllFunction: (bloc) => bloc.add(LoadStkAccountsEvent()),
                             searchFunction: (bloc, query) => bloc.add(LoadStkAccountsEvent(search: query)),
                             validator: (value) {
-                              if (value.isEmpty) {
+                              if (value == null && value!.isEmpty) {
                                 return locale.required(locale.accounts);
                               }
                               return null;
@@ -600,7 +600,7 @@ class _MobileViewState extends State<_MobileView> {
                                       ),
                                     ),
                                     validator: (value) {
-                                      if (value.isEmpty) {
+                                      if (value == null && value!.isEmpty) {
                                         return locale.required(locale.accounts);
                                       }
                                       return null;
@@ -838,7 +838,7 @@ class _MobileViewState extends State<_MobileView> {
                                       ),
                                     ),
                                     validator: (value) {
-                                      if (value.isEmpty) {
+                                      if (value == null && value!.isEmpty) {
                                         return locale.required(locale.accounts);
                                       }
                                       return null;
@@ -1080,7 +1080,7 @@ class _MobileViewState extends State<_MobileView> {
                                       ),
                                     ),
                                     validator: (value) {
-                                      if (value.isEmpty) {
+                                      if (value == null && value!.isEmpty) {
                                         return locale.required(locale.accounts);
                                       }
                                       return null;
@@ -1343,7 +1343,7 @@ class _MobileViewState extends State<_MobileView> {
                                             ),
                                           ),
                                       validator: (value) {
-                                        if (value.isEmpty) {
+                                        if (value == null && value!.isEmpty) {
                                           return tr.required(tr.accounts);
                                         }
                                         return null;
@@ -1601,7 +1601,7 @@ class _MobileViewState extends State<_MobileView> {
                                           ),
 
                                       validator: (value) {
-                                        if (value.isEmpty) {
+                                        if (value == null && value!.isEmpty) {
                                           return tr.required(tr.accounts);
                                         }
                                         return null;
@@ -2573,7 +2573,7 @@ class _DesktopViewState extends State<_DesktopView> {
                             fetchAllFunction: (bloc) => bloc.add(LoadStkAccountsEvent()),
                             searchFunction: (bloc, query) => bloc.add(LoadStkAccountsEvent(search: query)),
                             validator: (value) {
-                              if (value.isEmpty) {
+                              if (value == null && value!.isEmpty) {
                                 return locale.required(locale.accounts);
                               }
                               return null;
@@ -2964,7 +2964,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value.isEmpty) {
+                                if (value == null && value!.isEmpty) {
                                   return locale.required(locale.accounts);
                                 }
                                 return null;
@@ -3179,7 +3179,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value.isEmpty) {
+                                if (value == null && value!.isEmpty) {
                                   return locale.required(locale.accounts);
                                 }
                                 return null;
@@ -3399,7 +3399,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                 ),
                               ),
                               validator: (value) {
-                                if (value.isEmpty) {
+                                if (value == null && value!.isEmpty) {
                                   return locale.required(locale.accounts);
                                 }
                                 return null;
@@ -3644,7 +3644,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                             ),
                                           ),
                                       validator: (value) {
-                                        if (value.isEmpty) {
+                                        if (value == null && value!.isEmpty) {
                                           return tr.required(tr.accounts);
                                         }
                                         return null;
@@ -3902,7 +3902,7 @@ class _DesktopViewState extends State<_DesktopView> {
                                           ),
 
                                       validator: (value) {
-                                        if (value.isEmpty) {
+                                        if (value == null && value!.isEmpty) {
                                           return tr.required(tr.accounts);
                                         }
                                         return null;

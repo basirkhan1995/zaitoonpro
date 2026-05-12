@@ -1828,7 +1828,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get purchaseEntry => 'بل خرید';
 
   @override
-  String get unitPrice => 'قیمت واحد';
+  String get unitPrice => 'نرخ';
 
   @override
   String get qty => 'تعداد';

@@ -187,7 +187,7 @@ class _DesktopState extends State<_Desktop> {
                             fetchAllFunction: (bloc) => bloc.add(LoadServicesEvent()),
                             searchFunction: (bloc, query) => bloc.add(LoadServicesEvent(search: query)),
                             validator: (value) {
-                              if (value.isEmpty) {
+                              if (value == null && value!.isEmpty) {
                                 return tr.required(tr.services);
                               }
                               return null;
@@ -873,7 +873,7 @@ class _MobileState extends State<_Mobile> {
               fetchAllFunction: (bloc) => bloc.add(LoadServicesEvent()),
               searchFunction: (bloc, query) => bloc.add(LoadServicesEvent(search: query)),
               validator: (value) {
-                if (value.isEmpty) {
+                if (value == null && value!.isEmpty) {
                   return tr.required(tr.services);
                 }
                 return null;
@@ -1594,7 +1594,7 @@ class _TabletState extends State<_Tablet> {
                       fetchAllFunction: (bloc) => bloc.add(LoadServicesEvent()),
                       searchFunction: (bloc, query) => bloc.add(LoadServicesEvent(search: query)),
                       validator: (value) {
-                        if (value.isEmpty) {
+                        if (value == null && value!.isEmpty) {
                           return tr.required(tr.services);
                         }
                         return null;

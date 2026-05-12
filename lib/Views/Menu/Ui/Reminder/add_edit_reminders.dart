@@ -184,7 +184,7 @@ class _DesktopState extends State<_Desktop> {
                   fetchAllFunction: (bloc) => bloc.add(LoadStkAccountsEvent()),
                   searchFunction: (bloc, query) => bloc.add(LoadStkAccountsEvent(search: query)),
                   validator: (value) {
-                    if (value.isEmpty) {
+                    if (value == null && value!.isEmpty) {
                       return tr.required(tr.accounts);
                     }
                     if (accNumber == null) {

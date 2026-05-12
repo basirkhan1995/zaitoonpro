@@ -1833,7 +1833,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get purchaseEntry => 'Purchase Entry';
 
   @override
-  String get unitPrice => 'Unit Price';
+  String get unitPrice => 'Rate';
 
   @override
   String get qty => 'QTY';

@@ -221,7 +221,7 @@ class _MobileState extends State<_Mobile> {
                                 fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
                                 searchFunction: (bloc, query) => bloc.add(SearchIndividualsEvent(query)),
                                 validator: (value) {
-                                  if (value.isEmpty) {
+                                  if (value == null && value!.isEmpty) {
                                     return locale.required(locale.individuals);
                                   }
                                   return null;
@@ -655,7 +655,7 @@ class _DesktopState extends State<_Desktop> {
                               fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
                               searchFunction: (bloc, query) => bloc.add(SearchIndividualsEvent(query)),
                               validator: (value) {
-                                if (value.isEmpty) {
+                                if (value == null && value!.isEmpty) {
                                   return locale.required(locale.individuals);
                                 }
                                 return null;

@@ -93,8 +93,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   void _confirmDeleteOrder() {
     final tr = AppLocalizations.of(context)!;
     final saleState = context.read<SaleInvoiceBloc>().state;
-
-
     String? ref;
     int? ordId;
     if (saleState is SaleInvoiceLoaded) {
@@ -635,98 +633,47 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                   ),
                                 ),
                                 const SizedBox(width: 8),
-                                if(_personController.text.isNotEmpty)...[
-                                  Expanded(
-                                    child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
-                                      builder: (context, state) {
-                                        if (state is SaleInvoiceLoaded) {
-                                          final current = state;
-                                          return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
-                                            key: const ValueKey('account_field'),
-                                            controller: _accountController,
-                                            title: tr.accounts,
-                                            hintText: tr.selectAccount,
-                                            isRequired: current.paymentMode != PaymentMode.cash,
-                                            validator: (value) {
-                                              if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
-                                                return tr.selectCreditAccountMsg;
-                                              }
-                                              return null;
-                                            },
-                                            bloc: context.read<AccountsBloc>(),
-                                            fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                            searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
-                                            itemBuilder: (context, account) => ListTile(
-                                              visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
-                                              contentPadding: const EdgeInsets.symmetric(horizontal: 5),
-                                              title: Text(account.accName ?? ''),
-                                              subtitle: Text('${account.accNumber}'),
-                                              trailing: Column(
-                                                mainAxisAlignment: MainAxisAlignment.start,
-                                                crossAxisAlignment: CrossAxisAlignment.end,
-                                                children: [
-                                                  Text(
-                                                    tr.balance,
-                                                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                                      color: Theme.of(context).colorScheme.outline,
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
-                                                    style: Theme.of(context).textTheme.titleSmall,
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            itemToString: (account) => '${account.accName} (${account.accNumber})',
-                                            stateToLoading: (state) => state is AccountLoadingState,
-                                            stateToItems: (state) {
-                                              if (state is AccountLoadedState) {
-                                                return state.accounts;
-                                              }
-                                              return [];
-                                            },
-                                            onSelected: (value) {
-                                              setState(() {
-                                                _accountController.text = '${value.accName} (${value.accNumber})';
-                                                _selectedAccountNumber = value.accNumber;
-                                              });
-                                              context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
-                                              final authState = context.read<AuthBloc>().state;
-                                              if (authState is AuthenticatedState) {
-                                                final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
-                                                final accountCurrency = value.actCurrency ?? '';
-
-                                                if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
-                                                  _fetchExchangeRate(baseCurr, accountCurrency);
-                                                } else {
-                                                  context.read<SaleInvoiceBloc>().add(
-                                                    UpdateExchangeRateEvent(
-                                                      rate: 1.0,
-                                                      fromCurrency: baseCurr,
-                                                      toCurrency: accountCurrency,
-                                                    ),
-                                                  );
-                                                  _exchangeRateController.text = "1.0000";
-                                                }
-                                              }
-                                            },
-                                            showClearButton: true,
-                                          );
-                                        }
+                                Expanded(
+                                  child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
+                                    builder: (context, state) {
+                                      if (state is SaleInvoiceLoaded) {
+                                        final current = state;
                                         return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                                           key: const ValueKey('account_field'),
                                           controller: _accountController,
                                           title: tr.accounts,
                                           hintText: tr.selectAccount,
-                                          isRequired: false,
+                                          isRequired: current.paymentMode != PaymentMode.cash,
+                                          validator: (value) {
+                                            if (current.paymentMode != PaymentMode.cash && (value == null || value.isEmpty)) {
+                                              return tr.selectCreditAccountMsg;
+                                            }
+                                            return null;
+                                          },
                                           bloc: context.read<AccountsBloc>(),
-                                          fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
-                                          searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
+                                          fetchAllFunction: (bloc) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
+                                          searchFunction: (bloc, query) => bloc.add(LoadAccountsEvent(ownerId: signatory)),
                                           itemBuilder: (context, account) => ListTile(
+                                            visualDensity: const VisualDensity(vertical: -4, horizontal: -4),
+                                            contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                                             title: Text(account.accName ?? ''),
-                                            subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
-                                            trailing: Text(account.actCurrency ?? ""),
+                                            subtitle: Text('${account.accNumber}'),
+                                            trailing: Column(
+                                              mainAxisAlignment: MainAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                  tr.balance,
+                                                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                                    color: Theme.of(context).colorScheme.outline,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "${account.accAvailBalance?.toAmount() ?? "0.0"} ${account.actCurrency}",
+                                                  style: Theme.of(context).textTheme.titleSmall,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                           itemToString: (account) => '${account.accName} (${account.accNumber})',
                                           stateToLoading: (state) => state is AccountLoadingState,
@@ -741,9 +688,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                               _accountController.text = '${value.accName} (${value.accNumber})';
                                               _selectedAccountNumber = value.accNumber;
                                             });
-
                                             context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
-
                                             final authState = context.read<AuthBloc>().state;
                                             if (authState is AuthenticatedState) {
                                               final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
@@ -765,11 +710,62 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                           },
                                           showClearButton: true,
                                         );
-                                      },
-                                    ),
+                                      }
+                                      return GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
+                                        key: const ValueKey('account_field'),
+                                        controller: _accountController,
+                                        title: tr.accounts,
+                                        hintText: tr.selectAccount,
+                                        isRequired: false,
+                                        bloc: context.read<AccountsBloc>(),
+                                        fetchAllFunction: (bloc) => bloc.add(LoadAccountsFilterEvent(include: '8', exclude: '')),
+                                        searchFunction: (bloc, query) => bloc.add(LoadAccountsFilterEvent(input: query, include: '8', exclude: '')),
+                                        itemBuilder: (context, account) => ListTile(
+                                          title: Text(account.accName ?? ''),
+                                          subtitle: Text('${account.accNumber} - ${tr.balance}: ${account.accAvailBalance?.toAmount() ?? "0.0"}'),
+                                          trailing: Text(account.actCurrency ?? ""),
+                                        ),
+                                        itemToString: (account) => '${account.accName} (${account.accNumber})',
+                                        stateToLoading: (state) => state is AccountLoadingState,
+                                        stateToItems: (state) {
+                                          if (state is AccountLoadedState) {
+                                            return state.accounts;
+                                          }
+                                          return [];
+                                        },
+                                        onSelected: (value) {
+                                          setState(() {
+                                            _accountController.text = '${value.accName} (${value.accNumber})';
+                                            _selectedAccountNumber = value.accNumber;
+                                          });
+
+                                          context.read<SaleInvoiceBloc>().add(SelectCustomerAccountEvent(value));
+
+                                          final authState = context.read<AuthBloc>().state;
+                                          if (authState is AuthenticatedState) {
+                                            final baseCurr = authState.loginData.company?.comLocalCcy ?? '';
+                                            final accountCurrency = value.actCurrency ?? '';
+
+                                            if (baseCurr.isNotEmpty && accountCurrency.isNotEmpty && baseCurr != accountCurrency) {
+                                              _fetchExchangeRate(baseCurr, accountCurrency);
+                                            } else {
+                                              context.read<SaleInvoiceBloc>().add(
+                                                UpdateExchangeRateEvent(
+                                                  rate: 1.0,
+                                                  fromCurrency: baseCurr,
+                                                  toCurrency: accountCurrency,
+                                                ),
+                                              );
+                                              _exchangeRateController.text = "1.0000";
+                                            }
+                                          }
+                                        },
+                                        showClearButton: true,
+                                      );
+                                    },
                                   ),
-                                  const SizedBox(width: 4),
-                                ],
+                                ),
+                                const SizedBox(width: 4),
 
                                 BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                                   builder: (context, state) {

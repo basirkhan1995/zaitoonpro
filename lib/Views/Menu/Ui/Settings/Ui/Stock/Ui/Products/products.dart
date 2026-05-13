@@ -6,6 +6,7 @@ import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/search_field.dart';
 import 'add_edit_product.dart';
@@ -297,32 +298,54 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
       );
     } else {
       // Desktop table header
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(tr.productName, style: titleStyle),
-            ),
-            Expanded(
-              child: Text(tr.details, style: titleStyle),
-            ),
-            SizedBox(
-              width: 150,
-              child: Text(tr.madeIn, style: titleStyle),
-            ),
-            SizedBox(
-              width: 90,
-              child: Text(tr.status, style: titleStyle),
-            ),
-          ],
+      return Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHigh
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(tr.productName, style: titleStyle),
+              ),
+              SizedBox(
+                width: 150,
+                child: Text(tr.productCode, style: titleStyle),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.productModel, style: titleStyle),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.productBrands, style: titleStyle),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.unit, style: titleStyle),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.minimumStock, style: titleStyle),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.madeIn, style: titleStyle),
+              ),
+              SizedBox(
+                width: 90,
+                child: Text(tr.status, style: titleStyle),
+              ),
+            ],
+          ),
         ),
       );
     }
   }
 
   // Build product item based on screen size
-  Widget _buildProductItem(dynamic product, int index, TextTheme textTheme, ColorScheme color, AppLocalizations tr) {
+  Widget _buildProductItem(ProductsModel product, int index, TextTheme textTheme, ColorScheme color, AppLocalizations tr) {
     if (widget.isMobile) {
       // Mobile card view
       return Card(
@@ -475,32 +498,39 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
           padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
           decoration: BoxDecoration(
             color: index.isEven
-                ? color.primary.withValues(alpha: .05)
+                ? color.surfaceContainer.withValues(alpha: .7)
                 : Colors.transparent,
           ),
           child: Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  spacing: 2,
-                  children: [
-                    Text(
-                      product.proName ?? "",
-                      style: textTheme.titleMedium,
-                    ),
-                    Row(
-                      spacing: 5,
-                      children: [
-                        ZCover(child: Text(product.proCode ?? "")),
-                        Text(product.proDetails ?? ""),
-                      ],
-                    ),
-                  ],
+                child: Text(
+                  product.proName ?? "",
+                  style: textTheme.titleMedium,
                 ),
               ),
               SizedBox(
                 width: 150,
+                child: Text(product.proCode ?? ""),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(product.proModel.toString()),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(product.proBrand.toString()),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(product.proUnit.toString()),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(product.proLsNqty.toString()),
+              ),
+              SizedBox(
+                width: 100,
                 child: Text(product.proMadeIn ?? ""),
               ),
               SizedBox(
@@ -536,7 +566,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             const SizedBox(height: 5),
             // Table Header
             _buildTableHeader(tr, titleStyle, color),
-            Divider(endIndent: 15, indent: 15),
+            Divider(endIndent: 0, indent: 0,color: color.primary),
           ],
 
           // Products List

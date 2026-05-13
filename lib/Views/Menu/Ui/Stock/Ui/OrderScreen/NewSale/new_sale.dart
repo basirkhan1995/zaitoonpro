@@ -132,7 +132,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
   void _onExchangeRateChanged(String value) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 300), () {
+    _debounce = Timer(const Duration(milliseconds: 1000), () {
       final rate = double.tryParse(value.replaceAll(',', ''));
       final state = context.read<SaleInvoiceBloc>().state;
       if (rate != null && rate > 0 && state is SaleInvoiceLoaded) {
@@ -790,6 +790,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                         child: ZTextFieldEntitled(
                                           controller: _exchangeRateController,
                                           isRequired: true,
+                                          showClearButton: true,
                                           title: tr.exchangeRate,
                                           hint: isLoading ? tr.loading : tr.exchangeRate,
                                           isEnabled: !isLoading,
@@ -800,6 +801,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                                             return null;
                                           },
                                           compactMode: true,
+                                          onChanged: _onExchangeRateChanged,
                                           onSubmit: _onExchangeRateChanged,
                                           trailing: isLoading ? Container(
                                             padding: EdgeInsets.all(2),
@@ -1878,7 +1880,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           ]
                           else if(current.paymentMode == PaymentMode.credit)...[
                             AmountDisplay(
-                              title: tr.accountPayment,
+                              title: tr.accountReceivable,
                               baseAmount: current.creditAmount,
                               baseCurrency: baseCurr,
                               convertedAmount: (needsConversion && !isLoading) ? current.creditAmountLocal : null,
@@ -1902,7 +1904,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
 
                                 Divider(),
                                 AmountDisplay(
-                                  title: tr.accountPayment,
+                                  title: tr.accountReceivable,
                                   baseAmount: current.creditAmount,
                                   baseCurrency: baseCurr,
                                   convertedAmount: (needsConversion && !isLoading) ? current.creditAmountLocal : null,
@@ -2475,7 +2477,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
           // Update exchange rate controller if changed
           final newRate = _currentState.exchangeRate != null && _currentState.exchangeRate! > 0
-              ? _currentState.exchangeRate!.toStringAsFixed(8)
+              ? _currentState.exchangeRate!.toStringAsFixed(6)
               : '';
           if (_exchangeRateController.text != newRate) {
             _exchangeRateController.text = newRate;
@@ -2535,7 +2537,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     setState(() {
       _selectedCashCurrency = currency;
       _cashExchangeRate = rate;
-      _cashExchangeRateController.text = rate.toStringAsFixed(8);
+      _cashExchangeRateController.text = rate.toStringAsFixed(6);
 
       // Update displayed amount with new rate
       double newAmountInSelectedCurrency;
@@ -2646,7 +2648,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
       setState(() {
         _cashExchangeRate = rate;
-        _cashExchangeRateController.text = rate.toStringAsFixed(4);
+        _cashExchangeRateController.text = rate.toStringAsFixed(6);
         _isLoadingCashRate = false;
       });
       _updateCashCurrencyAndRate(toCurrency, rate);
@@ -2661,26 +2663,33 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
   }
 
   void _updateExchangeRate(double rate) {
-    if (_currentState.customerAccount != null) {
-      context.read<SaleInvoiceBloc>().add(
-        UpdateExchangeRateManuallyEvent(
-          rate: rate,
-          fromCurrency: _baseCurrency,
-          toCurrency: _currentState.customerAccount!.actCurrency ?? '',
-        ),
-      );
-    }
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 800), () {
+      if (_currentState.customerAccount != null) {
+        context.read<SaleInvoiceBloc>().add(
+          UpdateExchangeRateManuallyEvent(
+            rate: rate,
+            fromCurrency: _baseCurrency,
+            toCurrency: _currentState.customerAccount!.actCurrency ?? '',
+          ),
+        );
+      }
+    });
   }
 
   void _updateCashExchangeRate(double rate) {
-    if (rate > 0) {
-      _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
-    }
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 800), () {
+      if (rate > 0) {
+        _updateCashCurrencyAndRate(_selectedCashCurrency, rate);
+      }
+    });
+
   }
 
   void _updateExtraCharges(double value) {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
+    _debounce = Timer(const Duration(milliseconds: 800), () {
       context.read<SaleInvoiceBloc>().add(UpdateExtraChargesEvent(value));
     });
   }

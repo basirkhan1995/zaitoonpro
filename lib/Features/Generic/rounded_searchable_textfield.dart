@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
 import '../../Localizations/l10n/translations/app_localizations.dart';
 
 typedef LoadingBuilder = Widget Function(BuildContext context);
@@ -99,8 +98,7 @@ class GenericTextField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   );
 
   @override
-  State<GenericTextField<T, B, S>> createState() =>
-      _GenericTextFieldState<T, B, S>();
+  State<GenericTextField<T, B, S>> createState() => _GenericTextFieldState<T, B, S>();
 }
 
 class _GenericTextFieldState<T, B extends BlocBase<S>, S>

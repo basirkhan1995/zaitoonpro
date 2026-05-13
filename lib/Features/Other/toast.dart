@@ -5,7 +5,6 @@ class _OverlayContent extends StatelessWidget {
   final String? title;
   final String message;
   final Color color;
-  final IconData icon;
   final VoidCallback onDismiss;
   final int? durationInSeconds;
   final bool showProgressBar;
@@ -14,7 +13,6 @@ class _OverlayContent extends StatelessWidget {
     this.title,
     required this.message,
     required this.color,
-    required this.icon,
     required this.onDismiss,
     this.durationInSeconds,
     this.showProgressBar = false,
@@ -28,14 +26,13 @@ class _OverlayContent extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Animated Icon with gradient background
-              _AnimatedIconContainer(
-                icon: icon,
-                color: color,
-              ),
-              const SizedBox(width: 16),
+              SizedBox(
+                  height: 50,
+                  width: 50,
+                  child: Image.asset("assets/images/zaitoonLogo.png")),
+              const SizedBox(width: 10),
 
               // Content with better typography
               Expanded(
@@ -464,18 +461,7 @@ extension ToastTypeExtension on ToastType {
     }
   }
 
-  IconData get icon {
-    switch (this) {
-      case ToastType.success:
-        return Icons.check_circle_rounded;
-      case ToastType.error:
-        return Icons.error_rounded;
-      case ToastType.warning:
-        return Icons.warning_amber_rounded;
-      case ToastType.info:
-        return Icons.info_rounded;
-    }
-  }
+
 }
 
 class _ToastWrapper extends StatefulWidget {
@@ -575,7 +561,6 @@ class _ToastWrapperState extends State<_ToastWrapper> with SingleTickerProviderS
               title: widget.title,
               message: widget.message,
               color: widget.type.color,
-              icon: widget.type.icon,
               onDismiss: _dismiss,
               durationInSeconds: widget.durationInSeconds,
               showProgressBar: true,
@@ -587,7 +572,7 @@ class _ToastWrapperState extends State<_ToastWrapper> with SingleTickerProviderS
   }
 }
 
-// Alternative: Simpler Toast Manager without complex animations
+
 class SimpleToastManager {
   static void show({
     required BuildContext context,
@@ -620,7 +605,6 @@ class SimpleToastManager {
               title: title,
               message: message,
               color: type.color,
-              icon: type.icon,
               onDismiss: () {
 
               },

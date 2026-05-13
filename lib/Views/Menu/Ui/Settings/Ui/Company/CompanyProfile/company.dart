@@ -8,7 +8,6 @@ import 'dart:typed_data';
 import '../../../../../../../Features/Other/crop.dart';
 import '../../../../../../../Features/Other/sections.dart';
 import '../../../../../../../Features/Other/utils.dart';
-import '../../../../../../../Features/Widgets/button.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -286,7 +285,6 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                 if (isUpdateMode) ...[
                   Expanded(
                     child: ZOutlineButton(
-
                       backgroundHover: Theme.of(context).colorScheme.error,
                       label: Text(locale.cancel),
                       onPressed: _cancelUpdate,
@@ -294,8 +292,8 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: ZButton(
-
+                    child: ZOutlineButton(
+                      isActive: true,
                       label: Text(locale.saveChanges),
                       onPressed: _updateCompanyProfile,
                     ),
@@ -375,7 +373,8 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                 if (!isUpdateMode)
                   ZOutlineButton(
                     icon: Icons.edit,
-                    label: Text(locale.edit),
+                    isActive: true,
+                    label: Text(locale.editProfile),
                     onPressed: () {
                       setState(() {
                         isUpdateMode = true;
@@ -384,15 +383,14 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                   ),
                 if (isUpdateMode) ...[
                   ZOutlineButton(
-                    width: widget.isTablet ? 100 : 110,
                     icon: Icons.clear,
                     backgroundHover: Theme.of(context).colorScheme.error,
                     label: Text(locale.cancel),
                     onPressed: _cancelUpdate,
                   ),
                   const SizedBox(width: 8),
-                  ZButton(
-                    width: widget.isTablet ? 110 : 120,
+                  ZOutlineButton(
+                    isActive: true,
                     label: Text(locale.saveChanges),
                     onPressed: _updateCompanyProfile,
                   ),

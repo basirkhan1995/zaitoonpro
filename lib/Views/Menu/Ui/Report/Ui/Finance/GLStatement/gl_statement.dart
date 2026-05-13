@@ -595,6 +595,35 @@ class _DesktopState extends State<_Desktop> {
     double balanceWidth =  160;
 
     return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: Text(tr.glStatement),
+        actionsPadding: EdgeInsets.symmetric(horizontal: 8),
+        actions: [
+          ZOutlineButton(
+            icon: Icons.print,
+            label: Text(tr.print),
+            onPressed: (){
+              if(formKey.currentState!.validate()){
+                pdf();
+              }else{
+                Utils.showOverlayMessage(context, message: tr.accountStatementMessage, isError: true);
+              }
+            },
+          ),
+          SizedBox(width: 8),
+          ZOutlineButton(
+            isActive: true,
+            icon: Icons.call_to_action_outlined,
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                onSubmit();
+              }
+            },
+            label: Text(tr.apply),
+          ),
+        ],
+      ),
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
@@ -636,56 +665,6 @@ class _DesktopState extends State<_Desktop> {
                   padding: const EdgeInsets.all(8.0),
                   child: Column(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 5,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              spacing: 8,
-                              children: [
-                                Utils.zBackButton(context),
-                                Text(
-                                  tr.glStatement,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                ZOutlineButton(
-                                  width: 100,
-                                  icon: Icons.print,
-                                  label: Text(tr.print),
-                                  onPressed: (){
-                                    if(formKey.currentState!.validate()){
-                                        pdf();
-                                    }else{
-                                      Utils.showOverlayMessage(context, message: tr.accountStatementMessage, isError: true);
-                                    }
-                                  },
-                                ),
-                                SizedBox(width: 8),
-                                ZOutlineButton(
-                                  isActive: true,
-                                  icon: Icons.call_to_action_outlined,
-                                  width: 100,
-                                  onPressed: () {
-                                    if (formKey.currentState!.validate()) {
-                                      onSubmit();
-                                    }
-                                  },
-                                  label: Text(tr.apply),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 8),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Row(

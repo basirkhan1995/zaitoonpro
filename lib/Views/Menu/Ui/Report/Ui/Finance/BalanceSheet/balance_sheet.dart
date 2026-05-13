@@ -186,7 +186,7 @@ class _DesktopBalanceSheetState extends State<_DesktopBalanceSheet> {
       ),
       body: Center(
         child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.8,
+          width: 1000,
           child: ZCover(
             radius: 8,
             margin: const EdgeInsets.all(15),

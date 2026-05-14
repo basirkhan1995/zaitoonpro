@@ -43,48 +43,101 @@ class GenericMenuItem extends StatelessWidget {
         highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
         splashColor: Colors.transparent,
         child: Stack(
-          alignment: context.read<LocalizationBloc>().state.languageCode == "en"
-              ? Alignment.centerLeft
-              : Alignment.centerRight,
           children: [
-            Container(
-              height: 38,
-              width: 3,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Colors.transparent,
+
+            /// Fluent Indicator
+            Positioned.fill(
+              child: Align(
+                alignment:
+                context.read<LocalizationBloc>().state.languageCode == "en"
+                    ? Alignment.centerLeft
+                    : Alignment.centerRight,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(
+                    begin: isSelected ? 10 : 18,
+                    end: isSelected ? 18 : 10,
+                  ),
+                  duration: const Duration(milliseconds: 320),
+                  curve: Curves.easeOutExpo,
+                  builder: (context, height, child) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      width: isSelected ? 3 : 2,
+                      height: isSelected ? height : 10,
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-            Container(
+
+            /// Item Content
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
               padding: padding,
               margin: margin,
               decoration: BoxDecoration(
-                color: isSelected ? selectedColor : unselectedColor,
+                color: isSelected
+                    ? Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: .07)
+                    : unselectedColor,
                 borderRadius: BorderRadius.circular(borderRadius),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 mainAxisAlignment:
-                isExpanded ? MainAxisAlignment.start : MainAxisAlignment.center,
+                isExpanded
+                    ? MainAxisAlignment.start
+                    : MainAxisAlignment.center,
                 children: [
+
+                  /// Icon
                   if (icon != null)
-                    Icon(
-                      icon,
-                      size: 25,
-                      color: isSelected ? selectedTextColor : unselectedTextColor,
+                    AnimatedScale(
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOutCubic,
+                      scale: isSelected ? 1.08 : 1,
+                      child: Icon(
+                        icon,
+                        size: 22,
+                        color: isSelected
+                            ? selectedTextColor
+                            : unselectedTextColor,
+                      ),
                     ),
-                  if (isExpanded && icon != null) const SizedBox(width: 6),
+
+                  if (isExpanded && icon != null)
+                    const SizedBox(width: 6),
+
+                  /// Label
                   if (isExpanded)
                     Expanded(
-                      child: Text(
-                        label,
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutCubic,
                         style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
-                          color: isSelected ? selectedTextColor : unselectedTextColor,
+                          fontSize: fontSize ?? 14,
+                          fontWeight: isSelected
+                              ? FontWeight.w700
+                              : FontWeight.w500,
+                          color: isSelected
+                              ? selectedTextColor
+                              : unselectedTextColor,
                         ),
-                        overflow: TextOverflow.ellipsis,
+                        child: Text(
+                          label,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ),
                 ],

@@ -2662,20 +2662,20 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     }
   }
 
-  void _updateExchangeRate(double rate) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 800), () {
-      if (_currentState.customerAccount != null) {
-        context.read<SaleInvoiceBloc>().add(
-          UpdateExchangeRateManuallyEvent(
-            rate: rate,
-            fromCurrency: _baseCurrency,
-            toCurrency: _currentState.customerAccount!.actCurrency ?? '',
-          ),
-        );
-      }
-    });
-  }
+  // void _updateExchangeRate(double rate) {
+  //   _debounce?.cancel();
+  //   _debounce = Timer(const Duration(milliseconds: 800), () {
+  //     if (_currentState.customerAccount != null) {
+  //       context.read<SaleInvoiceBloc>().add(
+  //         UpdateExchangeRateManuallyEvent(
+  //           rate: rate,
+  //           fromCurrency: _baseCurrency,
+  //           toCurrency: _currentState.customerAccount!.actCurrency ?? '',
+  //         ),
+  //       );
+  //     }
+  //   });
+  // }
 
   void _updateCashExchangeRate(double rate) {
     _debounce?.cancel();
@@ -2742,7 +2742,7 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
     return ZFormDialog(
       title: "${tr.payment} - ${_getPaymentModeLabel(paymentMode)}",
       icon: Icons.payment,
-      width: 600,
+      width: 550,
       actionLabel: Text(tr.confirm),
       isActionTrue: isActionEnabled,
       onAction: _onConfirm,
@@ -2888,55 +2888,59 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
 
               // Cash Payment Section
               Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  ZGenericTextField(
-                    controller: _cashPaymentController,
-                    title: _isPureCashMode
-                        ? "${tr.cashAmount} ($_selectedCashCurrency) - ${tr.fullCashPayment}"
-                        : "${tr.cashAmount} ($_selectedCashCurrency)",
-                    hint: "0.00",
-                    readOnly: _isPureCashMode, // Make read-only in pure cash mode
-                    defaultCurrencyCode: _selectedCashCurrency,
-                    fieldType: ZTextFieldType.currency,
-                    onCurrencyChanged: _onCashCurrencyChanged,
-                    inputFormat: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
-                    ],
-                    onChanged: (value) {
-                      if (_isPureCashMode) {
-                        // In pure cash mode, don't allow editing, just refresh with correct amount
-                        final correctAmount = grandTotal * _cashExchangeRate;
-                        if (_cashPaymentController.text != correctAmount.toStringAsFixed(2)) {
-                          _cashPaymentController.text = correctAmount.toStringAsFixed(2);
-                        }
-                        return;
-                      }
 
-                      final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                      _updateCashPayment(amountInSelectedCurrency);
-                    },
-                    end: needsCashConversion? Wrap(
-                      spacing: 5,
-                      children: [
-                        Text("${grandTotal * _cashExchangeRate}".toAmount()),
-                        Text(_selectedCashCurrency)
-                      ],
-                    ) : null,
-                    showFlag: true,
-                    showClearButton: true,
-                    showSymbol: false,
-                    isRequired: true,
-                    onSubmit: (e) => _onConfirm(),
-                  ),
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: ZGenericTextField(
+                          controller: _cashPaymentController,
+                          title: _isPureCashMode
+                              ? "${tr.cashAmount} ($_selectedCashCurrency) - ${tr.fullCashPayment}"
+                              : "${tr.cashAmount} ($_selectedCashCurrency)",
+                          hint: "0.00",
+                          readOnly: _isPureCashMode, // Make read-only in pure cash mode
+                          defaultCurrencyCode: _selectedCashCurrency,
+                          fieldType: ZTextFieldType.currency,
+                          onCurrencyChanged: _onCashCurrencyChanged,
+                          inputFormat: [
+                            FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}'))
+                          ],
+                          onChanged: (value) {
+                            if (_isPureCashMode) {
+                              // In pure cash mode, don't allow editing, just refresh with correct amount
+                              final correctAmount = grandTotal * _cashExchangeRate;
+                              if (_cashPaymentController.text != correctAmount.toStringAsFixed(2)) {
+                                _cashPaymentController.text = correctAmount.toStringAsFixed(2);
+                              }
+                              return;
+                            }
 
-                  // Exchange Rate Section for Cash
-                  if (needsCashConversion) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
+                            final amountInSelectedCurrency = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                            _updateCashPayment(amountInSelectedCurrency);
+                          },
+                          end: needsCashConversion? Wrap(
+                            spacing: 5,
+                            children: [
+                              Text("${grandTotal * _cashExchangeRate}".toAmount()),
+                              Text(_selectedCashCurrency)
+                            ],
+                          ) : null,
+                          showFlag: true,
+                          showClearButton: true,
+                          showSymbol: false,
+                          isRequired: true,
+                          onSubmit: (e) => _onConfirm(),
+                        ),
+                      ),
+
+                      // Exchange Rate Section for Cash
+                      if (needsCashConversion) ...[
+                        SizedBox(width: 5),
                         Expanded(
+                          flex: 3,
                           child: ZTextFieldEntitled(
                             controller: _cashExchangeRateController,
                             title: "${tr.exchangeRate} (1 $_baseCurrency = $_selectedCashCurrency)",
@@ -2960,37 +2964,36 @@ class _SalePaymentDialogState extends State<SalePaymentDialog> {
                           ),
                         ),
                       ],
-                    ),
-                    SizedBox(height: 10),
-                  ],
+                    ],
+                  ),
 
                   // Account Payment Exchange Rate Section
-                  if (!_isPureCashMode && _currentState.customerAccount != null && remainingAmountInBase > 0)
-                  if (needsAccountConversion && !_isPureCashMode && _currentState.toCurrency != null) ...[
-                    Divider(color: Theme.of(context).colorScheme.primary, endIndent: 4, indent: 4, thickness: 1.5),
-                    const SizedBox(height: 8),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: ZTextFieldEntitled(
-                            controller: _exchangeRateController,
-                            title: "${tr.exchangeRate} ($_baseCurrency → ${_currentState.toCurrency})",
-                            hint: "1 $_baseCurrency = ?",
-                            inputFormat: [
-                              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
-                            ],
-                            onChanged: (value) {
-                              final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
-                              if (rate > 0) {
-                                _updateExchangeRate(rate);
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+                  // if (!_isPureCashMode && _currentState.customerAccount != null && remainingAmountInBase > 0)
+                  // if (needsAccountConversion && !_isPureCashMode && _currentState.toCurrency != null) ...[
+                  //   Divider(color: Theme.of(context).colorScheme.primary, endIndent: 4, indent: 4, thickness: 1.5),
+                  //   const SizedBox(height: 8),
+                  //   Row(
+                  //     crossAxisAlignment: CrossAxisAlignment.end,
+                  //     children: [
+                  //       Expanded(
+                  //         child: ZTextFieldEntitled(
+                  //           controller: _exchangeRateController,
+                  //           title: "${tr.exchangeRate} ($_baseCurrency → ${_currentState.toCurrency})",
+                  //           hint: "1 $_baseCurrency = ?",
+                  //           inputFormat: [
+                  //             FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,6}'))
+                  //           ],
+                  //           onChanged: (value) {
+                  //             final rate = double.tryParse(value.replaceAll(',', '')) ?? 1.0;
+                  //             if (rate > 0) {
+                  //               _updateExchangeRate(rate);
+                  //             }
+                  //           },
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ],
                 ],
               ),
 

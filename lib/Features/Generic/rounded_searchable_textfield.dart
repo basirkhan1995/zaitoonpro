@@ -111,7 +111,9 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
 
   List<T> _currentSuggestions = [];
   Timer? _debounce;
+  final ScrollController _scrollController = ScrollController();
 
+  static const double _itemHeight = 36;
   bool _showClear = false;
   bool _firstFocus = true;
 
@@ -160,7 +162,7 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
     if (!_usingExternalFocusNode) {
       _focusNode.dispose();
     }
-
+    _scrollController.dispose();
     widget.controller?.removeListener(_onControllerChanged);
 
     _debounce?.cancel();
@@ -181,7 +183,38 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
     _overlayEntry?.remove();
     _overlayEntry = null;
   }
+  void _scrollToHighlighted() {
+    if (!_scrollController.hasClients || _highlightedIndex < 0) return;
 
+    final targetOffset = _highlightedIndex * _itemHeight;
+
+    final currentOffset = _scrollController.offset;
+    final maxOffset = _scrollController.position.maxScrollExtent;
+    final viewport = _scrollController.position.viewportDimension;
+
+    /// Current visible area
+    final visibleTop = currentOffset;
+    final visibleBottom = currentOffset + viewport;
+
+    /// Item area
+    final itemTop = targetOffset;
+    final itemBottom = targetOffset + _itemHeight;
+
+    /// Scroll only when item is outside visible area
+    if (itemBottom > visibleBottom) {
+      _scrollController.animateTo(
+        (itemBottom - viewport).clamp(0, maxOffset),
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+      );
+    } else if (itemTop < visibleTop) {
+      _scrollController.animateTo(
+        itemTop.clamp(0, maxOffset),
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+      );
+    }
+  }
   void _onFocusChange() {
     if (widget.readOnly) {
       _removeOverlay();
@@ -237,7 +270,11 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
         }
       });
 
-      _showOverlay(_currentSuggestions);
+      _refreshOverlay();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToHighlighted();
+      });
     }
 
     else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
@@ -249,7 +286,11 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
         }
       });
 
-      _showOverlay(_currentSuggestions);
+      _refreshOverlay();
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToHighlighted();
+      });
     }
 
     else if (event.logicalKey == LogicalKeyboardKey.enter ||
@@ -274,9 +315,14 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
 
     return items;
   }
-
+  void _refreshOverlay() {
+    _overlayEntry?.markNeedsBuild();
+  }
   void _showOverlay(List<T> items) {
-    _removeOverlay();
+    if (_overlayEntry != null) {
+      _refreshOverlay();
+      return;
+    }
 
     final renderBox =
     _fieldKey.currentContext?.findRenderObject() as RenderBox?;
@@ -354,6 +400,7 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
       constraints: const BoxConstraints(maxHeight: 200),
       child: ListView.builder(
         shrinkWrap: true,
+        controller: _scrollController,
         padding: EdgeInsets.zero,
         itemCount: allItems.length,
         itemBuilder: (context, index) {
@@ -365,20 +412,48 @@ class _GenericTextFieldState<T, B extends BlocBase<S>, S>
             color: isHighlighted
                 ? Theme.of(context)
                 .colorScheme
-                .primary
-                .withValues(alpha: .10)
+                .outline
+                .withValues(alpha: .06)
                 : Colors.transparent,
             child: InkWell(
               hoverColor: Theme.of(context)
                   .colorScheme
                   .primary
-                  .withValues(alpha: .05),
-              highlightColor: Theme.of(context)
-                  .colorScheme
-                  .primary
-                  .withValues(alpha: .05),
+                  .withValues(alpha: .04),
+              highlightColor: Colors.transparent,
               onTap: () => _selectItem(item),
-              child: widget.itemBuilder(context, item),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 4,
+                  vertical: 2,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 10,
+                      child: Center(
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 120),
+                          curve: Curves.easeOut,
+                          width: 3,
+                          height: isHighlighted ? 18 : 0,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary,
+                            borderRadius:
+                            BorderRadius.circular(100),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    Expanded(
+                      child: widget.itemBuilder(context, item),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
         },

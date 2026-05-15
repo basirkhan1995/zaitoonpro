@@ -1848,6 +1848,37 @@ class Repositories {
         : {'msg': 'Invalid response format'};
   }
 
+  Future<Map<String, dynamic>> updatePurchaseInvoice({
+    required String usrName,
+    required int perID,
+    String? ref,
+    int? orderId,
+    required String orderName, //Purchase or Sale
+    String? remark,
+    required List<PurchaseInvoiceRecord> records,
+    required List<PurchasePaymentRecord> payment,
+  }) async {
+    final data = {
+      "usrName": usrName,
+      "ordName": orderName,
+      "ordPersonal": perID,
+      "ordTrnRef": ref ?? "",
+      "ordID": orderId,
+      "ordRemarks": remark,
+      "payments": payment.map((e)=> e.toJson()).toList(),
+      "records": records.map((r) => r.toJson()).toList(),
+    };
+
+    final response = await api.post(
+      endpoint: "/inventory/salePurchase.php",
+      data: data,
+    );
+    // Return the full response data
+    return response.data is Map<String, dynamic>
+        ? response.data
+        : {'msg': 'Invalid response format'};
+  }
+
 
   Future<Map<String, dynamic>> addSaleInvoice({
     required String usrName,
@@ -1877,21 +1908,37 @@ class Repositories {
         : {'msg': 'Invalid response format'};
   }
 
-  // In repositories.dart or similar
-  Future<bool> updatePurchaseOrder({
-    required int orderId,
+  Future<Map<String, dynamic>> updateSaleInvoice({
     required String usrName,
-    required List<Map<String, dynamic>> records,
-    required Map<String, dynamic> orderData, // Add this
+    required int perID,
+    String? ref,
+    int? orderId,
+    required String orderName,
+    String? remark,
+    required List<SalePaymentRecord> payment,
+    required List<SaleInvoiceRecord> records,
   }) async {
+    final data = {
+      "usrName": usrName,
+      "ordName": orderName,
+      "ordPersonal": perID,
+      "ordTrnRef": ref,
+      "ordID": orderId,
+      "ordRemarks": remark,
+      "payments": payment.map((e)=> e.toJson()).toList(),
+      "records": records.map((r) => r.toJson()).toList(),
+    };
     final response = await api.put(
       endpoint: "/inventory/salePurchase.php",
-      data: orderData,
+      data: data,
     );
-    final message = response.data['msg']?.toString() ?? '';
-    return message.toLowerCase().contains('success') ||
-        message.toLowerCase().contains('authorized');
+    return response.data is Map<String, dynamic>
+        ? response.data
+        : {'msg': 'Invalid response format'};
   }
+
+
+
 
   Future<bool> deleteOrder({
     required int orderId,

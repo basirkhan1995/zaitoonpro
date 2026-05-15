@@ -1624,8 +1624,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _landedPriceController;
   late TextEditingController _storageController;
   late TextEditingController _localAmountController;
+  late TextEditingController _sellPriceController;
   double? _lastExchangeRate;
   double? _lastPurPrice;
+
+  // Add these for sell price mode
+  bool _isPercentageMode = true;
+  double _currentPurchasePrice = 0.0;
+
+  // Track if we're updating to prevent loops
+  bool _isUpdating = false;
 
   @override
   void initState() {
@@ -1639,6 +1647,49 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _localAmountController = TextEditingController(text: _getLocalAmountText());
     _lastExchangeRate = _getCurrentExchangeRate();
     _lastPurPrice = widget.item.purPrice;
+    _currentPurchasePrice = widget.item.purPrice ?? 0.0;
+
+    // Initialize sell price controller with mode detection
+    _initializeSellPriceController();
+  }
+
+  void _initializeSellPriceController() {
+    final existingController = widget.sellPriceControllers[widget.item.rowId];
+    final currentValue = widget.item.sellPriceAmount;
+
+    if (existingController != null) {
+      _sellPriceController = existingController;
+    } else {
+      _sellPriceController = TextEditingController();
+      widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
+    }
+
+    // Determine mode based on stored value
+    if (currentValue > 0) {
+      // Check if the stored value looks like a percentage (1-100) or an amount
+      if (currentValue <= 100 && _currentPurchasePrice > 0) {
+        // Could be percentage, check if it matches the percentage calculation
+        final amountFromPercentage = _currentPurchasePrice * (currentValue / 100);
+        final existingAmount = widget.item.sellPriceAmountOriginal ?? 0;
+
+        // If the stored amount equals the percentage calculation, treat as percentage
+        if (existingAmount > 0) {
+          _isPercentageMode = false;
+          _sellPriceController.text = existingAmount.toAmount();
+        } else if ((amountFromPercentage - currentValue).abs() < 0.01) {
+          _isPercentageMode = true;
+          _sellPriceController.text = currentValue.toString();
+        } else {
+          _isPercentageMode = false;
+          _sellPriceController.text = currentValue.toAmount();
+        }
+      } else {
+        _isPercentageMode = false;
+        _sellPriceController.text = currentValue.toAmount();
+      }
+    } else {
+      _sellPriceController.text = '';
+    }
   }
 
   double? _getCurrentExchangeRate() {
@@ -1673,6 +1724,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         _lastPurPrice != currentPurPrice) {
       _lastExchangeRate = currentExchangeRate;
       _lastPurPrice = currentPurPrice;
+      _currentPurchasePrice = currentPurPrice ?? 0.0;
+
+      // Update sell price display if in percentage mode
+      if (_isPercentageMode && !_isUpdating) {
+        _updateSellPriceFromPercentage();
+      }
 
       // Calculate new local amount
       double? newLocalAmount;
@@ -1694,6 +1751,92 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         }
       }
     }
+  }
+
+  void _updateSellPriceFromPercentage() {
+    if (_isUpdating) return;
+    _isUpdating = true;
+
+    final percentage = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
+    if (percentage >= 1 && percentage <= 100 && _currentPurchasePrice > 0) {
+      final amount = _currentPurchasePrice * (percentage / 100);
+      widget.onSellPriceChanged(widget.item.rowId, amount);
+      // Store the original percentage for reference
+      widget.item.sellPricePercentage = percentage;
+      widget.item.sellPriceAmountOriginal = amount;
+    } else if (percentage == 0) {
+      widget.onSellPriceChanged(widget.item.rowId, 0);
+      widget.item.sellPricePercentage = 0;
+      widget.item.sellPriceAmountOriginal = 0;
+    }
+
+    _isUpdating = false;
+  }
+
+  void _updateSellPriceFromAmount() {
+    if (_isUpdating) return;
+    _isUpdating = true;
+
+    final amount = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
+    if (amount > 0 && _currentPurchasePrice > 0) {
+      // Calculate percentage from amount
+      final percentage = (amount / _currentPurchasePrice) * 100;
+      final clampedPercentage = percentage.clamp(1.0, 100.0);
+
+      widget.onSellPriceChanged(widget.item.rowId, amount);
+      widget.item.sellPricePercentage = clampedPercentage;
+      widget.item.sellPriceAmountOriginal = amount;
+
+      // Update display to show the actual percentage used
+      if ((percentage - clampedPercentage).abs() > 0.01) {
+        // Show a snackbar or toast that value was clamped
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Sell price capped at ${clampedPercentage.toStringAsFixed(1)}% of purchase price'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
+        });
+      }
+    } else if (amount == 0) {
+      widget.onSellPriceChanged(widget.item.rowId, 0);
+      widget.item.sellPricePercentage = 0;
+      widget.item.sellPriceAmountOriginal = 0;
+    }
+
+    _isUpdating = false;
+  }
+
+  void _toggleMode() {
+    setState(() {
+      _isPercentageMode = !_isPercentageMode;
+
+      if (_isPercentageMode) {
+        // Switch to percentage mode - convert amount to percentage
+        final currentAmount = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
+        if (currentAmount > 0 && _currentPurchasePrice > 0) {
+          final percentage = (currentAmount / _currentPurchasePrice) * 100;
+          final clampedPercentage = percentage.clamp(1.0, 100.0);
+          _sellPriceController.text = clampedPercentage.toStringAsFixed(1);
+          widget.item.sellPricePercentage = clampedPercentage;
+        } else {
+          _sellPriceController.text = widget.item.sellPricePercentage?.toStringAsFixed(1) ?? '';
+        }
+      } else {
+        // Switch to amount mode - convert percentage to amount
+        final currentPercentage = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
+        if (currentPercentage >= 1 && currentPercentage <= 100 && _currentPurchasePrice > 0) {
+          final amount = _currentPurchasePrice * (currentPercentage / 100);
+          _sellPriceController.text = amount.toAmount();
+          widget.item.sellPriceAmountOriginal = amount;
+        } else {
+          _sellPriceController.text = widget.item.sellPriceAmountOriginal?.toAmount() ?? '';
+        }
+      }
+    });
   }
 
   String _getLocalAmountText() {
@@ -1736,8 +1879,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
+    // Update purchase price for mode conversions
+    if (widget.item.purPrice != oldWidget.item.purPrice) {
+      _currentPurchasePrice = widget.item.purPrice ?? 0.0;
+      if (_isPercentageMode && !_isUpdating) {
+        _updateSellPriceFromPercentage();
+      }
+    }
+
     // Schedule the local amount update for the next frame
-    // This avoids setState() during build
     if (mounted) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -1752,6 +1902,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _landedPriceController.dispose();
     _storageController.dispose();
     _localAmountController.dispose();
+    // Don't dispose _sellPriceController here as it's managed by parent
     super.dispose();
   }
 
@@ -1762,7 +1913,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     int nextIndex;
 
     if (isWholeSale) {
-      // Full mode with batch: Product(0) -> Qty(1) -> Batch(2) -> UnitPrice(3) -> SellPrice(4) -> Storage(5)
       switch (currentIndex) {
         case 0: // Product
           nextIndex = 1; // Qty
@@ -1783,7 +1933,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           nextIndex = currentIndex + 1;
       }
     } else {
-      // Non-wholesale mode (no batch): Product(0) -> Qty(1) -> UnitPrice(3 was 2) -> SellPrice(4 was 3) -> Storage(5 was 4)
       switch (currentIndex) {
         case 0: // Product
           nextIndex = 1; // Qty
@@ -1817,20 +1966,16 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final isWholeSale = visibility.isWholeSale;
 
     if (isWholeSale) {
-      // Full mode: virtual index matches node index
       if (virtualIndex >= 0 && virtualIndex < widget.nodes.length) {
         return widget.nodes[virtualIndex];
       }
     } else {
-      // Non-wholesale mode: map virtual indices to node indices
-      // Virtual indices: 0=Product, 1=Qty, 2=UnitPrice, 3=SellPrice, 4=Storage
-      // Node indices:    0=Product, 1=Qty, 2=UnitPrice, 3=SellPrice, 4=Storage
       final nodeIndexMap = {
         0: 0, // Product
         1: 1, // Qty
-        2: 2, // Unit Price (node index 2)
-        3: 3, // Sell Price (node index 3)
-        4: 4, // Storage (node index 4)
+        2: 2, // Unit Price
+        3: 3, // Sell Price
+        4: 4, // Storage
       };
 
       final nodeIndex = nodeIndexMap[virtualIndex];
@@ -1838,15 +1983,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         return widget.nodes[nodeIndex];
       }
     }
-
     return null;
   }
 
   void _addNewRowAndFocus() {
-    // Add new row
     context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
 
-    // After adding, focus the new row's product field
     Future.delayed(const Duration(milliseconds: 150), () {
       if (mounted) {
         final state = context.read<PurchaseInvoiceBloc>().state;
@@ -1871,7 +2013,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     );
     final qtyController = widget.qtyControllers.putIfAbsent(
       widget.item.rowId,
-      () => TextEditingController(
+          () => TextEditingController(
         text: widget.item.qty > 0 ? widget.item.qty.toString() : '',
       ),
     );
@@ -1880,20 +2022,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           () => TextEditingController(
         text: widget.item.stkBatch > 0
             ? widget.item.stkBatch.toString()
-            : '1', // Default to 1
-      ),
-    );
-    final sellPriceController = widget.sellPriceControllers.putIfAbsent(
-      widget.item.rowId,
-      () => TextEditingController(
-        text: widget.item.sellPriceAmount > 0
-            ? widget.item.sellPriceAmount.toString()
-            : '',
+            : '1',
       ),
     );
     final priceController = widget.purchasePriceControllers.putIfAbsent(
       widget.item.rowId,
-      () => TextEditingController(
+          () => TextEditingController(
         text: widget.item.purPrice != null && widget.item.purPrice! > 0
             ? widget.item.purPrice!.toAmount()
             : '',
@@ -1917,7 +2051,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              /// Product Search Field - Index 0
+
+              /// Product Search Field
               Expanded(
                 child: PurchaseProductSearchField(
                   controller: productController,
@@ -1927,14 +2062,13 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   onProductSelected: (product) {
                     if (product != null) {
                       widget.onProductSelected(
-                        widget.item.rowId,
-                        product.proId.toString(),
-                        product.proName ?? '',
-                        product.proUnit ?? ''
+                          widget.item.rowId,
+                          product.proId.toString(),
+                          product.proName ?? '',
+                          product.proUnit ?? ''
                       );
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
-                          // Always focus on Qty field (index 1)
                           final qtyNode = safeNode(1);
                           if (qtyNode != null && qtyNode.canRequestFocus) {
                             qtyNode.requestFocus();
@@ -1946,7 +2080,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   onSubmitted: () {
                     Future.delayed(const Duration(milliseconds: 50), () {
                       if (mounted && widget.item.productId.isNotEmpty) {
-                        // Always focus on Qty field (index 1)
                         final qtyNode = safeNode(1);
                         if (qtyNode != null && qtyNode.canRequestFocus) {
                           qtyNode.requestFocus();
@@ -1960,7 +2093,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Qty - Index 1
+              /// Qty
               SizedBox(
                 width: 100,
                 child: TextField(
@@ -1979,10 +2112,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   },
                   onSubmitted: (_) {
                     if (isWholeSale) {
-                      focusNext(1); // CHANGE THIS: Move from Qty (index 1) to Batch (index 2)
-                      // The focusNext method handles the mapping: currentIndex 1 -> nextIndex 2
+                      focusNext(1);
                     } else {
-                      focusNext(1); // Move from Qty (index 1) to Unit Price (index 2 in non-wholesale)
+                      focusNext(1);
                     }
                   },
                 ),
@@ -2008,10 +2140,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       }
                       widget.onBatchChanged(widget.item.rowId, effectiveBatch);
                     },
-                    onSubmitted: (_) => focusNext(2), // Move to Unit Price (virtual index 3)
+                    onSubmitted: (_) => focusNext(2),
                   ),
                 ),
-                /// Total Qty (read-only) - No focus
                 SizedBox(
                   width: 100,
                   child: Text(
@@ -2025,7 +2156,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ],
 
-              /// Unit Price - Index 3 (or Index 2 in non-wholesale)
+              /// Unit Price
               SizedBox(
                 width: 150,
                 child: TextField(
@@ -2045,7 +2176,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
                   onSubmitted: (_) {
-                    // Move to Sell Price
                     focusNext(isWholeSale ? 3 : 2);
                   },
                 ),
@@ -2070,32 +2200,69 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   ),
                 ),
 
-
-              /// Sell Price - Index 4 (or Index 3 in non-wholesale)
+              /// Sell Price with Mode Toggle
               SizedBox(
                 width: 150,
-                child: TextField(
-                  controller: sellPriceController,
-                  focusNode: safeNode(isWholeSale ? 4 : 3),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    hintText: locale.salePercentage,
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  onChanged: (value) {
-                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                    widget.onSellPriceChanged(widget.item.rowId, parsed);
-                  },
-                  onSubmitted: (_) {
-                    if (widget.isLastRow) {
-                      // Add new row and focus its product field
-                      _addNewRowAndFocus();
-                    } else {
-                      // Move to Storage field in current row
-                      focusNext(isWholeSale ? 4 : 3);
-                    }
-                  },
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _sellPriceController,
+                        focusNode: safeNode(isWholeSale ? 4 : 3),
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                            _isPercentageMode
+                                ? RegExp(r'^\d{0,3}(?:\.\d{0,2})?') // Max 3 digits for percentage
+                                : RegExp(r'^\d*\.?\d{0,2}'),
+                          ),
+                        ],
+                        decoration: InputDecoration(
+                          hintText: _isPercentageMode ? '0-100%' : locale.salePrice,
+                          border: InputBorder.none,
+                          isDense: true,
+                          suffixText: _isPercentageMode ? '%' : null,
+                        ),
+                        onChanged: (value) {
+                          if (_isPercentageMode) {
+                            // Validate percentage range
+                            final percentage = double.tryParse(value.replaceAll(',', ''));
+                            if (percentage != null && (percentage < 0 || percentage > 100)) {
+                              // Clamp to valid range
+                              final clamped = percentage.clamp(0.0, 100.0);
+                              _sellPriceController.text = clamped.toString();
+                              _updateSellPriceFromPercentage();
+                            } else {
+                              _updateSellPriceFromPercentage();
+                            }
+                          } else {
+                            _updateSellPriceFromAmount();
+                          }
+                        },
+                        onSubmitted: (_) {
+                          if (widget.isLastRow) {
+                            _addNewRowAndFocus();
+                          } else {
+                            focusNext(isWholeSale ? 4 : 3);
+                          }
+                        },
+                      ),
+                    ),
+                    // Mode toggle button
+                    SizedBox(
+                      width: 32,
+                      child: IconButton(
+                        icon: Icon(
+                          _isPercentageMode ? Icons.percent : Icons.attach_money,
+                          size: 16,
+                        ),
+                        onPressed: _toggleMode,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        tooltip: _isPercentageMode ? 'Switch to amount' : 'Switch to percentage',
+                      ),
+                    ),
+                  ],
                 ),
               ),
 
@@ -2117,7 +2284,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 ),
               ),
 
-              /// Storage - Index 5
+              /// Storage
               SizedBox(
                 width: 180,
                 child: BlocBuilder<StorageBloc, StorageState>(
@@ -2166,11 +2333,10 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                           storage.stgName ?? '',
                         );
                         _storageController.text = storage.stgName ?? '';
-                        // After selecting storage, move to next row's product or add new row
                         if (widget.isLastRow) {
                           _addNewRowAndFocus();
                         } else {
-                          focusNext(0); // Move to next row's product
+                          focusNext(0);
                         }
                       },
                     );

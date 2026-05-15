@@ -3,6 +3,8 @@ class PurchaseInvoiceItem {
   String productId;
   String productName;
   int qty;
+  double? sellPricePercentage;
+  double? sellPriceAmountOriginal;
   int stkBatch;
   double? purPrice;
   double? landedPrice;
@@ -27,21 +29,19 @@ class PurchaseInvoiceItem {
     this.localAmount,
     this.exchangeRate,
     this.unit,
+    this.sellPricePercentage,      // Add this
+    this.sellPriceAmountOriginal,  // Add this
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   double get totalQty => qty.toDouble() * stkBatch;
-
   double get purchasePrice => (purPrice ?? 0);
-
   double get totalPurchase => totalQty * (purPrice ?? 0);
 
-  // Single item local amount = purchase price * exchange rate
   double get singleLocalAmount {
     final rate = exchangeRate ?? 1.0;
     return (purPrice ?? 0) * rate;
   }
 
-  // Method to update local amount based on current exchange rate
   void updateLocalAmount(double? exchangeRateValue) {
     exchangeRate = exchangeRateValue;
     if (purPrice != null && exchangeRate != null) {
@@ -64,6 +64,8 @@ class PurchaseInvoiceItem {
     double? localAmount,
     double? exchangeRate,
     String? unit,
+    double? sellPricePercentage,
+    double? sellPriceAmountOriginal,
   }) {
     return PurchaseInvoiceItem(
       itemId: rowId,
@@ -79,6 +81,8 @@ class PurchaseInvoiceItem {
       localAmount: localAmount ?? this.localAmount,
       exchangeRate: exchangeRate ?? this.exchangeRate,
       unit: unit ?? this.unit,
+      sellPricePercentage: sellPricePercentage ?? this.sellPricePercentage,
+      sellPriceAmountOriginal: sellPriceAmountOriginal ?? this.sellPriceAmountOriginal,
     );
   }
 }

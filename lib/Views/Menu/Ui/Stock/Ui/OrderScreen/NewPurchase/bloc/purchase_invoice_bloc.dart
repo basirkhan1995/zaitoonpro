@@ -55,6 +55,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final records = parsed['records'] as List<Map<String, dynamic>>;
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
       final orderId = parsed['orderId'] as int? ?? event.orderId;
+      final reference = parsed['reference'] as String? ?? '';
 
       final List<PurchaseInvoiceItem> items = [];
       for (var i = 0; i < records.length; i++) {
@@ -69,7 +70,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           unit: record['unit'] as String,
           purPrice: record['purchasePrice'],
           landedPrice: record['landedPrice'],
-          sellPriceAmount: 0,
+          sellPriceAmount: record['sellPercentage'] ?? 0,
+          sellPricePercentage: record['sellPercentage'],
           storageId: record['storageId'],
           storageName: record['storageName'] as String,
         ));
@@ -180,6 +182,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           cashCurrency: cashCurrency != event.baseCurrency ? cashCurrency : null,
           cashExchangeRate: exchangeRate,
           xRef: parsed['reference'],
+          reference: reference,
           remark: parsed['remarks'],
           ordName: parsed['orderType'],
           orderId: orderId
@@ -249,13 +252,14 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             storageName: event.storageName ?? item.storageName,
             storageId: event.storageId ?? item.storageId,
             exchangeRate: current.exchangeRate ?? 1.0,
+            sellPricePercentage: item.sellPricePercentage,
+            sellPriceAmountOriginal: item.sellPriceAmountOriginal,
           );
         }
         return item;
       }).toList();
 
       emit(current.copyWith(items: updatedItems));
-      // Recalculate landed prices after item update
       add(UpdateAllLandedPricesEvent());
     }
   }
@@ -301,8 +305,10 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         storageId: 0,
         exchangeRate: 1.0,
         localAmount: 0,
+        sellPricePercentage: 0,      // Add this
+        sellPriceAmountOriginal: 0,  // Add this
       )],
-      payments: [], // Empty payments list for expenses
+      payments: [],
       paymentMode: PaymentMode.cash,
       cashPayment: 0.0,
       exchangeRate: 1.0,
@@ -620,15 +626,24 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       storages: current.storages,
     ));
 
+
     try {
       // Build records for API
       final records = current.items.map((item) {
+        // Use stored percentage if available, otherwise calculate from amount
+        double? percentageToSave = item.sellPricePercentage;
+
+        // If no percentage stored but we have an amount, calculate it
+        if (percentageToSave == null && item.sellPriceAmount > 0 && item.purPrice != null && item.purPrice! > 0) {
+          percentageToSave = (item.sellPriceAmount / item.purPrice!) * 100;
+          percentageToSave = percentageToSave.clamp(1.0, 100.0);
+        }
         return PurchaseInvoiceRecord(
           proID: int.tryParse(item.productId) ?? 0,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           stkQtyInBatch: item.stkBatch,
-          sellPercentage: item.sellPriceAmount,
+          sellPercentage: percentageToSave,
           pPrice: item.purPrice,
         );
       }).toList();

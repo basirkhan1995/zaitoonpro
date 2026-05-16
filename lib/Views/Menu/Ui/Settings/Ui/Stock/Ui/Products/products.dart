@@ -276,6 +276,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
 
   // Build table header for different screen sizes
   Widget _buildTableHeader(AppLocalizations tr, TextStyle? titleStyle, ColorScheme color) {
+
     if (widget.isMobile) {
       // Mobile card view doesn't need table header
       return const SizedBox.shrink();
@@ -300,7 +301,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
       // Desktop table header
       return Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHigh
+          color: Theme.of(context).colorScheme.primary
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
@@ -327,7 +328,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               ),
               SizedBox(
                 width: 100,
-                child: Text(tr.minimumStock, style: titleStyle),
+                child: Text(tr.lowStock, style: titleStyle),
               ),
               SizedBox(
                 width: 100,
@@ -527,7 +528,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               ),
               SizedBox(
                 width: 100,
-                child: Text(product.proLsNqty.toString()),
+                child: Text(product.proLsNqty?.toString() ?? "-"),
               ),
               SizedBox(
                 width: 100,
@@ -553,7 +554,9 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
     final textTheme = Theme.of(context).textTheme;
     final color = Theme.of(context).colorScheme;
     final tr = AppLocalizations.of(context)!;
-    final titleStyle = textTheme.titleSmall;
+    TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
+        color: Theme.of(context).colorScheme.surface
+    );
 
     return Scaffold(
       backgroundColor: color.surface,
@@ -566,7 +569,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             const SizedBox(height: 5),
             // Table Header
             _buildTableHeader(tr, titleStyle, color),
-            Divider(endIndent: 0, indent: 0,color: color.primary),
           ],
 
           // Products List

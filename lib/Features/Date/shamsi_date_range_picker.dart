@@ -507,7 +507,7 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
         borderRadius: BorderRadius.circular(4),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
           decoration: BoxDecoration(
             color: isSelected ? color.primary.withValues(alpha: .1) : Colors.transparent,
             borderRadius: BorderRadius.circular(4),
@@ -566,63 +566,64 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
                     Container(
                       width: 140,
                       padding: const EdgeInsets.all(5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  _buildQuickOption(
-                                    label: locale.today,
-                                    onTap: _selectToday,
-                                    option: QuickOption.today,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.yesterday,
-                                    onTap: _selectYesterday,
-                                    option: QuickOption.yesterday,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.lastWeek,
-                                    onTap: _selectLastWeek,
-                                    option: QuickOption.lastWeek,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.lastMonth,
-                                    onTap: _selectLastMonth,
-                                    option: QuickOption.lastMonth,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.lastThreeMonth,
-                                    onTap: _selectLast90Days,
-                                    option: QuickOption.last90Days,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.thisMonth,
-                                    onTap: _selectThisMonth,
-                                    option: QuickOption.thisMonth,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.lastYear,
-                                    onTap: _selectLastYear,
-                                    option: QuickOption.lastYear,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.thisYear,
-                                    onTap: _selectThisYear,
-                                    option: QuickOption.thisYear,
-                                  ),
-                                  _buildQuickOption(
-                                    label: locale.allTime,
-                                    onTap: _selectAllTime,
-                                    option: QuickOption.allTime,
-                                  ),
-                                ],
+                      child: Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+                                  width: 35,
+                                  height: 35,
+                                  child: Image.asset("assets/images/zaitoonLogo.png")),
+                              _buildQuickOption(
+                                label: locale.today,
+                                onTap: _selectToday,
+                                option: QuickOption.today,
                               ),
-                            ),
+                              _buildQuickOption(
+                                label: locale.yesterday,
+                                onTap: _selectYesterday,
+                                option: QuickOption.yesterday,
+                              ),
+                              _buildQuickOption(
+                                label: locale.lastWeek,
+                                onTap: _selectLastWeek,
+                                option: QuickOption.lastWeek,
+                              ),
+                              _buildQuickOption(
+                                label: locale.lastMonth,
+                                onTap: _selectLastMonth,
+                                option: QuickOption.lastMonth,
+                              ),
+                              _buildQuickOption(
+                                label: locale.lastThreeMonth,
+                                onTap: _selectLast90Days,
+                                option: QuickOption.last90Days,
+                              ),
+                              _buildQuickOption(
+                                label: locale.thisMonth,
+                                onTap: _selectThisMonth,
+                                option: QuickOption.thisMonth,
+                              ),
+                              _buildQuickOption(
+                                label: locale.lastYear,
+                                onTap: _selectLastYear,
+                                option: QuickOption.lastYear,
+                              ),
+                              _buildQuickOption(
+                                label: locale.thisYear,
+                                onTap: _selectThisYear,
+                                option: QuickOption.thisYear,
+                              ),
+                              _buildQuickOption(
+                                label: locale.allTime,
+                                onTap: _selectAllTime,
+                                option: QuickOption.allTime,
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
 

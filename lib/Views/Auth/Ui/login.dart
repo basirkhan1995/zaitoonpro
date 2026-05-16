@@ -566,42 +566,51 @@ class _DesktopState extends State<_Desktop> {
           spacing: 8,
           children: [
             Container(
-              width: 90,
-              height: 90,
-              padding: const EdgeInsets.all(3),
+              width: 64,
+              height: 64,
+              padding: const EdgeInsets.all(2),
               margin: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
+                borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: Theme.of(
                     context,
-                  ).colorScheme.primary.withValues(alpha: .2),
+                  ).colorScheme.primary.withValues(alpha: .5),
                 ),
               ),
               child: Image.asset('assets/images/zaitoonLogo.png'),
             ),
 
             Column(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
-              spacing: 0,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.zPetroleum.toUpperCase(),
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    fontFamily: "NotoSans",
-                    fontSize: 40,
+                  AppLocalizations.of(context)!.zPetroleum,
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                    fontSize: 30,
+                    letterSpacing: 0.3,
+                    height: 1,
                     color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+
+                const SizedBox(height: 4),
+
                 Text(
                   AppLocalizations.of(context)!.zaitoonSlogan,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurfaceVariant,
+                    letterSpacing: 0.2,
+                    fontWeight: FontWeight.w400,
+                  ),
                 ),
               ],
-            ),
+            )
           ],
         ),
         // Header - Localization & Theme Selector

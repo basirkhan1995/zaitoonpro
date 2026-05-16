@@ -3328,4 +3328,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get payableAmount => 'د ورکولو پیسه';
+
+  @override
+  String get lowStock => 'موجودی کم';
 }

@@ -444,7 +444,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                       icon: widget.orderId == null ? Icons.save_rounded : Icons.refresh,
                       onPressed: (isSaving || !current.isFormValid)
                           ? null
-                          : widget.orderId == null ? () => _saveInvoice(context, current) : null,
+                          : widget.orderId == null ? () => _saveInvoice(context, current) : ()=> _updateInvoice(context, current),
                       label: isSaving
                           ? SizedBox(
                               width: 20,
@@ -1382,6 +1382,31 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         orderName: "Purchase",
         ordPersonal: state.supplier!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        remark: _remark.text,
+        completer: completer,
+      ),
+    );
+  }
+
+  void _updateInvoice(BuildContext context, PurchaseInvoiceLoaded state) {
+    if (!state.isFormValid) {
+      Utils.showOverlayMessage(
+        context,
+        message: 'Please fill all required fields correctly',
+        isError: true,
+      );
+      return;
+    }
+
+    final completer = Completer<String>();
+
+    context.read<PurchaseInvoiceBloc>().add(
+      UpdatePurchaseInvoiceEvent(
+        usrName: _userName ?? '',
+        orderName: "Purchase",
+        ordPersonal: state.supplier!.perId!,
+        xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
+        orderId: state.orderId,
         remark: _remark.text,
         completer: completer,
       ),

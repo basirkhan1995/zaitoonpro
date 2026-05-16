@@ -3337,4 +3337,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get payableAmount => 'Account Payable';
+
+  @override
+  String get lowStock => 'Low Stock';
 }

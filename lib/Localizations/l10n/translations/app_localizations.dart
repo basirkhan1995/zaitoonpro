@@ -6597,6 +6597,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account Payable'**
   String get payableAmount;
+
+  /// No description provided for @lowStock.
+  ///
+  /// In en, this message translates to:
+  /// **'Low Stock'**
+  String get lowStock;
 }
 
 class _AppLocalizationsDelegate

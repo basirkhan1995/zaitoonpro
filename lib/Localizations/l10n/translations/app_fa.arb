@@ -1102,5 +1102,6 @@
   "fullCashPayment": "تسویه نقدی",
   "mixPayment": "نقد و اعتبار حساب",
   "grandTotalCashFlow": "جمع کل جریان نقدی",
-  "payableAmount": "مبلغ پرداختنی"
+  "payableAmount": "مبلغ پرداختنی",
+  "lowStock": "موجودی کم"
 }

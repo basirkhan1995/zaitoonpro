@@ -1102,5 +1102,6 @@
   "fullCashPayment": "Full Cash Payment",
   "mixPayment": "Cash and Receivable",
   "grandTotalCashFlow": "GRAND TOTAL CASH FLOW",
-  "payableAmount": "Account Payable"
+  "payableAmount": "Account Payable",
+  "lowStock": "Low Stock"
 }

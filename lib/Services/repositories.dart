@@ -1862,14 +1862,14 @@ class Repositories {
       "usrName": usrName,
       "ordName": orderName,
       "ordPersonal": perID,
-      "ordTrnRef": ref ?? "",
+      "ordxRef": ref ?? "",
       "ordID": orderId,
       "ordRemarks": remark,
       "payments": payment.map((e)=> e.toJson()).toList(),
       "records": records.map((r) => r.toJson()).toList(),
     };
 
-    final response = await api.post(
+    final response = await api.put(
       endpoint: "/inventory/salePurchase.php",
       data: data,
     );

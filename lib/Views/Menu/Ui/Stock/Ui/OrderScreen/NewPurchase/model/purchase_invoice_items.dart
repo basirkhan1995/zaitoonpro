@@ -14,6 +14,7 @@ class PurchaseInvoiceItem {
   double? localAmount;
   double? exchangeRate;
   String? unit;
+  final int? stkId;
 
   PurchaseInvoiceItem({
     String? itemId,
@@ -29,8 +30,9 @@ class PurchaseInvoiceItem {
     this.localAmount,
     this.exchangeRate,
     this.unit,
-    this.sellPricePercentage,      // Add this
-    this.sellPriceAmountOriginal,  // Add this
+    this.sellPricePercentage,
+    this.sellPriceAmountOriginal,
+    this.stkId
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   double get totalQty => qty.toDouble() * stkBatch;
@@ -66,6 +68,7 @@ class PurchaseInvoiceItem {
     String? unit,
     double? sellPricePercentage,
     double? sellPriceAmountOriginal,
+    int? stkId,
   }) {
     return PurchaseInvoiceItem(
       itemId: rowId,
@@ -83,12 +86,14 @@ class PurchaseInvoiceItem {
       unit: unit ?? this.unit,
       sellPricePercentage: sellPricePercentage ?? this.sellPricePercentage,
       sellPriceAmountOriginal: sellPriceAmountOriginal ?? this.sellPriceAmountOriginal,
+      stkId: stkId ?? this.stkId
     );
   }
 }
 
 class PurchaseInvoiceRecord {
   final int proID;
+  final int? stkId;
   final int stgID;
   final double quantity;
   final double? sellPercentage;
@@ -96,6 +101,7 @@ class PurchaseInvoiceRecord {
   final double? pPrice;
   PurchaseInvoiceRecord({
     required this.proID,
+    this.stkId,
     required this.stgID,
     required this.stkQtyInBatch,
     required this.quantity,
@@ -103,6 +109,7 @@ class PurchaseInvoiceRecord {
     this.pPrice,
   });
   Map<String, dynamic> toJson() => {
+     if (stkId != null) 'stkID': stkId,
     'stkProduct': proID,
     'stkStorage': stgID,
     'stkQuantity': quantity.toString(),

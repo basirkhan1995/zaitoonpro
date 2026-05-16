@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
@@ -34,6 +35,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     on<UpdateCashPaymentEvent>(_onUpdateCashPayment);
     on<ResetPurchaseInvoiceEvent>(_onReset);
     on<SavePurchaseInvoiceEvent>(_onSaveInvoice);
+    on<UpdatePurchaseInvoiceEvent>(_onUpdateInvoice);
     on<LoadPurchaseStoragesEvent>(_onLoadStorages);
     on<ClearSupplierAccountEvent>(_onClearSupplierAccount);
     on<AddPaymentEvent>(_onAddPayment);
@@ -78,6 +80,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           sellPriceAmount: record['sellPercentage'] ?? 0,
           sellPricePercentage: record['sellPercentage'],
           storageId: record['storageId'],
+          stkId: record['stkID'],
           storageName: record['storageName'] as String,
         ));
       }
@@ -301,8 +304,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         storageId: 0,
         exchangeRate: 1.0,
         localAmount: 0,
-        sellPricePercentage: 0,      // Add this
-        sellPriceAmountOriginal: 0,  // Add this
+        sellPricePercentage: 0,
+        sellPriceAmountOriginal: 0,
       )],
       payments: [],
       paymentMode: PaymentMode.cash,
@@ -621,6 +624,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
 
     try {
+
       // Build records for API
       final records = current.items.map((item) {
         // Use stored percentage if available, otherwise calculate from amount
@@ -820,10 +824,22 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
     final current = state as PurchaseInvoiceLoaded;
 
+    // Use orderId from event if provided, otherwise from state
+    final orderIdToUse = event.orderId ?? current.orderId;
+
+    print('Current state orderId: ${current.orderId}');
+    print('Event orderId: ${event.orderId}');
+
+    if (orderIdToUse == null || orderIdToUse <= 0) {
+      emit(PurchaseInvoiceError('Invalid order ID for update'));
+      event.completer.complete('');
+      return;
+    }
+
     // Save current state for error recovery
     final savedState = current.copyWith();
 
-    // Validations (keep existing validations)
+    // Validations
     if (current.supplier == null) {
       emit(PurchaseInvoiceError('Please select a supplier'));
       emit(savedState);
@@ -875,8 +891,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
     }
 
-    if(current.paymentMode == PaymentMode.cash){
-      if(current.cashPayment != current.grandTotalLocal || current.cashPayment != current.totalInvoice){
+    if (current.paymentMode == PaymentMode.cash) {
+      if (current.cashPayment != current.grandTotalLocal || current.cashPayment != current.totalInvoice) {
         emit(PurchaseInvoiceError('Cash payment not equal to total invoice amount'));
         emit(savedState);
         event.completer.complete('');
@@ -910,8 +926,15 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       storages: current.storages,
     ));
 
-
     try {
+      print('=== CHECKING stkId VALUES ===');
+      for (var i = 0; i < current.items.length; i++) {
+        final item = current.items[i];
+        print('Item $i: ${item.productName}');
+        print('  stkId: ${item.stkId}');
+        print('  stkId is null: ${item.stkId == null}');
+        print('  stkId type: ${item.stkId.runtimeType}');
+      }
       // Build records for API
       final records = current.items.map((item) {
         // Use stored percentage if available, otherwise calculate from amount
@@ -924,6 +947,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         }
         return PurchaseInvoiceRecord(
           proID: int.tryParse(item.productId) ?? 0,
+          stkId: item.stkId,
           stgID: item.storageId,
           quantity: item.qty.toDouble(),
           stkQtyInBatch: item.stkBatch,
@@ -944,10 +968,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final needsConversion = supplierCurrency != baseCurrency;
 
       // ============ 1. HANDLE EXPENSES (DEBIT expense account) ============
-      // Expenses are recorded as debit to expense account (cash is credited separately)
       for (final expense in current.expenses) {
         if (expense.amount > 0 && expense.accountNumber != 0) {
-          // DEBIT the expense account (records the expense)
           apiPayments.add(PurchasePaymentRecord(
             accountNumber: expense.accountNumber,
             amount: expense.amount,
@@ -959,20 +981,17 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         }
       }
 
-      // ============ 2. HANDLE SUPPLIER PAYMENT (Credit/Debit to supplier account) ============
+      // ============ 2. HANDLE SUPPLIER PAYMENT ============
       final supplierPaymentAmount = current.subtotal;
 
-      // Add supplier payment if applicable (credit or mixed payment)
       if (current.paymentMode != PaymentMode.cash && current.supplierAccount != null) {
         double amountToPay = supplierPaymentAmount;
 
-        // If mixed payment, subtract cash payment from supplier amount
         if (current.paymentMode == PaymentMode.mixed) {
           amountToPay = supplierPaymentAmount - current.cashPayment;
         }
 
         if (amountToPay > 0) {
-          // Convert to supplier's currency if needed
           double convertedAmount = amountToPay;
           String paymentCurrency = baseCurrency;
           double paymentExRate = 1.0;
@@ -983,7 +1002,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
             paymentExRate = exchangeRate;
           }
 
-          // DEBIT supplier account (records liability/payment)
           apiPayments.add(PurchasePaymentRecord(
             accountNumber: current.supplierAccount!.accNumber!,
             amount: convertedAmount,
@@ -995,35 +1013,28 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         }
       }
 
-      // ============ 3. HANDLE CASH PAYMENT FOR INVOICE ============
-      // This is the cash portion that goes to supplier
+      // ============ 3. HANDLE CASH PAYMENT ============
       if (current.cashPayment > 0) {
         double cashAmount = current.cashPayment;
 
-        // If cash payment is full payment, it's the entire invoice
         if (current.paymentMode == PaymentMode.cash) {
           cashAmount = supplierPaymentAmount;
         }
 
         if (cashAmount > 0) {
-          // Determine cash currency - use selected cash currency or base currency
           final cashCurrency = (current.cashCurrency != null && current.cashCurrency!.isNotEmpty)
               ? current.cashCurrency!
               : baseCurrency;
 
-          // Determine exchange rate for cash payment
           double cashExRate;
           if (cashCurrency != baseCurrency && current.cashExchangeRate > 0) {
-            // User selected a different currency for cash payment
             cashExRate = current.cashExchangeRate;
           } else {
             cashExRate = 1.0;
           }
 
-          // Convert base amount to cash currency
           final amountInCashCurrency = cashAmount * cashExRate;
 
-          // CREDIT cash account (positive amount = credit in their API)
           apiPayments.add(PurchasePaymentRecord(
             accountNumber: 10101010, // Cash account
             amount: amountInCashCurrency,
@@ -1035,23 +1046,43 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         }
       }
 
-      final xRef = event.xRef ?? '';
-      final response = await repo.addPurchaseInvoice(
+      final xRef = event.xRef ?? current.reference ?? '';
+
+      print('=== FULL REQUEST TO API ===');
+      final requestData = {
+        "usrName": event.usrName,
+        "ordName": "Purchase",
+        "ordPersonal": event.ordPersonal,
+        "ordTrnRef": xRef,
+        "ordID": orderIdToUse,
+        "ordRemarks": event.remark,
+        "payments": apiPayments.map((e) => e.toJson()).toList(),
+        "records": records.map((r) => r.toJson()).toList(),
+      };
+      print(jsonEncode(requestData));
+
+      // Use the orderId we determined at the start
+      final response = await repo.updatePurchaseInvoice(
         usrName: event.usrName,
         perID: event.ordPersonal,
-        xRef: xRef,
+        ref: xRef,
+        orderId: orderIdToUse,  // Use the validated orderId here
         orderName: "Purchase",
         remark: event.remark,
         records: records,
         payment: apiPayments,
       );
 
+      print('=== API RESPONSE ===');
+      print(response);  // See what the API returns
+
       final message = response['msg']?.toString() ?? 'No response message';
+      print('Message: $message');
 
       if (message.toLowerCase().contains('success') || message.toLowerCase().contains('authorized')) {
         String invoiceNumber = response['invoiceNo']?.toString() ??
             response['ordID']?.toString() ??
-            'Generated';
+            orderIdToUse.toString();
 
         final invoiceData = current.copyWith();
 
@@ -1083,7 +1114,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         } else if (msgLower.contains('large')) {
           errorMessage = 'Payment amount exceeds total bill amount';
         } else if (msgLower.contains('failed')) {
-          errorMessage = 'Invoice creation failed. Please try again.';
+          errorMessage = 'Invoice update failed. Please try again.';
         } else {
           errorMessage = message;
         }

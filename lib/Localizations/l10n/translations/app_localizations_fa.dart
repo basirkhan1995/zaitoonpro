@@ -3325,4 +3325,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get payableAmount => 'مبلغ پرداختنی';
+
+  @override
+  String get lowStock => 'موجودی کم';
 }

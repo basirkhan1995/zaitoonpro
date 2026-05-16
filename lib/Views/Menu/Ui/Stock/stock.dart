@@ -15,12 +15,14 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/new_pu
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/Ui/orders.dart';
 import '../../../../Features/Generic/tab_bar.dart';
+import '../../../../Features/Other/toast.dart';
 import '../../../../Features/Widgets/outline_button.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
 import '../Report/Ui/Stock/Cardx/Ui/cardx.dart';
 import 'Ui/Adjustment/adjustment.dart';
 import 'Ui/GoodsShift/goods_shift.dart';
+import 'Ui/Orders/bloc/orders_bloc.dart';
 import 'bloc/stock_tab_bloc.dart';
 
 class StockView extends StatefulWidget {
@@ -534,6 +536,21 @@ class _StockViewState extends State<StockView> {
     );
   }
 
+  void getInvoice({required dynamic invoiceId}){
+    if (invoiceId.toString().trim().isEmpty) {
+      ToastManager.show(
+        context: context,
+        title: "Invoice ID Required",
+        message: "Please enter an Invoice ID or reference number.",
+        type: ToastType.info,
+      );
+      return;
+    }
+
+    final ordBloc = context.read<OrdersBloc>();
+    ordBloc.add(LoadOrderByIdEvent(orderId: invoiceId));
+  }
+
   void getInvoiceById(BuildContext context) {
     final invController = TextEditingController();
     final tr = AppLocalizations.of(context)!;
@@ -544,7 +561,7 @@ class _StockViewState extends State<StockView> {
           padding: const EdgeInsets.all(14),
           width: 500,
           onAction: () {
-
+            getInvoice(invoiceId: invController.text.trim());
           },
           actionLabel: Text(tr.submit),
           title: tr.findInvoice,

@@ -122,8 +122,7 @@ class _ZRangeDatePickerState extends State<ZRangeDatePicker> {
         if (widget.label.isNotEmpty) ...[
           Text(
             widget.label,
-            style: widget.labelStyle ??
-                Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12),
+            style: widget.labelStyle ?? Theme.of(context).textTheme.titleSmall?.copyWith(fontSize: 12),
           ),
           const SizedBox(height: 3),
         ],
@@ -190,8 +189,7 @@ class _ZRangeDatePickerState extends State<ZRangeDatePicker> {
                           children: [
                             Text(
                               selectedEndGregorianDate,
-                              style: widget.gregorianTextStyle ??
-                                  const TextStyle(fontSize: 12),
+                              style: widget.gregorianTextStyle ?? const TextStyle(fontSize: 12),
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(

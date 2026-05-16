@@ -14,7 +14,7 @@ class PurchaseInvoiceItem {
   double? localAmount;
   double? exchangeRate;
   String? unit;
-  final int? stkId;
+  int? stkId;
 
   PurchaseInvoiceItem({
     String? itemId,

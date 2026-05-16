@@ -67,7 +67,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       final List<PurchaseInvoiceItem> items = [];
       for (var i = 0; i < records.length; i++) {
         final record = records[i];
-
+        final stkId = record['stkID'];
         items.add(PurchaseInvoiceItem(
           itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_$i',
           productId: record['productId'].toString(),
@@ -80,7 +80,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
           sellPriceAmount: record['sellPercentage'] ?? 0,
           sellPricePercentage: record['sellPercentage'],
           storageId: record['storageId'],
-          stkId: record['stkID'],
+          stkId: stkId,
           storageName: record['storageName'] as String,
         ));
       }
@@ -827,8 +827,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     // Use orderId from event if provided, otherwise from state
     final orderIdToUse = event.orderId ?? current.orderId;
 
-    print('Current state orderId: ${current.orderId}');
-    print('Event orderId: ${event.orderId}');
 
     if (orderIdToUse == null || orderIdToUse <= 0) {
       emit(PurchaseInvoiceError('Invalid order ID for update'));
@@ -927,16 +925,9 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     ));
 
     try {
-      print('=== CHECKING stkId VALUES ===');
-      for (var i = 0; i < current.items.length; i++) {
-        final item = current.items[i];
-        print('Item $i: ${item.productName}');
-        print('  stkId: ${item.stkId}');
-        print('  stkId is null: ${item.stkId == null}');
-        print('  stkId type: ${item.stkId.runtimeType}');
-      }
       // Build records for API
       final records = current.items.map((item) {
+
         // Use stored percentage if available, otherwise calculate from amount
         double? percentageToSave = item.sellPricePercentage;
 
@@ -1060,6 +1051,12 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         "records": records.map((r) => r.toJson()).toList(),
       };
       print(jsonEncode(requestData));
+      // In _onUpdateInvoice, before API call:
+      print('=== UPDATE REQUEST ===');
+      for (var record in records) {
+        print('Record: proID=${record.proID}, stkId=${record.stkId}, quantity=${record.quantity}');
+      }
+      print('Request data: ${jsonEncode(requestData)}');
 
       // Use the orderId we determined at the start
       final response = await repo.updatePurchaseInvoice(

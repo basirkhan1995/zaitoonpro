@@ -1912,7 +1912,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
-    // FIX: Use addPostFrameCallback to avoid calling setState during build
+    // Schedule the local amount update for the next frame using addPostFrameCallback
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _updateLocalAmount();

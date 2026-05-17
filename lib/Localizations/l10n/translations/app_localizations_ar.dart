@@ -1874,7 +1874,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get submit => 'ثبت کړئ';
 
   @override
-  String get successPurchaseInvoiceMsg => 'د بل پیرود په بریالیتوب ترسره شو.';
+  String get successPurchaseInvoiceMsg => 'د بل په بریالیتوب ترسره شو.';
 
   @override
   String get successTitle => 'بریالیتوب';

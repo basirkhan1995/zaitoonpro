@@ -1870,7 +1870,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get submit => 'ثبت کردن';
 
   @override
-  String get successPurchaseInvoiceMsg => 'بل خرید موفقانه ثبت گردید.';
+  String get successPurchaseInvoiceMsg => 'بل موفقانه ثبت گردید.';
 
   @override
   String get successTitle => 'موفق';

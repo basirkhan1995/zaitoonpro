@@ -624,7 +624,7 @@
   "combinedPayment": "نقدی و اعتبار حساب",
   "combinedPaymentSubtitle": "پرداخت با نقد و اعتبار حساب",
   "submit": "ثبت کردن",
-  "successPurchaseInvoiceMsg": "بل خرید موفقانه ثبت گردید.",
+  "successPurchaseInvoiceMsg": "بل موفقانه ثبت گردید.",
   "successTitle": "موفق",
   "selectCreditAccountMsg": "لطفاً یک حساب برای پرداخت اعتباری انتخاب کنید",
   "totalCost": "کل هزینه",

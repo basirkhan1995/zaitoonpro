@@ -624,7 +624,7 @@
   "combinedPayment": "حساب او نقدی",
   "combinedPaymentSubtitle": "د نغدو او د حساب اعتبار په کارولو سره تادیه وکړئ",
   "submit": "ثبت کړئ",
-  "successPurchaseInvoiceMsg": "د بل پیرود په بریالیتوب ترسره شو.",
+  "successPurchaseInvoiceMsg": "د بل په بریالیتوب ترسره شو.",
   "successTitle": "بریالیتوب",
   "selectCreditAccountMsg": "مهرباني وکړئ د اعتباري تادیې لپاره یو حساب وټاکئ.",
   "totalCost": "کل هزینه",

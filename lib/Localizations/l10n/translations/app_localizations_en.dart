@@ -1879,8 +1879,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get submit => 'Submit';
 
   @override
-  String get successPurchaseInvoiceMsg =>
-      'Purchase invoice completed successfully.';
+  String get successPurchaseInvoiceMsg => 'Invoice saved successfully.';
 
   @override
   String get successTitle => 'Success';

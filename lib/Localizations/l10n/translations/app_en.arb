@@ -624,7 +624,7 @@
   "combinedPayment": "Cash & Credit",
   "combinedPaymentSubtitle": "Pay using cash and account credit.",
   "submit": "Submit",
-  "successPurchaseInvoiceMsg": "Purchase invoice completed successfully.",
+  "successPurchaseInvoiceMsg": "Invoice saved successfully.",
   "successTitle": "Success",
   "selectCreditAccountMsg": "Please select an account for credit payment.",
   "totalCost": "Total Cost",

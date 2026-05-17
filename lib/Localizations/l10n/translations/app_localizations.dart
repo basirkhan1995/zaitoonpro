@@ -3727,7 +3727,7 @@ abstract class AppLocalizations {
   /// No description provided for @successPurchaseInvoiceMsg.
   ///
   /// In en, this message translates to:
-  /// **'Purchase invoice completed successfully.'**
+  /// **'Invoice saved successfully.'**
   String get successPurchaseInvoiceMsg;
 
   /// No description provided for @successTitle.

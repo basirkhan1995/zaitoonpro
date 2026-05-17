@@ -134,6 +134,29 @@ class SaveSaleInvoiceEvent extends SaleInvoiceEvent {
   List<Object?> get props => [usrName, ordPersonal, orderName, reference, remark, completer];
 }
 
+class UpdateSaleInvoiceEvent extends SaleInvoiceEvent {
+  final int orderId;
+  final String usrName;
+  final String orderName;
+  final int ordPersonal;
+  final String? reference;
+  final String? remark;
+  final Completer<String> completer;
+
+  const UpdateSaleInvoiceEvent({
+    required this.orderId,
+    required this.usrName,
+    required this.ordPersonal,
+    required this.orderName,
+    this.reference,
+    this.remark,
+    required this.completer,
+  });
+
+  @override
+  List<Object?> get props => [orderId, usrName, ordPersonal, orderName, reference, remark, completer];
+}
+
 class ClearCustomerAccountEvent extends SaleInvoiceEvent {
   const ClearCustomerAccountEvent();
   @override

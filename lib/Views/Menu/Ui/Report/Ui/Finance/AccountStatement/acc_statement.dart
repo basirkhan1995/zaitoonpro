@@ -531,8 +531,6 @@ class _DesktopState extends State<_Desktop> {
   AccountStatementModel? accountStatementModel;
   Future<void> _copyToClipboard(String reference, BuildContext context) async {
     await Utils.copyToClipboard(reference);
-
-
     setState(() {
       _copiedStates[reference] = true;
     });

@@ -535,7 +535,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                   BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                     builder: (context, state) {
                       if (state is SaleInvoiceLoaded || state is SaleInvoiceSaving) {
-                      //  final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
+                        final current = state is SaleInvoiceSaving ? state : (state as SaleInvoiceLoaded);
                         final isSaving = state is SaleInvoiceSaving;
 
                         return ZOutlineButton(
@@ -543,7 +543,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                           icon: Icons.refresh,
                           onPressed: (isSaving)
                               ? null
-                              :  null,
+                              :  ()=> _updateInvoice(context, current),
                           label: isSaving
                               ? SizedBox(
                             width: 20,
@@ -2090,7 +2090,41 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
       ),
     );
   }
+  void _updateInvoice(BuildContext context, SaleInvoiceLoaded state) {
+    print("triggering");
+    // Check if customer exists
+    if (state.customer == null) {
+      ToastManager.show(
+        context: context,
+        title: AppLocalizations.of(context)!.errorTitle,
+        message: AppLocalizations.of(context)!.selectCustomer,
+        type: ToastType.error,
+      );
+      return;
+    }
 
+    // If payment is cash but no cash amount set, open dialog to set it
+    if (state.paymentMode == PaymentMode.cash) {
+      if(state.cashPayment <= 0 || state.cashPaymentLocal <=0 && state.cashPayment != state.grandTotal || state.cashPaymentLocal != state.grandTotalLocal){
+        _showPaymentDialog(state);
+        return;
+      }
+    }
+
+    // Let Bloc handle all validation and show errors
+    final completer = Completer<String>();
+    context.read<SaleInvoiceBloc>().add(
+      UpdateSaleInvoiceEvent(
+        usrName: _userName ?? '',
+        orderId: state.orderId ?? widget.orderId,
+        orderName: "Sale",
+        ordPersonal: state.customer!.perId!,
+        reference: _reference.text.isNotEmpty ? _reference.text : null,
+        remark: _remarkController.text.isNotEmpty ? _remarkController.text : null,
+        completer: completer,
+      ),
+    );
+  }
   void _onSalePrint({String? invoiceNumber}) {
     final visibilityState = context.read<SettingsVisibleBloc>().state;
     final state = context.read<SaleInvoiceBloc>().state;

@@ -1922,7 +1922,7 @@ class Repositories {
       "usrName": usrName,
       "ordName": orderName,
       "ordPersonal": perID,
-      "ordTrnRef": ref,
+      "ordxRef": ref,
       "ordID": orderId,
       "ordRemarks": remark,
       "payments": payment.map((e)=> e.toJson()).toList(),

@@ -30,6 +30,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     on<UpdateCashPaymentEvent>(_onUpdateCashPayment);
     on<ResetSaleInvoiceEvent>(_onReset);
     on<SaveSaleInvoiceEvent>(_onSaveInvoice);
+    on<UpdateSaleInvoiceEvent>(_onUpdateInvoice);
     on<ClearCustomerAccountEvent>(_onClearCustomerAccount);
     on<UpdateItemDiscountTypeEvent>(_onUpdateItemDiscountType);
     on<UpdateItemDiscountValueEvent>(_onUpdateItemDiscountValue);
@@ -879,5 +880,265 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       event.completer.complete('');
     }
   }
+  Future<void> _onUpdateInvoice(UpdateSaleInvoiceEvent event, Emitter<SaleInvoiceState> emit) async {
+    final tr = localizationService.loc;
+    if (state is! SaleInvoiceLoaded) {
+      event.completer.complete('');
+      return;
+    }
 
+    final current = state as SaleInvoiceLoaded;
+    final savedState = current.copyWith();
+
+
+
+    // Use orderId from event if provided, otherwise from state
+    final orderIdToUse = current.orderId;
+
+
+    // Validation
+    if (current.customer == null) {
+      emit(SaleInvoiceError(tr.selectCustomer));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    if (current.paymentMode == PaymentMode.cash) {
+      if(current.cashPayment != current.grandTotal || current.cashPaymentLocal != current.grandTotalLocal){
+        emit(SaleInvoiceError(tr.invalidCashAmount));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+    }
+
+    if (current.paymentMode == PaymentMode.mixed && current.customerAccount == null) {
+      emit(SaleInvoiceError(tr.selectCreditAccountMsg));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    if (current.paymentMode == PaymentMode.credit && current.customerAccount == null) {
+      emit(SaleInvoiceError(tr.selectCreditAccountMsg));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    if (current.items.isEmpty) {
+      emit(SaleInvoiceError(tr.addItemMsg));
+      emit(savedState);
+      event.completer.complete('');
+      return;
+    }
+
+    for (var item in current.items) {
+      if (item.productId.isEmpty || item.productName.isEmpty) {
+        emit(SaleInvoiceError(tr.addProductMsg));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+      if (item.storageId == 0 || item.storageName.isEmpty) {
+        emit(SaleInvoiceError("Please Select Storage"));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+      if (item.salePrice == null || item.salePrice! <= 0) {
+        emit(SaleInvoiceError(tr.addValidPrice));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+      if (item.qty <= 0) {
+        emit(SaleInvoiceError(tr.addValidQty));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+    }
+
+    emit(SaleInvoiceSaving(
+      items: current.items,
+      payments: current.payments,
+      customer: current.customer,
+      customerAccount: current.customerAccount,
+      cashPayment: current.cashPayment,
+      paymentMode: current.paymentMode,
+      storages: current.storages,
+      generalDiscount: current.generalDiscount,
+      generalDiscountType: current.generalDiscountType,
+      exchangeRate: current.exchangeRate,
+      fromCurrency: current.fromCurrency,
+      toCurrency: current.toCurrency,
+      extraCharges: current.extraCharges,
+      cashCurrency: current.cashCurrency,
+      cashExchangeRate: current.cashExchangeRate,
+    ));
+
+    try {
+      final records = current.items.map((item) {
+        double discountAmount = 0.0;
+        if (item.discount != null && item.discount! > 0) {
+          if (item.discountType == DiscountType.percentage) {
+            final subtotal = item.qty * (item.salePrice ?? 0);
+            discountAmount = subtotal * (item.discount! / 100);
+          } else {
+            discountAmount = item.discount!;
+          }
+        }
+
+        return SaleInvoiceRecord(
+          proID: int.tryParse(item.productId) ?? 0,
+          stgID: item.storageId,
+          quantity: item.qty.toDouble(),
+          batch: item.batch?.toDouble() ?? 0.0,
+          discount: discountAmount,
+          purchaseAveragePrice: item.purPrice ?? 0.0,
+          landedPrice: item.landedPrice,
+          purchasePrice: item.purPrice,
+          salePrice: item.salePrice ?? 0.0,
+        );
+      }).toList();
+
+      final xRef = event.reference ?? '';
+
+      // FIX: Ensure baseCurrency is not empty - get from auth state if needed
+      final baseCurrency = current.fromCurrency ?? '';
+      if (baseCurrency.isEmpty) {
+        emit(SaleInvoiceError("Base currency not configured. Please contact administrator."));
+        emit(savedState);
+        event.completer.complete('');
+        return;
+      }
+
+      final accountCurrency = current.customerAccount?.actCurrency ?? '';
+      final needsConversion = accountCurrency.isNotEmpty &&
+          baseCurrency.isNotEmpty &&
+          accountCurrency != baseCurrency;
+
+      final List<SalePaymentRecord> apiPayments = [];
+
+      // Extra charges - use baseCurrency which is now guaranteed non-empty
+      if (current.extraCharges > 0) {
+        apiPayments.add(SalePaymentRecord(
+          accountNumber: 10101018,
+          amount: current.extraCharges,
+          currency: baseCurrency,
+          exRate: 1.0,
+          narration: "Extra charges",
+        ));
+      }
+
+      // Add general discount - use baseCurrency
+      if (current.generalDiscountAmount > 0) {
+        final discountTypeStr = current.generalDiscountType == DiscountType.percentage ? "PCT" : "AMT";
+        apiPayments.add(SalePaymentRecord(
+          accountNumber: 40404053,
+          amount: current.generalDiscountAmount,
+          currency: baseCurrency,
+          exRate: 1.0,
+          narration: "Discount on sales - Type: $discountTypeStr, Original: ${current.generalDiscount}",
+        ));
+      }
+
+      // Add credit payment
+      if (current.paymentMode != PaymentMode.cash && current.customerAccount != null) {
+        final creditAmount = current.creditAmount;
+        if (creditAmount > 0) {
+          final convertedAmount = needsConversion
+              ? creditAmount * current.safeExchangeRate
+              : creditAmount;
+
+          // Ensure accountCurrency is valid
+          final validAccountCurrency = accountCurrency.isNotEmpty ? accountCurrency : baseCurrency;
+
+          apiPayments.add(SalePaymentRecord(
+            accountNumber: current.customerAccount!.accNumber!,
+            amount: convertedAmount,
+            currency: validAccountCurrency,
+            exRate: needsConversion ? current.safeExchangeRate : 1.0,
+            narration: "Customer account payment",
+          ));
+        }
+      }
+
+      // Add cash payment with selected currency
+      if (current.cashPayment > 0) {
+        // FIX: Ensure cashCurrency is valid - fallback to baseCurrency
+        String cashCurrency = current.cashCurrency ?? '';
+        if (cashCurrency.isEmpty) {
+          cashCurrency = baseCurrency;
+        }
+
+        final cashExRate = (cashCurrency != baseCurrency)
+            ? current.cashExchangeRate
+            : 1.0;
+
+        final amountInCashCurrency = current.cashPayment * cashExRate;
+
+        apiPayments.add(SalePaymentRecord(
+          accountNumber: 10101010,
+          amount: amountInCashCurrency,
+          currency: cashCurrency,
+          exRate: cashExRate,
+          narration: "Cash payment",
+        ));
+      }
+
+      final response = await repo.updateSaleInvoice(
+        usrName: event.usrName,
+        perID: event.ordPersonal,
+        ref: xRef,
+        orderId: orderIdToUse,
+        orderName: event.orderName,
+        remark: event.remark,
+        payment: apiPayments,
+        records: records,
+      );
+
+      final message = response['msg']?.toString() ?? 'No response message';
+      final sp = response['specific']?.toString() ?? '';
+
+      if (message.toLowerCase().contains('success') || message.toLowerCase().contains('authorized')) {
+        final invoiceNumber = response['ordID']?.toString() ?? 'No Order Id';
+        final invoiceData = current.copyWith();
+        emit(SaleInvoiceSaved(true, invoiceNumber: invoiceNumber, invoiceData: invoiceData));
+        event.completer.complete(invoiceNumber);
+        Future.microtask(() {
+          if (!emit.isDone) add(ResetSaleInvoiceEvent());
+        });
+      } else if (message.toLowerCase().contains('not enough')) {
+        String errorMessage = '${tr.notEnoughMsg} $sp';
+        emit(SaleInvoiceError(errorMessage));
+        emit(savedState);
+        event.completer.complete('');
+      } else {
+        String errorMessage;
+        final msgLower = message.toLowerCase();
+        if (msgLower.contains('over limit')) {
+          errorMessage = tr.overLimitMessage;
+        } else if (msgLower.contains('block')) {
+          errorMessage = tr.accountBlockedMessage;
+        } else if (msgLower.contains('not found')) {
+          errorMessage = 'Invalid product or storage ID';
+        } else if (msgLower.contains('failed')) {
+          errorMessage = 'Invoice creation failed. Please try again.';
+        } else {
+          errorMessage = message;
+        }
+        emit(SaleInvoiceError(errorMessage));
+        emit(savedState);
+        event.completer.complete('');
+      }
+    } catch (e) {
+      String errorMessage = e.toString();
+      emit(SaleInvoiceError(errorMessage));
+      emit(savedState);
+      event.completer.complete('');
+    }
+  }
 }

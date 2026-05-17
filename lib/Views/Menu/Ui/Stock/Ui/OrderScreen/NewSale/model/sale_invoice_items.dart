@@ -16,7 +16,7 @@ class SaleInvoiceItem {
   double? exchangeRate;
   double? landedPrice;
   String? unit;
-
+  int? stkId;
   SaleInvoiceItem({
     String? itemId,
     required this.productId,
@@ -33,6 +33,7 @@ class SaleInvoiceItem {
     this.exchangeRate,
     this.landedPrice,
     this.unit,
+    this.stkId,
   }) : rowId = itemId ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   // Total number of units (qty * batch)
@@ -123,6 +124,7 @@ class SaleInvoiceItem {
     double? exchangeRate,
     double? landedPrice,
     String? unit,
+    int? stkId,
   }) {
     return SaleInvoiceItem(
       itemId: rowId,
@@ -140,12 +142,14 @@ class SaleInvoiceItem {
       exchangeRate: exchangeRate ?? this.exchangeRate,
       landedPrice: landedPrice ?? this.landedPrice,
       unit: unit ?? this.unit,
+      stkId: stkId ?? this.stkId
     );
   }
 }
 
 class SaleInvoiceRecord {
   final int proID;
+  final int? stkId;
   final int stgID;
   final double quantity;
   final double? batch;
@@ -156,6 +160,7 @@ class SaleInvoiceRecord {
   final double? landedPrice;
 
   SaleInvoiceRecord({
+    this.stkId,
     required this.proID,
     required this.stgID,
     required this.quantity,
@@ -168,6 +173,7 @@ class SaleInvoiceRecord {
   });
 
   Map<String, dynamic> toJson() => {
+    if (stkId != null) 'stkID': stkId,
     'stkProduct': proID,
     'stkStorage': stgID,
     'stkQuantity': quantity,

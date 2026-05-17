@@ -1912,14 +1912,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       }
     }
 
-    // Schedule the local amount update for the next frame
-    if (mounted) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          _updateLocalAmount();
-        }
-      });
-    }
+    // FIX: Use addPostFrameCallback to avoid calling setState during build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _updateLocalAmount();
+      }
+    });
   }
 
   @override
@@ -1927,7 +1925,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _landedPriceController.dispose();
     _storageController.dispose();
     _localAmountController.dispose();
-    // Don't dispose _sellPriceController here as it's managed by parent
     super.dispose();
   }
 
@@ -4062,13 +4059,11 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
         quantity: item.qty.toDouble(),
         unitPrice: item.purPrice ?? 0.0,
         batch: item.stkBatch,
-        unit: '',
+        unit: item.unit ?? "_",
         total: item.totalPurchase,
         storageName: item.storageName,
-        localAmount: item
-            .localAmount, // Single item local amount (unit price * exchange rate)
-        localCurrency:
-            current?.supplierAccount?.actCurrency ?? current?.toCurrency,
+        localAmount: item.localAmount, // Single item local amount (unit price * exchange rate)
+        localCurrency: current?.supplierAccount?.actCurrency ?? current?.toCurrency,
         exchangeRate: current?.exchangeRate, // Pass exchange rate
       );
     }).toList();

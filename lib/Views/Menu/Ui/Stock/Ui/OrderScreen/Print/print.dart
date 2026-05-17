@@ -1124,7 +1124,7 @@ class InvoicePrintService extends PrintServices {
         exchangeRate != null &&
         exchangeRate != 1.0;
 
-    final double effectiveSubtotal = subtotal ?? items.fold(0.0, (sum, item) => sum + (item.quantity * item.unitPrice));
+    final double effectiveSubtotal = subtotal ?? items.fold(0.0, (sum, item) => sum + ((item.quantity * item.batch) * item.unitPrice));
     final double effectiveLocalSubtotal = effectiveSubtotal * safeExchangeRate;
 
     final double totalDiscount = (totalItemDiscount ?? 0.0) + (generalDiscount ?? 0.0);

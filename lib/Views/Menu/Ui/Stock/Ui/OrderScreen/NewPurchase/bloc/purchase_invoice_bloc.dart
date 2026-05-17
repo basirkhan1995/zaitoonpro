@@ -588,7 +588,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
     }
 
     if(current.paymentMode == PaymentMode.cash){
-      if(current.cashPayment != current.grandTotalLocal || current.cashPayment != current.totalInvoice){
+      if(current.cashPayment != current.subtotal){
         emit(PurchaseInvoiceError('Cash payment not equal to total invoice amount'));
         emit(savedState);
         event.completer.complete('');

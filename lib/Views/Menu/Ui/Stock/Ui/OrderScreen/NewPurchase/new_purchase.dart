@@ -1652,7 +1652,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   late TextEditingController _sellPriceController;
   double? _lastExchangeRate;
   double? _lastPurPrice;
-
+  late TextEditingController _productController;
+  late TextEditingController _headerProductController;
   // Add these for sell price mode
   bool _isPercentageMode = true;
   double _currentPurchasePrice = 0.0;
@@ -1663,6 +1664,13 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   @override
   void initState() {
     super.initState();
+    _productController = TextEditingController(
+      text: widget.item.productName,
+    );
+
+    _headerProductController = TextEditingController(
+      text: widget.item.productName,
+    );
     _landedPriceController = TextEditingController(
       text: widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
@@ -1768,7 +1776,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           : '';
 
       if (_localAmountController.text != newText) {
-        _localAmountController.text = newText;
+        _localAmountController.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(
+            offset: newText.length,
+          ),
+        );
 
         // Also update the item's localAmount if needed
         if (widget.item.localAmount != newLocalAmount) {
@@ -1884,44 +1897,62 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 
   @override
-  void didUpdateWidget(_PurchaseItemRow oldWidget) {
+  void didUpdateWidget(covariant _PurchaseItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Update landed price
-    if (widget.item.landedPrice != oldWidget.item.landedPrice) {
-      final newValue = widget.item.landedPrice != null && widget.item.landedPrice! > 0
-          ? widget.item.landedPrice!.toAmount()
-          : '';
-      if (_landedPriceController.text != newValue) {
-        _landedPriceController.text = newValue;
-      }
-    }
-
-    // Update storage
-    if (widget.item.storageName != oldWidget.item.storageName) {
-      if (_storageController.text != widget.item.storageName) {
-        _storageController.text = widget.item.storageName;
-      }
-    }
-
-    // Update purchase price for mode conversions
-    if (widget.item.purPrice != oldWidget.item.purPrice) {
-      _currentPurchasePrice = widget.item.purPrice ?? 0.0;
-      if (_isPercentageMode && !_isUpdating) {
-        _updateSellPriceFromPercentage();
-      }
-    }
-
-    // Schedule the local amount update for the next frame using addPostFrameCallback
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _updateLocalAmount();
+      if (!mounted) return;
+
+      // Update landed price
+      if (widget.item.landedPrice != oldWidget.item.landedPrice) {
+        final newValue =
+        widget.item.landedPrice != null &&
+            widget.item.landedPrice! > 0
+            ? widget.item.landedPrice!.toAmount()
+            : '';
+
+        if (_landedPriceController.text != newValue) {
+          _landedPriceController.value = TextEditingValue(
+            text: newValue,
+            selection: TextSelection.collapsed(
+              offset: newValue.length,
+            ),
+          );
+        }
       }
+
+      // Update storage
+      if (widget.item.storageName != oldWidget.item.storageName) {
+        if (_storageController.text != widget.item.storageName) {
+          final text = widget.item.storageName;
+
+          _storageController.value = TextEditingValue(
+            text: text,
+            selection: TextSelection.collapsed(
+              offset: text.length,
+            ),
+          );
+        }
+      }
+
+      // Update purchase price
+      if (widget.item.purPrice != oldWidget.item.purPrice) {
+        _currentPurchasePrice = widget.item.purPrice ?? 0.0;
+
+        if (_isPercentageMode && !_isUpdating) {
+          _updateSellPriceFromPercentage();
+        }
+      }
+
+      // Update local amount
+      _updateLocalAmount();
     });
   }
 
   @override
   void dispose() {
+    _productController.dispose();
+    _headerProductController.dispose();
     _landedPriceController.dispose();
     _storageController.dispose();
     _localAmountController.dispose();
@@ -2027,12 +2058,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final locale = AppLocalizations.of(context)!;
     final visibility = context.read<SettingsVisibleBloc>().state;
     final isWholeSale = visibility.isWholeSale;
-    final productController = TextEditingController(
-      text: widget.item.productName,
-    );
-    final headerProductController = TextEditingController(
-      text: widget.item.productName,
-    );
+
+
     final qtyController = widget.qtyControllers.putIfAbsent(
       widget.item.rowId,
           () => TextEditingController(
@@ -2077,8 +2104,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
               /// Product Search Field
               Expanded(
                 child: PurchaseProductSearchField(
-                  controller: productController,
-                  headerSearchController: headerProductController,
+                  controller: _productController,
+                  headerSearchController: _headerProductController,
                   focusNode: safeNode(0),
                   bloc: context.read<ProductsBloc>(),
                   onProductSelected: (product) {

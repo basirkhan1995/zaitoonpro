@@ -1055,11 +1055,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         payment: apiPayments,
       );
 
-      print('=== API RESPONSE ===');
-      print(response);  // See what the API returns
-
       final message = response['msg']?.toString() ?? 'No response message';
-      print('Message: $message');
 
       if (message.toLowerCase().contains('success') || message.toLowerCase().contains('authorized')) {
         String invoiceNumber = response['invoiceNo']?.toString() ??

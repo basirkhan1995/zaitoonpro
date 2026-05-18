@@ -168,11 +168,6 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         toCurrency = customerAccountData['currency'] as String;
       }
 
-      // final customer = IndividualsModel(
-      //   perId: parsed['partyId'],
-      //   perName: parsed['partyName'],
-      // );
-
       // Get extra charges
       double extraCharges = 0;
       for (var payment in payments) {
@@ -182,21 +177,29 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         }
       }
 
-      // FIX: Get general discount with type
+      // FIX: Get ONLY GENERAL discount
       double generalDiscountAmount = 0;
       double originalDiscountValue = 0;
       DiscountType generalDiscountType = DiscountType.percentage;
 
       for (var payment in payments) {
         if (payment['account'] == 40404053) {
-          generalDiscountAmount = payment['amount'] as double;
 
-          final narration = payment['narration'] as String;
+          final narration = (payment['narration'] ?? '').toString();
 
-          // Extract discount type from narration
+          /// Skip item discount entries
+          if (!narration.contains('GENERAL_DISCOUNT')) {
+            continue;
+          }
+
+          generalDiscountAmount = (payment['amount'] ?? 0).toDouble();
+
+          // Extract discount type
           final typeMatch = RegExp(r'Type:\s*(\w+)').firstMatch(narration);
+
           if (typeMatch != null) {
             final typeStr = typeMatch.group(1);
+
             if (typeStr == "AMT") {
               generalDiscountType = DiscountType.amount;
             } else if (typeStr == "PCT") {
@@ -204,14 +207,49 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
             }
           }
 
-          // Extract original discount value (what user entered)
-          final originalMatch = RegExp(r'Original:\s*([\d.]+)').firstMatch(narration);
+          // Extract original discount value
+          final originalMatch =
+          RegExp(r'Original:\s*([\d.]+)').firstMatch(narration);
+
           if (originalMatch != null) {
-            originalDiscountValue = double.parse(originalMatch.group(1)!);
+            originalDiscountValue =
+                double.tryParse(originalMatch.group(1)!) ?? 0;
           }
+
           break;
         }
       }
+
+      // FIX: Get general discount with type
+      // double generalDiscountAmount = 0;
+      // double originalDiscountValue = 0;
+      // DiscountType generalDiscountType = DiscountType.percentage;
+      //
+      // for (var payment in payments) {
+      //   if (payment['account'] == 40404053) {
+      //     generalDiscountAmount = payment['amount'] as double;
+      //
+      //     final narration = payment['narration'] as String;
+      //
+      //     // Extract discount type from narration
+      //     final typeMatch = RegExp(r'Type:\s*(\w+)').firstMatch(narration);
+      //     if (typeMatch != null) {
+      //       final typeStr = typeMatch.group(1);
+      //       if (typeStr == "AMT") {
+      //         generalDiscountType = DiscountType.amount;
+      //       } else if (typeStr == "PCT") {
+      //         generalDiscountType = DiscountType.percentage;
+      //       }
+      //     }
+      //
+      //     // Extract original discount value (what user entered)
+      //     final originalMatch = RegExp(r'Original:\s*([\d.]+)').firstMatch(narration);
+      //     if (originalMatch != null) {
+      //       originalDiscountValue = double.parse(originalMatch.group(1)!);
+      //     }
+      //     break;
+      //   }
+      // }
 
       // Use original discount value if available (user-entered value), otherwise use the calculated amount
       final finalGeneralDiscount = originalDiscountValue > 0 ? originalDiscountValue : generalDiscountAmount;
@@ -781,7 +819,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           amount: current.generalDiscountAmount,
           currency: baseCurrency,
           exRate: 1.0,
-          narration: "Discount on sales - Type: $discountTypeStr, Original: ${current.generalDiscount}",
+          narration: "GENERAL_DISCOUNT - Type: $discountTypeStr, Original: ${current.generalDiscount}",
         ));
       }
 
@@ -801,23 +839,17 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
             amount: convertedAmount,
             currency: validAccountCurrency,
             exRate: needsConversion ? current.safeExchangeRate : 1.0,
-            narration: "Customer account payment",
+            narration: "Account Receivable",
           ));
         }
       }
 
       // Add cash payment with selected currency
       if (current.cashPayment > 0) {
-        // FIX: Ensure cashCurrency is valid - fallback to baseCurrency
-        String cashCurrency = current.cashCurrency ?? '';
-        if (cashCurrency.isEmpty) {
-          cashCurrency = baseCurrency;
-        }
-
+        final cashCurrency = current.cashCurrency ?? '';
         final cashExRate = (cashCurrency != baseCurrency)
             ? current.cashExchangeRate
             : 1.0;
-
         final amountInCashCurrency = current.cashPayment * cashExRate;
 
         apiPayments.add(SalePaymentRecord(
@@ -890,11 +922,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
     final current = state as SaleInvoiceLoaded;
     final savedState = current.copyWith();
 
-
-
     // Use orderId from event if provided, otherwise from state
     final orderIdToUse = current.orderId;
-
 
     // Validation
     if (current.customer == null) {
@@ -1041,7 +1070,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
           amount: current.generalDiscountAmount,
           currency: baseCurrency,
           exRate: 1.0,
-          narration: "Discount on sales - Type: $discountTypeStr, Original: ${current.generalDiscount}",
+          narration: "GENERAL_DISCOUNT - Type: $discountTypeStr, Original: ${current.generalDiscount}",
         ));
       }
 

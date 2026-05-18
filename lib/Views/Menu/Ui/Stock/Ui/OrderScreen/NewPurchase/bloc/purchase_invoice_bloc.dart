@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Individuals/model/individual_model.dart';
@@ -524,6 +523,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
     }
   }
+
   Future<void> _onSaveInvoice(SavePurchaseInvoiceEvent event, Emitter<PurchaseInvoiceState> emit) async {
     if (state is! PurchaseInvoiceLoaded) {
       event.completer.complete('');
@@ -720,9 +720,13 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
         if (cashAmount > 0) {
           // Determine cash currency - use selected cash currency or base currency
-          final cashCurrency = (current.cashCurrency != null && current.cashCurrency!.isNotEmpty)
+          String cashCurrency = (current.cashCurrency != null && current.cashCurrency!.isNotEmpty)
               ? current.cashCurrency!
               : baseCurrency;
+
+          if (cashCurrency.isEmpty) {
+            cashCurrency = baseCurrency;
+          }
 
           // Determine exchange rate for cash payment
           double cashExRate;
@@ -1038,25 +1042,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       }
 
       final xRef = event.xRef ?? current.reference ?? '';
-
-      print('=== FULL REQUEST TO API ===');
-      final requestData = {
-        "usrName": event.usrName,
-        "ordName": "Purchase",
-        "ordPersonal": event.ordPersonal,
-        "ordTrnRef": xRef,
-        "ordID": orderIdToUse,
-        "ordRemarks": event.remark,
-        "payments": apiPayments.map((e) => e.toJson()).toList(),
-        "records": records.map((r) => r.toJson()).toList(),
-      };
-      print(jsonEncode(requestData));
-      // In _onUpdateInvoice, before API call:
-      print('=== UPDATE REQUEST ===');
-      for (var record in records) {
-        print('Record: proID=${record.proID}, stkId=${record.stkId}, quantity=${record.quantity}');
-      }
-      print('Request data: ${jsonEncode(requestData)}');
 
       // Use the orderId we determined at the start
       final response = await repo.updatePurchaseInvoice(

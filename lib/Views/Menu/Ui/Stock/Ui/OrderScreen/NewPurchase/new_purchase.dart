@@ -2445,7 +2445,6 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   bool _isLoadingCashRate = false;
   String _baseCurrency = '';
 
-  // Track current state to rebuild when bloc updates
   PurchaseInvoiceLoaded _currentState = PurchaseInvoiceLoaded(
     items: [],
     payments: [],
@@ -2454,9 +2453,8 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   );
 
   late StreamSubscription _blocSubscription;
-
-  // Track current cash amount in selected currency
   double _currentCashAmountInSelectedCurrency = 0.0;
+  bool get _isPureCashMode => _currentState.supplierAccount == null;
 
   @override
   void initState() {
@@ -2464,27 +2462,32 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
 
     _currentState = widget.state;
 
-    // Get base currency from auth state
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthenticatedState) {
-      _baseCurrency = authState.loginData.company?.comLocalCcy ?? 'USD';
+      _baseCurrency = authState.loginData.company?.comLocalCcy ?? '';
     }
 
     if (_baseCurrency.isEmpty) {
-      _baseCurrency = _currentState.fromCurrency ?? 'USD';
+      _baseCurrency = _currentState.fromCurrency ?? '';
     }
 
-    // Load existing cash currency from state
-    _selectedCashCurrency = (_currentState.cashCurrency != null && _currentState.cashCurrency!.isNotEmpty)
-        ? _currentState.cashCurrency!
-        : _baseCurrency;
+    if (_currentState.cashCurrency != null && _currentState.cashCurrency!.isNotEmpty) {
+      _selectedCashCurrency = _currentState.cashCurrency!;
+    } else {
+      _selectedCashCurrency = _baseCurrency;
+    }
 
     _cashExchangeRate = _currentState.cashExchangeRate > 0
         ? _currentState.cashExchangeRate
         : 1.0;
 
-    // Initialize current cash amount
-    _currentCashAmountInSelectedCurrency = _currentState.cashPayment * _cashExchangeRate;
+    final totalInvoiceAmount = _currentState.subtotal + _currentState.totalExpenses;
+
+    if (_isPureCashMode) {
+      _currentCashAmountInSelectedCurrency = totalInvoiceAmount * _cashExchangeRate;
+    } else {
+      _currentCashAmountInSelectedCurrency = _currentState.cashPayment * _cashExchangeRate;
+    }
 
     _cashPaymentController = TextEditingController(
       text: _currentCashAmountInSelectedCurrency > 0
@@ -2502,18 +2505,46 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
       text: _cashExchangeRate.toStringAsFixed(4),
     );
 
-    // LISTEN to bloc state changes to update dialog when exchange rate changes
+    if (_currentState.cashCurrency == null || _currentState.cashCurrency!.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<PurchaseInvoiceBloc>().add(UpdateCashCurrencyEvent(
+          currency: _baseCurrency,
+          exchangeRate: 1.0,
+        ));
+
+        if (_isPureCashMode) {
+          context.read<PurchaseInvoiceBloc>().add(UpdateCashPaymentEvent(totalInvoiceAmount));
+        }
+      });
+    }
+
     _blocSubscription = context.read<PurchaseInvoiceBloc>().stream.listen((state) {
       if (state is PurchaseInvoiceLoaded && mounted) {
         setState(() {
           _currentState = state;
 
-          // Update exchange rate controller if changed
           final newRate = _currentState.exchangeRate != null && _currentState.exchangeRate! > 0
               ? _currentState.exchangeRate!.toStringAsFixed(4)
               : '';
           if (_exchangeRateController.text != newRate) {
             _exchangeRateController.text = newRate;
+          }
+
+          if (_currentState.cashCurrency != null && _currentState.cashCurrency!.isNotEmpty) {
+            if (_selectedCashCurrency != _currentState.cashCurrency) {
+              _selectedCashCurrency = _currentState.cashCurrency!;
+              _cashExchangeRate = _currentState.cashExchangeRate;
+              _cashExchangeRateController.text = _cashExchangeRate.toStringAsFixed(4);
+            }
+          }
+
+          if (_isPureCashMode) {
+            final totalAmount = _currentState.subtotal + _currentState.totalExpenses;
+            final expectedCashInSelectedCurrency = totalAmount * _cashExchangeRate;
+            if (_currentCashAmountInSelectedCurrency != expectedCashInSelectedCurrency) {
+              _currentCashAmountInSelectedCurrency = expectedCashInSelectedCurrency;
+              _cashPaymentController.text = expectedCashInSelectedCurrency.toStringAsFixed(2);
+            }
           }
         });
       }
@@ -2530,6 +2561,18 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   }
 
   void _updateCashPayment(double amountInSelectedCurrency) {
+    if (_isPureCashMode) {
+      final totalAmount = _currentState.subtotal + _currentState.totalExpenses;
+      final correctAmount = totalAmount * _cashExchangeRate;
+      if (_currentCashAmountInSelectedCurrency != correctAmount) {
+        setState(() {
+          _currentCashAmountInSelectedCurrency = correctAmount;
+          _cashPaymentController.text = correctAmount.toStringAsFixed(2);
+        });
+      }
+      return;
+    }
+
     setState(() {
       _currentCashAmountInSelectedCurrency = amountInSelectedCurrency;
     });
@@ -2546,11 +2589,19 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
       _cashExchangeRate = rate;
       _cashExchangeRateController.text = rate.toStringAsFixed(4);
 
-      // Update displayed amount with new rate
-      final currentAmountInBase = _currentState.cashPayment;
-      _currentCashAmountInSelectedCurrency = currentAmountInBase * rate;
-      _cashPaymentController.text = _currentCashAmountInSelectedCurrency > 0
-          ? _currentCashAmountInSelectedCurrency.toStringAsFixed(2)
+      final totalInvoiceAmount = _currentState.subtotal + _currentState.totalExpenses;
+      double newAmountInSelectedCurrency;
+
+      if (_isPureCashMode) {
+        newAmountInSelectedCurrency = totalInvoiceAmount * rate;
+      } else {
+        final currentAmountInBase = _currentState.cashPayment;
+        newAmountInSelectedCurrency = currentAmountInBase * rate;
+      }
+
+      _currentCashAmountInSelectedCurrency = newAmountInSelectedCurrency;
+      _cashPaymentController.text = newAmountInSelectedCurrency > 0
+          ? newAmountInSelectedCurrency.toStringAsFixed(2)
           : '';
     });
 
@@ -2560,20 +2611,42 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
     ));
   }
 
-  double get _cashAmountInBase => _currentCashAmountInSelectedCurrency / _cashExchangeRate;
+  double get _cashAmountInBase {
+    if (_isPureCashMode) {
+      return _currentState.subtotal + _currentState.totalExpenses;
+    }
+    return _currentCashAmountInSelectedCurrency / _cashExchangeRate;
+  }
 
   double get _creditAmount {
+    final totalInvoiceAmount = _currentState.subtotal + _currentState.totalExpenses;
+    if (_isPureCashMode) {
+      return 0.0;
+    }
     if (_currentState.paymentMode == PaymentMode.credit) {
-      return _currentState.subtotal;
+      return totalInvoiceAmount;
     } else if (_currentState.paymentMode == PaymentMode.mixed) {
-      return _currentState.subtotal - _cashAmountInBase;
+      return totalInvoiceAmount - _cashAmountInBase;
     }
     return 0.0;
   }
 
-  double get _creditAmountLocal {
+  double get _creditAmountInSupplierCurrency {
+    if (_creditAmount <= 0) return 0.0;
     if (_currentState.exchangeRate == null || _currentState.exchangeRate == 0) return _creditAmount;
     return _creditAmount * _currentState.exchangeRate!;
+  }
+
+  // FIX: For Purchase - New Balance = Current Balance + Credit Amount (Liability increases)
+  double get _newBalanceInSupplierCurrency {
+    if (_currentState.supplierAccount == null) return 0.0;
+    return _currentState.currentBalance + _creditAmountInSupplierCurrency;
+  }
+
+  Color _getBalanceColor(double balance) {
+    if (balance > 0) return Colors.orange;  // You owe money
+    if (balance < 0) return Colors.green;    // Supplier owes you
+    return Colors.grey;
   }
 
   void _onCashCurrencyChanged(CurrenciesModel? currency) {
@@ -2646,7 +2719,6 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   }
 
   void _onConfirm() {
-    // Update the cash payment with the entered amount
     final finalCashAmount = _cashAmountInBase;
     context.read<PurchaseInvoiceBloc>().add(UpdateCashPaymentEvent(finalCashAmount));
     Navigator.pop(context);
@@ -2656,20 +2728,25 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   Widget build(BuildContext context) {
     final tr = AppLocalizations.of(context)!;
     final color = Theme.of(context).colorScheme;
-    final needsAccountConversion = _currentState.needsExchangeRate;
-    final grandTotal = _currentState.subtotal;
+    final needsAccountConversion = _currentState.needsExchangeRate && !_isPureCashMode;
+    final totalInvoiceAmount = _currentState.subtotal + _currentState.totalExpenses;
     final cashAmountInBase = _cashAmountInBase;
     final creditAmount = _creditAmount;
-    final creditAmountLocal = _creditAmountLocal;
+    final creditAmountInSupplierCurrency = _creditAmountInSupplierCurrency;
     final needsCashConversion = _selectedCashCurrency.isNotEmpty &&
         _baseCurrency.isNotEmpty &&
         _selectedCashCurrency != _baseCurrency;
 
+    final totalPaid = cashAmountInBase + creditAmount;
+    final isFullyPaid = totalPaid >= totalInvoiceAmount - 0.01;
+    final supplierCurrency = _currentState.supplierAccount?.actCurrency ?? _baseCurrency;
+
     return ZFormDialog(
-      title: tr.payment.toUpperCase(),
+      title: _isPureCashMode ? "${tr.cashPayment} - ${tr.fullCashPayment}" : tr.payment.toUpperCase(),
       icon: Icons.payment,
       width: 550,
       actionLabel: Text(tr.confirm),
+      isActionTrue: true,
       onAction: _onConfirm,
       child: SingleChildScrollView(
         child: Padding(
@@ -2678,7 +2755,6 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Order Summary Section
               SectionTitle(title: tr.orderSummary.toUpperCase()),
               const SizedBox(height: 8),
               ZCover(
@@ -2688,7 +2764,7 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                   children: [
                     _infoRow(
                       label: tr.grandTotal,
-                      value: grandTotal,
+                      value: totalInvoiceAmount,
                       currency: _baseCurrency,
                       isBold: true,
                       fontSize: 20,
@@ -2700,20 +2776,13 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                         currency: _baseCurrency,
                         color: Colors.red,
                       ),
-                    if (_currentState.totalExpenses > 0)
-                      _infoRow(
-                        label: tr.totalCostPludExpenses,
-                        value: grandTotal + _currentState.totalExpenses,
-                        currency: _baseCurrency,
-                        isBold: true,
-                      ),
                     if (needsAccountConversion &&
                         _currentState.exchangeRate != null &&
                         _currentState.exchangeRate! > 0 &&
                         _currentState.toCurrency != null)
                       _infoRow(
                         label: "${tr.grandTotal} (${_currentState.toCurrency})",
-                        value: grandTotal * _currentState.safeExchangeRate,
+                        value: totalInvoiceAmount * _currentState.safeExchangeRate,
                         currency: _currentState.toCurrency!,
                         fontSize: 15,
                         color: color.outline.withValues(alpha: .7),
@@ -2723,11 +2792,9 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
               ),
               const SizedBox(height: 10),
 
-              // Payment Section
               SectionTitle(title: tr.payment),
               const SizedBox(height: 10),
 
-              // Cash Payment Section
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2735,6 +2802,7 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                     controller: _cashPaymentController,
                     title: "${tr.cashAmount} ($_selectedCashCurrency)",
                     hint: "0.00",
+                    readOnly: _isPureCashMode,
                     defaultCurrencyCode: _selectedCashCurrency,
                     fieldType: ZTextFieldType.currency,
                     onCurrencyChanged: _onCashCurrencyChanged,
@@ -2754,7 +2822,6 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                     onSubmit: (_) => _onConfirm(),
                   ),
 
-                  // Exchange Rate Section for Cash
                   if (needsCashConversion) ...[
                     const SizedBox(height: 8),
                     ZTextFieldEntitled(
@@ -2784,7 +2851,6 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                     Divider(color: color.primary, endIndent: 4, indent: 4, thickness: 1.5),
                   ],
 
-                  // LIVE PAYMENT SUMMARY
                   ZCover(
                     margin: const EdgeInsets.only(top: 12),
                     padding: const EdgeInsets.all(12),
@@ -2813,34 +2879,59 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                           convertedCurrency: _selectedCashCurrency,
                         ),
 
-                        if (_currentState.supplierAccount != null && creditAmount > 0) ...[
+                        if (!_isPureCashMode && _currentState.supplierAccount != null && creditAmount > 0) ...[
                           const Divider(height: 12),
                           AmountDisplay(
                             title: tr.amountToChargeAccount,
                             baseAmount: creditAmount,
                             baseCurrency: _baseCurrency,
                             convertedAmount: (needsAccountConversion && creditAmount > 0)
-                                ? creditAmountLocal
+                                ? creditAmountInSupplierCurrency
                                 : null,
-                            convertedCurrency: _currentState.toCurrency,
+                            convertedCurrency: supplierCurrency,
+                            baseColor: Colors.orange,
                           ),
                         ],
 
                         const Divider(height: 12),
-                        _infoRow(
-                          label: tr.totalPayable,
-                          value: cashAmountInBase + creditAmount,
-                          currency: _baseCurrency,
-                          fontSize: 17,
-                          isBold: true,
-                          color: (cashAmountInBase + creditAmount) >= grandTotal ? Colors.green : Colors.red,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              tr.totalPayable,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "${(cashAmountInBase + creditAmount).toStringAsFixed(2)} $_baseCurrency",
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: isFullyPaid ? Colors.green : Colors.red,
+                                  ),
+                                ),
+                                if (!isFullyPaid && !_isPureCashMode)
+                                  Text(
+                                    "${(totalInvoiceAmount - (cashAmountInBase + creditAmount)).toStringAsFixed(2)} $_baseCurrency ${tr.remainingToPay}",
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.orange,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
 
-                  // Account Payment Exchange Rate Section
-                  if (needsAccountConversion && _currentState.toCurrency != null) ...[
+                  if (needsAccountConversion && _currentState.toCurrency != null && !_isPureCashMode) ...[
                     const SizedBox(height: 8),
                     ZTextFieldEntitled(
                       controller: _exchangeRateController,
@@ -2864,8 +2955,7 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
 
               const SizedBox(height: 12),
 
-              // Credit Account Section
-              if (_currentState.supplierAccount != null && creditAmount > 0)
+              if (!_isPureCashMode && _currentState.supplierAccount != null && creditAmount > 0)
                 ZCover(
                   padding: const EdgeInsets.all(12),
                   radius: 8,
@@ -2896,17 +2986,27 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                       const SizedBox(height: 4),
                       _infoRow(
                         label: tr.currentBalance,
-                        value: _currentState.currentBalance,
-                        currency: _currentState.supplierAccount!.actCurrency ?? _baseCurrency,
+                        value: _currentState.currentBalance.abs(),
+                        currency: supplierCurrency,
                         fontSize: 15,
+                        color: _getBalanceColor(_currentState.currentBalance),
                       ),
                       _infoRow(
+                        label: tr.amountToChargeAccount,
+                        value: creditAmountInSupplierCurrency,
+                        currency: supplierCurrency,
+                        fontSize: 15,
+                        color: Colors.orange,
+                      ),
+                      const Divider(),
+                      const SizedBox(height: 4),
+                      _infoRow(
                         label: tr.newBalance,
-                        value: _currentState.newBalance,
-                        currency: _currentState.supplierAccount!.actCurrency ?? _baseCurrency,
+                        value: _newBalanceInSupplierCurrency.abs(),
+                        currency: supplierCurrency,
                         isBold: true,
                         fontSize: 17,
-                        color: _currentState.newBalance < 0 ? Colors.red : Colors.green,
+                        color: _getBalanceColor(_newBalanceInSupplierCurrency),
                       ),
                     ],
                   ),
@@ -4014,10 +4114,8 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
       SavePurchaseInvoiceEvent(
         usrName: _userName ?? '',
         orderName: "Purchase",
-
         ordPersonal: state.supplier!.perId!,
         xRef: _xRefController.text.isNotEmpty ? _xRefController.text : null,
-
         completer: completer,
       ),
     );

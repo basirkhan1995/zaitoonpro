@@ -123,8 +123,10 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     return creditAmount * safeExchangeRate;
   }
 
+
   double get totalProfit {
-    return grandTotal - totalPurchaseCost;
+    final netSaleAmount = totalAfterItemDiscount - generalDiscountAmount;
+    return netSaleAmount - totalPurchaseCost;
   }
 
   double get profitPercentage {

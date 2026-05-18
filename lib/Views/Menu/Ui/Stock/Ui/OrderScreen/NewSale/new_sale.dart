@@ -2091,7 +2091,6 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     );
   }
   void _updateInvoice(BuildContext context, SaleInvoiceLoaded state) {
-    print("triggering");
     // Check if customer exists
     if (state.customer == null) {
       ToastManager.show(

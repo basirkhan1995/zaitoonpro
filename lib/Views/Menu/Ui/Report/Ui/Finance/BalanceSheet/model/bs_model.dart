@@ -105,7 +105,7 @@ class Liability {
   factory Liability.fromMap(Map<String, dynamic> json) => Liability(
     currentLiability: json["Current Liability"] == null ? [] : List<AssetItem>.from(json["Current Liability"]!.map((x) => AssetItem.fromMap(x))),
     longTermLiability: json["Long-Term Liability"] == null ? [] : List<dynamic>.from(json["Long-Term Liability"]!.map((x) => x)),
-    ownersEquity: json["Owner's Equity"] == null ? [] : List<AssetItem>.from(json["Owner's Equity"]!.map((x) => AssetItem.fromMap(x))),
+    ownersEquity: json["Owner’s Equity"] == null ? [] : List<AssetItem>.from(json["Owner’s Equity"]!.map((x) => AssetItem.fromMap(x))),
     shareholders: json["Shareholders"] == null ? [] : List<dynamic>.from(json["Shareholders"]!.map((x) => x)),
     stakeholders: json["Stakeholders"] == null ? [] : List<AssetItem>.from(json["Stakeholders"]!.map((x) => AssetItem.fromMap(x))),
     netProfit: json["Net Profit"] == null ? [] : List<AssetItem>.from(json["Net Profit"]!.map((x) => AssetItem.fromMap(x))),
@@ -114,7 +114,7 @@ class Liability {
   Map<String, dynamic> toMap() => {
     "Current Liability": currentLiability == null ? [] : List<dynamic>.from(currentLiability!.map((x) => x.toMap())),
     "Long-Term Liability": longTermLiability == null ? [] : List<dynamic>.from(longTermLiability!.map((x) => x)),
-    "Owner's Equity": ownersEquity == null ? [] : List<dynamic>.from(ownersEquity!.map((x) => x.toMap())),
+    "Owner’s Equity": ownersEquity == null ? [] : List<dynamic>.from(ownersEquity!.map((x) => x.toMap())),
     "Shareholders": shareholders == null ? [] : List<dynamic>.from(shareholders!.map((x) => x)),
     "Stakeholders": stakeholders == null ? [] : List<dynamic>.from(stakeholders!.map((x) => x.toMap())),
     "Net Profit": netProfit == null ? [] : List<dynamic>.from(netProfit!.map((x) => x.toMap())),
@@ -123,7 +123,7 @@ class Liability {
 
 class AssetItem {
   final String? accName;
-  final dynamic trdAccount; // Changed to dynamic to handle both int and String
+  final dynamic trdAccount;
   final String? acgName;
   final String? lastYear;
   final String? currentYear;

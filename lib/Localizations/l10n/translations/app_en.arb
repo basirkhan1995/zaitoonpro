@@ -1103,5 +1103,6 @@
   "mixPayment": "Cash and Receivable",
   "grandTotalCashFlow": "GRAND TOTAL CASH FLOW",
   "payableAmount": "Account Payable",
-  "lowStock": "Low Stock"
+  "lowStock": "Low Stock",
+  "accountPayable": "Account Payable"
 }

@@ -1103,5 +1103,6 @@
   "mixPayment": "نقد و اعتبار حساب",
   "grandTotalCashFlow": "جمع کل جریان نقدی",
   "payableAmount": "مبلغ پرداختنی",
-  "lowStock": "موجودی کم"
+  "lowStock": "موجودی کم",
+  "accountPayable": "حساب پرداختنی"
 }

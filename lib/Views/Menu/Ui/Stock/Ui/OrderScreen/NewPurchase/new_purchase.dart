@@ -1153,7 +1153,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           ),
 
                           AmountDisplay(
-                            title: tr.creditPayment,
+                            title: tr.accountPayable,
                             baseAmount: current.creditAmount,
                             baseCurrency: baseCurrency,
                             convertedAmount:
@@ -1207,7 +1207,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                                   Text(
                                     '${current.supplierAccount!.accNumber} | ${current.supplierAccount!.accName}',
                                     style: const TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -1233,7 +1233,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                               AmountDisplay(
                                   baseAmount: current.supplierAccountPayment,
                                   baseCurrency: baseCurrency,
-                                  title: tr.invoiceAmount,
+                                  title: tr.accountPayable,
                                   convertedAmount: needsConversion ? current.supplierAccountPayment * (current.exchangeRate ?? 1) : null,
                                   isPositive: true,
                                   showSign: true,
@@ -1268,7 +1268,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
   Color _getBalanceColor(double balance) {
     if (balance < 0) return Colors.green;
-    if (balance > 0) return Colors.red;
+    if (balance > 0) return Colors.orange;
     return Colors.grey;
   }
 
@@ -2626,7 +2626,7 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   }
 
   double get _creditAmount {
-    final totalInvoiceAmount = _currentState.subtotal + _currentState.totalExpenses;
+    final totalInvoiceAmount = _currentState.subtotal;
     if (_isPureCashMode) {
       return 0.0;
     }
@@ -2650,7 +2650,7 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   }
 
   Color _getBalanceColor(double balance) {
-    if (balance > 0) return Colors.red;
+    if (balance > 0) return Colors.orange;
     if (balance < 0) return Colors.green;
     return Colors.grey;
   }
@@ -2882,7 +2882,9 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 5),
+                      const Divider(),
+                      const SizedBox(height: 5),
 
                       // Cash Payment in Account Section
                       AmountDisplay(
@@ -2896,25 +2898,20 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                         baseColor: Colors.green,
                       ),
 
-                      const SizedBox(height: 8),
-                      const Divider(),
-                      const SizedBox(height: 8),
-
                       // Account Balance Details
                       AmountDisplay(
-                        title: tr.amountToChargeAccount,
+                        title: tr.accountPayable,
                         baseAmount: creditAmount,
                         baseCurrency: _baseCurrency,
                         convertedAmount: (needsAccountConversion && creditAmount > 0)
                             ? creditAmountInSupplierCurrency
                             : null,
                         convertedCurrency: supplierCurrency,
+                        showSign: true,
+                        isPositive: true,
                         baseColor: Colors.orange,
                       ),
 
-                      const SizedBox(height: 8),
-                      const Divider(),
-                      const SizedBox(height: 8),
 
                       _infoRow(
                         label: tr.currentBalance,
@@ -2924,7 +2921,9 @@ class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
                         color: _getBalanceColor(_currentState.currentBalance),
                       ),
 
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 5),
+                      const Divider(),
+                      const SizedBox(height: 5),
 
                       _infoRow(
                         label: tr.newBalance,
@@ -4021,9 +4020,9 @@ class _MobilePurchaseOrderViewState extends State<_MobilePurchaseOrderView> {
 
   Color _getBalanceColor(double balance) {
     if (balance < 0) {
-      return Colors.red;
-    } else if (balance > 0) {
       return Colors.green;
+    } else if (balance > 0) {
+      return Colors.orange;
     } else {
       return Colors.grey;
     }
@@ -5019,7 +5018,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                   _buildSummaryRow(
                     label: tr.cashPayment,
                     value: current.cashPayment,
-                    color: Colors.green,
+                    color: Colors.red,
                   ),
                 ] else if (current.paymentMode == PaymentMode.credit) ...[
                   _buildSummaryRow(
@@ -5037,7 +5036,7 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
                   _buildSummaryRow(
                     label: tr.cashPayment,
                     value: current.cashPayment,
-                    color: Colors.green,
+                    color: Colors.red,
                   ),
                 ],
 
@@ -5286,9 +5285,9 @@ class _TabletPurchaseOrderViewState extends State<_TabletPurchaseOrderView> {
 
   Color _getBalanceColor(double balance) {
     if (balance < 0) {
-      return Colors.red;
-    } else if (balance > 0) {
       return Colors.green;
+    } else if (balance > 0) {
+      return Colors.orange;
     } else {
       return Colors.grey;
     }

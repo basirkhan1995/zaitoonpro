@@ -3331,4 +3331,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get lowStock => 'موجودی کم';
+
+  @override
+  String get accountPayable => 'د قابل تادیې حساب';
 }

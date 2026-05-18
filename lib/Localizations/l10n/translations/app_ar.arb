@@ -1103,5 +1103,6 @@
   "mixPayment": "نقد او ترلاسه کېدونکی",
   "grandTotalCashFlow": "د نغدو پیسو ټولیز جریان",
   "payableAmount": "د ورکولو پیسه",
-  "lowStock": "موجودی کم"
+  "lowStock": "موجودی کم",
+  "accountPayable": "د قابل تادیې حساب"
 }

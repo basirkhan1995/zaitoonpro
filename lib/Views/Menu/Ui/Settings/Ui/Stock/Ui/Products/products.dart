@@ -7,6 +7,7 @@ import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
+import '../../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/search_field.dart';
 import 'add_edit_product.dart';
@@ -301,7 +302,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
       // Desktop table header
       return Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary
+            color: Theme.of(context).colorScheme.primary
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
@@ -510,6 +511,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   style: textTheme.titleMedium,
                 ),
               ),
+
               SizedBox(
                 width: 150,
                 child: Text(product.proCode ?? ""),
@@ -571,12 +573,37 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             _buildTableHeader(tr, titleStyle, color),
           ],
 
-          // Products List
+          // Products List with BlocConsumer
           Expanded(
             child: BlocConsumer<ProductsBloc, ProductsState>(
               listener: (context, state) {
+                // Handle Success State
                 if (state is ProductsSuccessState) {
+                  // Close any open dialogs
                   Navigator.of(context).pop();
+
+                  // Show success toast using your ToastManager
+                  ToastManager.show(
+                    context: context,
+                    title: "Success",
+                    message: "Operation completed successfully",
+                    type: ToastType.success,
+                    durationInSeconds: 3,
+                    position: ToastPosition.top,
+                  );
+                }
+
+                // Handle Error State
+                if (state is ProductsErrorState) {
+                  // Show error toast using your ToastManager
+                  ToastManager.show(
+                    context: context,
+                    title: "Error",
+                    message: state.message,
+                    type: ToastType.error,
+                    durationInSeconds: 4,
+                    position: ToastPosition.top,
+                  );
                 }
               },
               builder: (context, state) {

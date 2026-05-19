@@ -36,12 +36,13 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       emit(ProductsLoadingState());
       try{
         final response = await _repo.addProduct(newProduct: event.newProduct);
+
         final msg = response["msg"];
         switch(msg){
           case "success":
-          emit(ProductsSuccessState());
-          add(LoadProductsEvent());
-          return;
+            emit(ProductsSuccessState());
+            add(LoadProductsEvent());
+            return;
 
           case "exist":
             emit(ProductsErrorState(msg));
@@ -51,8 +52,9 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
             emit(ProductsErrorState(msg));
             return;
 
-          default: emit(ProductsErrorState(msg));
-          return;
+          default:
+            emit(ProductsErrorState(msg));
+            return;
         }
       }catch(e){
         emit(ProductsErrorState(e.toString()));

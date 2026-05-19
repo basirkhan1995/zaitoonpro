@@ -2219,7 +2219,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   focusNode: safeNode(isWholeSale ? 3 : 2),
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,6}')),
                   ],
                   decoration: InputDecoration(
                     hintText: locale.unitPrice,
@@ -2247,7 +2247,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       border: InputBorder.none,
                       isDense: true,
                     ),
-                    readOnly: true,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w500,

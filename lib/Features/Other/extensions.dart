@@ -20,6 +20,7 @@ extension CompactAmount on double {
     return '\$${toStringAsFixed(0)}';
   }
 }
+
 //Get the first letter of a word
 extension GetFirstLetterExtension on String {
   /// Returns the first letter(s) of a name:

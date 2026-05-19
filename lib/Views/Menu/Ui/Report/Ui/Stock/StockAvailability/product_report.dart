@@ -1300,6 +1300,7 @@ class _DesktopState extends State<_Desktop> {
                                   Expanded(child: Text(stk.proName ?? "")),
                                   SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
+                                  SizedBox(width: 150, child: Text(stk.stgName ?? "")),
                                   SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0))),
                                   SizedBox(width: 120, child: Text(stk.totalItem.toAmount(decimal: 0))),
                                   SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy")),

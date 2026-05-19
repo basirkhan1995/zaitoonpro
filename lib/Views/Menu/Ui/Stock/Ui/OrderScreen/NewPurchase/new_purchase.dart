@@ -64,8 +64,7 @@ class _DesktopPurchaseOrderView extends StatefulWidget {
   const _DesktopPurchaseOrderView(this.orderId);
 
   @override
-  State<_DesktopPurchaseOrderView> createState() =>
-      _DesktopPurchaseOrderViewState();
+  State<_DesktopPurchaseOrderView> createState() => _DesktopPurchaseOrderViewState();
 }
 class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
   final TextEditingController _accountController = TextEditingController();
@@ -213,6 +212,11 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
       final purchaseBloc = context.read<PurchaseInvoiceBloc>();
       final exchangeBloc = context.read<ExchangeRateBloc>();
       purchaseBloc.setExchangeRateBloc(exchangeBloc);
+       final purState = purchaseBloc.state;
+        if (purState is PurchaseInvoiceLoaded || purState is PurchaseInvoiceSaving) {
+          final current = purState is PurchaseInvoiceSaving ? purState : (purState as PurchaseInvoiceLoaded);
+          accountCcy = current.toCurrency;
+        }
       if (widget.orderId != null) {
         _isEditMode = true;
         purchaseBloc.add(LoadPurchaseInvoiceForEditEvent(
@@ -861,7 +865,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                     SizedBox(
                       width: 150,
                       child: Text(
-                        "${locale.unitPrice} (${accountCcy ?? baseCurrency})",
+                        "${locale.unitPrice} ($accountCcy)",
                       ),
                     ),
                   SizedBox(width: 150, child: Text("${locale.salePrice} %")),
@@ -963,9 +967,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     return BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
       builder: (context, state) {
         if (state is PurchaseInvoiceLoaded || state is PurchaseInvoiceSaving) {
-          final current = state is PurchaseInvoiceSaving
-              ? state
-              : (state as PurchaseInvoiceLoaded);
+          final current = state is PurchaseInvoiceSaving ? state : (state as PurchaseInvoiceLoaded);
           final totalExpenses = current.totalExpenses;
           final needsAccountConversion = current.needsExchangeRate;
           final needsCashConversion = current.needsCashConversion;

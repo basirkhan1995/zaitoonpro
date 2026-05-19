@@ -294,6 +294,8 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
       items: [PurchaseInvoiceItem(
         productId: '',
         productName: '',
+        unit: '',
+        stkId: null,
         qty: 1,
         stkBatch: 1,
         sellPriceAmount: 0,
@@ -830,7 +832,6 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
 
     // Use orderId from event if provided, otherwise from state
     final orderIdToUse = event.orderId ?? current.orderId;
-
 
     if (orderIdToUse == null || orderIdToUse <= 0) {
       emit(PurchaseInvoiceError('Invalid order ID for update'));

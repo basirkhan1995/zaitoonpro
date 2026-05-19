@@ -23,7 +23,7 @@ class ProductSearchField<T, B extends BlocBase<S>, S> extends StatefulWidget {
   final String? hintText;
   final bool enabled;
   final B? bloc;
-  final FocusNode? focusNode; // ADDED: External focus node
+  final FocusNode? focusNode;
   final BlocSearchFunction<B>? searchFunction;
   final BlocFetchAllFunction<B>? fetchAllFunction;
   final BlocFetchByIdFunction<B>? fetchByIdFunction;
@@ -399,24 +399,41 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   void _scrollToHighlightedItem() {
     if (!_scrollController.hasClients || _highlightedIndex < 0) return;
 
-    const itemHeight = 72.0;
-    final viewportStart = _scrollController.offset;
-    final viewportEnd = viewportStart + _scrollController.position.viewportDimension;
-    final itemStart = _highlightedIndex * itemHeight;
-    final itemEnd = itemStart + itemHeight;
+    // Don't use hardcoded height - use actual item extent if available
+    final viewportHeight = _scrollController.position.viewportDimension;
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
 
-    if (itemEnd > viewportEnd) {
-      _scrollController.animateTo(
-        itemEnd - _scrollController.position.viewportDimension,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-      );
-    } else if (itemStart < viewportStart) {
-      _scrollController.animateTo(
-        itemStart,
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
-      );
+    // Get the actual position of the item using scroll controller
+    // This is more accurate than calculating manually
+    final double itemPosition;
+
+    if (_scrollController.position.hasContentDimensions) {
+      // Calculate based on actual content dimensions
+      final totalContentHeight = _scrollController.position.maxScrollExtent + viewportHeight;
+      final approximateItemHeight = _currentSuggestions.isNotEmpty
+          ? totalContentHeight / _currentSuggestions.length
+          : 72.0;
+
+      itemPosition = _highlightedIndex * approximateItemHeight;
+      final itemEnd = itemPosition + approximateItemHeight;
+
+      // Only scroll if item is not fully visible
+      if (itemPosition < currentScroll) {
+        // Item is above viewport
+        _scrollController.animateTo(
+          itemPosition.clamp(0.0, maxScroll),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+        );
+      } else if (itemEnd > currentScroll + viewportHeight) {
+        // Item is below viewport
+        _scrollController.animateTo(
+          (itemEnd - viewportHeight).clamp(0.0, maxScroll),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+        );
+      }
     }
   }
 
@@ -1089,7 +1106,12 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
           _highlightedIndex = (_highlightedIndex + 1) % _currentSuggestions.length;
           _currentHighlightedItem = _currentSuggestions[_highlightedIndex];
         });
-        _scrollToHighlightedItem();
+        // CRITICAL: Wait for rebuild before scrolling
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _scrollToHighlightedItem();
+          }
+        });
         _refreshOverlay();
       }
       return KeyEventResult.handled;
@@ -1101,7 +1123,12 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
           _highlightedIndex = (_highlightedIndex - 1 + _currentSuggestions.length) % _currentSuggestions.length;
           _currentHighlightedItem = _currentSuggestions[_highlightedIndex];
         });
-        _scrollToHighlightedItem();
+        // CRITICAL: Wait for rebuild before scrolling
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _scrollToHighlightedItem();
+          }
+        });
         _refreshOverlay();
       }
       return KeyEventResult.handled;
@@ -1212,6 +1239,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                       _isLoading = isLoading;
 
                       if (!isLoading) {
+                        // Handle initial product loading from ID
                         if (_isInitializing && items.isNotEmpty && !_initialLoadDone) {
                           final product = items.first;
                           final productName = widget.itemToString(product);
@@ -1232,47 +1260,61 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                           _isSyncingFromOverlay = false;
                           _isSyncingFromHeader = false;
 
-                          setState(() {
-                            _selectedItem = product;
-                            _currentHighlightedItem = product;
-                          });
+                          _selectedItem = product;
+                          _currentHighlightedItem = product;
+                          _highlightedIndex = 0; // Set to first item
 
                           widget.onProductSelected?.call(product);
                           _initialLoadDone = true;
                           _isInitializing = false;
                         }
+                        // Don't reset highlighted index here - let it be maintained
+                        else if (items.isNotEmpty && _highlightedIndex >= items.length) {
+                          // Only fix if index is out of bounds
+                          _highlightedIndex = items.length - 1;
+                          _currentHighlightedItem = items[_highlightedIndex];
+                        }
+                        else if (items.isEmpty) {
+                          _highlightedIndex = -1;
+                          _currentHighlightedItem = null;
+                        }
+                        // If items exist and index is valid, keep current highlight
+                        else if (items.isNotEmpty && _highlightedIndex >= 0 && _highlightedIndex < items.length) {
+                          _currentHighlightedItem = items[_highlightedIndex];
+                        }
+                        // If no valid highlight, set to first item
+                        else if (items.isNotEmpty) {
+                          _highlightedIndex = 0;
+                          _currentHighlightedItem = items[0];
+                        }
 
+                        // Try to find selected item in new list
                         if (_selectedItem != null && items.isNotEmpty) {
                           final selectedIndex = items.indexWhere(
                                 (item) => widget.itemToString(item) == widget.itemToString(_selectedItem as T),
                           );
                           if (selectedIndex >= 0) {
                             _highlightedIndex = selectedIndex;
-                            _currentHighlightedItem = _selectedItem;
-                          } else if (_highlightedIndex >= items.length) {
-                            _highlightedIndex = items.isEmpty ? -1 : 0;
-                            _currentHighlightedItem = items.isNotEmpty ? items[_highlightedIndex] : null;
-                          }
-                        } else {
-                          if (_highlightedIndex >= items.length) {
-                            _highlightedIndex = items.isEmpty ? -1 : 0;
-                          }
-                          if (items.isNotEmpty && _highlightedIndex >= 0) {
-                            _currentHighlightedItem = items[_highlightedIndex];
-                          } else if (items.isNotEmpty) {
-                            _currentHighlightedItem = items.first;
-                          } else {
-                            _currentHighlightedItem = null;
+                            _currentHighlightedItem = items[selectedIndex];
                           }
                         }
                       }
                     });
 
+                    // CRITICAL: Wait for rebuild before scrolling
+                    if (!isLoading && _currentSuggestions.isNotEmpty && _highlightedIndex >= 0) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          _scrollToHighlightedItem();
+                        }
+                      });
+                    }
+
                     _refreshOverlay();
                   }
 
                   final hasText = widget.controller.text.isNotEmpty;
-                  if (_effectiveFocusNode.hasFocus && (hasText || isLoading || widget.openOverlayOnFocus)) { // CHANGED from _focusNode
+                  if (_effectiveFocusNode.hasFocus && (hasText || isLoading || widget.openOverlayOnFocus)) {
                     _showOverlay();
                   }
                 },

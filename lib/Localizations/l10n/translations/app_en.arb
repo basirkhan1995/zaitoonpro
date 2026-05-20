@@ -1105,5 +1105,7 @@
   "payableAmount": "Account Payable",
   "lowStock": "Low Stock",
   "accountPayable": "Account Payable",
-  "addNewProduct": "Add New Product"
+  "addNewProduct": "Add New Product",
+  "typeMessageHere": "Type message here",
+  "copyClipboard": "Copy clipboard"
 }

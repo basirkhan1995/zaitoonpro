@@ -291,7 +291,7 @@
   "maker": "اجراء کننده",
   "branchLimits": "حد معاملات شعبه",
   "branchInformation": "شعبه معلومات",
-  "currentBalance": "اوسنی صورتحساب",
+  "currentBalance": "فعلی صورتحساب",
   "availableBalance": "د لاسرسي وړ موجودی ",
   "txnDetails": "جزئیات معامله",
   "transactionRef": "ریفرنس شمیره",
@@ -1105,5 +1105,7 @@
   "payableAmount": "د ورکولو پیسه",
   "lowStock": "موجودی کم",
   "accountPayable": "د قابل تادیې حساب",
-  "addNewProduct": "ثبت کالا جدید"
+  "addNewProduct": "ثبت کالا جدید",
+  "typeMessageHere": "متن را اینجا بنویسید",
+  "copyClipboard": "کپی متن"
 }

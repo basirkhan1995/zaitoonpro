@@ -58,7 +58,7 @@ class NewPurchaseOrderView extends StatelessWidget {
   }
 }
 
-// Desktop Version (Original)
+// Desktop Version
 class _DesktopPurchaseOrderView extends StatefulWidget {
   final dynamic orderId;
   const _DesktopPurchaseOrderView(this.orderId);
@@ -1688,13 +1688,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   bool _isProductDuplicate(String productId) {
     final state = context.read<PurchaseInvoiceBloc>().state;
     if (state is PurchaseInvoiceLoaded) {
-      // Check all items except the current one
       for (final item in state.items) {
         if (item.rowId != widget.item.rowId && item.productId == productId) {
-          // Optional: Also check batch if you want batch-specific duplicate detection
-          // if (batch != null && item.stkBatch == batch) {
           return true;
-          // }
         }
       }
     }
@@ -1706,18 +1702,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
     final productId = product.proId.toString();
 
-    // Check for duplicate before adding
     if (_isProductDuplicate(productId)) {
       _showDuplicateProductDialog(product);
       return;
     }
 
-    // No duplicate - add product
     _performAddProduct(product);
   }
 
   void _performAddProduct(ProductsModel product) {
-
     widget.onProductSelected(
         widget.item.rowId,
         product.proId.toString(),
@@ -1725,7 +1718,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         product.proUnit ?? ''
     );
 
-    // Auto-select first storage after product selection
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _autoSelectFirstStorage();
     });
@@ -1756,13 +1748,11 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
             onKeyEvent: (node, event) {
               if (event is KeyDownEvent) {
                 if (event.logicalKey == LogicalKeyboardKey.escape) {
-                  // Cancel - clear the product field
                   Navigator.pop(dialogContext);
                   _productController.clear();
                   _headerProductController.clear();
                   return KeyEventResult.handled;
                 } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-                  // Confirm - add product anyway
                   Navigator.pop(dialogContext);
                   _performAddProduct(product);
                   return KeyEventResult.handled;
@@ -1790,7 +1780,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Header
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.all(20),
@@ -1841,7 +1830,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // Product info card
                           TweenAnimationBuilder(
                             tween: Tween<double>(begin: 0, end: 1),
                             duration: const Duration(milliseconds: 300),
@@ -1908,7 +1896,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
                           const SizedBox(height: 16),
 
-                          // Warning message
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -1942,7 +1929,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
                           const SizedBox(height: 20),
 
-                          // Action buttons
                           Row(
                             children: [
                               Expanded(
@@ -1952,7 +1938,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                                     Navigator.pop(dialogContext);
                                     _productController.clear();
                                     _headerProductController.clear();
-                                    // Refocus the product field after clearing
                                     WidgetsBinding.instance.addPostFrameCallback((_) {
                                       if (mounted && widget.nodes.isNotEmpty && widget.nodes[0].canRequestFocus) {
                                         widget.nodes[0].requestFocus();
@@ -2203,9 +2188,13 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     return '';
   }
 
+  // ===== OPTIMIZED didUpdateWidget - ONLY CHANGED THIS =====
   @override
   void didUpdateWidget(covariant _PurchaseItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // Skip if same instance (performance boost)
+    if (identical(oldWidget.item, widget.item)) return;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
@@ -2243,6 +2232,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       _updateLocalAmount();
     });
   }
+  // ===== END OPTIMIZED didUpdateWidget =====
 
   @override
   void dispose() {
@@ -2348,151 +2338,234 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       ),
     );
 
-    return Column(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
-          ),
-          child: Row(
-            children: [
-              /// Row number
-              SizedBox(
-                width: 40,
-                child: Text(
-                  (widget.rowIndex + 1).toString(),
-                  textAlign: TextAlign.center,
+    // ===== ADD RepaintBoundary HERE for performance =====
+    return RepaintBoundary(
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              border: Border(bottom: BorderSide(color: Colors.grey.shade300)),
+            ),
+            child: Row(
+              children: [
+                /// Row number
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    (widget.rowIndex + 1).toString(),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              ),
 
-              /// Product Search Field
-              Expanded(
-                child: PurchaseProductSearchField(
-                  controller: _productController,
-                  headerSearchController: _headerProductController,
-                  focusNode: safeNode(0),
-                  bloc: context.read<ProductsBloc>(),
-                  onProductSelected: (product) {
-                    if (product != null) {
-                      _addProduct(product);
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        if (mounted) {
+                /// Product Search Field
+                Expanded(
+                  child: PurchaseProductSearchField(
+                    controller: _productController,
+                    headerSearchController: _headerProductController,
+                    focusNode: safeNode(0),
+                    bloc: context.read<ProductsBloc>(),
+                    onProductSelected: (product) {
+                      if (product != null) {
+                        _addProduct(product);
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          if (mounted) {
+                            final qtyNode = safeNode(1);
+                            if (qtyNode != null && qtyNode.canRequestFocus) {
+                              qtyNode.requestFocus();
+                            }
+                          }
+                        });
+                      }
+                    },
+                    onSubmitted: () {
+                      Future.delayed(const Duration(milliseconds: 50), () {
+                        if (mounted && widget.item.productId.isNotEmpty) {
                           final qtyNode = safeNode(1);
                           if (qtyNode != null && qtyNode.canRequestFocus) {
                             qtyNode.requestFocus();
                           }
                         }
                       });
-                    }
-                  },
-                  onSubmitted: () {
-                    Future.delayed(const Duration(milliseconds: 50), () {
-                      if (mounted && widget.item.productId.isNotEmpty) {
-                        final qtyNode = safeNode(1);
-                        if (qtyNode != null && qtyNode.canRequestFocus) {
-                          qtyNode.requestFocus();
-                        }
-                      }
-                    });
-                  },
-                  hintText: AppLocalizations.of(context)!.products,
-                  showAllOnFocus: true,
-                  openOverlayOnFocus: true,
-                ),
-              ),
-
-              /// Qty
-              SizedBox(
-                width: 100,
-                child: TextField(
-                  controller: qtyController,
-                  focusNode: safeNode(1),
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    hintText: locale.qty,
-                    border: InputBorder.none,
-                    isDense: true,
+                    },
+                    hintText: AppLocalizations.of(context)!.products,
+                    showAllOnFocus: true,
+                    openOverlayOnFocus: true,
                   ),
-                  onChanged: (value) {
-                    final qty = int.tryParse(value) ?? 0;
-                    widget.onQtyChanged(widget.item.rowId, qty);
-                  },
-                  onSubmitted: (_) => focusNext(1),
                 ),
-              ),
 
-              if (isWholeSale) ...[
+                /// Qty
                 SizedBox(
                   width: 100,
                   child: TextField(
-                    controller: batchController,
-                    focusNode: safeNode(2),
+                    controller: qtyController,
+                    focusNode: safeNode(1),
                     keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                      hintText: locale.batchTitle,
+                      hintText: locale.qty,
                       border: InputBorder.none,
                       isDense: true,
                     ),
                     onChanged: (value) {
-                      final batch = int.tryParse(value) ?? 0;
-                      final effectiveBatch = batch <= 0 ? 1 : batch;
-                      if (effectiveBatch != batch) {
-                        batchController.text = effectiveBatch.toString();
-                      }
-                      widget.onBatchChanged(widget.item.rowId, effectiveBatch);
+                      final qty = int.tryParse(value) ?? 0;
+                      widget.onQtyChanged(widget.item.rowId, qty);
                     },
-                    onSubmitted: (_) => focusNext(2),
+                    onSubmitted: (_) => focusNext(1),
                   ),
                 ),
-                SizedBox(
-                  width: 100,
-                  child: Text(
-                    widget.item.totalQty.toStringAsFixed(1),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Theme.of(context).colorScheme.primary,
+
+                if (isWholeSale) ...[
+                  SizedBox(
+                    width: 100,
+                    child: TextField(
+                      controller: batchController,
+                      focusNode: safeNode(2),
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        hintText: locale.batchTitle,
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                      onChanged: (value) {
+                        final batch = int.tryParse(value) ?? 0;
+                        final effectiveBatch = batch <= 0 ? 1 : batch;
+                        if (effectiveBatch != batch) {
+                          batchController.text = effectiveBatch.toString();
+                        }
+                        widget.onBatchChanged(widget.item.rowId, effectiveBatch);
+                      },
+                      onSubmitted: (_) => focusNext(2),
                     ),
                   ),
-                ),
-              ],
-
-              /// Unit Price
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: priceController,
-                  focusNode: safeNode(isWholeSale ? 3 : 2),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,6}')),
-                  ],
-                  decoration: InputDecoration(
-                    hintText: locale.unitPrice,
-                    border: InputBorder.none,
-                    isDense: true,
+                  SizedBox(
+                    width: 100,
+                    child: Text(
+                      widget.item.totalQty.toStringAsFixed(1),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
                   ),
-                  onChanged: (value) {
-                    final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
-                    widget.onPurchasePriceChanged(widget.item.rowId, parsed);
-                  },
-                  onSubmitted: (_) => focusNext(isWholeSale ? 3 : 2),
-                ),
-              ),
+                ],
 
-              /// Local Amount (read-only)
-              if (_needsLocalConversion(context))
+                /// Unit Price
                 SizedBox(
                   width: 150,
                   child: TextField(
-                    controller: _localAmountController,
+                    controller: priceController,
+                    focusNode: safeNode(isWholeSale ? 3 : 2),
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,6}')),
+                    ],
                     decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context)!.amount,
+                      hintText: locale.unitPrice,
                       border: InputBorder.none,
                       isDense: true,
                     ),
+                    onChanged: (value) {
+                      final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
+                      widget.onPurchasePriceChanged(widget.item.rowId, parsed);
+                    },
+                    onSubmitted: (_) => focusNext(isWholeSale ? 3 : 2),
+                  ),
+                ),
+
+                /// Local Amount (read-only)
+                if (_needsLocalConversion(context))
+                  SizedBox(
+                    width: 150,
+                    child: TextField(
+                      controller: _localAmountController,
+                      decoration: InputDecoration(
+                        hintText: AppLocalizations.of(context)!.amount,
+                        border: InputBorder.none,
+                        isDense: true,
+                      ),
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                /// Sell Price with Mode Toggle
+                SizedBox(
+                  width: 150,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _sellPriceController,
+                          focusNode: safeNode(isWholeSale ? 4 : 3),
+                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                          inputFormatters: [
+                            FilteringTextInputFormatter.allow(
+                              _isPercentageMode
+                                  ? RegExp(r'^\d{0,3}(?:\.\d{0,2})?')
+                                  : RegExp(r'^\d*\.?\d{0,2}'),
+                            ),
+                          ],
+                          decoration: InputDecoration(
+                            hintText: _isPercentageMode ? '0-100%' : locale.salePrice,
+                            border: InputBorder.none,
+                            isDense: true,
+                            suffixText: _isPercentageMode ? '%' : null,
+                          ),
+                          onChanged: (value) {
+                            if (_isPercentageMode) {
+                              final percentage = double.tryParse(value.replaceAll(',', ''));
+                              if (percentage != null && (percentage < 0 || percentage > 100)) {
+                                final clamped = percentage.clamp(0.0, 100.0);
+                                _sellPriceController.text = clamped.toString();
+                                _updateSellPriceFromPercentage();
+                              } else {
+                                _updateSellPriceFromPercentage();
+                              }
+                            } else {
+                              _updateSellPriceFromAmount();
+                            }
+                          },
+                          onSubmitted: (_) {
+                            if (widget.isLastRow) {
+                              _addNewRowAndFocus();
+                            } else {
+                              focusNext(isWholeSale ? 4 : 3);
+                            }
+                          },
+                        ),
+                      ),
+                      SizedBox(
+                        width: 32,
+                        child: IconButton(
+                          icon: Icon(
+                            _isPercentageMode ? Icons.percent : Icons.attach_money,
+                            size: 16,
+                          ),
+                          onPressed: _toggleMode,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          tooltip: _isPercentageMode ? 'Switch to amount' : 'Switch to percentage',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                /// Landed Price (read-only)
+                SizedBox(
+                  width: 150,
+                  child: TextField(
+                    controller: _landedPriceController,
+                    decoration: InputDecoration(
+                      hintText: locale.landedPrice,
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                    readOnly: true,
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.primary,
                       fontWeight: FontWeight.w500,
@@ -2500,174 +2573,101 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   ),
                 ),
 
-              /// Sell Price with Mode Toggle
-              SizedBox(
-                width: 150,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _sellPriceController,
-                        focusNode: safeNode(isWholeSale ? 4 : 3),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.allow(
-                            _isPercentageMode
-                                ? RegExp(r'^\d{0,3}(?:\.\d{0,2})?')
-                                : RegExp(r'^\d*\.?\d{0,2}'),
-                          ),
-                        ],
-                        decoration: InputDecoration(
-                          hintText: _isPercentageMode ? '0-100%' : locale.salePrice,
-                          border: InputBorder.none,
-                          isDense: true,
-                          suffixText: _isPercentageMode ? '%' : null,
+                /// Storage
+                SizedBox(
+                  width: 180,
+                  child: BlocBuilder<StorageBloc, StorageState>(
+                    // ===== ADD buildWhen for performance =====
+                    buildWhen: (previous, current) {
+                      if (current is StorageLoadedState && previous is StorageLoadedState) {
+                        return false; // Don't rebuild if already loaded
+                      }
+                      return true;
+                    },
+                    builder: (context, state) {
+                      final storageFocus = safeNode(5);
+
+                      if (state is StorageLoadedState &&
+                          state.storage.isNotEmpty &&
+                          widget.item.storageId == 0) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          final first = state.storage.first;
+                          widget.onStorageSelected(
+                            widget.item.rowId,
+                            first.stgId!,
+                            first.stgName ?? '',
+                          );
+                          _storageController.text = first.stgName ?? '';
+                        });
+                      }
+
+                      return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
+                        title: "",
+                        focusNode: storageFocus,
+                        controller: _storageController,
+                        hintText: locale.storage,
+                        bloc: context.read<StorageBloc>(),
+                        fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
+                        searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
+                        itemBuilder: (context, stg) => Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(stg.stgName ?? ''),
                         ),
-                        onChanged: (value) {
-                          if (_isPercentageMode) {
-                            final percentage = double.tryParse(value.replaceAll(',', ''));
-                            if (percentage != null && (percentage < 0 || percentage > 100)) {
-                              final clamped = percentage.clamp(0.0, 100.0);
-                              _sellPriceController.text = clamped.toString();
-                              _updateSellPriceFromPercentage();
-                            } else {
-                              _updateSellPriceFromPercentage();
-                            }
-                          } else {
-                            _updateSellPriceFromAmount();
+                        itemToString: (stg) => stg.stgName ?? '',
+                        stateToLoading: (state) => state is StorageLoadingState,
+                        stateToItems: (state) {
+                          if (state is StorageLoadedState) {
+                            return state.storage;
                           }
+                          return [];
                         },
-                        onSubmitted: (_) {
+                        onSelected: (storage) {
+                          widget.onStorageSelected(
+                            widget.item.rowId,
+                            storage.stgId!,
+                            storage.stgName ?? '',
+                          );
+                          _storageController.text = storage.stgName ?? '';
                           if (widget.isLastRow) {
                             _addNewRowAndFocus();
                           } else {
-                            focusNext(isWholeSale ? 4 : 3);
+                            focusNext(0);
                           }
                         },
-                      ),
-                    ),
-                    SizedBox(
-                      width: 32,
-                      child: IconButton(
-                        icon: Icon(
-                          _isPercentageMode ? Icons.percent : Icons.attach_money,
-                          size: 16,
-                        ),
-                        onPressed: _toggleMode,
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        tooltip: _isPercentageMode ? 'Switch to amount' : 'Switch to percentage',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              /// Landed Price (read-only)
-              SizedBox(
-                width: 150,
-                child: TextField(
-                  controller: _landedPriceController,
-                  decoration: InputDecoration(
-                    hintText: locale.landedPrice,
-                    border: InputBorder.none,
-                    isDense: true,
-                  ),
-                  readOnly: true,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w500,
+                      );
+                    },
                   ),
                 ),
-              ),
 
-              /// Storage
-              SizedBox(
-                width: 180,
-                child: BlocBuilder<StorageBloc, StorageState>(
-                  builder: (context, state) {
-                    final storageFocus = safeNode(5);
-
-                    if (state is StorageLoadedState &&
-                        state.storage.isNotEmpty &&
-                        widget.item.storageId == 0) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        final first = state.storage.first;
-                        widget.onStorageSelected(
-                          widget.item.rowId,
-                          first.stgId!,
-                          first.stgName ?? '',
-                        );
-                        _storageController.text = first.stgName ?? '';
-                      });
-                    }
-
-                    return GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
-                      title: "",
-                      focusNode: storageFocus,
-                      controller: _storageController,
-                      hintText: locale.storage,
-                      bloc: context.read<StorageBloc>(),
-                      fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
-                      searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
-                      itemBuilder: (context, stg) => Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(stg.stgName ?? ''),
-                      ),
-                      itemToString: (stg) => stg.stgName ?? '',
-                      stateToLoading: (state) => state is StorageLoadingState,
-                      stateToItems: (state) {
-                        if (state is StorageLoadedState) {
-                          return state.storage;
-                        }
-                        return [];
-                      },
-                      onSelected: (storage) {
-                        widget.onStorageSelected(
-                          widget.item.rowId,
-                          storage.stgId!,
-                          storage.stgName ?? '',
-                        );
-                        _storageController.text = storage.stgName ?? '';
-                        if (widget.isLastRow) {
-                          _addNewRowAndFocus();
-                        } else {
-                          focusNext(0);
-                        }
-                      },
-                    );
-                  },
-                ),
-              ),
-
-              /// Delete button
-              SizedBox(
-                width: 60,
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 18),
-                  onPressed: () => widget.onDelete(widget.item.rowId),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        /// Add button (only for last row)
-        if (widget.isLastRow)
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Row(
-              children: [
-                ZOutlineButton(
-                  width: 120,
-                  icon: Icons.add,
-                  label: Text(locale.addItem),
-                  onPressed: () => _addNewRowAndFocus(),
+                /// Delete button
+                SizedBox(
+                  width: 60,
+                  child: IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    onPressed: () => widget.onDelete(widget.item.rowId),
+                  ),
                 ),
               ],
             ),
           ),
-      ],
+
+          /// Add button (only for last row)
+          if (widget.isLastRow)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  ZOutlineButton(
+                    width: 120,
+                    icon: Icons.add,
+                    label: Text(locale.addItem),
+                    onPressed: () => _addNewRowAndFocus(),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

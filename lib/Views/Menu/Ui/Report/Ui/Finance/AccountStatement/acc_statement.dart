@@ -24,6 +24,7 @@ import '../../../../../../../Features/Widgets/share_helper.dart';
 import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/txn_reference.dart';
+import '../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../../../../Stakeholders/Ui/Accounts/model/stk_acc_model.dart';
 import '../../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
 import '../../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
@@ -639,89 +640,27 @@ class _DesktopState extends State<_Desktop> {
                             ZOutlineButton(
                               icon: Icons.print_rounded,
                               label: Text(tr.print),
-                              onPressed: (){
-                               if(formKey.currentState!.validate()){
-                                 showDialog(
-                                   context: context,
-                                   builder: (_) => PrintPreviewDialog<AccountStatementModel>(
-                                     data: accountStatementModel!,
-                                     company: company,
-                                     buildPreview: ({
-                                       required data,
-                                       required language,
-                                       required orientation,
-                                       required pageFormat,
-                                     }) {
-                                       return AccountStatementPrintSettings().printPreview(
-                                           company: company,
-                                           language: language,
-                                           orientation: orientation,
-                                           pageFormat: pageFormat,
-                                           info: accountStatementModel!
-                                       );
-                                     },
-                                     onPrint: ({
-                                       required data,
-                                       required language,
-                                       required orientation,
-                                       required pageFormat,
-                                       required selectedPrinter,
-                                       required copies,
-                                       required pages,
-                                     }) {
-                                       return AccountStatementPrintSettings().printDocument(
-                                         statement: records,
-                                         company: company,
-                                         language: language,
-                                         orientation: orientation,
-                                         pageFormat: pageFormat,
-                                         selectedPrinter: selectedPrinter,
-                                         info: accountStatementModel!,
-                                         copies: copies,
-                                         pages: pages,
-                                       );
-                                     },
-                                     onSave: ({
-                                       required data,
-                                       required language,
-                                       required orientation,
-                                       required pageFormat,
-                                     }) {
-                                       return AccountStatementPrintSettings().createDocument(
-                                         statement: records,
-                                         company: company,
-                                         language: language,
-                                         orientation: orientation,
-                                         pageFormat: pageFormat,
-                                         info: accountStatementModel!,
-                                       );
-                                     },
-                                   ),
-                                 );
-                               }else{
-                                 Utils.showOverlayMessage(context, message: tr.accountStatementMessage, isError: true);
-                               }
-                              },
+                              onPressed: _onPrint
                             ),
                             SizedBox(width: 8),
                             Builder(
-                              builder: (context) {
-                                return ZOutlineButton(
-                                  icon: FontAwesomeIcons.whatsapp,
-                                  onPressed: () {
-                                    final helper = WhatsAppShareHelper(context);
-                                    helper.shareViaWhatsApp(
-                                      accountNumber: accNumber.toString(),
-                                      signatory: accountStatementModel?.signatory??"",
-                                      accountName: accountStatementModel?.accName??"",
-                                      currentBalance: accountStatementModel?.curBalance.toDoubleAmount(),
-                                      availableBalance: accountStatementModel?.avilBalance.toDoubleAmount(), // Debtor
-                                      currencySymbol: accountStatementModel?.actCurrency??"",
-                                    );
-                                  },
-                                  label: Text(tr.share),
-                                );
-                              }
+                                builder: (context) {
+                                  return ZOutlineButton(
+                                    icon: FontAwesomeIcons.whatsapp,
+                                    onPressed: () {
+                                      final helper = WhatsAppShareHelper(context);
+                                      helper.shareViaWhatsApp(
+                                        accountNumber: accNumber.toString(),
+                                        signatory: accountStatementModel?.signatory ?? "",
+                                        accountName: accountStatementModel?.accName ?? "",
+                                        currentBalance: accountStatementModel?.curBalance.toDoubleAmount(),
+                                        availableBalance: accountStatementModel?.avilBalance.toDoubleAmount(),
+                                        currencySymbol: accountStatementModel?.actCurrency ?? "",
+                                      );
+                                    },
+                                    label: Text(tr.share),
+                                  );
+                                }
                             ),
                             SizedBox(width: 8),
                             ZOutlineButton(
@@ -1127,6 +1066,72 @@ class _DesktopState extends State<_Desktop> {
           toDate: toDate,
         ),
       );
+    }
+  }
+
+  void _onPrint(){
+    if(formKey.currentState!.validate()){
+      // Make sure to set the visible property from your settings
+      final visibilityState = context.read<SettingsVisibleBloc>().state;
+      showDialog(
+        context: context,
+        builder: (_) => PrintPreviewDialog<AccountStatementModel>(
+          data: accountStatementModel!,
+          company: company.copyWith(visible: visibilityState),
+          buildPreview: ({
+            required data,
+            required language,
+            required orientation,
+            required pageFormat,
+          }) {
+            return AccountStatementPrintSettings().printPreview(
+                company: company.copyWith(visible: visibilityState),
+                language: language,
+                orientation: orientation,
+                pageFormat: pageFormat,
+                info: accountStatementModel!
+            );
+          },
+          onPrint: ({
+            required data,
+            required language,
+            required orientation,
+            required pageFormat,
+            required selectedPrinter,
+            required copies,
+            required pages,
+          }) {
+            return AccountStatementPrintSettings().printDocument(
+              statement: records,
+              company: company.copyWith(visible: visibilityState),
+              language: language,
+              orientation: orientation,
+              pageFormat: pageFormat,
+              selectedPrinter: selectedPrinter,
+              info: accountStatementModel!,
+              copies: copies,
+              pages: pages,
+            );
+          },
+          onSave: ({
+            required data,
+            required language,
+            required orientation,
+            required pageFormat,
+          }) {
+            return AccountStatementPrintSettings().createDocument(
+              statement: records,
+              company: company.copyWith(visible: visibilityState),
+              language: language,
+              orientation: orientation,
+              pageFormat: pageFormat,
+              info: accountStatementModel!,
+            );
+          },
+        ),
+      );
+    }else{
+      Utils.showOverlayMessage(context, message: AppLocalizations.of(context)!.accountStatementMessage, isError: true);
     }
   }
 }

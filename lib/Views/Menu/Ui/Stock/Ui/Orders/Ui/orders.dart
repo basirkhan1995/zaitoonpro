@@ -1260,11 +1260,9 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                                     context,
 
                                     ord.ordName == "Sale"
-
                                         ? NewSaleView(
                                       orderId: ord.ordId,
                                     )
-
                                         : NewPurchaseOrderView(
                                       orderId: ord.ordId,
                                     ),

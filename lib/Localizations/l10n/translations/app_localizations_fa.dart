@@ -836,7 +836,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get branchInformation => 'معلومات شعبه';
 
   @override
-  String get currentBalance => 'صورتحساب قبلی';
+  String get currentBalance => 'صورتحساب فعلی';
 
   @override
   String get availableBalance => 'موجودی قابل برداشت';
@@ -3334,4 +3334,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get addNewProduct => 'ثبت کالا جدید';
+
+  @override
+  String get typeMessageHere => 'متن را اینجا بنویسید';
+
+  @override
+  String get copyClipboard => 'کپی متن';
 }

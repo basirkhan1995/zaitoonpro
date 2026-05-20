@@ -862,8 +862,8 @@ abstract class PrintServices {
       },
       'statementAccount' : {
         'en':"Statement of Account",
-        'fa':"صورت حساب",
-        "ar":"صورت حساب"
+        'fa':"صورتحساب",
+        "ar":"صورتحساب"
       },
       'address' : {
         'en':"Address",
@@ -872,7 +872,7 @@ abstract class PrintServices {
       },
       'accountSummary': {
         'en': 'Account Summary',
-        'fa': 'خلاصه صورت حساب',
+        'fa': 'خلاصه صورتحساب',
         'ar': 'حساب لنډیز',
       },
       'signatory' : {
@@ -1168,8 +1168,8 @@ abstract class PrintServices {
       },
       'accountStatement': {
         'en': 'Account Statement',
-        'fa': 'صورت حساب اشخاص',
-        'ar': 'صورت حساب اشخاص',
+        'fa': 'صورتحساب اشخاص',
+        'ar': 'صورتحساب اشخاص',
       },
       'trnType': {
         'en': 'Transaction Code',

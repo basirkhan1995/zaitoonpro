@@ -7,6 +7,7 @@ import 'package:zaitoonpro/Features/Other/extensions.dart';
 import '../../../../../../../../Features/PrintSettings/PaperSize/paper_size.dart';
 import '../../../../../../../../Features/PrintSettings/print_services.dart';
 import '../../../../../../../../Features/PrintSettings/report_model.dart';
+import '../../../../../Settings/features/Visibility/bloc/settings_visible_bloc.dart';
 import '../model/stmt_model.dart';
 
 
@@ -117,7 +118,7 @@ class AccountStatementPrintSettings extends PrintServices {
         build: (context) => [
           statementHeaderWidget(language: language, reportInfo: report, statement: stmtInfo),
           pw.SizedBox(height: 5),
-          items(items: stmtInfo, language: language),
+          items(items: stmtInfo, language: language, report: report),
         ],
         header: (context) => prebuiltHeader,
         footer: (context) => footer(
@@ -130,9 +131,6 @@ class AccountStatementPrintSettings extends PrintServices {
     );
     return document;
   }
-
-
-
 
   pw.Widget totalSummary({
     required String language,
@@ -265,8 +263,6 @@ class AccountStatementPrintSettings extends PrintServices {
     );
   }
 
-
-
   pw.Widget statementDescription({
     required String language,
     required ReportModel reportInfo,
@@ -397,18 +393,18 @@ class AccountStatementPrintSettings extends PrintServices {
       return pw.PdfColors.black; // Zero - Neutral/Black
     }
   }
-  pw.Widget items({required AccountStatementModel items, required String language,}) {
+  pw.Widget items({required AccountStatementModel items, required String language, required ReportModel report}) {
     const dateWidth = 50.0;
     const trnWidth = 90.0;
     const amountWidth = 60.0;
     const balanceWidth = 70.0;
-
+    bool isGre = report.visible?.dateType == DateType.gregorian;
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
         pw.Container(
           width: double.infinity,
-          padding: const pw.EdgeInsets.symmetric(vertical: 4),
+          padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 4),
           decoration: pw.BoxDecoration(
             border: pw.Border(
               bottom: pw.BorderSide(width: 1, color: pw.PdfColors.grey300),
@@ -454,6 +450,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
+
               pw.SizedBox(
                 width: amountWidth,
                 child: zText(
@@ -463,6 +460,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
+
               pw.SizedBox(
                 width: balanceWidth,
                 child: zText(
@@ -482,12 +480,9 @@ class AccountStatementPrintSettings extends PrintServices {
         for (var i = 0; i < (items.records?.length ?? 0); i++)
           pw.Container(
             width: double.infinity,
-            padding: const pw.EdgeInsets.symmetric(vertical: 6),
+            padding: const pw.EdgeInsets.symmetric(vertical: 4,horizontal: 4),
             decoration: pw.BoxDecoration(
-             // color: i.isOdd ? pw.PdfColors.grey100 : null,
-              border: pw.Border(
-               bottom: pw.BorderSide(width: 0.6, color: pw.PdfColors.grey300),
-              ),
+             color: i.isOdd ? pw.PdfColors.grey100 : null,
             ),
             child: pw.Row(
               children: [
@@ -497,8 +492,8 @@ class AccountStatementPrintSettings extends PrintServices {
                     textAlign: language == "en"
                         ? pw.TextAlign.left
                         : pw.TextAlign.right,
-                    text: items.records![i].trnEntryDate!.toFormattedDate(),
-                    fontSize: language == "en"? 7 : 8,
+                    text: isGre? items.records![i].trnEntryDate!.toFormattedDate() : items.records![i].trnEntryDate!.shamsiDateString,
+                    fontSize: language == "en"? 8 : 9,
                   ),
                 ),
                 pw.SizedBox(
@@ -520,12 +515,11 @@ class AccountStatementPrintSettings extends PrintServices {
                           ? pw.TextAlign.left
                           : pw.TextAlign.right,
                       text:
-                      items.records![i].trdNarration == "Opening Balance"
-                          ? tr(
+                      items.records![i].trdNarration == "Opening Balance" ? tr(
                         text: 'openingBalance',
                         tr: language,
                       ) : items.records![i].trdNarration ?? "",
-                      fontSize: 6
+                      fontSize: 7
                     ),
                   ),
                 ),
@@ -535,7 +529,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   child: zText(
                     textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
                     text: items.records![i].debit?.toAmount()??"",
-                    fontSize: 7,
+                    fontSize: 8,
                   ),
                 ),
                 pw.SizedBox(
@@ -543,7 +537,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   child: zText(
                     textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
                     text: items.records![i].credit?.toAmount() ??"",
-                    fontSize: 7,
+                    fontSize: 8,
                   ),
                 ),
 
@@ -552,7 +546,7 @@ class AccountStatementPrintSettings extends PrintServices {
                   child: zText(
                     textAlign: language == "en" ? pw.TextAlign.right : pw.TextAlign.left,
                     fontWeight: pw.FontWeight.bold,
-                    text: items.records![i].total ?? "",
+                    text: items.records![i].total.toAmount(),
                     color: _getBalanceColorWithPriority(
                         items.records![i].total,
                         items.records![i].trdNarration

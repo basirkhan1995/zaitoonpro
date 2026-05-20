@@ -6615,6 +6615,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add New Product'**
   String get addNewProduct;
+
+  /// No description provided for @typeMessageHere.
+  ///
+  /// In en, this message translates to:
+  /// **'Type message here'**
+  String get typeMessageHere;
+
+  /// No description provided for @copyClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy clipboard'**
+  String get copyClipboard;
 }
 
 class _AppLocalizationsDelegate

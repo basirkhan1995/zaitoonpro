@@ -3345,4 +3345,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addNewProduct => 'Add New Product';
+
+  @override
+  String get typeMessageHere => 'Type message here';
+
+  @override
+  String get copyClipboard => 'Copy clipboard';
 }

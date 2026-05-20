@@ -811,7 +811,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         SizedBox(
           width: 100,
           child: Text(
-            widget.getSellPrice(product).toAmount(),
+            widget.getSellPrice(product).toAmount(decimal: 4),
             textAlign: isRTL ? TextAlign.center : TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
@@ -881,10 +881,10 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         ]),
         const SizedBox(height: 8),
         _buildDetailCard(tr.pricingInformation, [
-          _buildDetailItem(Icons.trending_up, tr.averagePrice, widget.getAveragePrice(product).toAmount(), currency: baseCurrency),
-          _buildDetailItem(Icons.history, tr.recentPrice, widget.getRecentPrice(product).toAmount(), currency: baseCurrency),
-          _buildDetailItem(Icons.dark_mode, tr.landedPrice, widget.getLandedPrice(product).toAmount(), currency: baseCurrency),
-          _buildDetailItem(Icons.attach_money, tr.sellPrice, widget.getSellPrice(product).toAmount(), color: Colors.green, isBold: true, currency: baseCurrency),
+          _buildDetailItem(Icons.trending_up, tr.averagePrice, widget.getAveragePrice(product).toAmount(decimal: 4), currency: baseCurrency),
+          _buildDetailItem(Icons.history, tr.recentPrice, widget.getRecentPrice(product).toAmount(decimal: 4), currency: baseCurrency),
+          _buildDetailItem(Icons.dark_mode, tr.landedPrice, widget.getLandedPrice(product).toAmount(decimal: 4), currency: baseCurrency),
+          _buildDetailItem(Icons.attach_money, tr.sellPrice, widget.getSellPrice(product).toAmount(decimal: 4), color: Colors.green, isBold: true, currency: baseCurrency),
         ]),
         const SizedBox(height: 16),
         _buildDetailCard(tr.productSpecification, [

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
+import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/add_edit_product.dart';
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 
@@ -409,6 +411,47 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                             margin: const EdgeInsets.all(8),
                             child: Column(
                               children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(3.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Wrap(
+                                        children: [
+                                          Icon(Icons.shopify_rounded),
+                                          Text(tr.products,style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.bold
+                                          )),
+                                        ],
+                                      ),
+
+                                      Row(
+                                        spacing: 5,
+                                        children: [
+                                          ZOutlineButton(
+                                            label: Text(tr.addNewProduct),
+                                            icon: Icons.add,
+                                            onPressed: (){
+                                              _removeOverlay();
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) => AddEditProductView(),
+                                              );
+                                            },
+                                          ),
+                                          ZOutlineButton(
+                                            label: Text(tr.closeTitle),
+                                            isActive: true,
+                                            backgroundHover: Theme.of(context).colorScheme.error,
+                                            onPressed: (){
+                                              _removeOverlay();
+                                            },
+                                          )
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                ),
                                 // Search TextField inside overlay
                                 Container(
                                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -539,6 +582,19 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                                             color: Theme.of(context).colorScheme.outline,
                                           ),
                                         ),
+
+                                        SizedBox(height: 10),
+
+                                        ZOutlineButton(
+                                            label: Text(tr.addNewProduct),
+                                            onPressed: (){
+                                              _removeOverlay();
+                                              showDialog(
+                                                context: context,
+                                                builder: (context) => AddEditProductView(),
+                                              );
+                                            },
+                                        )
                                       ],
                                     ),
                                   )

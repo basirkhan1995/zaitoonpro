@@ -3331,4 +3331,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get accountPayable => 'حساب پرداختنی';
+
+  @override
+  String get addNewProduct => 'ثبت کالا جدید';
 }

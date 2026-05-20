@@ -1662,23 +1662,15 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   double? _lastPurPrice;
   late TextEditingController _productController;
   late TextEditingController _headerProductController;
-  // Add these for sell price mode
   bool _isPercentageMode = true;
   double _currentPurchasePrice = 0.0;
-
-  // Track if we're updating to prevent loops
   bool _isUpdating = false;
 
   @override
   void initState() {
     super.initState();
-    _productController = TextEditingController(
-      text: widget.item.productName,
-    );
-
-    _headerProductController = TextEditingController(
-      text: widget.item.productName,
-    );
+    _productController = TextEditingController(text: widget.item.productName);
+    _headerProductController = TextEditingController(text: widget.item.productName);
     _landedPriceController = TextEditingController(
       text: widget.item.landedPrice != null && widget.item.landedPrice! > 0
           ? widget.item.landedPrice!.toAmount()
@@ -1689,9 +1681,337 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     _lastExchangeRate = _getCurrentExchangeRate();
     _lastPurPrice = widget.item.purPrice;
     _currentPurchasePrice = widget.item.purPrice ?? 0.0;
-
-    // Initialize sell price controller with mode detection
     _initializeSellPriceController();
+  }
+
+  // Helper method to check if product is duplicate
+  bool _isProductDuplicate(String productId) {
+    final state = context.read<PurchaseInvoiceBloc>().state;
+    if (state is PurchaseInvoiceLoaded) {
+      // Check all items except the current one
+      for (final item in state.items) {
+        if (item.rowId != widget.item.rowId && item.productId == productId) {
+          // Optional: Also check batch if you want batch-specific duplicate detection
+          // if (batch != null && item.stkBatch == batch) {
+          return true;
+          // }
+        }
+      }
+    }
+    return false;
+  }
+
+  void _addProduct(ProductsModel product) {
+    if (!mounted) return;
+
+    final productId = product.proId.toString();
+
+    // Check for duplicate before adding
+    if (_isProductDuplicate(productId)) {
+      _showDuplicateProductDialog(product);
+      return;
+    }
+
+    // No duplicate - add product
+    _performAddProduct(product);
+  }
+
+  void _performAddProduct(ProductsModel product) {
+
+    widget.onProductSelected(
+        widget.item.rowId,
+        product.proId.toString(),
+        product.proName ?? '',
+        product.proUnit ?? ''
+    );
+
+    // Auto-select first storage after product selection
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _autoSelectFirstStorage();
+    });
+  }
+
+  void _showDuplicateProductDialog(ProductsModel product) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: .6),
+      builder: (dialogContext) {
+        final FocusNode dialogFocusNode = FocusNode();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          dialogFocusNode.requestFocus();
+        });
+
+        return TweenAnimationBuilder(
+          tween: Tween<double>(begin: 0.8, end: 1.0),
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOutCubic,
+          builder: (context, scale, child) {
+            return Transform.scale(scale: scale, child: child);
+          },
+          child: Focus(
+            focusNode: dialogFocusNode,
+            autofocus: true,
+            onKeyEvent: (node, event) {
+              if (event is KeyDownEvent) {
+                if (event.logicalKey == LogicalKeyboardKey.escape) {
+                  // Cancel - clear the product field
+                  Navigator.pop(dialogContext);
+                  _productController.clear();
+                  _headerProductController.clear();
+                  return KeyEventResult.handled;
+                } else if (event.logicalKey == LogicalKeyboardKey.enter) {
+                  // Confirm - add product anyway
+                  Navigator.pop(dialogContext);
+                  _performAddProduct(product);
+                  return KeyEventResult.handled;
+                }
+              }
+              return KeyEventResult.ignored;
+            },
+            child: AlertDialog(
+              elevation: 0,
+              backgroundColor: Colors.transparent,
+              contentPadding: EdgeInsets.zero,
+              content: Container(
+                width: 450,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: .2),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(8),
+                          topRight: Radius.circular(8),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            color: Theme.of(context).colorScheme.error,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  AppLocalizations.of(context)!.duplicateProduct.toUpperCase(),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  AppLocalizations.of(context)!.itemAlreadyExists,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Product info card
+                          TweenAnimationBuilder(
+                            tween: Tween<double>(begin: 0, end: 1),
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOutQuad,
+                            builder: (context, opacity, child) {
+                              return Opacity(opacity: opacity, child: child);
+                            },
+                            child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: .5),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: .2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.inventory_2_rounded,
+                                        color: Theme.of(context).colorScheme.primary,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        AppLocalizations.of(context)!.productDetails.toUpperCase(),
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context).colorScheme.primary,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    product.proName ?? '',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  if (product.proCode != null && product.proCode!.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Code: ${product.proCode}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Warning message
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(5),
+                              border: Border.all(
+                                color: Theme.of(context).colorScheme.error.withValues(alpha: .2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: Theme.of(context).colorScheme.error,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(context)!.duplicateEntry,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Theme.of(context).colorScheme.error,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Action buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ZOutlineButton(
+                                  backgroundHover: Theme.of(context).colorScheme.error,
+                                  onPressed: () {
+                                    Navigator.pop(dialogContext);
+                                    _productController.clear();
+                                    _headerProductController.clear();
+                                    // Refocus the product field after clearing
+                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                      if (mounted && widget.nodes.isNotEmpty && widget.nodes[0].canRequestFocus) {
+                                        widget.nodes[0].requestFocus();
+                                      }
+                                    });
+                                  },
+                                  label: Text(
+                                    AppLocalizations.of(context)!.cancel.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: ZOutlineButton(
+                                  onPressed: () {
+                                    Navigator.pop(dialogContext);
+                                    _performAddProduct(product);
+                                  },
+                                  isActive: true,
+                                  label: Text(
+                                    AppLocalizations.of(context)!.addAgain,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _autoSelectFirstStorage() {
+    final storageState = context.read<StorageBloc>().state;
+    if (storageState is StorageLoadedState && storageState.storage.isNotEmpty) {
+      final firstStorage = storageState.storage.first;
+      widget.onStorageSelected(
+        widget.item.rowId,
+        firstStorage.stgId!,
+        firstStorage.stgName ?? '',
+      );
+      _storageController.text = firstStorage.stgName ?? '';
+    }
   }
 
   void _initializeSellPriceController() {
@@ -1705,15 +2025,11 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       widget.sellPriceControllers[widget.item.rowId] = _sellPriceController;
     }
 
-    // Determine mode based on stored value
     if (currentValue > 0) {
-      // Check if the stored value looks like a percentage (1-100) or an amount
       if (currentValue <= 100 && _currentPurchasePrice > 0) {
-        // Could be percentage, check if it matches the percentage calculation
         final amountFromPercentage = _currentPurchasePrice * (currentValue / 100);
         final existingAmount = widget.item.sellPriceAmountOriginal ?? 0;
 
-        // If the stored amount equals the percentage calculation, treat as percentage
         if (existingAmount > 0) {
           _isPercentageMode = false;
           _sellPriceController.text = existingAmount.toAmount();
@@ -1760,25 +2076,21 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final currentExchangeRate = _getCurrentExchangeRate();
     final currentPurPrice = widget.item.purPrice;
 
-    // Check if exchange rate or purchase price changed
     if (_lastExchangeRate != currentExchangeRate ||
         _lastPurPrice != currentPurPrice) {
       _lastExchangeRate = currentExchangeRate;
       _lastPurPrice = currentPurPrice;
       _currentPurchasePrice = currentPurPrice ?? 0.0;
 
-      // Update sell price display if in percentage mode
       if (_isPercentageMode && !_isUpdating) {
         _updateSellPriceFromPercentage();
       }
 
-      // Calculate new local amount
       double? newLocalAmount;
       if (currentPurPrice != null && currentExchangeRate != null) {
         newLocalAmount = currentPurPrice * currentExchangeRate;
       }
 
-      // Update the local amount text
       final newText = (newLocalAmount != null && newLocalAmount > 0)
           ? newLocalAmount.toAmount()
           : '';
@@ -1786,12 +2098,9 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       if (_localAmountController.text != newText) {
         _localAmountController.value = TextEditingValue(
           text: newText,
-          selection: TextSelection.collapsed(
-            offset: newText.length,
-          ),
+          selection: TextSelection.collapsed(offset: newText.length),
         );
 
-        // Also update the item's localAmount if needed
         if (widget.item.localAmount != newLocalAmount) {
           widget.item.localAmount = newLocalAmount;
         }
@@ -1807,7 +2116,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     if (percentage >= 1 && percentage <= 100 && _currentPurchasePrice > 0) {
       final amount = _currentPurchasePrice * (percentage / 100);
       widget.onSellPriceChanged(widget.item.rowId, amount);
-      // Store the original percentage for reference
       widget.item.sellPricePercentage = percentage;
       widget.item.sellPriceAmountOriginal = amount;
     } else if (percentage == 0) {
@@ -1825,7 +2133,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
     final amount = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
     if (amount > 0 && _currentPurchasePrice > 0) {
-      // Calculate percentage from amount
       final percentage = (amount / _currentPurchasePrice) * 100;
       final clampedPercentage = percentage.clamp(1.0, 100.0);
 
@@ -1833,9 +2140,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       widget.item.sellPricePercentage = clampedPercentage;
       widget.item.sellPriceAmountOriginal = amount;
 
-      // Update display to show the actual percentage used
       if ((percentage - clampedPercentage).abs() > 0.01) {
-        // Show a snackbar or toast that value was clamped
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -1861,7 +2166,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       _isPercentageMode = !_isPercentageMode;
 
       if (_isPercentageMode) {
-        // Switch to percentage mode - convert amount to percentage
         final currentAmount = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
         if (currentAmount > 0 && _currentPurchasePrice > 0) {
           final percentage = (currentAmount / _currentPurchasePrice) * 100;
@@ -1872,7 +2176,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
           _sellPriceController.text = widget.item.sellPricePercentage?.toStringAsFixed(1) ?? '';
         }
       } else {
-        // Switch to amount mode - convert percentage to amount
         final currentPercentage = double.tryParse(_sellPriceController.text.replaceAll(',', '')) ?? 0;
         if (currentPercentage >= 1 && currentPercentage <= 100 && _currentPurchasePrice > 0) {
           final amount = _currentPurchasePrice * (currentPercentage / 100);
@@ -1886,16 +2189,12 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
   }
 
   String _getLocalAmountText() {
-    // First check if item has localAmount stored
     if (widget.item.localAmount != null && widget.item.localAmount! > 0) {
       return widget.item.localAmount!.toAmount();
     }
 
-    // Calculate from current values
     final exchangeRate = _getCurrentExchangeRate();
-    if (widget.item.purPrice != null &&
-        exchangeRate != null &&
-        exchangeRate > 0) {
+    if (widget.item.purPrice != null && exchangeRate != null && exchangeRate > 0) {
       final calculatedAmount = widget.item.purPrice! * exchangeRate;
       if (calculatedAmount > 0) {
         return calculatedAmount.toAmount();
@@ -1911,48 +2210,36 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
 
-      // Update landed price
       if (widget.item.landedPrice != oldWidget.item.landedPrice) {
-        final newValue =
-        widget.item.landedPrice != null &&
-            widget.item.landedPrice! > 0
+        final newValue = widget.item.landedPrice != null && widget.item.landedPrice! > 0
             ? widget.item.landedPrice!.toAmount()
             : '';
 
         if (_landedPriceController.text != newValue) {
           _landedPriceController.value = TextEditingValue(
             text: newValue,
-            selection: TextSelection.collapsed(
-              offset: newValue.length,
-            ),
+            selection: TextSelection.collapsed(offset: newValue.length),
           );
         }
       }
 
-      // Update storage
       if (widget.item.storageName != oldWidget.item.storageName) {
         if (_storageController.text != widget.item.storageName) {
           final text = widget.item.storageName;
-
           _storageController.value = TextEditingValue(
             text: text,
-            selection: TextSelection.collapsed(
-              offset: text.length,
-            ),
+            selection: TextSelection.collapsed(offset: text.length),
           );
         }
       }
 
-      // Update purchase price
       if (widget.item.purPrice != oldWidget.item.purPrice) {
         _currentPurchasePrice = widget.item.purPrice ?? 0.0;
-
         if (_isPercentageMode && !_isUpdating) {
           _updateSellPriceFromPercentage();
         }
       }
 
-      // Update local amount
       _updateLocalAmount();
     });
   }
@@ -1972,43 +2259,22 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final isWholeSale = visibility.isWholeSale;
 
     int nextIndex;
-
     if (isWholeSale) {
       switch (currentIndex) {
-        case 0: // Product
-          nextIndex = 1; // Qty
-          break;
-        case 1: // Qty
-          nextIndex = 2; // Batch
-          break;
-        case 2: // Batch
-          nextIndex = 3; // Unit Price
-          break;
-        case 3: // Unit Price
-          nextIndex = 4; // Sell Price
-          break;
-        case 4: // Sell Price
-          nextIndex = 5; // Storage
-          break;
-        default:
-          nextIndex = currentIndex + 1;
+        case 0: nextIndex = 1; break;
+        case 1: nextIndex = 2; break;
+        case 2: nextIndex = 3; break;
+        case 3: nextIndex = 4; break;
+        case 4: nextIndex = 5; break;
+        default: nextIndex = currentIndex + 1;
       }
     } else {
       switch (currentIndex) {
-        case 0: // Product
-          nextIndex = 1; // Qty
-          break;
-        case 1: // Qty
-          nextIndex = 2; // Unit Price
-          break;
-        case 2: // Unit Price
-          nextIndex = 3; // Sell Price
-          break;
-        case 3: // Sell Price
-          nextIndex = 4; // Storage
-          break;
-        default:
-          nextIndex = currentIndex + 1;
+        case 0: nextIndex = 1; break;
+        case 1: nextIndex = 2; break;
+        case 2: nextIndex = 3; break;
+        case 3: nextIndex = 4; break;
+        default: nextIndex = currentIndex + 1;
       }
     }
 
@@ -2031,14 +2297,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
         return widget.nodes[virtualIndex];
       }
     } else {
-      final nodeIndexMap = {
-        0: 0, // Product
-        1: 1, // Qty
-        2: 2, // Unit Price
-        3: 3, // Sell Price
-        4: 4, // Storage
-      };
-
+      final nodeIndexMap = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4};
       final nodeIndex = nodeIndexMap[virtualIndex];
       if (nodeIndex != null && nodeIndex < widget.nodes.length) {
         return widget.nodes[nodeIndex];
@@ -2049,7 +2308,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
 
   void _addNewRowAndFocus() {
     context.read<PurchaseInvoiceBloc>().add(AddNewPurchaseItemEvent());
-
     Future.delayed(const Duration(milliseconds: 150), () {
       if (mounted) {
         final state = context.read<PurchaseInvoiceBloc>().state;
@@ -2067,21 +2325,20 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     final visibility = context.read<SettingsVisibleBloc>().state;
     final isWholeSale = visibility.isWholeSale;
 
-
     final qtyController = widget.qtyControllers.putIfAbsent(
       widget.item.rowId,
           () => TextEditingController(
         text: widget.item.qty > 0 ? widget.item.qty.toString() : '',
       ),
     );
+
     final batchController = widget.batchControllers.putIfAbsent(
       widget.item.rowId,
           () => TextEditingController(
-        text: widget.item.stkBatch > 0
-            ? widget.item.stkBatch.toString()
-            : '1',
+        text: widget.item.stkBatch > 0 ? widget.item.stkBatch.toString() : '1',
       ),
     );
+
     final priceController = widget.purchasePriceControllers.putIfAbsent(
       widget.item.rowId,
           () => TextEditingController(
@@ -2118,12 +2375,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   bloc: context.read<ProductsBloc>(),
                   onProductSelected: (product) {
                     if (product != null) {
-                      widget.onProductSelected(
-                          widget.item.rowId,
-                          product.proId.toString(),
-                          product.proName ?? '',
-                          product.proUnit ?? ''
-                      );
+                      _addProduct(product);
                       Future.delayed(const Duration(milliseconds: 100), () {
                         if (mounted) {
                           final qtyNode = safeNode(1);
@@ -2167,13 +2419,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final qty = int.tryParse(value) ?? 0;
                     widget.onQtyChanged(widget.item.rowId, qty);
                   },
-                  onSubmitted: (_) {
-                    if (isWholeSale) {
-                      focusNext(1);
-                    } else {
-                      focusNext(1);
-                    }
-                  },
+                  onSubmitted: (_) => focusNext(1),
                 ),
               ),
 
@@ -2232,9 +2478,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                     final parsed = double.tryParse(value.replaceAll(',', '')) ?? 0;
                     widget.onPurchasePriceChanged(widget.item.rowId, parsed);
                   },
-                  onSubmitted: (_) {
-                    focusNext(isWholeSale ? 3 : 2);
-                  },
+                  onSubmitted: (_) => focusNext(isWholeSale ? 3 : 2),
                 ),
               ),
 
@@ -2269,7 +2513,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         inputFormatters: [
                           FilteringTextInputFormatter.allow(
                             _isPercentageMode
-                                ? RegExp(r'^\d{0,3}(?:\.\d{0,2})?') // Max 3 digits for percentage
+                                ? RegExp(r'^\d{0,3}(?:\.\d{0,2})?')
                                 : RegExp(r'^\d*\.?\d{0,2}'),
                           ),
                         ],
@@ -2281,10 +2525,8 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         ),
                         onChanged: (value) {
                           if (_isPercentageMode) {
-                            // Validate percentage range
                             final percentage = double.tryParse(value.replaceAll(',', ''));
                             if (percentage != null && (percentage < 0 || percentage > 100)) {
-                              // Clamp to valid range
                               final clamped = percentage.clamp(0.0, 100.0);
                               _sellPriceController.text = clamped.toString();
                               _updateSellPriceFromPercentage();
@@ -2304,7 +2546,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                         },
                       ),
                     ),
-                    // Mode toggle button
                     SizedBox(
                       width: 32,
                       child: IconButton(
@@ -2368,8 +2609,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                       hintText: locale.storage,
                       bloc: context.read<StorageBloc>(),
                       fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
-                      searchFunction: (bloc, query) =>
-                          bloc.add(LoadStorageEvent()),
+                      searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
                       itemBuilder: (context, stg) => Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Text(stg.stgName ?? ''),
@@ -2422,9 +2662,7 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
                   width: 120,
                   icon: Icons.add,
                   label: Text(locale.addItem),
-                  onPressed: () {
-                    _addNewRowAndFocus();
-                  },
+                  onPressed: () => _addNewRowAndFocus(),
                 ),
               ],
             ),
@@ -2442,7 +2680,6 @@ class PurchasePaymentDialog extends StatefulWidget {
   @override
   State<PurchasePaymentDialog> createState() => _PurchasePaymentDialogState();
 }
-
 class _PurchasePaymentDialogState extends State<PurchasePaymentDialog> {
   late TextEditingController _cashPaymentController;
   late TextEditingController _exchangeRateController;

@@ -6609,6 +6609,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Account Payable'**
   String get accountPayable;
+
+  /// No description provided for @addNewProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Product'**
+  String get addNewProduct;
 }
 
 class _AppLocalizationsDelegate

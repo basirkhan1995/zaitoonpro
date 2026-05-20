@@ -1049,7 +1049,7 @@ class PurchaseInvoiceBloc extends Bloc<PurchaseInvoiceEvent, PurchaseInvoiceStat
         usrName: event.usrName,
         perID: event.ordPersonal,
         ref: xRef,
-        orderId: orderIdToUse,  // Use the validated orderId here
+        orderId: orderIdToUse,
         orderName: "Purchase",
         remark: event.remark,
         records: records,

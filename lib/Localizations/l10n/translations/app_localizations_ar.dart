@@ -3334,4 +3334,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get accountPayable => 'د قابل تادیې حساب';
+
+  @override
+  String get addNewProduct => 'ثبت کالا جدید';
 }

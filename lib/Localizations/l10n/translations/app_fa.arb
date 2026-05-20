@@ -1104,5 +1104,6 @@
   "grandTotalCashFlow": "جمع کل جریان نقدی",
   "payableAmount": "مبلغ پرداختنی",
   "lowStock": "موجودی کم",
-  "accountPayable": "حساب پرداختنی"
+  "accountPayable": "حساب پرداختنی",
+  "addNewProduct": "ثبت کالا جدید"
 }

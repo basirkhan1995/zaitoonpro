@@ -972,7 +972,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     final salePriceController = _priceControllers.putIfAbsent(
       "sale_${item.rowId}",
           () => TextEditingController(
-        text: item.salePrice != null && item.salePrice! > 0 ? item.salePrice!.toAmount() : '',
+        text: item.salePrice != null && item.salePrice! > 0 ? item.salePrice!.toAmount(decimal: 4) : '',
       ),
     );
     final discountController = _discountControllers.putIfAbsent(
@@ -993,7 +993,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     void addProduct(ProductsStockModel product) {
       if (!mounted) return;
 
-      final salePrice = double.tryParse(product.sellPrice?.toAmount() ?? "0.0") ?? 0.0;
+      final salePrice = double.tryParse(product.sellPrice?.toAmount(decimal: 4) ?? "0.0") ?? 0.0;
       final averagePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
       final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount() ?? "0.0") ?? 0.0;
       final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount() ?? "0.0") ?? 0.0;

@@ -609,6 +609,11 @@ abstract class PrintServices {
         "ar": "د بدهکار ننوتل",
         "fa": "ورودی‌های بدهکار"
       },
+      "cny": {
+        "en": "CNY",
+        "ar": "ین",
+        "fa": "ین"
+      },
       "receivedBy": {
         "en": "Received By",
         "ar": "دریافت کننده",

@@ -1104,5 +1104,6 @@
   "grandTotalCashFlow": "د نغدو پیسو ټولیز جریان",
   "payableAmount": "د ورکولو پیسه",
   "lowStock": "موجودی کم",
-  "accountPayable": "د قابل تادیې حساب"
+  "accountPayable": "د قابل تادیې حساب",
+  "addNewProduct": "ثبت کالا جدید"
 }

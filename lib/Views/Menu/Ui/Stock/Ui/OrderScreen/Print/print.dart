@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
@@ -292,7 +291,16 @@ class InvoicePrintService extends PrintServices {
       extraCharges: extraCharges,
     );
   }
-
+  bool _shouldShowLocalAmount({
+    String? baseCurrency,
+    String? localCurrency,
+    double? exchangeRate,
+  }) {
+    return localCurrency != null &&
+        baseCurrency != null &&
+        baseCurrency != localCurrency &&
+        exchangeRate != null;
+  }
   // ==================== GENERATE INVOICE ====================
   Future<pw.Document> generateInvoiceDocument({
     required String invoiceType,
@@ -321,10 +329,22 @@ class InvoicePrintService extends PrintServices {
     double? extraCharges,
   }) async {
     final document = pw.Document();
-    final prebuiltHeader = await header(report: company);
     final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
     final Uint8List imageBytes = imageData.buffer.asUint8List();
     final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+
+    // Load the first page header (company info only)
+    final firstPageHeader = await _firstPageHeader(
+      language: language,
+      com: company,
+      customerSupplierName: customerSupplierName,
+      isSale: isSale,
+      invoiceType: invoiceType,
+      invoiceNumber: invoiceNumber,
+      invoiceDate: invoiceDate,
+      reference: reference,
+      account: account,
+    );
 
     document.addPage(
       pw.MultiPage(
@@ -333,27 +353,25 @@ class InvoicePrintService extends PrintServices {
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
         orientation: orientation,
-        build: (context) => [
-          _invoiceHeaderWidget(
+        build: (pw.Context context) => [
+          firstPageHeader,
+          _itemsTableHeader(
             language: language,
-            com: company,
-            customerSupplierName: customerSupplierName,
-            isSale: isSale,
-            invoiceType: invoiceType,
-            invoiceNumber: invoiceNumber,
-            invoiceDate: invoiceDate,
-            reference: reference,
-            account: account
+            report: company,
+            showLocalAmount: _shouldShowLocalAmount(
+              baseCurrency: currency,
+              localCurrency: localCurrency,
+              exchangeRate: exchangeRate,
+            ),
           ),
-
           pw.SizedBox(height: 5),
-          _itemsTable(
+          ..._buildItemsTableContent(
             items: items,
             language: language,
             baseCurrency: currency,
             localCurrency: localCurrency,
             exchangeRate: exchangeRate,
-            report: company
+            report: company,
           ),
           pw.SizedBox(height: 10),
           _paymentSummary(
@@ -389,8 +407,15 @@ class InvoicePrintService extends PrintServices {
             )
           ]
         ],
-        header: (context) => prebuiltHeader,
-        footer: (context) => footer(
+        header: (pw.Context context) => _pageHeader(
+          language: language,
+          report: company,
+          context: context,
+          baseCurrency: currency,
+          localCurrency: localCurrency,
+          exchangeRate: exchangeRate,
+        ),
+        footer: (pw.Context context) => footer(
           report: company,
           context: context,
           language: language,
@@ -399,6 +424,439 @@ class InvoicePrintService extends PrintServices {
       ),
     );
     return document;
+  }
+
+  Future<pw.Widget> _firstPageHeader({
+    required String language,
+    required ReportModel com,
+    required String customerSupplierName,
+    required bool isSale,
+    required String invoiceType,
+    required String invoiceNumber,
+    required DateTime? invoiceDate,
+    required String? reference,
+    required AccountsModel? account,
+  }) async {
+    final companyHeader = await header(report: com);
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        companyHeader,
+        pw.SizedBox(height: 4),
+        _invoiceHeaderWidget(
+          language: language,
+          com: com,
+          customerSupplierName: customerSupplierName,
+          isSale: isSale,
+          invoiceType: invoiceType,
+          invoiceNumber: invoiceNumber,
+          invoiceDate: invoiceDate,
+          reference: reference,
+          account: account,
+        ),
+      ],
+    );
+  }
+
+  pw.Widget _pageHeader({
+    required pw.Context context,
+    required String language,
+    required ReportModel report,
+    String? baseCurrency,
+    String? localCurrency,
+    double? exchangeRate,
+  }) {
+    final pageNumber = context.pageNumber;
+
+    if (pageNumber > 1) {
+      final needsConversion = localCurrency != null &&
+          baseCurrency != null &&
+          baseCurrency != localCurrency &&
+          exchangeRate != null;
+      final showLocalAmount = needsConversion;
+
+      return pw.Column(
+        children: [
+          pw.SizedBox(height: 5),
+          _itemsTableHeader(
+            language: language,
+            report: report,
+            showLocalAmount: showLocalAmount,
+          ),
+        ],
+      );
+    }
+
+    // Return empty SizedBox for first page
+    return pw.SizedBox();
+  }
+
+  pw.Widget _itemsTableHeader({
+    required String language,
+    required ReportModel report,
+    required bool showLocalAmount,
+  }) {
+    const numberWidth = 30.0;
+    const descriptionWidth = 170.0;
+    const qtyWidth = 40.0;
+    const unitWidth = 30.0;
+    const totalQtyWidth = 70.0;
+    const priceWidth = 60.0;
+    const totalWidth = 70.0;
+    const batchWidth = 45.0;
+    double headerFontSize = 11;
+
+    final isRtl = language == 'fa' || language == 'ar';
+    final isWholeSale = report.visible?.isWholeSale ?? false;
+
+    final Map<int, pw.TableColumnWidth> columnWidths;
+    final List<String> headers;
+
+    if (isRtl) {
+      if (showLocalAmount) {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(totalQtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(batchWidth),
+            5: pw.FixedColumnWidth(qtyWidth),
+            6: pw.FixedColumnWidth(descriptionWidth),
+            7: pw.FixedColumnWidth(numberWidth),
+          };
+          headers = [
+            tr(text: 'total', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'totalQty', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'packing', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'number', tr: language),
+          ];
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(unitWidth),
+            3: pw.FixedColumnWidth(qtyWidth),
+            4: pw.FixedColumnWidth(descriptionWidth),
+            5: pw.FixedColumnWidth(numberWidth),
+          };
+          headers = [
+            tr(text: 'total', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'number', tr: language),
+          ];
+        }
+      } else {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(totalQtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(batchWidth),
+            5: pw.FixedColumnWidth(qtyWidth),
+            6: pw.FixedColumnWidth(descriptionWidth),
+            7: pw.FixedColumnWidth(numberWidth),
+          };
+          headers = [
+            tr(text: 'total', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'totalQty', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'packing', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'number', tr: language),
+          ];
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(unitWidth),
+            3: pw.FixedColumnWidth(qtyWidth),
+            4: pw.FixedColumnWidth(descriptionWidth),
+            5: pw.FixedColumnWidth(numberWidth),
+          };
+          headers = [
+            tr(text: 'total', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'number', tr: language),
+          ];
+        }
+      }
+    } else {
+      if (showLocalAmount) {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(batchWidth),
+            4: pw.FixedColumnWidth(unitWidth),
+            5: pw.FixedColumnWidth(totalQtyWidth),
+            6: pw.FixedColumnWidth(priceWidth),
+            7: pw.FixedColumnWidth(totalWidth),
+          };
+          headers = [
+            tr(text: 'number', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'packing', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'totalQty', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'total', tr: language),
+          ];
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(priceWidth),
+            5: pw.FixedColumnWidth(totalWidth),
+          };
+          headers = [
+            tr(text: 'number', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'total', tr: language),
+          ];
+        }
+      } else {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(batchWidth),
+            4: pw.FixedColumnWidth(unitWidth),
+            5: pw.FixedColumnWidth(totalQtyWidth),
+            6: pw.FixedColumnWidth(priceWidth),
+            7: pw.FixedColumnWidth(totalWidth),
+          };
+          headers = [
+            tr(text: 'number', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'packing', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'totalQty', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'total', tr: language),
+          ];
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(priceWidth),
+            5: pw.FixedColumnWidth(totalWidth),
+          };
+          headers = [
+            tr(text: 'number', tr: language),
+            tr(text: 'description', tr: language),
+            tr(text: 'quantity', tr: language),
+            tr(text: 'unit', tr: language),
+            tr(text: 'unitPrice', tr: language),
+            tr(text: 'total', tr: language),
+          ];
+        }
+      }
+    }
+
+    return pw.Table(
+      border: pw.TableBorder(
+        bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 1),
+        horizontalInside: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5),
+      ),
+      columnWidths: columnWidths,
+      children: [
+        pw.TableRow(
+          verticalAlignment: pw.TableCellVerticalAlignment.middle,
+          decoration: pw.BoxDecoration(color: pw.PdfColors.blue50),
+          children: headers.map((header) {
+            return pw.Padding(
+              padding: pw.EdgeInsets.all(4),
+              child: zText(
+                text: header,
+                fontSize: headerFontSize,
+                fontWeight: pw.FontWeight.bold,
+                textAlign: pw.TextAlign.center,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  List<pw.Widget> _buildItemsTableContent({
+    required List<InvoiceItem> items,
+    required String language,
+    String? baseCurrency,
+    String? localCurrency,
+    double? exchangeRate,
+    required ReportModel report,
+  }) {
+    const numberWidth = 30.0;
+    const descriptionWidth = 170.0;
+    const qtyWidth = 40.0;
+    const unitWidth = 30.0;
+    const totalQtyWidth = 70.0;
+    const priceWidth = 60.0;
+    const totalWidth = 70.0;
+    const batchWidth = 45.0;
+
+    final isRtl = language == 'fa' || language == 'ar';
+    final safeLocalCurrency = localCurrency ?? '';
+    final safeExchangeRate = exchangeRate ?? 1.0;
+    final isWholeSale = report.visible?.isWholeSale ?? false;
+
+    final needsConversion = localCurrency != null &&
+        baseCurrency != null &&
+        baseCurrency != localCurrency &&
+        exchangeRate != null;
+
+    final showLocalAmount = needsConversion;
+
+    final Map<int, pw.TableColumnWidth> columnWidths;
+
+    if (isRtl) {
+      if (showLocalAmount) {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(totalQtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(batchWidth),
+            5: pw.FixedColumnWidth(qtyWidth),
+            6: pw.FixedColumnWidth(descriptionWidth),
+            7: pw.FixedColumnWidth(numberWidth),
+          };
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(unitWidth),
+            3: pw.FixedColumnWidth(qtyWidth),
+            4: pw.FixedColumnWidth(descriptionWidth),
+            5: pw.FixedColumnWidth(numberWidth),
+          };
+        }
+      } else {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(totalQtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(batchWidth),
+            5: pw.FixedColumnWidth(qtyWidth),
+            6: pw.FixedColumnWidth(descriptionWidth),
+            7: pw.FixedColumnWidth(numberWidth),
+          };
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(totalWidth),
+            1: pw.FixedColumnWidth(priceWidth),
+            2: pw.FixedColumnWidth(unitWidth),
+            3: pw.FixedColumnWidth(qtyWidth),
+            4: pw.FixedColumnWidth(descriptionWidth),
+            5: pw.FixedColumnWidth(numberWidth),
+          };
+        }
+      }
+    } else {
+      if (showLocalAmount) {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(batchWidth),
+            4: pw.FixedColumnWidth(unitWidth),
+            5: pw.FixedColumnWidth(totalQtyWidth),
+            6: pw.FixedColumnWidth(priceWidth),
+            7: pw.FixedColumnWidth(totalWidth),
+          };
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(priceWidth),
+            5: pw.FixedColumnWidth(totalWidth),
+          };
+        }
+      } else {
+        if (isWholeSale) {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(batchWidth),
+            4: pw.FixedColumnWidth(unitWidth),
+            5: pw.FixedColumnWidth(totalQtyWidth),
+            6: pw.FixedColumnWidth(priceWidth),
+            7: pw.FixedColumnWidth(totalWidth),
+          };
+        } else {
+          columnWidths = {
+            0: pw.FixedColumnWidth(numberWidth),
+            1: pw.FixedColumnWidth(descriptionWidth),
+            2: pw.FixedColumnWidth(qtyWidth),
+            3: pw.FixedColumnWidth(unitWidth),
+            4: pw.FixedColumnWidth(priceWidth),
+            5: pw.FixedColumnWidth(totalWidth),
+          };
+        }
+      }
+    }
+
+    return [
+      pw.Table(
+        border: pw.TableBorder(
+          bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 1),
+          horizontalInside: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5),
+        ),
+        columnWidths: columnWidths,
+        children: [
+          // Data Rows only (no header row here)
+          for (int i = 0; i < items.length; i++)
+            pw.TableRow(
+              decoration: i.isOdd ? pw.BoxDecoration(color: pw.PdfColors.grey50) : null,
+              verticalAlignment: pw.TableCellVerticalAlignment.middle,
+              children: isRtl
+                  ? _buildRtlRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report)
+                  : _buildLtrRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report),
+            ),
+          // Bottom Border Row
+          pw.TableRow(
+            children: List.generate(
+              columnWidths.length,
+                  (index) => pw.Container(height: 0),
+            ),
+          ),
+        ],
+      ),
+    ];
   }
   List<pw.Widget> _buildAddressPhoneItems(ReportModel com) {
     final List<pw.Widget> items = [];
@@ -426,14 +884,13 @@ class InvoicePrintService extends PrintServices {
     return items;
   }
 
-
   bool _hasAnyAddressPhoneInfo(ReportModel com) {
     return (com.partyPhone?.isNotEmpty == true) ||
         (com.partyAddress?.isNotEmpty == true) ||
         (com.partyCity?.isNotEmpty == true) ||
         (com.partyProvince?.isNotEmpty == true);
   }
-  // ==================== HEADER WIDGET ====================
+
   pw.Widget _invoiceHeaderWidget({
     required String language,
     required String invoiceType,
@@ -443,7 +900,7 @@ class InvoicePrintService extends PrintServices {
     required bool isSale,
     required ReportModel com,
     required String? reference,
-    required AccountsModel? account,  // Add this parameter
+    required AccountsModel? account,
   }) {
     final invoiceTitle = invoiceType.toLowerCase().contains('sale')
         ? tr(text: 'SEL', tr: language)
@@ -482,7 +939,6 @@ class InvoicePrintService extends PrintServices {
                   ],
                 ),
                 pw.Spacer(),
-
                 if (_hasAnyAddressPhoneInfo(com))
                   pw.Row(
                     children: [
@@ -504,7 +960,7 @@ class InvoicePrintService extends PrintServices {
                   language: language,
                   customerSupplierName: customerSupplierName,
                   isSale: isSale,
-                  account: account,  // Pass account here
+                  account: account,
                 ),
               ),
               pw.Row(
@@ -530,19 +986,16 @@ class InvoicePrintService extends PrintServices {
     );
   }
 
-
-// ==================== CUSTOMER/SUPPLIER INFO ====================
   pw.Widget _customerSupplierInfo({
     required String language,
     required String customerSupplierName,
     required bool isSale,
-    required AccountsModel? account,  // Add account parameter
+    required AccountsModel? account,
   }) {
     final title = isSale
         ? tr(text: 'customer', tr: language)
         : tr(text: 'supplier', tr: language);
 
-    // Format account info if account exists and creditAmount > 0
     String accountInfo = '';
     if (account != null && account.accNumber != null && account.accName?.isNotEmpty == true) {
       accountInfo = "${account.accName}";
@@ -562,8 +1015,6 @@ class InvoicePrintService extends PrintServices {
             text: customerSupplierName,
             fontSize: 10,
           ),
-
-          // Add account info if available
           if (accountInfo.isNotEmpty) ...[
             verticalDivider(height: 8, width: 1),
             zText(
@@ -577,259 +1028,6 @@ class InvoicePrintService extends PrintServices {
     );
   }
 
-  // ==================== ITEMS TABLE ====================
-  pw.Widget _itemsTable({
-    required List<InvoiceItem> items,
-    required String language,
-    String? baseCurrency,
-    String? localCurrency,
-    double? exchangeRate,
-    required ReportModel report,
-  }) {
-    const numberWidth = 30.0;
-    const descriptionWidth = 170.0;
-    const qtyWidth = 40.0;
-    const unitWidth = 30.0;
-    const totalQtyWidth = 70.0;
-    const priceWidth = 60.0;
-    const totalWidth = 70.0;
-    const batchWidth = 45.0;
-    double headerFontSize = 11;
-
-    final isRtl = language == 'fa' || language == 'ar';
-    final safeLocalCurrency = localCurrency ?? '';
-    final safeExchangeRate = exchangeRate ?? 1.0;
-    final isWholeSale = report.visible?.isWholeSale ?? false;
-
-    // Show local amount if currencies are different
-    final needsConversion = localCurrency != null &&
-        baseCurrency != null &&
-        baseCurrency != localCurrency &&
-        exchangeRate != null;
-
-    final showLocalAmount = needsConversion;
-
-    final Map<int, pw.TableColumnWidth> columnWidths;
-    final List<String> headers;
-
-    if (isRtl) {
-      if (showLocalAmount) {
-        if (isWholeSale) {
-          // RTL with local amount + wholesale (show batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(totalWidth),        // Total Local Amount
-            1: pw.FixedColumnWidth(priceWidth),        // Local Unit Price
-            2: pw.FixedColumnWidth(totalQtyWidth),     // Total Qty
-            3: pw.FixedColumnWidth(unitWidth),         // Unit
-            4: pw.FixedColumnWidth(batchWidth),        // Packing
-            5: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            6: pw.FixedColumnWidth(descriptionWidth),  // Description
-            7: pw.FixedColumnWidth(numberWidth),       // Number
-          };
-          headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
-          ];
-        } else {
-          // RTL with local amount + non-wholesale (hide batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(totalWidth),        // Total Local Amount
-            1: pw.FixedColumnWidth(priceWidth),        // Local Unit Price
-            2: pw.FixedColumnWidth(unitWidth),         // Unit
-            3: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            4: pw.FixedColumnWidth(descriptionWidth),  // Description
-            5: pw.FixedColumnWidth(numberWidth),       // Number
-          };
-          headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
-          ];
-        }
-      } else {
-        if (isWholeSale) {
-          // RTL without local amount + wholesale (show batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(totalWidth),        // Total
-            1: pw.FixedColumnWidth(priceWidth),        // Unit Price
-            2: pw.FixedColumnWidth(totalQtyWidth),     // Total Qty
-            3: pw.FixedColumnWidth(unitWidth),         // Unit
-            4: pw.FixedColumnWidth(batchWidth),        // Packing
-            5: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            6: pw.FixedColumnWidth(descriptionWidth),  // Description
-            7: pw.FixedColumnWidth(numberWidth),       // Number
-          };
-          headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
-          ];
-        } else {
-          // RTL without local amount + non-wholesale (hide batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(totalWidth),        // Total
-            1: pw.FixedColumnWidth(priceWidth),        // Unit Price
-            2: pw.FixedColumnWidth(unitWidth),         // Unit
-            3: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            4: pw.FixedColumnWidth(descriptionWidth),  // Description
-            5: pw.FixedColumnWidth(numberWidth),       // Number
-          };
-          headers = [
-            tr(text: 'total', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'number', tr: language),
-          ];
-        }
-      }
-    } else {
-      // LTR
-      if (showLocalAmount) {
-        if (isWholeSale) {
-          // LTR with local amount + wholesale (show batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(numberWidth),       // Number
-            1: pw.FixedColumnWidth(descriptionWidth),  // Description
-            2: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            3: pw.FixedColumnWidth(batchWidth),        // Packing
-            4: pw.FixedColumnWidth(unitWidth),         // Unit
-            5: pw.FixedColumnWidth(totalQtyWidth),     // Total Qty
-            6: pw.FixedColumnWidth(priceWidth),        // Local Unit Price
-            7: pw.FixedColumnWidth(totalWidth),        // Total Local Amount
-          };
-          headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
-          ];
-        } else {
-          // LTR with local amount + non-wholesale (hide batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(numberWidth),       // Number
-            1: pw.FixedColumnWidth(descriptionWidth),  // Description
-            2: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            3: pw.FixedColumnWidth(unitWidth),         // Unit
-            4: pw.FixedColumnWidth(priceWidth),        // Local Unit Price
-            5: pw.FixedColumnWidth(totalWidth),        // Total Local Amount
-          };
-          headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
-          ];
-        }
-      } else {
-        if (isWholeSale) {
-          // LTR without local amount + wholesale (show batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(numberWidth),       // Number
-            1: pw.FixedColumnWidth(descriptionWidth),  // Description
-            2: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            3: pw.FixedColumnWidth(batchWidth),        // Packing
-            4: pw.FixedColumnWidth(unitWidth),         // Unit
-            5: pw.FixedColumnWidth(totalQtyWidth),     // Total Qty
-            6: pw.FixedColumnWidth(priceWidth),        // Unit Price
-            7: pw.FixedColumnWidth(totalWidth),        // Total
-          };
-          headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'packing', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'totalQty', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
-          ];
-        } else {
-          // LTR without local amount + non-wholesale (hide batch & total qty)
-          columnWidths = {
-            0: pw.FixedColumnWidth(numberWidth),       // Number
-            1: pw.FixedColumnWidth(descriptionWidth),  // Description
-            2: pw.FixedColumnWidth(qtyWidth),          // Quantity
-            3: pw.FixedColumnWidth(unitWidth),         // Unit
-            4: pw.FixedColumnWidth(priceWidth),        // Unit Price
-            5: pw.FixedColumnWidth(totalWidth),        // Total
-          };
-          headers = [
-            tr(text: 'number', tr: language),
-            tr(text: 'description', tr: language),
-            tr(text: 'quantity', tr: language),
-            tr(text: 'unit', tr: language),
-            tr(text: 'unitPrice', tr: language),
-            tr(text: 'total', tr: language),
-          ];
-        }
-      }
-    }
-
-    return pw.Table(
-      border: pw.TableBorder(
-        bottom: pw.BorderSide(color: pw.PdfColors.grey400, width: 1),
-        horizontalInside: pw.BorderSide(color: pw.PdfColors.grey400, width: 0.5),
-      ),
-      columnWidths: columnWidths,
-      children: [
-        // Header Row
-        pw.TableRow(
-          verticalAlignment: pw.TableCellVerticalAlignment.middle,
-          decoration: pw.BoxDecoration(color: pw.PdfColors.blue50),
-          children: headers.map((header) {
-            return pw.Padding(
-              padding: pw.EdgeInsets.all(4),
-              child: zText(
-                text: header,
-                fontSize: headerFontSize,
-                fontWeight: pw.FontWeight.bold,
-                textAlign: pw.TextAlign.center,
-              ),
-            );
-          }).toList(),
-        ),
-        // Data Rows
-        for (int i = 0; i < items.length; i++)
-          pw.TableRow(
-            decoration: i.isOdd ? pw.BoxDecoration(color: pw.PdfColors.grey50) : null,
-            verticalAlignment: pw.TableCellVerticalAlignment.middle,
-            children: isRtl
-                ? _buildRtlRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report)
-                : _buildLtrRow(items[i], i, showLocalAmount, safeLocalCurrency, safeExchangeRate, report),
-          ),
-        // Bottom Border Row (adds border at bottom of table)
-        pw.TableRow(
-          children: List.generate(
-            headers.length,
-                (index) => pw.Container(height: 0),
-          ),
-        ),
-      ],
-    );
-  }
-  // ==================== LTR ROW ====================
   List<pw.Widget> _buildLtrRow(
       InvoiceItem item,
       int index,
@@ -840,12 +1038,11 @@ class InvoicePrintService extends PrintServices {
       ) {
     final isWholeSale = report.visible?.isWholeSale ?? false;
     final totalQty = (item.quantity * item.batch).toStringAsFixed(0);
-    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount();
-    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount();
+    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 4);
+    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 4);
 
     final widgets = <pw.Widget>[];
 
-    // Number
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.all(3),
       child: zText(
@@ -855,7 +1052,6 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Description
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.symmetric(horizontal: 5),
       child: zText(
@@ -865,7 +1061,6 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Quantity
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.all(3),
       child: zText(
@@ -875,7 +1070,6 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Batch (Packing) - Only show if wholesale is enabled
     if (isWholeSale) {
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
@@ -887,7 +1081,6 @@ class InvoicePrintService extends PrintServices {
       ));
     }
 
-    // Unit column - shows only the unit (PCS, KG, etc.)
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.all(3),
       child: zText(
@@ -897,12 +1090,11 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Total Qty column - shows only the number (NO unit)
     if (isWholeSale) {
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: totalQty,  // Just the number, no unit
+          text: totalQty,
           fontSize: 10,
           fontWeight: pw.FontWeight.bold,
           textAlign: pw.TextAlign.center,
@@ -911,7 +1103,6 @@ class InvoicePrintService extends PrintServices {
     }
 
     if (showLocalAmount) {
-      // Local Unit Price
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
@@ -921,7 +1112,6 @@ class InvoicePrintService extends PrintServices {
         ),
       ));
 
-      // Total Local Amount
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
@@ -932,17 +1122,15 @@ class InvoicePrintService extends PrintServices {
         ),
       ));
     } else {
-      // Unit Price
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: item.unitPrice.toAmount(),
+          text: item.unitPrice.toAmount(decimal: 4),
           fontSize: 10,
           textAlign: pw.TextAlign.center,
         ),
       ));
 
-      // Total
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
@@ -957,7 +1145,6 @@ class InvoicePrintService extends PrintServices {
     return widgets;
   }
 
-// ==================== RTL ROW ====================
   List<pw.Widget> _buildRtlRow(
       InvoiceItem item,
       int index,
@@ -968,13 +1155,12 @@ class InvoicePrintService extends PrintServices {
       ) {
     final isWholeSale = report.visible?.isWholeSale ?? false;
     final totalQty = (item.quantity * item.batch).toStringAsFixed(0);
-    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount();
-    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount();
+    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 4);
+    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 4);
 
     final widgets = <pw.Widget>[];
 
     if (showLocalAmount) {
-      // Total Local Amount (First in RTL)
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
@@ -985,7 +1171,6 @@ class InvoicePrintService extends PrintServices {
         ),
       ));
 
-      // Local Unit Price
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
@@ -995,7 +1180,6 @@ class InvoicePrintService extends PrintServices {
         ),
       ));
     } else {
-      // Total (First in RTL)
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
@@ -1006,23 +1190,21 @@ class InvoicePrintService extends PrintServices {
         ),
       ));
 
-      // Unit Price
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: item.unitPrice.toAmount(),
+          text: item.unitPrice.toAmount(decimal: 4),
           fontSize: 10,
           textAlign: pw.TextAlign.center,
         ),
       ));
     }
 
-    // Total Qty column - shows only the number (NO unit) - Only show if wholesale is enabled
     if (isWholeSale) {
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
         child: zText(
-          text: totalQty,  // Just the number, no unit
+          text: totalQty,
           fontSize: 10,
           fontWeight: pw.FontWeight.bold,
           textAlign: pw.TextAlign.center,
@@ -1030,7 +1212,6 @@ class InvoicePrintService extends PrintServices {
       ));
     }
 
-    // Unit column - shows only the unit (PCS, KG, etc.)
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.all(3),
       child: zText(
@@ -1040,7 +1221,6 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Batch (Packing) - Only show if wholesale is enabled
     if (isWholeSale) {
       widgets.add(pw.Padding(
         padding: pw.EdgeInsets.all(3),
@@ -1052,7 +1232,6 @@ class InvoicePrintService extends PrintServices {
       ));
     }
 
-    // Quantity
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.all(3),
       child: zText(
@@ -1062,7 +1241,6 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Description
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.symmetric(horizontal: 5),
       child: zText(
@@ -1072,7 +1250,6 @@ class InvoicePrintService extends PrintServices {
       ),
     ));
 
-    // Number
     widgets.add(pw.Padding(
       padding: pw.EdgeInsets.all(3),
       child: zText(
@@ -1085,7 +1262,6 @@ class InvoicePrintService extends PrintServices {
     return widgets;
   }
 
-  // ==================== PAYMENT SUMMARY ====================
   pw.Widget _paymentSummary({
     required String language,
     required double grandTotal,
@@ -1143,16 +1319,16 @@ class InvoicePrintService extends PrintServices {
     final parsedAmount = int.tryParse(double.tryParse(amountForWords.toString())?.toStringAsFixed(0) ?? "0") ?? 0;
     final amountInWords = NumberToWords.convert(parsedAmount, lang);
 
-    String accountCurrency;
+    String accCcy;
 
     if (needsConversion && safeLocalCurrency.isNotEmpty) {
-      accountCurrency = safeLocalCurrency;
+      accCcy = safeLocalCurrency;
     } else if (account != null &&
         account.actCurrency != null &&
         account.actCurrency!.isNotEmpty) {
-      accountCurrency = account.actCurrency!;
+      accCcy = account.actCurrency!;
     } else {
-      accountCurrency = safeBaseCurrency;
+      accCcy = safeBaseCurrency;
     }
 
     final accountBalance = account != null
@@ -1164,8 +1340,6 @@ class InvoicePrintService extends PrintServices {
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
-          // ===== SUBTOTAL =====
-
           if(finalGrandTotal != effectiveSubtotal)...[
             _buildCompactRow(
                 language: language,
@@ -1175,29 +1349,24 @@ class InvoicePrintService extends PrintServices {
                 fontSize: 11
             ),
           ],
-
-          // ===== COMBINED DISCOUNT =====
           if (totalDiscount > 0)
             _buildCompactRow(
-              language: language,
-              label: tr(text: 'totalDiscount', tr: language),
-              value: needsConversion? -totalLocalDiscount : -totalDiscount,
-              currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
-              color: pw.PdfColors.red,
-              fontSize: 11
+                language: language,
+                label: tr(text: 'totalDiscount', tr: language),
+                value: needsConversion? -totalLocalDiscount : -totalDiscount,
+                currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
+                color: pw.PdfColors.red,
+                fontSize: 11
             ),
-
-          // ===== EXTRA =====
           if (effectiveExtraCharges > 0)
             _buildCompactRow(
-              language: language,
-              label: tr(text: 'extraCharges', tr: language),
-              value: needsConversion ? effectiveLocaleExtraCharges : effectiveExtraCharges,
-              currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
-              color: pw.PdfColors.orange,
-              fontSize: 11
+                language: language,
+                label: tr(text: 'extraCharges', tr: language),
+                value: needsConversion ? effectiveLocaleExtraCharges : effectiveExtraCharges,
+                currency: needsConversion ? safeLocalCurrency : safeBaseCurrency,
+                color: pw.PdfColors.orange,
+                fontSize: 11
             ),
-
           if (cashPayment > 0)...[
             _buildCompactRow(
                 language: language,
@@ -1207,8 +1376,6 @@ class InvoicePrintService extends PrintServices {
                 fontSize: 11
             ),
           ],
-
-          // ===== GRAND TOTAL =====
           _buildGrandTotalCompact(
             label: tr(text: 'grandTotal', tr: language),
             value: needsConversion ? grandTotalLocal : finalGrandTotal,
@@ -1216,33 +1383,23 @@ class InvoicePrintService extends PrintServices {
             language: language,
             color: pw.PdfColors.blue700,
           ),
-
           pw.SizedBox(height: 3),
-
-
-          // ===== PAYMENTS =====
           _buildCompactRow(
-            language: language,
-            label: tr(text: 'totalQty', tr: language),
-            value: totalQty,
-            decimalRange: 0,
-            currency: '',
-            fontSize: 11
+              language: language,
+              label: tr(text: 'totalQty', tr: language),
+              value: totalQty,
+              decimalRange: 0,
+              currency: '',
+              fontSize: 11
           ),
-
-
-
-          // ===== ACCOUNT =====
           if (account != null && creditAmount > 0) ...[
             _buildCompactRow(
               language: language,
               label: tr(text: 'previousBalance', tr: language),
               value: accountBalance,
               fontSize: 11,
-              currency: accountCurrency,
+              currency: accCcy,
             ),
-            // ===== EXCHANGE =====
-            // In _paymentSummary method, update the exchange rate display section:
             if (needsConversion)
               pw.Padding(
                 padding: pw.EdgeInsets.symmetric(horizontal: 5),
@@ -1274,40 +1431,37 @@ class InvoicePrintService extends PrintServices {
                   ],
                 ),
               ),
-
             _buildCompactRow(
-              language: language,
-              label: tr(text: 'invoiceAmount', tr: language),
-              value: effectiveCreditAmount,
-              currency: accountCurrency,
-              color: isSale ? pw.PdfColors.red : pw.PdfColors.orange,
-              fontSize: 11
+                language: language,
+                label: tr(text: 'invoiceAmount', tr: language),
+                value: effectiveCreditAmount,
+                currency: accCcy,
+                color: isSale ? pw.PdfColors.red : pw.PdfColors.orange,
+                fontSize: 11
             ),
-
             _buildGrandTotalRow(
               label: tr(text: 'newBalance', tr: language),
               value: isSale
                   ? accountBalance - effectiveCreditAmount
                   : accountBalance + effectiveCreditAmount,
-              currency: accountCurrency,
+              currency: accCcy,
               language: language,
             ),
           ],
           pw.SizedBox(height: 3),
-          zText(text: tr(text:"amountInWords",tr: language),fontSize: 8,color: pw.PdfColors.grey800),
 
-          // ===== AMOUNT IN WORDS =====
           pw.Row(
             mainAxisAlignment:
             pw.MainAxisAlignment.start,
             children: [
+              zText(text: tr(text:"amountInWords",tr: language),fontSize: 8,color: pw.PdfColors.grey800),
+              verticalDivider(height: 10, width: 1),
               zText(
-                text: "$amountInWords ${accountCurrency == "USD"? tr(text: 'usd', tr: language) : accountCurrency == "AFN"? tr(text: "afn", tr: language) : accountCurrency}",
+                text: "$amountInWords ${accCcy == "USD"? tr(text: 'usd', tr: language) : accCcy == "AFN"? tr(text: "afn", tr: language) : accCcy == "CNY"? tr(text: "cny", tr: language) : accCcy}",
                 fontSize: 8,
               ),
             ],
           ),
-
         ],
       ),
     );
@@ -1329,12 +1483,11 @@ class InvoicePrintService extends PrintServices {
       margin: const pw.EdgeInsets.only(top: 3),
       padding: const pw.EdgeInsets.symmetric(vertical: 2, horizontal: 5),
       decoration: pw.BoxDecoration(
-        color: pw.PdfColor.fromInt(0xFFE3F2FD), // light blue background
+        color: pw.PdfColor.fromInt(0xFFE3F2FD),
         borderRadius: pw.BorderRadius.circular(1),
       ),
       child: pw.Row(
         children: [
-          /// 🔹 Label (left side)
           pw.Expanded(
             child: zText(
               text: label,
@@ -1342,7 +1495,6 @@ class InvoicePrintService extends PrintServices {
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-          /// 🔹 Value (right side)
           zText(
             text: "$displayValue$displayCurrency",
             fontSize: 12,
@@ -1356,6 +1508,7 @@ class InvoicePrintService extends PrintServices {
       ),
     );
   }
+
   pw.Widget _buildGrandTotalRow({
     required String label,
     required double value,
@@ -1370,8 +1523,8 @@ class InvoicePrintService extends PrintServices {
     final isNegative = value < 0;
 
     final bgColor = isNegative
-        ? pw.PdfColor.fromInt(0xFFFFEBEE) // light red
-        : pw.PdfColor.fromInt(0xFFE8F5E9); // light green
+        ? pw.PdfColor.fromInt(0xFFFFEBEE)
+        : pw.PdfColor.fromInt(0xFFE8F5E9);
 
     final textColor = isNegative
         ? pw.PdfColors.red
@@ -1386,7 +1539,6 @@ class InvoicePrintService extends PrintServices {
       ),
       child: pw.Row(
         children: [
-          /// 🔹 Label
           pw.Expanded(
             child: zText(
               text: label,
@@ -1394,7 +1546,6 @@ class InvoicePrintService extends PrintServices {
               fontWeight: pw.FontWeight.bold,
             ),
           ),
-          /// 🔹 Value
           zText(
             text: "$displayValue$displayCurrency",
             fontSize: 12,
@@ -1409,7 +1560,6 @@ class InvoicePrintService extends PrintServices {
     );
   }
 
-// ==================== COMPACT ROW HELPER ====================
   pw.Widget _buildCompactRow({
     required String label,
     required double value,
@@ -1421,7 +1571,6 @@ class InvoicePrintService extends PrintServices {
     double fontSize = 9,
   }) {
     final displayValue = value.toAmount(decimal: decimalRange ?? 2);
-    // Get localized currency name
     final localizedCurrency = _getLocalizedCurrency(currency, language);
     final displayCurrency = currency.isEmpty ? '' : ' $localizedCurrency';
 
@@ -1429,7 +1578,6 @@ class InvoicePrintService extends PrintServices {
       padding: pw.EdgeInsets.symmetric(vertical: 1, horizontal: 5),
       child: pw.Row(
         children: [
-          // Label - fixed width, left aligned
           pw.Container(
             width: 120,
             child: zText(
@@ -1438,9 +1586,7 @@ class InvoicePrintService extends PrintServices {
               fontWeight: isBold ? pw.FontWeight.bold : pw.FontWeight.normal,
             ),
           ),
-          // Space between label and value
           pw.SizedBox(width: 10),
-          // Value - right aligned, takes remaining space
           pw.Expanded(
             child: zText(
               text: "$displayValue$displayCurrency",
@@ -1455,14 +1601,11 @@ class InvoicePrintService extends PrintServices {
     );
   }
 
-  // Helper function to get localized currency name
   String _getLocalizedCurrency(String currencyCode, String language) {
-    // If language is English, return the standard currency code
     if (language == 'en') {
       return currencyCode;
     }
 
-    // For non-English languages (Farsi, Arabic, etc.)
     switch (currencyCode.toUpperCase()) {
       case 'USD':
         return 'دالر';

@@ -1104,5 +1104,6 @@
   "grandTotalCashFlow": "GRAND TOTAL CASH FLOW",
   "payableAmount": "Account Payable",
   "lowStock": "Low Stock",
-  "accountPayable": "Account Payable"
+  "accountPayable": "Account Payable",
+  "addNewProduct": "Add New Product"
 }

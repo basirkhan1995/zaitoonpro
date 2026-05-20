@@ -555,309 +555,306 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
           color: color.surface,
           borderRadius: BorderRadius.circular(5),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_showQuickOptions)
-                    Container(
-                      width: 140,
-                      padding: const EdgeInsets.all(5),
-                      child: Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
-                                  width: 35,
-                                  height: 35,
-                                  child: Image.asset("assets/images/zaitoonLogo.png")),
-                              _buildQuickOption(
-                                label: locale.today,
-                                onTap: _selectToday,
-                                option: QuickOption.today,
-                              ),
-                              _buildQuickOption(
-                                label: locale.yesterday,
-                                onTap: _selectYesterday,
-                                option: QuickOption.yesterday,
-                              ),
-                              _buildQuickOption(
-                                label: locale.lastWeek,
-                                onTap: _selectLastWeek,
-                                option: QuickOption.lastWeek,
-                              ),
-                              _buildQuickOption(
-                                label: locale.lastMonth,
-                                onTap: _selectLastMonth,
-                                option: QuickOption.lastMonth,
-                              ),
-                              _buildQuickOption(
-                                label: locale.lastThreeMonth,
-                                onTap: _selectLast90Days,
-                                option: QuickOption.last90Days,
-                              ),
-                              _buildQuickOption(
-                                label: locale.thisMonth,
-                                onTap: _selectThisMonth,
-                                option: QuickOption.thisMonth,
-                              ),
-                              _buildQuickOption(
-                                label: locale.lastYear,
-                                onTap: _selectLastYear,
-                                option: QuickOption.lastYear,
-                              ),
-                              _buildQuickOption(
-                                label: locale.thisYear,
-                                onTap: _selectThisYear,
-                                option: QuickOption.thisYear,
-                              ),
-                              _buildQuickOption(
-                                label: locale.allTime,
-                                onTap: _selectAllTime,
-                                option: QuickOption.allTime,
-                              ),
-                            ],
+            if (_showQuickOptions)
+              Container(
+                width: 140,
+                padding: const EdgeInsets.all(5),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                                margin: EdgeInsets.symmetric(horizontal: 8,vertical: 8),
+                                width: 35,
+                                height: 35,
+                                child: Image.asset("assets/images/zaitoonLogo.png")),
+                            _buildQuickOption(
+                              label: locale.today,
+                              onTap: _selectToday,
+                              option: QuickOption.today,
+                            ),
+                            _buildQuickOption(
+                              label: locale.yesterday,
+                              onTap: _selectYesterday,
+                              option: QuickOption.yesterday,
+                            ),
+                            _buildQuickOption(
+                              label: locale.lastWeek,
+                              onTap: _selectLastWeek,
+                              option: QuickOption.lastWeek,
+                            ),
+                            _buildQuickOption(
+                              label: locale.lastMonth,
+                              onTap: _selectLastMonth,
+                              option: QuickOption.lastMonth,
+                            ),
+                            _buildQuickOption(
+                              label: locale.lastThreeMonth,
+                              onTap: _selectLast90Days,
+                              option: QuickOption.last90Days,
+                            ),
+                            _buildQuickOption(
+                              label: locale.thisMonth,
+                              onTap: _selectThisMonth,
+                              option: QuickOption.thisMonth,
+                            ),
+                            _buildQuickOption(
+                              label: locale.lastYear,
+                              onTap: _selectLastYear,
+                              option: QuickOption.lastYear,
+                            ),
+                            _buildQuickOption(
+                              label: locale.thisYear,
+                              onTap: _selectThisYear,
+                              option: QuickOption.thisYear,
+                            ),
+                            _buildQuickOption(
+                              label: locale.allTime,
+                              onTap: _selectAllTime,
+                              option: QuickOption.allTime,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            if (_showQuickOptions) ...[
+              const SizedBox(width: 5),
+              SizedBox(
+                height: double.infinity,
+                child: VerticalDivider(width: 1, color: color.outlineVariant),
+              ),
+              const SizedBox(width: 5),
+            ],
+
+            if (_showYearSelector) ...[
+              const SizedBox(width: 10),
+              SizedBox(
+                width: 130,
+                height: double.infinity,
+                child: GridView.builder(
+                  controller: _yearScrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                    childAspectRatio: 1,
+                  ),
+                  itemCount: widget.maxYear - widget.minYear + 1,
+                  itemBuilder: (context, index) {
+                    final year = widget.minYear + index;
+                    final selected = year == _selectedYear;
+                    return InkWell(
+                      onTap: () => _changeYear(year),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: selected ? color.primary : color.surface,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                        child: Center(
+                          child: Text(
+                            _toPersianNumbers(year.toString()),
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: selected ? color.surface : color.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              SizedBox(
+                height: double.infinity,
+                child: VerticalDivider(width: 1, color: color.outlineVariant),
+              ),
+              const SizedBox(width: 10),
+            ],
 
-                  if (_showQuickOptions) ...[
-                    const SizedBox(width: 5),
-                    SizedBox(
-                      height: double.infinity,
-                      child: VerticalDivider(width: 1, color: color.outlineVariant),
-                    ),
-                    const SizedBox(width: 5),
-                  ],
-
-                  if (_showYearSelector) ...[
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      width: 130,
-                      height: double.infinity,
-                      child: GridView.builder(
-                        controller: _yearScrollController,
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          mainAxisSpacing: 4,
-                          crossAxisSpacing: 4,
-                          childAspectRatio: 1,
-                        ),
-                        itemCount: widget.maxYear - widget.minYear + 1,
-                        itemBuilder: (context, index) {
-                          final year = widget.minYear + index;
-                          final selected = year == _selectedYear;
-                          return InkWell(
-                            onTap: () => _changeYear(year),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: selected ? color.primary : color.surface,
-                                borderRadius: BorderRadius.circular(3),
-                              ),
-                              child: Center(
-                                child: Text(
-                                  _toPersianNumbers(year.toString()),
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: selected ? color.surface : color.primary,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    SizedBox(
-                      height: double.infinity,
-                      child: VerticalDivider(width: 1, color: color.outlineVariant),
-                    ),
-                    const SizedBox(width: 10),
-                  ],
-
+            Expanded(
+              child: Column(
+                children: [
                   Expanded(
                     child: Column(
                       children: [
-                        Expanded(
-                          child: Column(
+                        Padding(
+                          padding: const EdgeInsets.all(3.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: _buildBorderedRangeText(_startDate, _endDate),
-                                    ),
-                                    IconButton(
-                                      icon: Icon(
-                                        _showQuickOptions ? Icons.menu_open : Icons.menu,
-                                        size: 20,
-                                      ),
-                                      onPressed: () {
-                                        setState(() {
-                                          _showQuickOptions = !_showQuickOptions;
-                                        });
-                                      },
-                                      tooltip: 'نمایش/مخفی کردن گزینه‌ها',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(3.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _showYearSelector = !_showYearSelector;
-                                          if (_showYearSelector) _scrollToSelectedYear();
-                                        });
-                                      },
-                                      child: Text(
-                                        '${_getAfghanMonthName(_currentMonth.month)} | ${_toPersianNumbers(_selectedYear.toString())}',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: color.primary,
-                                        ),
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: Icon(Icons.chevron_left),
-                                          onPressed: () => _navigateMonth(-1),
-                                        ),
-                                        IconButton(
-                                          icon: Icon(Icons.chevron_right),
-                                          onPressed: () => _navigateMonth(1),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                children: _weekdays
-                                    .map((d) => Expanded(
-                                  child: Center(
-                                    child: Text(
-                                      d,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                        color: color.primary.withAlpha(180),
-                                      ),
-                                    ),
-                                  ),
-                                ))
-                                    .toList(),
-                              ),
-                              const SizedBox(height: 6),
                               Expanded(
-                                child: GridView.builder(
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  padding: EdgeInsets.zero,
-                                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 7,
-                                    childAspectRatio: 1,
-                                  ),
-                                  itemCount: firstWeekdayOfMonth + monthLength - 1,
-                                  itemBuilder: (context, index) {
-                                    if (index < firstWeekdayOfMonth - 1) return const SizedBox.shrink();
-                                    final day = index - firstWeekdayOfMonth + 2;
-
-                                    Jalali? date;
-                                    try {
-                                      date = Jalali(_currentMonth.year, _currentMonth.month, day);
-                                    } catch (e) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    final isStartDate = _startDate != null && _isSameDate(date, _startDate!);
-                                    final isEndDate = _endDate != null && _isSameDate(date, _endDate!);
-                                    final isInRange = _startDate != null && _endDate != null &&
-                                        date.toGregorian().toDateTime().isAfter(_startDate!.toGregorian().toDateTime().subtract(const Duration(days: 1))) &&
-                                        date.toGregorian().toDateTime().isBefore(_endDate!.toGregorian().toDateTime().add(const Duration(days: 1)));
-
-                                    Color? background;
-                                    BoxShape shape = BoxShape.rectangle;
-                                    if (isStartDate || isEndDate) {
-                                      background = color.primary;
-                                      shape = BoxShape.circle;
-                                    } else if (isInRange) {
-                                      background = color.primary.withAlpha(20);
-                                    }
-
-                                    bool isToday = false;
-                                    try {
-                                      isToday = _isSameDate(date, _today);
-                                    } catch (e) {
-                                      isToday = false;
-                                    }
-
-                                    return GestureDetector(
-                                      onTap: () => _onDateTapped(date ?? _today),
-                                      child: Container(
-                                        margin: EdgeInsets.zero,
-                                        decoration: BoxDecoration(
-                                          color: background,
-                                          shape: shape,
-                                          border: isToday ? Border.all(color: color.primary, width: 1) : null,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            _toPersianNumbers(day.toString()),
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              color: isStartDate || isEndDate
-                                                  ? color.surface
-                                                  : isToday
-                                                  ? color.primary
-                                                  : color.secondary,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                child: _buildBorderedRangeText(_startDate, _endDate),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  _showQuickOptions ? Icons.menu_open : Icons.menu,
+                                  size: 20,
                                 ),
+                                onPressed: () {
+                                  setState(() {
+                                    _showQuickOptions = !_showQuickOptions;
+                                  });
+                                },
+                                tooltip: 'نمایش/مخفی کردن گزینه‌ها',
                               ),
                             ],
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.only(right: 8, bottom: 4),
+                          padding: const EdgeInsets.all(3.0),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              ZOutlineButton(
-                                onPressed: _clearSelection,
-                                label: Text(locale.cancel),
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _showYearSelector = !_showYearSelector;
+                                    if (_showYearSelector) _scrollToSelectedYear();
+                                  });
+                                },
+                                child: Text(
+                                  '${_getAfghanMonthName(_currentMonth.month)} | ${_toPersianNumbers(_selectedYear.toString())}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: color.primary,
+                                  ),
+                                ),
                               ),
-                              const SizedBox(width: 8),
-                              ZOutlineButton(
-                                isActive: true,
-                                onPressed: (_startDate != null) ? _confirmSelection : null,
-                                label: Text(locale.selectKeyword),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.chevron_left),
+                                    onPressed: () => _navigateMonth(-1),
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.chevron_right),
+                                    onPressed: () => _navigateMonth(1),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: _weekdays
+                              .map((d) => Expanded(
+                            child: Center(
+                              child: Text(
+                                d,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: color.primary.withAlpha(180),
+                                ),
+                              ),
+                            ),
+                          ))
+                              .toList(),
+                        ),
+                        const SizedBox(height: 6),
+                        Expanded(
+                          child: GridView.builder(
+                            physics: const NeverScrollableScrollPhysics(),
+                            padding: EdgeInsets.zero,
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 7,
+                              childAspectRatio: 1,
+                            ),
+                            itemCount: firstWeekdayOfMonth + monthLength - 1,
+                            itemBuilder: (context, index) {
+                              if (index < firstWeekdayOfMonth - 1) return const SizedBox.shrink();
+                              final day = index - firstWeekdayOfMonth + 2;
+
+                              Jalali? date;
+                              try {
+                                date = Jalali(_currentMonth.year, _currentMonth.month, day);
+                              } catch (e) {
+                                return const SizedBox.shrink();
+                              }
+
+                              final isStartDate = _startDate != null && _isSameDate(date, _startDate!);
+                              final isEndDate = _endDate != null && _isSameDate(date, _endDate!);
+                              final isInRange = _startDate != null && _endDate != null &&
+                                  date.toGregorian().toDateTime().isAfter(_startDate!.toGregorian().toDateTime().subtract(const Duration(days: 1))) &&
+                                  date.toGregorian().toDateTime().isBefore(_endDate!.toGregorian().toDateTime().add(const Duration(days: 1)));
+
+                              Color? background;
+                              BoxShape shape = BoxShape.rectangle;
+                              if (isStartDate || isEndDate) {
+                                background = color.primary;
+                                shape = BoxShape.circle;
+                              } else if (isInRange) {
+                                background = color.primary.withAlpha(20);
+                              }
+
+                              bool isToday = false;
+                              try {
+                                isToday = _isSameDate(date, _today);
+                              } catch (e) {
+                                isToday = false;
+                              }
+
+                              return GestureDetector(
+                                onTap: () => _onDateTapped(date ?? _today),
+                                child: Container(
+                                  margin: EdgeInsets.zero,
+                                  decoration: BoxDecoration(
+                                    color: background,
+                                    shape: shape,
+                                    border: isToday ? Border.all(color: color.primary, width: 1) : null,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      _toPersianNumbers(day.toString()),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: isStartDate || isEndDate
+                                            ? color.surface
+                                            : isToday
+                                            ? color.primary
+                                            : color.secondary,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8, bottom: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ZOutlineButton(
+                          onPressed: _clearSelection,
+                          label: Text(locale.cancel),
+                        ),
+                        const SizedBox(width: 8),
+                        ZOutlineButton(
+                          isActive: true,
+                          onPressed: (_startDate != null) ? _confirmSelection : null,
+                          label: Text(locale.selectKeyword),
                         ),
                       ],
                     ),

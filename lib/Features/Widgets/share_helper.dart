@@ -49,13 +49,15 @@ class WhatsAppShareHelper {
     final formattedCurrent = _formatAmount(currentBalance);
 
     final symbol = currencySymbol ?? '';
-
-    return "${AppLocalizations.of(context)!.dearCustomer},\n\n"
+    final availableBalanceLine = formattedAvailable != formattedCurrent
+        ? "${AppLocalizations.of(context)!.availableBalance}: $symbol $formattedAvailable\n"
+        : '';
+    return "${AppLocalizations.of(context)!.dearCustomer}\n\n"
         "${AppLocalizations.of(context)!.balanceMessageShare}\n\n"
         "${AppLocalizations.of(context)!.accountName}: $accountName\n"
         "${AppLocalizations.of(context)!.accountNumber}: $accountNumber\n"
         "${AppLocalizations.of(context)!.currentBalance}: $symbol $formattedCurrent\n"
-        "${AppLocalizations.of(context)!.availableBalance}: $symbol $formattedAvailable\n"
+        "$availableBalanceLine"
         "${AppLocalizations.of(context)!.accountPosition}: $pos\n\n"
         "${signatory != null ? '${AppLocalizations.of(context)!.regardsTitle},\n$signatory' : ''}";
   }

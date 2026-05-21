@@ -455,7 +455,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               elevation: 0,
               backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
               titleSpacing: 0,
-              title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.saleEntry.toUpperCase()}" : tr.saleEntry,
+              title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.sale.toUpperCase()}" : tr.saleEntry,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
               actionsPadding: EdgeInsets.symmetric(horizontal: 10),
               actions: [
@@ -562,16 +562,12 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
                 ]
               ],
             ),
-            body: ZCover(
-              color: Theme.of(context).colorScheme.surface,
-              borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-              shadowColor: Theme.of(context).colorScheme.surfaceContainerHigh,
-              margin: EdgeInsets.all(8),
-              radius: 10,
+            body: Container(
+              margin: EdgeInsets.all(15),
               child: Form(
                 key: _formKey,
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.all(0.0),
                   child: BlocBuilder<SaleInvoiceBloc, SaleInvoiceState>(
                     builder: (context,state) {
                       // Check if we're in loading state
@@ -1763,6 +1759,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           return ZCover(
             padding: const EdgeInsets.all(15),
             radius: 10,
+            shadowColor: Theme.of(context).colorScheme.surfaceContainer,
             borderColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             color: Theme.of(context).colorScheme.surface,
             child: IntrinsicHeight(

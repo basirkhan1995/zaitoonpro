@@ -466,11 +466,8 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
               ),
             ],
           ),
-          body: ZCover(
-            color: Theme.of(context).colorScheme.surface,
-            borderColor: Theme.of(context).colorScheme.outline.withValues(alpha: .3),
-            margin: EdgeInsets.all(8),
-            radius: 8,
+          body: Container(
+            margin: EdgeInsets.all(15),
             child: Form(
               key: _formKey,
               child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
@@ -514,7 +511,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
 
                   // Handle loaded and saving states
                   return Padding(
-                    padding: const EdgeInsets.all(16.0),
+                    padding: const EdgeInsets.all(0.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -2188,7 +2185,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
     return '';
   }
 
-  // ===== OPTIMIZED didUpdateWidget - ONLY CHANGED THIS =====
   @override
   void didUpdateWidget(covariant _PurchaseItemRow oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -2232,7 +2228,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       _updateLocalAmount();
     });
   }
-  // ===== END OPTIMIZED didUpdateWidget =====
 
   @override
   void dispose() {
@@ -2338,7 +2333,6 @@ class _PurchaseItemRowState extends State<_PurchaseItemRow> {
       ),
     );
 
-    // ===== ADD RepaintBoundary HERE for performance =====
     return RepaintBoundary(
       child: Column(
         children: [

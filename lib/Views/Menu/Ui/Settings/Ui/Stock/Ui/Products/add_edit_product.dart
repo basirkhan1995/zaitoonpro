@@ -230,7 +230,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: .1),
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: .25),
         ),
       ),
       child: Padding(
@@ -277,7 +277,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
     });
 
     return Container(
-      margin: const EdgeInsets.only(top: 16),
+      margin: const EdgeInsets.only(top: 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color.outline.withValues(alpha: .1)),
@@ -286,12 +286,12 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         children: [
           // Header with Primary Color
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.primary,
+              color: color.primary.withValues(alpha: .9),
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(12),
-                topRight: Radius.circular(12),
+                topLeft: Radius.circular(5),
+                topRight: Radius.circular(5),
               ),
             ),
             child: Row(
@@ -310,7 +310,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: color.onPrimary.withValues(alpha: .2),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
                     "${batches.length} ${tr.batchTitle}",
@@ -412,7 +412,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        "#$batchNumber",
+                        "$batchNumber",
                         style: textTheme.bodyMedium,
                       ),
                     ),
@@ -450,17 +450,19 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
               ),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Expanded(flex: 4, child: SizedBox()),
+
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        "Total Boxes",
-                        style: textTheme.bodySmall?.copyWith(color: color.outline),
+                        tr.totalQty.toUpperCase(),
+                        style: textTheme.titleMedium?.copyWith(color: color.outline),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 8),
                       Text(
                         totalBox.toString(),
                         style: TextStyle(
@@ -474,14 +476,14 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       Text(
-                        tr.totalItems,
-                        style: textTheme.bodySmall?.copyWith(color: color.outline),
+                        tr.totalItems.toUpperCase(),
+                        style: textTheme.titleMedium?.copyWith(color: color.outline),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 8),
                       Text(
                         totalItems.toString(),
                         style: TextStyle(
@@ -500,7 +502,6 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
-
   Widget _buildDeleteButton(AppLocalizations tr, ColorScheme color) {
     return Container(
       width: double.infinity,
@@ -522,7 +523,6 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
-
   Widget _buildActionButton(AppLocalizations tr, ColorScheme color, bool isEdit, dynamic state) {
     final isLoading = state is ProductsLoadingState;
 
@@ -999,122 +999,124 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                       ],
                                     ),
                                     const SizedBox(height: 12),
-                                    _buildSection(
-                                      title: tr.productDetails,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: GradeDropdown(
-                                                selectedGrade: productGrade,
-                                                onGradeSelected: (grade) {
-                                                  setState(() {
-                                                    productGrade = grade;
-                                                  });
-                                                },
+                                    Expanded(
+                                      child: _buildSection(
+                                        title: tr.productDetails,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: GradeDropdown(
+                                                  selectedGrade: productGrade,
+                                                  onGradeSelected: (grade) {
+                                                    setState(() {
+                                                      productGrade = grade;
+                                                    });
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.unit,
-                                                hint: "مثال، دانه، جوره، قطی",
-                                                suggestions: ["دانه", "جوره", "حلقه","قطی","سیت"],
-                                                showClearButton: true,
-                                                controller: productUnit,
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.unit,
+                                                  hint: "مثال، دانه، جوره، قطی",
+                                                  suggestions: ["دانه", "جوره", "حلقه","قطی","سیت"],
+                                                  showClearButton: true,
+                                                  controller: productUnit,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: ProductCategoryDropdown(
-                                                selectedCategoryId: catId,
-                                                onCategorySelected: (cat) {
-                                                  _selectedCategory = cat;
-                                                },
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: ProductCategoryDropdown(
+                                                  selectedCategoryId: catId,
+                                                  onCategorySelected: (cat) {
+                                                    _selectedCategory = cat;
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.productBrands,
-                                                hint: "مثال، کیهان، امر، کمپنی",
-                                                suggestions: ["کیهان", "امر", "کمپنی"],
-                                                showClearButton: true,
-                                                controller: productBrand,
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.productBrands,
+                                                  hint: "مثال، کیهان، امر، کمپنی",
+                                                  suggestions: ["کیهان", "امر", "کمپنی"],
+                                                  showClearButton: true,
+                                                  controller: productBrand,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.productModel,
-                                                hint: "مثال، هندا، اسکارت، دوپلکه",
-                                                suggestions: ["هندا", "اسکارت", "دوپلکه"],
-                                                showClearButton: true,
-                                                controller: productModel,
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.productModel,
+                                                  hint: "مثال، هندا، اسکارت، دوپلکه",
+                                                  suggestions: ["هندا", "اسکارت", "دوپلکه"],
+                                                  showClearButton: true,
+                                                  controller: productModel,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.madeIn,
-                                                hint: "مثال، چین، پاکستان، ایران",
-                                                suggestions: ["چین", "پاکستان", "ایران"],
-                                                showClearButton: true,
-                                                controller: madeIn,
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.madeIn,
+                                                  hint: "مثال، چین، پاکستان، ایران",
+                                                  suggestions: ["چین", "پاکستان", "ایران"],
+                                                  showClearButton: true,
+                                                  controller: madeIn,
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 12),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.productColor,
-                                                hint: "مثال، سفید، سیاه",
-                                                suggestions: ["سیاه", "سفید", "سرخ","جگری","زرد"],
-                                                showClearButton: true,
-                                                controller: productColor,
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.productColor,
+                                                  hint: "مثال، سفید، سیاه",
+                                                  suggestions: ["سیاه", "سفید", "سرخ","جگری","زرد"],
+                                                  showClearButton: true,
+                                                  controller: productColor,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.minimumStock,
-                                                hint: "مثال، 10 یا 20",
-                                                controller: minimumStock,
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.minimumStock,
+                                                  hint: "مثال، 10 یا 20",
+                                                  controller: minimumStock,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: ZTextFieldEntitled(
-                                                title: tr.salePrice,
-                                                hint: "%20, 30%",
-                                                controller: salePricePercentage,
-                                                end: const Text("%"),
-                                                keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
-                                                inputFormat: [
-                                                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                                                ],
-                                                validator: (value) {
-                                                  if (value == null || value.isEmpty) return null;
-                                                  final cleanValue = value.replaceAll('%', '').replaceAll(' ', '').trim();
-                                                  if (cleanValue.isEmpty) return null;
-                                                  final number = double.tryParse(cleanValue);
-                                                  if (number == null) return 'Please enter a valid number';
-                                                  if (number < 0) return 'Cannot be negative';
-                                                  if (number > 100) return 'Maximum 100%';
-                                                  return null;
-                                                },
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: ZTextFieldEntitled(
+                                                  title: tr.salePrice,
+                                                  hint: "%20, 30%",
+                                                  controller: salePricePercentage,
+                                                  end: const Text("%"),
+                                                  keyboardInputType: const TextInputType.numberWithOptions(decimal: true),
+                                                  inputFormat: [
+                                                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                                                  ],
+                                                  validator: (value) {
+                                                    if (value == null || value.isEmpty) return null;
+                                                    final cleanValue = value.replaceAll('%', '').replaceAll(' ', '').trim();
+                                                    if (cleanValue.isEmpty) return null;
+                                                    final number = double.tryParse(cleanValue);
+                                                    if (number == null) return 'Please enter a valid number';
+                                                    if (number < 0) return 'Cannot be negative';
+                                                    if (number > 100) return 'Maximum 100%';
+                                                    return null;
+                                                  },
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
+                                            ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),

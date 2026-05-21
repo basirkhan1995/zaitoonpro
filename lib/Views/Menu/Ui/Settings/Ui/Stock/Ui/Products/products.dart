@@ -209,7 +209,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
     } else {
       // Desktop header
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 5),
         child: Row(
           spacing: 8,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -320,15 +320,15 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               Expanded(
                 child: Text(tr.productName, style: titleStyle),
               ),
-
-              SizedBox(
-                width: 100,
-                child: Text(tr.category, style: titleStyle),
-              ),
               SizedBox(
                 width: 100,
                 child: Text(tr.unit, style: titleStyle),
               ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.category, style: titleStyle),
+              ),
+
               SizedBox(
                 width: 100,
                 child: Text(tr.productModel, style: titleStyle),
@@ -517,15 +517,15 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   style: textTheme.titleMedium,
                 ),
               ),
-
-              SizedBox(
-                width: 100,
-                child: Text(product.pcName.toString()),
-              ),
               SizedBox(
                 width: 100,
                 child: Text(product.proUnit.toString()),
               ),
+              SizedBox(
+                width: 100,
+                child: Text(product.pcName.toString()),
+              ),
+
               SizedBox(
                 width: 100,
                 child: Text(product.proModel.toString()),

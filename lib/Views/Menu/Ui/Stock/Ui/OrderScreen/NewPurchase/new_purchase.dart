@@ -397,7 +397,9 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         child: Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           appBar: AppBar(
-            title: Text(widget.orderId == null ? tr.purchaseEntry : "${tr.update.toUpperCase()} ${tr.purchaseEntry.toUpperCase()}"),
+            title: Text(
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20),
+                widget.orderId == null ? tr.purchaseEntry : "${tr.update.toUpperCase()} ${tr.purchase.toUpperCase()} #${widget.orderId}"),
             elevation: 0,
             backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
             titleSpacing: 0,
@@ -521,7 +523,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Expanded(
-                              flex: 2,
+                              flex: 3,
                               child: GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                                 key: const ValueKey('person_field'),
                                 controller: _personController,
@@ -571,7 +573,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              flex: 2,
+                              flex: 3,
                               child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                                 builder: (context, state) {
                                   if (state is PurchaseInvoiceLoaded) {
@@ -716,6 +718,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             ),
                             const SizedBox(width: 8),
                             Expanded(
+                              flex: 2,
                               child: ZTextFieldEntitled(
                                 controller: _xRefController,
                                 title: tr.invoiceNumber,
@@ -724,7 +727,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             if (needsConversion) ...[
                               const SizedBox(width: 4),
                               Expanded(
-                                flex: 1,
+                                flex: 2,
                                 child: BlocBuilder<PurchaseInvoiceBloc, PurchaseInvoiceState>(
                                   builder: (context, state) {
                                     if (state is PurchaseInvoiceLoaded) {
@@ -762,7 +765,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
                             ],
                             const SizedBox(width: 4),
                             Expanded(
-                              flex: 2,
+                              flex: 3,
                               child: ZTextFieldEntitled(
                                 controller: _remark,
                                 title: tr.remark,

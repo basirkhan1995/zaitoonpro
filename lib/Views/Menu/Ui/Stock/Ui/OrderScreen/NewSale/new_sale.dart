@@ -455,8 +455,8 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
               elevation: 0,
               backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
               titleSpacing: 0,
-              title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.sale.toUpperCase()}" : tr.saleEntry,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              title: Text((widget.orderId != null)? "${tr.update.toUpperCase()} ${tr.sale.toUpperCase()} #${widget.orderId}" : tr.saleEntry,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 20)),
               actionsPadding: EdgeInsets.symmetric(horizontal: 10),
               actions: [
                 if (_accountController.text.isNotEmpty) ...[

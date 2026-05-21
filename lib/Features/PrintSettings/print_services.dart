@@ -1738,7 +1738,7 @@ abstract class PrintServices {
         'ar': 'نقدي رسید'
       },
       'totalQty': {
-        'en': 'Total QTY',
+        'en': 'Total Items',
         'fa': 'کل تعداد',
         'ar': 'کل تعداد',
       },

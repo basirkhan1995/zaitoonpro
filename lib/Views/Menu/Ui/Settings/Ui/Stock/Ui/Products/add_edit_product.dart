@@ -200,7 +200,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Confirm Delete"),
+        title: Text(tr.areYouSure),
         content: Text("Are you sure you want to delete this product?"),
         actions: [
           TextButton(
@@ -237,6 +237,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Row(
               children: [
@@ -662,7 +663,6 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                             ),
                           );
                         }
-
                         return Form(
                           key: formKey,
                           child: Column(

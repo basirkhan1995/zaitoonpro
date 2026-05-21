@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/CompanyProfile/model/com_model.dart';
 import 'dart:typed_data';
+import '../../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../../Features/Other/crop.dart';
 import '../../../../../../../Features/Other/sections.dart';
 import '../../../../../../../Features/Other/utils.dart';
+import '../../../../../../../Features/Widgets/no_data_widget.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -92,6 +95,7 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
   @override
   void initState() {
     super.initState();
+    _loadCachedLogo();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -133,7 +137,19 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
       _updateControllers(state);
     }
   }
-
+  void _loadCachedLogo() {
+    final state = context.read<CompanyProfileBloc>().state;
+    if (state is CompanyProfileLoadedState) {
+      final base64Logo = state.company.comLogo;
+      if (base64Logo != null && base64Logo.isNotEmpty) {
+        try {
+          _companyLogo = base64Decode(base64Logo);
+        } catch (_) {
+          _companyLogo = Uint8List(0);
+        }
+      }
+    }
+  }
   void _updateControllers(CompanyProfileLoadedState state) {
     setState(() {
       businessName.text = state.company.comName ?? "";
@@ -326,9 +342,7 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                             .withValues(alpha: .09),
                       ),
                     ),
-                    child: (_companyLogo.isEmpty)
-                        ? Image.asset("assets/images/zaitoonLogo.png", fit: BoxFit.cover)
-                        : Image.memory(_companyLogo, fit: BoxFit.cover),
+                    child: Image.memory(_companyLogo, fit: BoxFit.cover),
                   ),
                   if (isUpdateMode)
                     Positioned(
@@ -423,10 +437,6 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
       body: SafeArea(
         child: BlocConsumer<CompanyProfileBloc, CompanyProfileState>(
           listener: (context, state) {
-            if (state is CompanyProfileErrorState) {
-              Utils.showOverlayMessage(
-                  context, message: state.message, isError: true);
-            }
 
             if (state is CompanyProfileLoadedState) {
               _updateControllers(state);
@@ -435,15 +445,26 @@ class _BaseCompanyFormState extends State<_BaseCompanyForm> with SingleTickerPro
                 setState(() {
                   isUpdateMode = false;
                 });
-                Utils.showOverlayMessage(
-                    context, message: "Successfully updated", isError: false);
+                ToastManager.show(context: context, message: locale.successMessage, title: locale.successTitle, type: ToastType.success);
               }
             }
           },
           builder: (context, state) {
+            if (state is CompanyProfileErrorState) {
+              return NoDataWidget(
+                message: state.message,
+                onRefresh: (){
+                  context.read<CompanyProfileBloc>().add(LoadCompanyProfileEvent());
+                },
+              );
+            }
             if (state is CompanyProfileLoadingState) {
-              return const Center(
-                child: CircularProgressIndicator(),
+              return UniversalShimmer.profileDetails(
+                 showImage: true,
+                numberOfInfoSections: 9,
+                showName: true,
+                showInfoSections: true,
+                showContact: false
               );
             }
 

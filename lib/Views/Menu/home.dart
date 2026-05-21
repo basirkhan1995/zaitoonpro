@@ -398,17 +398,13 @@ class _MenuFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 4),
-      child: Column(
-        mainAxisAlignment: isExpanded
-            ? MainAxisAlignment.start
-            : MainAxisAlignment.center,
-        crossAxisAlignment: isExpanded
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
-        children: [
-          InkWell(
-            onTap: onProfileTap,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Align(
+        alignment: isExpanded? Alignment.centerLeft : Alignment.center,
+        child: InkWell(
+          onTap: onProfileTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -418,38 +414,30 @@ class _MenuFooter extends StatelessWidget {
                   border: Border.all(
                     color: Theme.of(context)
                         .colorScheme
-                        .primary
+                        .surfaceContainer
                         .withAlpha(77),
                   ),
                   size: 40,
                 ),
-
-                if (!isExpanded) const SizedBox.shrink(),
-
-                if (isExpanded) const SizedBox(width: 5),
-
-                if (isExpanded)
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        adminName,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        usrRole,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 11),
-                      ),
-                    ],
+                if (isExpanded) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    adminName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 14,fontWeight: FontWeight.bold),
                   ),
+                  Text(
+                    usrRole,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 11,color: Colors.grey),
+                  ),
+                ],
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

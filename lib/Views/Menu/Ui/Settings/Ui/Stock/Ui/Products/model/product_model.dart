@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
-List<ProductsModel> productsModelFromMap(String str) => List<ProductsModel>.from(json.decode(str).map((x) => ProductsModel.fromMap(x)));
+ProductsModel productsModelFromMap(String str) => ProductsModel.fromMap(json.decode(str));
 
-String productsModelToMap(List<ProductsModel> data) => json.encode(List<dynamic>.from(data.map((x) => x.toMap())));
+String productsModelToMap(ProductsModel data) => json.encode(data.toMap());
 
 class ProductsModel {
   final int? proId;
@@ -27,6 +27,11 @@ class ProductsModel {
   final String? proBreadth;
   final String? proSpp;
   final String? proLength;
+  final int? pcId;
+  final String? pcName;
+  final String? pcDescription;
+  final int? pcStatus;
+  final List<Batch>? batches;
 
   ProductsModel({
     this.proId,
@@ -47,6 +52,11 @@ class ProductsModel {
     this.proBreadth,
     this.proSpp,
     this.proLength,
+    this.pcId,
+    this.pcName,
+    this.pcDescription,
+    this.pcStatus,
+    this.batches,
   });
 
   ProductsModel copyWith({
@@ -68,6 +78,11 @@ class ProductsModel {
     String? proBreadth,
     String? proSpp,
     String? proLength,
+    int? pcId,
+    String? pcName,
+    String? pcDescription,
+    int? pcStatus,
+    List<Batch>? batches,
   }) =>
       ProductsModel(
         proId: proId ?? this.proId,
@@ -88,6 +103,11 @@ class ProductsModel {
         proBreadth: proBreadth ?? this.proBreadth,
         proSpp: proSpp ?? this.proSpp,
         proLength: proLength ?? this.proLength,
+        pcId: pcId ?? this.pcId,
+        pcName: pcName ?? this.pcName,
+        pcDescription: pcDescription ?? this.pcDescription,
+        pcStatus: pcStatus ?? this.pcStatus,
+        batches: batches ?? this.batches,
       );
 
   factory ProductsModel.fromMap(Map<String, dynamic> json) => ProductsModel(
@@ -109,6 +129,11 @@ class ProductsModel {
     proBreadth: json["proBreadth"],
     proSpp: json["proSPP"],
     proLength: json["proLength"],
+    pcId: json["pcID"],
+    pcName: json["pcName"],
+    pcDescription: json["pcDescription"],
+    pcStatus: json["pcStatus"],
+    batches: json["batches"] == null ? [] : List<Batch>.from(json["batches"]!.map((x) => Batch.fromMap(x))),
   );
 
   Map<String, dynamic> toMap() => {
@@ -130,5 +155,45 @@ class ProductsModel {
     "proBreadth": proBreadth,
     "proSPP": proSpp,
     "proLength": proLength,
+    "pcID": pcId,
+    "pcName": pcName,
+    "pcDescription": pcDescription,
+    "pcStatus": pcStatus,
+    "batches": batches == null ? [] : List<dynamic>.from(batches!.map((x) => x.toMap())),
+  };
+}
+
+class Batch {
+  final int? storage;
+  final int? batch;
+  final String? availableQuantity;
+
+  Batch({
+    this.storage,
+    this.batch,
+    this.availableQuantity,
+  });
+
+  Batch copyWith({
+    int? storage,
+    int? batch,
+    String? availableQuantity,
+  }) =>
+      Batch(
+        storage: storage ?? this.storage,
+        batch: batch ?? this.batch,
+        availableQuantity: availableQuantity ?? this.availableQuantity,
+      );
+
+  factory Batch.fromMap(Map<String, dynamic> json) => Batch(
+    storage: json["storage"],
+    batch: json["batch"],
+    availableQuantity: json["available_Quantity"],
+  );
+
+  Map<String, dynamic> toMap() => {
+    "storage": storage,
+    "batch": batch,
+    "available_Quantity": availableQuantity,
   };
 }

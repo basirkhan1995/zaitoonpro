@@ -1330,6 +1330,28 @@ class Repositories {
     return [];
   }
 
+  Future<ProductsModel> getProductById({
+    required int proId,
+    CancelToken? cancelToken,
+  }) async {
+    final queryParams = {'proID': proId};
+    final response = await api.get(
+      endpoint: "/inventory/product.php",
+      queryParams: queryParams,
+      cancelToken: cancelToken,
+    );
+
+    if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
+      throw Exception(response.data['msg']);
+    }
+
+    if (response.data == null || response.data is! Map<String, dynamic>) {
+      throw Exception('Product not found');
+    }
+
+    return ProductsModel.fromMap(response.data);
+  }
+
   Future<List<ProductsStockModel>> getProductStock({
     int? proId,
     int? noStock,

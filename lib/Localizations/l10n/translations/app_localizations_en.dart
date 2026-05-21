@@ -3351,4 +3351,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get copyClipboard => 'Copy clipboard';
+
+  @override
+  String get productAlreadyExist => 'This product already exists.';
 }

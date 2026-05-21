@@ -1107,5 +1107,6 @@
   "accountPayable": "Account Payable",
   "addNewProduct": "Add New Product",
   "typeMessageHere": "Type message here",
-  "copyClipboard": "Copy clipboard"
+  "copyClipboard": "Copy clipboard",
+  "productAlreadyExist": "This product already exists."
 }

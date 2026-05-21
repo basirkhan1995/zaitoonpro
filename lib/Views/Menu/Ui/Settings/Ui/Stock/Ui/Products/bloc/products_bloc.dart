@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:zaitoonpro/Services/repositories.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart';
 
+import '../../../../../../../../../Services/localization_services.dart';
 import '../model/product_model.dart';
 
 part 'products_event.dart';
@@ -12,16 +13,9 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
   final Repositories _repo;
   ProductsBloc(this._repo) : super(ProductsInitial()) {
 
-    on<LoadProductsEvent>((event, emit) async{
-      emit(ProductsLoadingState());
-     try{
-      final products = await _repo.getProduct(input: event.input);
-      emit(ProductsLoadedState(products));
-     }catch(e){
-       emit(ProductsErrorState(e.toString()));
-     }
-    });
 
+
+    ///Products for sale invoice
     on<LoadProductsStockEvent>((event, emit) async{
       emit(ProductsLoadingState());
       try{
@@ -32,7 +26,18 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
       }
     });
 
+    ///Product Settings and purchase invoice
+    on<LoadProductsEvent>((event, emit) async{
+      emit(ProductsLoadingState());
+      try{
+        final products = await _repo.getProduct(input: event.input);
+        emit(ProductsLoadedState(products));
+      }catch(e){
+        emit(ProductsErrorState(e.toString()));
+      }
+    });
     on<AddProductEvent>((event, emit) async{
+      final tr = localizationService.loc;
       emit(ProductsLoadingState());
       try{
         final response = await _repo.addProduct(newProduct: event.newProduct);
@@ -45,7 +50,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
             return;
 
           case "exist":
-            emit(ProductsErrorState(msg));
+            emit(ProductsErrorState(tr.productAlreadyExist));
             return;
 
           case "failed":
@@ -60,7 +65,6 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         emit(ProductsErrorState(e.toString()));
       }
     });
-
     on<UpdateProductEvent>((event, emit) async{
       emit(ProductsLoadingState());
       try{
@@ -87,7 +91,6 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         emit(ProductsErrorState(e.toString()));
       }
     });
-
     on<DeleteProductEvent>((event, emit) async{
       emit(ProductsLoadingState());
       try{
@@ -114,6 +117,7 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         emit(ProductsErrorState(e.toString()));
       }
     });
+
 
   }
 }

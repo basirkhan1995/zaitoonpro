@@ -3343,4 +3343,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get copyClipboard => 'کپی متن';
+
+  @override
+  String get productAlreadyExist => 'دا محصول له مخکې نه شتون لري.';
 }

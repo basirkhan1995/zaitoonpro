@@ -6627,6 +6627,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy clipboard'**
   String get copyClipboard;
+
+  /// No description provided for @productAlreadyExist.
+  ///
+  /// In en, this message translates to:
+  /// **'This product already exists.'**
+  String get productAlreadyExist;
 }
 
 class _AppLocalizationsDelegate

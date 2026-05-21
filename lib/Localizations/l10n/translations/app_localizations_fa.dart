@@ -3340,4 +3340,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get copyClipboard => 'کپی متن';
+
+  @override
+  String get productAlreadyExist => 'این محصول قبلاً وجود دارد.';
 }

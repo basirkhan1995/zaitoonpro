@@ -19,6 +19,7 @@ import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../Settings/Ui/Stock/Ui/Products/add_edit_product.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../UserReport/status_drop.dart';
@@ -1287,24 +1288,31 @@ class _DesktopState extends State<_Desktop> {
                           itemCount: state.stock.length,
                           itemBuilder: (context, index){
                             final stk = state.stock[index];
-                            return Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                              margin: EdgeInsets.symmetric(horizontal: 15),
-                              decoration: BoxDecoration(
-                                  color: index.isEven ? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
-                              ),
-                              child: Row(
-                                children: [
-                                  SizedBox(width: 50, child: Text((index + 1).toString())),
-                                  SizedBox(width: 150, child: Text(stk.proCode ?? "")),
-                                  Expanded(child: Text(stk.proName ?? "")),
-                                  SizedBox(width: 150, child: Text(stk.stgName ?? "")),
-                                  SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
-                                  SizedBox(width: 150, child: Text(stk.stgName ?? "")),
-                                  SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0))),
-                                  SizedBox(width: 120, child: Text(stk.totalItem.toAmount(decimal: 0))),
-                                  SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy")),
-                                ],
+                            return InkWell(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => AddEditProductView(proId: stk.proId),
+                                );
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                margin: EdgeInsets.symmetric(horizontal: 15),
+                                decoration: BoxDecoration(
+                                    color: index.isEven ? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(width: 50, child: Text((index + 1).toString())),
+                                    SizedBox(width: 150, child: Text(stk.proCode ?? "")),
+                                    Expanded(child: Text(stk.proName ?? "")),
+                                    SizedBox(width: 150, child: Text(stk.stgName ?? "")),
+                                    SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
+                                    SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 120, child: Text(stk.totalItem.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),
+                                  ],
+                                ),
                               ),
                             );
                           },

@@ -6,6 +6,7 @@ import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/%D9%8FSingleProduct/single_product_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_model.dart';
 import '../../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
@@ -56,6 +57,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
   @override
   void dispose() {
     searchController.dispose();
+    context.read<SingleProductBloc>().add(ClearSingleProductEvent());
     super.dispose();
   }
 
@@ -119,6 +121,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                     isActive: true,
                     icon: Icons.add,
                     onPressed: () {
+                      context.read<SingleProductBloc>().add(ClearSingleProductEvent());
                       showDialog(
                         context: context,
                         builder: (context) => const AddEditProductView(),
@@ -164,6 +167,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                   isActive: true,
                   icon: Icons.add,
                   onPressed: () {
+                    context.read<SingleProductBloc>().add(ClearSingleProductEvent());
                     showDialog(
                       context: context,
                       builder: (context) => const AddEditProductView(),
@@ -262,6 +266,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               isActive: true,
               icon: Icons.add,
               onPressed: () {
+                context.read<SingleProductBloc>().add(ClearSingleProductEvent());
                 showDialog(
                   context: context,
                   builder: (context) => const AddEditProductView(),
@@ -305,15 +310,24 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
             color: Theme.of(context).colorScheme.primary
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 5),
+          padding: const EdgeInsets.symmetric(horizontal: 15,vertical: 8),
           child: Row(
             children: [
+              SizedBox(
+                width: 140,
+                child: Text(tr.productCode, style: titleStyle),
+              ),
               Expanded(
                 child: Text(tr.productName, style: titleStyle),
               ),
+
               SizedBox(
-                width: 150,
-                child: Text(tr.productCode, style: titleStyle),
+                width: 100,
+                child: Text(tr.category, style: titleStyle),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(tr.unit, style: titleStyle),
               ),
               SizedBox(
                 width: 100,
@@ -322,18 +336,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               SizedBox(
                 width: 100,
                 child: Text(tr.productBrands, style: titleStyle),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text(tr.unit, style: titleStyle),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text(tr.lowStock, style: titleStyle),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text(tr.madeIn, style: titleStyle),
               ),
               SizedBox(
                 width: 90,
@@ -360,7 +362,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
           onTap: () {
             showDialog(
               context: context,
-              builder: (context) => AddEditProductView(model: product),
+              builder: (context) => AddEditProductView(proId: product.proId),
             );
           },
           borderRadius: BorderRadius.circular(12),
@@ -444,7 +446,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         onTap: () {
           showDialog(
             context: context,
-            builder: (context) => AddEditProductView(model: product),
+            builder: (context) => AddEditProductView(proId: product.proId),
           );
         },
         child: Container(
@@ -493,7 +495,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
         onTap: () {
           showDialog(
             context: context,
-            builder: (context) => AddEditProductView(model: product),
+            builder: (context) => AddEditProductView(proId: product.proId),
           );
         },
         child: Container(
@@ -505,6 +507,10 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
           ),
           child: Row(
             children: [
+              SizedBox(
+                width: 140,
+                child: Text(product.proCode ?? ""),
+              ),
               Expanded(
                 child: Text(
                   product.proName ?? "",
@@ -513,8 +519,12 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               ),
 
               SizedBox(
-                width: 150,
-                child: Text(product.proCode ?? ""),
+                width: 100,
+                child: Text(product.pcName.toString()),
+              ),
+              SizedBox(
+                width: 100,
+                child: Text(product.proUnit.toString()),
               ),
               SizedBox(
                 width: 100,
@@ -524,18 +534,7 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 width: 100,
                 child: Text(product.proBrand.toString()),
               ),
-              SizedBox(
-                width: 100,
-                child: Text(product.proUnit.toString()),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text(product.proLsNqty?.toString() ?? "-"),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text(product.proMadeIn ?? ""),
-              ),
+
               SizedBox(
                 width: 90,
                 child: StatusBadge(

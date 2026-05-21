@@ -1107,5 +1107,6 @@
   "accountPayable": "د قابل تادیې حساب",
   "addNewProduct": "ثبت کالا جدید",
   "typeMessageHere": "متن را اینجا بنویسید",
-  "copyClipboard": "کپی متن"
+  "copyClipboard": "کپی متن",
+  "productAlreadyExist": "دا محصول له مخکې نه شتون لري."
 }

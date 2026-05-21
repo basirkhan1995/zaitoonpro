@@ -42,3 +42,10 @@ final class ProductsErrorState extends ProductsState {
 }
 
 
+final class ProductSingleLoadedState extends ProductsState {
+  final ProductsModel product;
+  const ProductSingleLoadedState(this.product);
+
+  @override
+  List<Object> get props => [product];
+}

@@ -609,6 +609,12 @@ abstract class PrintServices {
         "ar": "د بدهکار ننوتل",
         "fa": "ورودی‌های بدهکار"
       },
+      "sku": {
+        "en": "Sku",
+        "ar": "کد کالا",
+        "fa": "کد کالا"
+      },
+
       "cny": {
         "en": "CNY",
         "ar": "ین",

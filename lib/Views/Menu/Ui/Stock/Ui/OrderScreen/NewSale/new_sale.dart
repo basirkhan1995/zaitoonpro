@@ -2301,6 +2301,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         quantity: item.qty.toDouble(),
         batch: item.batch ?? 0,
         storageName: item.storageName,
+        sku: item.productId
       );
     }).toList();
 

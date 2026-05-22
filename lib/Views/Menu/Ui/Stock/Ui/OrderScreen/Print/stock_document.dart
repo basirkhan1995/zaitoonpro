@@ -13,6 +13,7 @@ abstract class StockDocumentItem {
   int get batch;
   String get unit;
   String get storageName;
+  String get sku;
 }
 
 class SaleStockItem implements StockDocumentItem {
@@ -26,6 +27,8 @@ class SaleStockItem implements StockDocumentItem {
   final int batch;
   @override
   final String storageName;
+  @override
+  final String sku;
 
   SaleStockItem({
     required this.productName,
@@ -33,6 +36,7 @@ class SaleStockItem implements StockDocumentItem {
     required this.quantity,
     required this.batch,
     required this.storageName,
+    required this.sku,
   });
 }
 
@@ -379,6 +383,7 @@ class StockDocumentPrintService extends PrintServices {
 
     // Column widths
     const numberWidth = 25.0;
+    const skuWidth = 60.0;
     const descriptionWidth = 130.0;
     const qtyWidth = 40.0;
     const batchWidth = 45.0;
@@ -399,7 +404,8 @@ class StockDocumentPrintService extends PrintServices {
           3: pw.FixedColumnWidth(batchWidth),        // Packing
           4: pw.FixedColumnWidth(qtyWidth),          // Quantity
           5: pw.FixedColumnWidth(descriptionWidth),  // Description
-          6: pw.FixedColumnWidth(numberWidth),       // #
+          6: pw.FixedColumnWidth(skuWidth),          // Sku
+          7: pw.FixedColumnWidth(numberWidth),       // #
         };
         headers = [
           tr(text: 'storage', tr: language),
@@ -408,6 +414,7 @@ class StockDocumentPrintService extends PrintServices {
           tr(text: 'packing', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'items', tr: language),
+          tr(text: 'sku', tr: language),
           '#',
         ];
       } else {
@@ -417,13 +424,15 @@ class StockDocumentPrintService extends PrintServices {
           1: pw.FixedColumnWidth(unitWidth),
           2: pw.FixedColumnWidth(qtyWidth),
           3: pw.FixedColumnWidth(descriptionWidth),
-          4: pw.FixedColumnWidth(numberWidth),
+          4: pw.FixedColumnWidth(skuWidth),
+          5: pw.FixedColumnWidth(numberWidth),
         };
         headers = [
           tr(text: 'storage', tr: language),
           tr(text: 'unit', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'items', tr: language),
+          tr(text: 'sku', tr: language),
           '#',
         ];
       }
@@ -432,15 +441,17 @@ class StockDocumentPrintService extends PrintServices {
         // LTR with wholesale - Order: #, Description, Quantity, Packing, Unit, Total Qty, Storage
         columnWidths = {
           0: pw.FixedColumnWidth(numberWidth),       // #
-          1: pw.FixedColumnWidth(descriptionWidth),  // Description
-          2: pw.FixedColumnWidth(qtyWidth),          // Quantity
-          3: pw.FixedColumnWidth(batchWidth),        // Packing
-          4: pw.FixedColumnWidth(unitWidth),         // Unit
-          5: pw.FixedColumnWidth(totalWidth),        // Total Qty
-          6: pw.FixedColumnWidth(storageWidth),      // Storage
+          1: pw.FixedColumnWidth(skuWidth),          //Sku
+          2: pw.FixedColumnWidth(descriptionWidth),  // Description
+          3: pw.FixedColumnWidth(qtyWidth),          // Quantity
+          4: pw.FixedColumnWidth(batchWidth),        // Packing
+          5: pw.FixedColumnWidth(unitWidth),         // Unit
+          6: pw.FixedColumnWidth(totalWidth),        // Total Qty
+          7: pw.FixedColumnWidth(storageWidth),      // Storage
         };
         headers = [
           '#',
+          tr(text: 'sku', tr: language),
           tr(text: 'items', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'packing', tr: language),
@@ -452,13 +463,15 @@ class StockDocumentPrintService extends PrintServices {
         // LTR without wholesale - Order: #, Description, Quantity, Unit, Storage
         columnWidths = {
           0: pw.FixedColumnWidth(numberWidth),
-          1: pw.FixedColumnWidth(descriptionWidth),
-          2: pw.FixedColumnWidth(qtyWidth),
-          3: pw.FixedColumnWidth(unitWidth),
-          4: pw.FixedColumnWidth(storageWidth),
+          1: pw.FixedColumnWidth(skuWidth),
+          2: pw.FixedColumnWidth(descriptionWidth),
+          3: pw.FixedColumnWidth(qtyWidth),
+          4: pw.FixedColumnWidth(unitWidth),
+          5: pw.FixedColumnWidth(storageWidth),
         };
         headers = [
           '#',
+          tr(text: 'sku', tr: language),
           tr(text: 'items', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'unit', tr: language),
@@ -515,6 +528,17 @@ class StockDocumentPrintService extends PrintServices {
         text: (index + 1).toString(),
         fontSize: 9,
         textAlign: pw.TextAlign.center,
+      ),
+    ));
+
+
+    //sku
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.sku,
+        fontSize: 9,
+        textAlign: pw.TextAlign.left,
       ),
     ));
 
@@ -655,6 +679,16 @@ class StockDocumentPrintService extends PrintServices {
         fontSize: 12,
         fontWeight: pw.FontWeight.normal,
         textAlign: pw.TextAlign.right,
+      ),
+    ));
+
+    //sku
+    widgets.add(pw.Container(
+      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
+      child: zText(
+        text: item.sku,
+        fontSize: 9,
+        textAlign: pw.TextAlign.left,
       ),
     ));
 

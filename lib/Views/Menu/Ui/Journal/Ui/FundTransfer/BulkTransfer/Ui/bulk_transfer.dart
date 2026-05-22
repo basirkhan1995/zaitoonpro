@@ -761,14 +761,14 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
                 ),
               ),
               onChanged: (value) {
-                final debit = value.cleanAmount.toDoubleAmount();
+                final debit = double.parse(value.cleanAmount.toDoubleAmount().toStringAsFixed(2));
                 if (debit > 0) {
                   widget.creditController.clear();
                 }
                 widget.onChanged(widget.entry.copyWith(debit: debit, credit: 0.0));
               },
               onEditingComplete: () {
-                final debit = widget.debitController.text.cleanAmount.toDoubleAmount();
+                final debit = double.parse(widget.debitController.text.cleanAmount.toDoubleAmount().toStringAsFixed(2));
                 if (debit > 0) {
                   widget.debitController.text = debit.toAmount();
                   widget.creditController.clear();
@@ -811,14 +811,14 @@ class __TransferEntryRowState extends State<_TransferEntryRow> {
                 ),
               ),
               onChanged: (value) {
-                final credit = value.cleanAmount.toDoubleAmount();
+                final credit = double.parse(value.cleanAmount.toDoubleAmount().toStringAsFixed(2));
                 if (credit > 0) {
                   widget.debitController.clear();
                 }
                 widget.onChanged(widget.entry.copyWith(credit: credit, debit: 0.0));
               },
               onEditingComplete: () {
-                final credit = widget.creditController.text.cleanAmount.toDoubleAmount();
+                final credit = double.parse(widget.creditController.text.cleanAmount.toDoubleAmount().toStringAsFixed(2));
                 if (credit > 0) {
                   widget.creditController.text = credit.toAmount();
                   widget.debitController.clear();

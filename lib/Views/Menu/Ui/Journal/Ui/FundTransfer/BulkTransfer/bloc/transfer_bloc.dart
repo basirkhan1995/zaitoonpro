@@ -91,8 +91,9 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
 
     final currentState = state as TransferLoadedState;
 
-    // Validate debit = credit
-    if (currentState.totalDebit != currentState.totalCredit) {
+    // Validate debit = credit (using tolerance for floating-point comparison)
+    const double tolerance = 0.001;
+    if ((currentState.totalDebit - currentState.totalCredit).abs() > tolerance) {
       final error = tr.debitNoEqualCredit;
       emit(TransferApiErrorState(
         error: error,
@@ -137,12 +138,12 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
     ));
 
     try {
-      // Convert entries to API format
+      // Convert entries to API format (round to 2 decimal places)
       final records = currentState.entries.map((entry) => {
         'account': entry.accountNumber ?? 0,
         'ccy': entry.currency ?? 'USD',
-        'debit': entry.debit,
-        'credit': entry.credit,
+        'debit': double.parse(entry.debit.toStringAsFixed(2)),
+        'credit': double.parse(entry.credit.toStringAsFixed(2)),
         'narration': entry.narration,
       }).toList();
 
@@ -230,8 +231,12 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
       List<TransferEntry> entries,
       Emitter<TransferState> emit,
       ) {
-    final totalDebit = entries.fold(0.0, (sum, entry) => sum + entry.debit);
-    final totalCredit = entries.fold(0.0, (sum, entry) => sum + entry.credit);
+    final totalDebit = double.parse(
+        entries.fold(0.0, (sum, entry) => sum + entry.debit).toStringAsFixed(2)
+    );
+    final totalCredit = double.parse(
+        entries.fold(0.0, (sum, entry) => sum + entry.credit).toStringAsFixed(2)
+    );
 
     emit(TransferLoadedState(
       entries: entries,

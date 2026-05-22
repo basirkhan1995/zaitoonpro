@@ -593,7 +593,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                                       SizedBox(width: 80, child: Text(tr.unit, textAlign: TextAlign.center, style: titleStyle)),
                                       SizedBox(width: 120, child: Text(tr.available, textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
                                       SizedBox(width: 100, child: Text(tr.batchTitle, textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
-                                      SizedBox(width: 100, child: Text(tr.unitPrice, textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
+                                      SizedBox(width: 100, child: Text("${tr.unitPrice} | $baseCurrency", textAlign: isRTL ? TextAlign.center : TextAlign.center, style: titleStyle)),
                                     ],
                                   ),
                                 ),
@@ -791,7 +791,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
             textAlign: isRTL ? TextAlign.center : TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 15,
               color: _getAvailabilityColor(widget.getAvailable(product) ?? '0'),
             ),
           ),
@@ -803,7 +803,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
             textAlign: isRTL ? TextAlign.center : TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 16,
+              fontSize: 15,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
@@ -811,9 +811,9 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         SizedBox(
           width: 100,
           child: Text(
-            widget.getSellPrice(product).toAmount(decimal: 4),
+            widget.getSellPrice(product).toAmount(),
             textAlign: isRTL ? TextAlign.center : TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
         ),
       ],

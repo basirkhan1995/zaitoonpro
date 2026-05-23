@@ -73,6 +73,10 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
   ProductsModel? _loadedProduct;
   bool _isLoadingProduct = false;
 
+  // Add these flags
+  String? _errorMessage;
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
@@ -108,31 +112,41 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
     salePricePercentage.clear();
     _selectedCategory = null;
     _loadedProduct = null;
+    _errorMessage = null;
+    _isSubmitting = false;
   }
 
   void onSubmit() {
+    if (_isSubmitting) return;
     if (!formKey.currentState!.validate()) return;
+
+    _isSubmitting = true;
+    _errorMessage = null;
+
     final bloc = context.read<ProductsBloc>();
+
+    // Trim all string values to prevent duplicates with spaces
     final data = ProductsModel(
       proId: widget.proId ?? _loadedProduct?.proId,
-      proCode: productCode.text,
-      proName: productName.text,
-      proMadeIn: madeIn.text,
+      proCode: productCode.text.trim(), // Trim spaces
+      proName: productName.text.trim(), // Trim spaces
+      proMadeIn: madeIn.text.trim(), // Trim spaces
       proCategory: _selectedCategory?.pcId ?? catId,
-      proDetails: details.text,
-      proBrand: productBrand.text,
-      proModel: productModel.text,
-      proColor: productColor.text,
+      proDetails: details.text.trim(), // Trim spaces
+      proBrand: productBrand.text.trim(), // Trim spaces
+      proModel: productModel.text.trim(), // Trim spaces
+      proColor: productColor.text.trim(), // Trim spaces
       proGrade: productGrade,
-      proLsNqty: int.tryParse(minimumStock.text),
-      proUnit: productUnit.text,
-      proWidth: w.text,
-      proLength: l.text,
-      proBreadth: b.text,
-      proWeight: weight.text,
-      proSpp: salePricePercentage.text,
+      proLsNqty: int.tryParse(minimumStock.text.trim()), // Trim spaces
+      proUnit: productUnit.text.trim(), // Trim spaces
+      proWidth: w.text.trim(), // Trim spaces
+      proLength: l.text.trim(), // Trim spaces
+      proBreadth: b.text.trim(), // Trim spaces
+      proWeight: weight.text.trim(), // Trim spaces
+      proSpp: salePricePercentage.text.trim(), // Trim spaces
       proStatus: 1,
     );
+
     if (widget.proId != null || _loadedProduct != null) {
       bloc.add(UpdateProductEvent(data));
     } else {
@@ -140,27 +154,25 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
     }
   }
 
-
-
   // Update controllers from loaded product
   void _updateControllersFromLoadedProduct(ProductsModel product) {
     if (mounted) {
-      productName.text = product.proName ?? "";
-      productCode.text = product.proCode ?? "";
-      madeIn.text = product.proMadeIn ?? "";
-      details.text = product.proDetails ?? "";
+      productName.text = product.proName?.trim() ?? "";
+      productCode.text = product.proCode?.trim() ?? "";
+      madeIn.text = product.proMadeIn?.trim() ?? "";
+      details.text = product.proDetails?.trim() ?? "";
       catId = product.proCategory;
       minimumStock.text = product.proLsNqty?.toString() ?? "";
-      productUnit.text = product.proUnit ?? "";
-      productColor.text = product.proColor ?? "";
-      productBrand.text = product.proBrand ?? "";
-      productGrade = product.proGrade ?? "";
-      productModel.text = product.proModel ?? "";
+      productUnit.text = product.proUnit?.trim() ?? "";
+      productColor.text = product.proColor?.trim() ?? "";
+      productBrand.text = product.proBrand?.trim() ?? "";
+      productGrade = product.proGrade?.trim() ?? "";
+      productModel.text = product.proModel?.trim() ?? "";
       w.text = product.proWidth?.toAmount() ?? "";
       l.text = product.proLength?.toAmount() ?? "";
       b.text = product.proBreadth?.toAmount() ?? "";
       weight.text = product.proWeight?.toAmount() ?? "";
-      salePricePercentage.text = product.proSpp ?? "";
+      salePricePercentage.text = product.proSpp?.trim() ?? "";
 
       _loadedProduct = product;
       _isLoadingProduct = false;
@@ -210,7 +222,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
           TextButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close product dialog
+              _isSubmitting = true;
               context.read<ProductsBloc>().add(DeleteProductEvent(widget.proId!));
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -512,7 +524,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: TextButton.icon(
-        onPressed: () => _showDeleteConfirmation(tr),
+        onPressed: _isSubmitting ? null : () => _showDeleteConfirmation(tr),
         icon: const Icon(Icons.delete_outline, color: Colors.red),
         label: Text(
           tr.delete,
@@ -524,8 +536,9 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
+
   Widget _buildActionButton(AppLocalizations tr, ColorScheme color, bool isEdit, dynamic state) {
-    final isLoading = state is ProductsLoadingState;
+    final isLoading = state is ProductsLoadingState || _isSubmitting;
 
     if (widget.isMobile) {
       return SizedBox(
@@ -580,15 +593,37 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       return Dialog(
         insetPadding: EdgeInsets.zero,
         backgroundColor: Colors.transparent,
-        child: BlocListener<SingleProductBloc, SingleProductState>(
-          listener: (context, state) {
-            if (state is SingleProductLoadedState && _isLoadingProduct) {
-              _updateControllersFromLoadedProduct(state.product);
-            }
-            if (state is ProductsSuccessState) {
-              Navigator.of(context).pop();
-            }
-          },
+        child: MultiBlocListener(
+          listeners: [
+            BlocListener<SingleProductBloc, SingleProductState>(
+              listener: (context, state) {
+                if (state is SingleProductLoadedState && _isLoadingProduct) {
+                  _updateControllersFromLoadedProduct(state.product);
+                }
+                if (state is SingleProductErrorState) {
+                  setState(() {
+                    _errorMessage = state.message;
+                    _isLoadingProduct = false;
+                  });
+                }
+              },
+            ),
+            BlocListener<ProductsBloc, ProductsState>(
+              listener: (context, state) {
+                if (state is ProductsSuccessState) {
+                  // Success - pop dialog
+                  Navigator.of(context).pop();
+                  // Refresh the products list
+                  context.read<ProductsBloc>().add(LoadProductsEvent());
+                } else if (state is ProductsErrorState) {
+                  setState(() {
+                    _errorMessage = state.message;
+                    _isSubmitting = false;
+                  });
+                }
+              },
+            ),
+          ],
           child: Container(
             width: double.infinity,
             height: double.infinity,
@@ -668,6 +703,33 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
+                              // Error Message
+                              if (_errorMessage != null)
+                                Container(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.red.shade200),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Text(
+                                          _errorMessage!,
+                                          style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () => setState(() => _errorMessage = null),
+                                        child: Icon(Icons.close, size: 18, color: Colors.red.shade700),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               // Product Code
                               Container(
                                 padding: const EdgeInsets.all(16),
@@ -714,8 +776,11 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                   title: tr.productName,
                                   controller: productName,
                                   isRequired: true,
+                                  inputFormat: [
+                                    FilteringTextInputFormatter.deny(RegExp(r'^\s')),
+                                  ],
                                   validator: (value) {
-                                    if (value.isEmpty) {
+                                    if (value == null || value.trim().isEmpty) {
                                       return tr.required(tr.productName);
                                     }
                                     return null;
@@ -796,7 +861,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                 _buildDeleteButton(tr, color),
                               const SizedBox(height: 24),
                               // Action Button
-                              _buildActionButton(tr, color, isEdit, state),
+                              _buildActionButton(tr, color, isEdit, context.watch<ProductsBloc>().state),
                               const SizedBox(height: 16),
                             ],
                           ),
@@ -812,17 +877,37 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       );
     } else if (widget.isTablet) {
       // Tablet dialog
-      return BlocListener<SingleProductBloc, SingleProductState>(
-        listener: (context, state) {
-          if (state is SingleProductLoadedState && _isLoadingProduct) {
-            _updateControllersFromLoadedProduct(state.product);
-          }
-          if (state is ProductsSuccessState) {
-            Navigator.of(context).pop();
-          }
-        },
+      return MultiBlocListener(
+        listeners: [
+          BlocListener<SingleProductBloc, SingleProductState>(
+            listener: (context, state) {
+              if (state is SingleProductLoadedState && _isLoadingProduct) {
+                _updateControllersFromLoadedProduct(state.product);
+              }
+              if (state is SingleProductErrorState) {
+                setState(() {
+                  _errorMessage = state.message;
+                  _isLoadingProduct = false;
+                });
+              }
+            },
+          ),
+          BlocListener<ProductsBloc, ProductsState>(
+            listener: (context, state) {
+              if (state is ProductsSuccessState) {
+                Navigator.of(context).pop();
+                context.read<ProductsBloc>().add(LoadProductsEvent());
+              } else if (state is ProductsErrorState) {
+                setState(() {
+                  _errorMessage = state.message;
+                  _isSubmitting = false;
+                });
+              }
+            },
+          ),
+        ],
         child: ZFormDialog(
-          onAction: onSubmit,
+          onAction: _isSubmitting ? null : onSubmit,
           title: isEdit ? tr.update : tr.newKeyword,
           actionLabel: _buildActionButton(tr, color, isEdit, context.watch<ProductsBloc>().state),
           width: 650,
@@ -846,6 +931,31 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                       spacing: 12,
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        if (_errorMessage != null)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.red.shade200),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    _errorMessage!,
+                                    style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () => setState(() => _errorMessage = null),
+                                  child: Icon(Icons.close, size: 18, color: Colors.red.shade700),
+                                ),
+                              ],
+                            ),
+                          ),
                         ZTextFieldEntitled(
                           title: tr.productCode,
                           controller: productCode,
@@ -902,15 +1012,35 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       );
     } else {
       // Desktop dialog
-      return BlocListener<SingleProductBloc, SingleProductState>(
-        listener: (context, state) {
-          if (state is SingleProductLoadedState && _isLoadingProduct) {
-            _updateControllersFromLoadedProduct(state.product);
-          }
-          if (state is ProductsSuccessState) {
-            Navigator.of(context).pop();
-          }
-        },
+      return MultiBlocListener(
+        listeners: [
+          BlocListener<SingleProductBloc, SingleProductState>(
+            listener: (context, state) {
+              if (state is SingleProductLoadedState && _isLoadingProduct) {
+                _updateControllersFromLoadedProduct(state.product);
+              }
+              if (state is SingleProductErrorState) {
+                setState(() {
+                  _errorMessage = state.message;
+                  _isLoadingProduct = false;
+                });
+              }
+            },
+          ),
+          BlocListener<ProductsBloc, ProductsState>(
+            listener: (context, state) {
+              if (state is ProductsSuccessState) {
+                Navigator.of(context).pop();
+                context.read<ProductsBloc>().add(LoadProductsEvent());
+              } else if (state is ProductsErrorState) {
+                setState(() {
+                  _errorMessage = state.message;
+                  _isSubmitting = false;
+                });
+              }
+            },
+          ),
+        ],
         child: BlocBuilder<SingleProductBloc, SingleProductState>(
           builder: (context, state) {
             if (state is SingleProductLoadingState && _isLoadingProduct) {
@@ -920,7 +1050,6 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                   icon: Icons.production_quantity_limits_rounded,
                   onAction: () {},
                   title: isEdit ? tr.update.toUpperCase() : tr.newKeyword,
-
                   actionLabel: const SizedBox(
                     height: 16,
                     width: 16,
@@ -939,7 +1068,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
             return ZFormDialog(
               width: MediaQuery.of(context).size.width * .85,
               icon: Icons.production_quantity_limits_rounded,
-              onAction: onSubmit,
+              onAction: _isSubmitting ? null : onSubmit,
               title: isEdit ? tr.update.toUpperCase() : tr.newKeyword,
               actionLabel: _buildActionButton(tr, color, isEdit, context.watch<ProductsBloc>().state),
               child: Form(
@@ -950,6 +1079,32 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (_errorMessage != null)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  _errorMessage!,
+                                  style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () => setState(() => _errorMessage = null),
+                                child: Icon(Icons.close, size: 18, color: Colors.red.shade700),
+                              ),
+                            ],
+                          ),
+                        ),
                       IntrinsicHeight(
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,

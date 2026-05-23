@@ -213,22 +213,18 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
       _isLoading = loading;
     });
 
-    _refreshOverlay();
+    // Only refresh overlay if it's already showing
+    if (_overlayEntry != null) {
+      _refreshOverlay();
+    }
   }
 
   void _triggerSearch(String query) {
+    // Cancel any existing timer
     _debounce?.cancel();
     _loadingTimeout?.cancel();
 
-    if (_selectedItem != null && query != (_selectedItem?.proName ?? '')) {
-      setState(() {
-        _selectedItem = null;
-        _currentHighlightedItem = null;
-        _highlightedIndex = -1;
-      });
-      widget.onProductSelected?.call(null);
-    }
-
+    // If query is empty, clear results immediately
     if (query.isEmpty) {
       setState(() {
         _currentSuggestions = [];
@@ -240,17 +236,25 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
       return;
     }
 
-    _setLoading(true);
+    // Don't show loading state immediately - wait for debounce
+    // Only show loading if the debounce timer completes
     _currentSearchQuery = query;
 
-    if (_effectiveFocusNode.hasFocus) {
-      _showOverlay();
-    }
-
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    // Set a debounce timer
+    _debounce = Timer(const Duration(milliseconds: 700), () {
       if (!mounted) return;
 
-      if (query.isNotEmpty && query == _currentSearchQuery) {
+      // Only trigger search if the query hasn't changed during debounce
+      if (query == _currentSearchQuery && query.isNotEmpty) {
+        // Show loading only when actually making the API call
+        _setLoading(true);
+
+        // Make sure the overlay is shown
+        if (_effectiveFocusNode.hasFocus) {
+          _showOverlay();
+        }
+
+        // Trigger the API call
         widget.bloc.add(LoadProductsEvent(input: query));
       }
     });
@@ -1140,9 +1144,7 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                       }
                       if (state.products.isNotEmpty && _highlightedIndex >= 0) {
                         _currentHighlightedItem = state.products[_highlightedIndex];
-                      } else if (state.products.isNotEmpty) {
-                        _currentHighlightedItem = state.products.first;
-                      } else {
+                      }  else {
                         _currentHighlightedItem = null;
                       }
                     }
@@ -1155,11 +1157,14 @@ class _PurchaseProductSearchFieldState extends State<PurchaseProductSearchField>
                     _showOverlay();
                   }
                 } else if (state is ProductsLoadingState) {
-                  setState(() {
-                    _isLoading = true;
-                  });
-                  if (_effectiveFocusNode.hasFocus && widget.controller.text.isNotEmpty) {
-                    _showOverlay();
+                  // Only show loading if we have a query (user is searching)
+                  if (_currentSearchQuery.isNotEmpty) {
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    if (_effectiveFocusNode.hasFocus && widget.controller.text.isNotEmpty) {
+                      _showOverlay();
+                    }
                   }
                 } else if (state is ProductsErrorState) {
                   setState(() {

@@ -302,9 +302,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   }
 
   void _triggerSearch(String query) {
+    // Cancel any existing timer
     _debounce?.cancel();
     _loadingTimeout?.cancel();
 
+    // Clear selection if query changed
     if (_selectedItem != null && query != widget.itemToString(_selectedItem as T)) {
       setState(() {
         _selectedItem = null;
@@ -314,6 +316,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       widget.onProductSelected?.call(null);
     }
 
+    // If query is empty, clear everything immediately
     if (query.isEmpty) {
       setState(() {
         _currentSuggestions = [];
@@ -325,17 +328,23 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       return;
     }
 
-    _setLoading(true);
+    // Store current query
     _currentSearchQuery = query;
 
-    if (_effectiveFocusNode.hasFocus) { // CHANGED from _focusNode
+    // Show overlay if needed (without loading yet)
+    if (_effectiveFocusNode.hasFocus) {
       _showOverlay();
     }
 
-    _debounce = Timer(const Duration(milliseconds: 500), () {
+    // Set debounce timer - only call API after user stops typing
+    _debounce = Timer(const Duration(milliseconds: 700), () {
       if (!mounted) return;
 
-      if (query.isNotEmpty && widget.searchFunction != null && query == _currentSearchQuery) {
+      // Only call API if query hasn't changed during debounce
+      if (query == _currentSearchQuery && query.isNotEmpty && widget.searchFunction != null) {
+        // Show loading state only when actually calling API
+        _setLoading(true);
+
         try {
           widget.searchFunction!(widget.bloc!, query);
         } catch (e) {

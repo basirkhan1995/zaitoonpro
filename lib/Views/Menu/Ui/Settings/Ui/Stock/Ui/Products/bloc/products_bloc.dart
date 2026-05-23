@@ -36,84 +36,79 @@ class ProductsBloc extends Bloc<ProductsEvent, ProductsState> {
         emit(ProductsErrorState(e.toString()));
       }
     });
-    on<AddProductEvent>((event, emit) async{
+
+    // Update your products_bloc.dart
+    on<AddProductEvent>((event, emit) async {
       final tr = localizationService.loc;
       emit(ProductsLoadingState());
-      try{
+      try {
         final response = await _repo.addProduct(newProduct: event.newProduct);
-
         final msg = response["msg"];
-        switch(msg){
+        switch(msg) {
           case "success":
             emit(ProductsSuccessState());
-            add(LoadProductsEvent());
+            // Don't call add(LoadProductsEvent()) here as it might interfere
+            // with the dialog closing
             return;
-
           case "exist":
             emit(ProductsErrorState(tr.productAlreadyExist));
             return;
-
           case "failed":
             emit(ProductsErrorState(msg));
             return;
-
           default:
             emit(ProductsErrorState(msg));
             return;
         }
-      }catch(e){
+      } catch(e) {
         emit(ProductsErrorState(e.toString()));
       }
     });
-    on<UpdateProductEvent>((event, emit) async{
+
+    on<UpdateProductEvent>((event, emit) async {
       emit(ProductsLoadingState());
-      try{
+      try {
         final response = await _repo.updateProduct(newProduct: event.newProduct);
         final msg = response["msg"];
-        switch(msg){
+        switch(msg) {
           case "success":
             emit(ProductsSuccessState());
-            add(LoadProductsEvent());
             return;
-
           case "empty":
             emit(ProductsErrorState(msg));
             return;
-
           case "failed":
             emit(ProductsErrorState(msg));
             return;
-
-          default: emit(ProductsErrorState(msg));
-          return;
+          default:
+            emit(ProductsErrorState(msg));
+            return;
         }
-      }catch(e){
+      } catch(e) {
         emit(ProductsErrorState(e.toString()));
       }
     });
-    on<DeleteProductEvent>((event, emit) async{
+
+    on<DeleteProductEvent>((event, emit) async {
       emit(ProductsLoadingState());
-      try{
+      try {
         final response = await _repo.deleteProduct(proId: event.proId);
         final msg = response["msg"];
-        switch(msg){
+        switch(msg) {
           case "success":
             emit(ProductsSuccessState());
-            add(LoadProductsEvent());
             return;
-
           case "dependent":
             emit(ProductsErrorState(msg));
             return;
-
           case "failed":
             emit(ProductsErrorState(msg));
             return;
-
-          default: emit(ProductsErrorState(msg));
-          return;
+          default:
+            emit(ProductsErrorState(msg));
+            return;
         }
-      }catch(e){
+      } catch(e) {
         emit(ProductsErrorState(e.toString()));
       }
     });

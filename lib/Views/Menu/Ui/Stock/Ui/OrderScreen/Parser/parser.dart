@@ -80,6 +80,7 @@ class OrderParser {
         'stkID': record['stkID'],
         'productId': record['stkProduct'],
         'storageId': record['stkStorage'],
+        'proCode': record['proCode'],
         'quantity': double.tryParse(record['stkQuantity']?.toString() ?? '0') ?? 0,
         'batch': double.tryParse(record['stkQtyInBatch']?.toString() ?? '0') ?? 0,
         'productName': record['proName'] ?? '',

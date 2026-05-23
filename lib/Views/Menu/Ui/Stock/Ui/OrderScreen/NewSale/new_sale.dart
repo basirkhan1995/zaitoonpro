@@ -1002,6 +1002,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
           productName: product.proName ?? '',
           storageId: product.stkStorage,
           storageName: product.stgName ?? '',
+          sku: product.proCode,
           purPrice: averagePrice,
           salePrice: salePrice,
           landedPrice: landedPrice,
@@ -2301,7 +2302,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         quantity: item.qty.toDouble(),
         batch: item.batch ?? 0,
         storageName: item.storageName,
-        sku: item.productId
+        sku: item.sku ?? "_"
       );
     }).toList();
 

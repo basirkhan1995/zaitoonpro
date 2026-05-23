@@ -63,6 +63,7 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
   final double? landedPrice;
   final double? purchasePrice;
   final String? unit;
+  final String? sku;
 
   const UpdateSaleItemEvent({
     required this.rowId,
@@ -81,12 +82,13 @@ class UpdateSaleItemEvent extends SaleInvoiceEvent {
     this.landedPrice,
     this.purchasePrice,
     this.unit,
+    this.sku
   });
 
   @override
   List<Object?> get props => [
     rowId, productId, productName, qty, discount, discountType, batch,
-    localeAmount, exchangeRate, purPrice, salePrice, storageId, storageName, landedPrice, purchasePrice, unit
+    localeAmount, exchangeRate, purPrice, salePrice, storageId, storageName, landedPrice, purchasePrice, unit, sku
   ];
 }
 

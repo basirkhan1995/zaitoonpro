@@ -1503,9 +1503,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
         exchangeRate: current?.exchangeRate,
       );
     }).toList();
-
     final totalLocalAmount = current.totalLocalAmount;
-
     showDialog(
       context: context,
       builder: (_) => PrintPreviewDialog<dynamic>(

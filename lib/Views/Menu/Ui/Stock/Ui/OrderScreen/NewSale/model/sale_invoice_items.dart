@@ -3,6 +3,7 @@ enum DiscountType { percentage, amount }
 class SaleInvoiceItem {
   final String rowId;
   String productId;
+  String? sku;
   String productName;
   int qty;
   int? batch;
@@ -20,6 +21,7 @@ class SaleInvoiceItem {
   SaleInvoiceItem({
     String? itemId,
     required this.productId,
+    this.sku,
     required this.productName,
     required this.qty,
     this.batch,
@@ -111,6 +113,7 @@ class SaleInvoiceItem {
 
   SaleInvoiceItem copyWith({
     String? productId,
+    String? sku,
     String? productName,
     int? qty,
     int? batch,
@@ -129,6 +132,7 @@ class SaleInvoiceItem {
     return SaleInvoiceItem(
       itemId: rowId,
       productId: productId ?? this.productId,
+      sku: sku ?? this.sku,
       productName: productName ?? this.productName,
       qty: qty ?? this.qty,
       batch: batch ?? this.batch,

@@ -103,6 +103,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         items.add(SaleInvoiceItem(
           itemId: '${record['stkID']}_${DateTime.now().millisecondsSinceEpoch}_${items.length}',
           productId: record['productId'].toString(),
+          sku: record['proCode'],
           productName: productName,
           qty: record['quantity'].toInt(),
           batch: record['batch'].toInt(),

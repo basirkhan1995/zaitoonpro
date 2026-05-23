@@ -1038,8 +1038,8 @@ class InvoicePrintService extends PrintServices {
       ) {
     final isWholeSale = report.visible?.isWholeSale ?? false;
     final totalQty = (item.quantity * item.batch).toStringAsFixed(0);
-    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 4);
-    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 4);
+    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 2);
+    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 2);
 
     final widgets = <pw.Widget>[];
 
@@ -1155,8 +1155,8 @@ class InvoicePrintService extends PrintServices {
       ) {
     final isWholeSale = report.visible?.isWholeSale ?? false;
     final totalQty = (item.quantity * item.batch).toStringAsFixed(0);
-    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 4);
-    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 4);
+    final localUnitPrice = (item.unitPrice * exchangeRate).toAmount(decimal: 2);
+    final totalLocalAmount = (item.quantity * item.batch * item.unitPrice * exchangeRate).toAmount(decimal: 2);
 
     final widgets = <pw.Widget>[];
 

@@ -578,8 +578,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
               listener: (context, state) {
                 // Handle Success State
                 if (state is ProductsSuccessState) {
-                  // Close any open dialogs
-                  Navigator.of(context).pop();
 
                   // Show success toast using your ToastManager
                   ToastManager.show(

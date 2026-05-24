@@ -250,6 +250,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       widget.headerSearchController!.text = overlayText;
     }
 
+    _isSearching = true; // MARK: This is a search
     _triggerSearch(overlayText);
 
     _isSyncingFromOverlay = false;
@@ -270,6 +271,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
     }
 
     if (headerText != _currentSearchQuery) {
+      _isSearching = true; // MARK: This is a search
       _triggerSearch(headerText);
     }
 
@@ -300,13 +302,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
     _refreshOverlay();
   }
-
+  bool _isSearching = false;
   void _triggerSearch(String query) {
-    // Cancel any existing timer
     _debounce?.cancel();
     _loadingTimeout?.cancel();
 
-    // Clear selection if query changed
     if (_selectedItem != null && query != widget.itemToString(_selectedItem as T)) {
       setState(() {
         _selectedItem = null;
@@ -316,7 +316,6 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       widget.onProductSelected?.call(null);
     }
 
-    // If query is empty, clear everything immediately
     if (query.isEmpty) {
       setState(() {
         _currentSuggestions = [];
@@ -325,24 +324,21 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       });
       _loadingTimeout?.cancel();
       _removeOverlay();
+      _isSearching = false;
       return;
     }
 
-    // Store current query
     _currentSearchQuery = query;
 
-    // Show overlay if needed (without loading yet)
     if (_effectiveFocusNode.hasFocus) {
       _showOverlay();
     }
 
-    // Set debounce timer - only call API after user stops typing
     _debounce = Timer(const Duration(milliseconds: 700), () {
       if (!mounted) return;
 
-      // Only call API if query hasn't changed during debounce
       if (query == _currentSearchQuery && query.isNotEmpty && widget.searchFunction != null) {
-        // Show loading state only when actually calling API
+        _isSearching = true; // MARK: Set searching flag
         _setLoading(true);
 
         try {
@@ -350,6 +346,7 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
         } catch (e) {
           debugPrint('Search error: $e');
           _setLoading(false);
+          _isSearching = false;
         }
       }
     });
@@ -375,8 +372,9 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
   void _onFocusChange() {
     if (!mounted) return;
 
-    if (_effectiveFocusNode.hasFocus) { // CHANGED from _focusNode
+    if (_effectiveFocusNode.hasFocus) {
       if (widget.showAllOnFocus && _firstFocus && widget.fetchAllFunction != null) {
+        _isSearching = false; // MARK: Not a search
         widget.fetchAllFunction!(widget.bloc!);
         _firstFocus = false;
       }
@@ -391,6 +389,8 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
       }
     }
   }
+
+
 
   void _removeOverlay() {
     if (_overlayEntry != null) {
@@ -1244,7 +1244,13 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
                   if (mounted) {
                     setState(() {
-                      _currentSuggestions = items;
+                      // MARK: Only update suggestions if we're searching or if items are for initial load
+                      if (_isSearching || _isInitializing) {
+                        _currentSuggestions = items;
+                      } else if (!_isSearching && _isInitializing) {
+                        _currentSuggestions = items;
+                      }
+
                       _isLoading = isLoading;
 
                       if (!isLoading) {
@@ -1271,15 +1277,14 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
 
                           _selectedItem = product;
                           _currentHighlightedItem = product;
-                          _highlightedIndex = 0; // Set to first item
+                          _highlightedIndex = 0;
 
                           widget.onProductSelected?.call(product);
                           _initialLoadDone = true;
                           _isInitializing = false;
+                          _isSearching = false; // MARK: Reset search flag
                         }
-                        // Don't reset highlighted index here - let it be maintained
                         else if (items.isNotEmpty && _highlightedIndex >= items.length) {
-                          // Only fix if index is out of bounds
                           _highlightedIndex = items.length - 1;
                           _currentHighlightedItem = items[_highlightedIndex];
                         }
@@ -1287,17 +1292,14 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                           _highlightedIndex = -1;
                           _currentHighlightedItem = null;
                         }
-                        // If items exist and index is valid, keep current highlight
                         else if (items.isNotEmpty && _highlightedIndex >= 0 && _highlightedIndex < items.length) {
                           _currentHighlightedItem = items[_highlightedIndex];
                         }
-                        // If no valid highlight, set to first item
                         else if (items.isNotEmpty) {
                           _highlightedIndex = 0;
                           _currentHighlightedItem = items[0];
                         }
 
-                        // Try to find selected item in new list
                         if (_selectedItem != null && items.isNotEmpty) {
                           final selectedIndex = items.indexWhere(
                                 (item) => widget.itemToString(item) == widget.itemToString(_selectedItem as T),
@@ -1307,10 +1309,11 @@ class _ProductSearchFieldState<T, B extends BlocBase<S>, S> extends State<Produc
                             _currentHighlightedItem = items[selectedIndex];
                           }
                         }
+
+                        _isSearching = false; // MARK: Reset search flag after processing
                       }
                     });
 
-                    // CRITICAL: Wait for rebuild before scrolling
                     if (!isLoading && _currentSuggestions.isNotEmpty && _highlightedIndex >= 0) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         if (mounted) {

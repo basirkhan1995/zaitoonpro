@@ -314,11 +314,16 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
           child: Row(
             children: [
               SizedBox(
-                width: 140,
-                child: Text(tr.productCode, style: titleStyle),
+                width: 70,
+                child: Text(tr.id, style: titleStyle),
               ),
+
               Expanded(
                 child: Text(tr.productName, style: titleStyle),
+              ),
+              SizedBox(
+                width: 150,
+                child: Text(tr.productCode, style: titleStyle),
               ),
               SizedBox(
                 width: 100,
@@ -329,10 +334,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 child: Text(tr.category, style: titleStyle),
               ),
 
-              SizedBox(
-                width: 100,
-                child: Text(tr.productModel, style: titleStyle),
-              ),
               SizedBox(
                 width: 100,
                 child: Text(tr.productBrands, style: titleStyle),
@@ -508,14 +509,18 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
           child: Row(
             children: [
               SizedBox(
-                width: 140,
-                child: Text(product.proCode ?? ""),
+                width: 70,
+                child: Text(product.proId.toString()),
               ),
               Expanded(
                 child: Text(
                   product.proName ?? "",
                   style: textTheme.titleMedium,
                 ),
+              ),
+              SizedBox(
+                width: 150,
+                child: Text(product.proCode ?? ""),
               ),
               SizedBox(
                 width: 100,
@@ -526,10 +531,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
                 child: Text(product.pcName.toString()),
               ),
 
-              SizedBox(
-                width: 100,
-                child: Text(product.proModel.toString()),
-              ),
               SizedBox(
                 width: 100,
                 child: Text(product.proBrand.toString()),

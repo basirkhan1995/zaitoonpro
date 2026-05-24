@@ -686,7 +686,7 @@ class _DesktopState extends State<_Desktop> {
                         isRequired: true,
                         bloc: context.read<ProductsBloc>(),
                         fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
-                        searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
+                        searchFunction: (bloc, query) => bloc.add(LoadProductsEvent(input: query)),
                         itemBuilder: (context, ind) {
                           if (ind.proId == null) {
                             return Padding(

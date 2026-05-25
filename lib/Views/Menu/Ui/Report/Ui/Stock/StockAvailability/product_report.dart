@@ -1306,6 +1306,13 @@ class _DesktopState extends State<_Desktop> {
                           itemCount: state.stock.length,
                           itemBuilder: (context, index){
                             final stk = state.stock[index];
+                            final color = Theme.of(context).colorScheme;
+                            final qty = int.tryParse(stk.available??"");
+                            TextStyle? style = TextStyle(
+                              color: qty == 0 || qty! < 0 ? Colors.red : color.onSurface,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15
+                            );
                             return InkWell(
                               onTap: () {
                                 showDialog(
@@ -1322,12 +1329,12 @@ class _DesktopState extends State<_Desktop> {
                                 child: Row(
                                   children: [
                                     SizedBox(width: 50, child: Text((index + 1).toString())),
-                                    Expanded(child: Text(stk.proName ?? "",style: Theme.of(context).textTheme.titleSmall)),
+                                    Expanded(child: Text(stk.proName ?? "",style: style)),
                                     SizedBox(width: 150, child: Text(stk.stgName ?? "",style: Theme.of(context).textTheme.titleSmall,)),
                                     SizedBox(width: 150, child: Text("${stk.recentPurPrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 150, child: Text("${stk.sellPrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 150, child: Text("${stk.averagePrice.toAmount()} $baseCcy")),
-                                    SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0),style: style)),
                                     SizedBox(width: 120, child: Text(stk.batch.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 80, child: Text(stk.proUnit??"",style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 120, child: Text("${stk.totalValue.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),

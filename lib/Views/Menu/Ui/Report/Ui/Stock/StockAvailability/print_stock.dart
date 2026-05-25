@@ -114,12 +114,16 @@ class ProductReportPrintSettings extends PrintServices {
     final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
 
     // Calculate totals
+    int totalItems = products.length;
     double totalQuantity = 0;
-    double totalTotalItem = 0;
+    double totalItemsSum = 0; // Sum of (qty * batch)
 
     for (var product in products) {
-      totalQuantity += double.tryParse(product.available ?? '0') ?? 0;
-      totalTotalItem += double.tryParse(product.totalValue ?? '0') ?? 0;
+      final qty = double.tryParse(product.available?.toString() ?? '0') ?? 0;
+      final batch = double.tryParse(product.batch?.toString() ?? '0') ?? 0;
+
+      totalQuantity += qty;
+      totalItemsSum += (qty * batch);
     }
 
     document.addPage(
@@ -142,16 +146,15 @@ class ProductReportPrintSettings extends PrintServices {
           pw.SizedBox(height: 5),
 
           // Summary Stats
-          _buildSummaryStats(products.length, totalQuantity, totalTotalItem, baseCurrency, language),
+          _buildSummaryStats(totalItems, totalQuantity, totalItemsSum, language),
           pw.SizedBox(height: 5),
 
           // Table Header
-          _buildTableHeader(language, baseCurrency),
+          _buildTableHeader(language),
           pw.SizedBox(height: 2),
 
           // Data Rows
-          ..._buildProductRows(products, language, baseCurrency),
-
+          ..._buildProductRows(products, language),
         ],
       ),
     );
@@ -179,8 +182,8 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Summary Stats - Updated to show total_item instead of totalValue
-  pw.Widget _buildSummaryStats(int itemCount, double totalQty, double totalTotalItem, String? baseCurrency, String language) {
+  // Summary Stats - Shows Total Items, Total Quantity, Total Items Sum (Qty × Batch)
+  pw.Widget _buildSummaryStats(int itemCount, double totalQty, double totalItemsSum, String language) {
     return pw.Container(
       padding: const pw.EdgeInsets.all(5),
       decoration: pw.BoxDecoration(
@@ -191,7 +194,6 @@ class ProductReportPrintSettings extends PrintServices {
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
         children: [
-
           _buildStatItem(
             tr(text: 'totalItems', tr: language),
             itemCount.toString(),
@@ -203,11 +205,10 @@ class ProductReportPrintSettings extends PrintServices {
             pw.PdfColors.green700,
           ),
           _buildStatItem(
-            tr(text: 'totalItemSum', tr: language), // Sum of total_item
-            totalTotalItem.toAmount(decimal: 0),
+            tr(text: 'totalItemSum', tr: language), // Sum of (qty * batch)
+            totalItemsSum.toAmount(decimal: 0),
             pw.PdfColors.orange700,
           ),
-
         ],
       ),
     );
@@ -232,8 +233,8 @@ class ProductReportPrintSettings extends PrintServices {
     );
   }
 
-  // Table Header - UPDATED to include total_item column
-  pw.Widget _buildTableHeader(String language, String? baseCurrency) {
+  // Table Header - Fixed column distribution
+  pw.Widget _buildTableHeader(String language) {
     return pw.Container(
       padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 4),
       decoration: pw.BoxDecoration(
@@ -244,40 +245,46 @@ class ProductReportPrintSettings extends PrintServices {
       ),
       child: pw.Row(
         children: [
-          // Serial No
+          // Serial No - Fixed width
           pw.SizedBox(
-            width: 30,
+            width: 25,
             child: _buildHeaderCell(tr(text: 'no', tr: language), language),
           ),
-          // Product Name
+          pw.SizedBox(width: 5),
+          // Product Name - Takes remaining space
           pw.Expanded(
-            flex: 4,
+            flex: 5,
             child: _buildHeaderCell(tr(text: 'productName', tr: language), language),
           ),
+          pw.SizedBox(width: 5),
           // Storage
           pw.Expanded(
             flex: 2,
             child: _buildHeaderCell(tr(text: 'storage', tr: language), language),
           ),
-          // Unit Price
-          pw.Expanded(
-            flex: 2,
-            child: _buildHeaderCell(tr(text: 'unitPrice', tr: language), language, align: pw.TextAlign.right),
-          ),
-          // Available Quantity
-          pw.Expanded(
-            flex: 2,
+          pw.SizedBox(width: 5),
+          // Quantity (Available)
+          pw.SizedBox(
+            width: 50,
             child: _buildHeaderCell(tr(text: 'quantity', tr: language), language, align: pw.TextAlign.right),
           ),
-          // Total Item (NEW COLUMN)
-          pw.Expanded(
-            flex: 2,
-            child: _buildHeaderCell(tr(text: 'totalItem', tr: language), language, align: pw.TextAlign.right),
+          pw.SizedBox(width: 5),
+          // Batch
+          pw.SizedBox(
+            width: 50,
+            child: _buildHeaderCell(tr(text: 'batch', tr: language), language, align: pw.TextAlign.right),
           ),
-          // Total Amount
-          pw.Expanded(
-            flex: 2,
-            child: _buildHeaderCell(tr(text: 'total', tr: language), language, align: pw.TextAlign.right),
+          pw.SizedBox(width: 5),
+          // Total Items (Qty × Batch)
+          pw.SizedBox(
+            width: 60,
+            child: _buildHeaderCell(tr(text: 'totalItems', tr: language), language, align: pw.TextAlign.right),
+          ),
+          pw.SizedBox(width: 5),
+          // Unit - Fixed width at the end
+          pw.SizedBox(
+            width: 50,
+            child: _buildHeaderCell(tr(text: 'unit', tr: language), language, align: pw.TextAlign.center),
           ),
         ],
       ),
@@ -289,24 +296,21 @@ class ProductReportPrintSettings extends PrintServices {
       text: text,
       fontSize: 8,
       fontWeight: pw.FontWeight.bold,
-      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.right),
+      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.center),
     );
   }
 
-  // Product Rows - UPDATED to include total_item
-  List<pw.Widget> _buildProductRows(List<ProductReportModel> products, String language, String? baseCurrency) {
+  // Product Rows - Fixed column distribution
+  List<pw.Widget> _buildProductRows(List<ProductReportModel> products, String language) {
     final rows = <pw.Widget>[];
 
     for (int i = 0; i < products.length; i++) {
       final product = products[i];
       final isEven = i % 2 == 0;
-      final qty = double.tryParse(product.available ?? '0') ?? 0;
-      final price = double.tryParse(product.averagePrice ?? '0') ?? 0;
-      final totalItem = double.tryParse(product.totalValue ?? '0') ?? 0;
-      final total = double.tryParse(product.totalValue ?? '0') ?? 0;
 
-      // Combine product ID and name
-      String productDisplay = product.proName ?? '';
+      final qty = double.tryParse(product.available?.toString() ?? '0') ?? 0;
+      final batch = double.tryParse(product.batch?.toString() ?? '0') ?? 0;
+      final totalItems = qty * batch; // Calculated: Quantity × Batch
 
       rows.add(
         pw.Container(
@@ -319,40 +323,46 @@ class ProductReportPrintSettings extends PrintServices {
           ),
           child: pw.Row(
             children: [
-              // Serial No
+              // Serial No - Fixed width
               pw.SizedBox(
-                width: 30,
+                width: 25,
                 child: _buildCell((i + 1).toString(), language),
               ),
-              // Product Name
+              pw.SizedBox(width: 5),
+              // Product Name - Takes remaining space
               pw.Expanded(
-                flex: 4,
-                child: _buildCell(productDisplay, language),
+                flex: 5,
+                child: _buildCell(product.proName ?? '', language),
               ),
+              pw.SizedBox(width: 5),
               // Storage
               pw.Expanded(
                 flex: 2,
                 child: _buildCell(product.stgName ?? '', language),
               ),
-              // Unit Price
-              pw.Expanded(
-                flex: 2,
-                child: _buildNumberCell(price.toAmount(), language, align: pw.TextAlign.right),
-              ),
-              // Available Quantity
-              pw.Expanded(
-                flex: 2,
+              pw.SizedBox(width: 5),
+              // Quantity (Available)
+              pw.SizedBox(
+                width: 50,
                 child: _buildNumberCell(qty.toAmount(decimal: 0), language, align: pw.TextAlign.right),
               ),
-              // Total Item (NEW COLUMN)
-              pw.Expanded(
-                flex: 2,
-                child: _buildNumberCell(totalItem.toAmount(decimal: 0), language, align: pw.TextAlign.right),
+              pw.SizedBox(width: 5),
+              // Batch
+              pw.SizedBox(
+                width: 50,
+                child: _buildNumberCell(batch.toAmount(decimal: 0), language, align: pw.TextAlign.right),
               ),
-              // Total Amount with currency
-              pw.Expanded(
-                flex: 2,
-                child: _buildCurrencyCell(total, baseCurrency, language),
+              pw.SizedBox(width: 5),
+              // Total Items (Qty × Batch)
+              pw.SizedBox(
+                width: 60,
+                child: _buildNumberCell(totalItems.toAmount(decimal: 0), language, align: pw.TextAlign.right),
+              ),
+              pw.SizedBox(width: 5),
+              // Unit - Fixed width at the end
+              pw.SizedBox(
+                width: 50,
+                child: _buildCell(product.proUnit ?? '', language, align: pw.TextAlign.center),
               ),
             ],
           ),
@@ -363,11 +373,11 @@ class ProductReportPrintSettings extends PrintServices {
     return rows;
   }
 
-  pw.Widget _buildCell(String text, String language) {
+  pw.Widget _buildCell(String text, String language, {pw.TextAlign align = pw.TextAlign.left}) {
     return zText(
       text: text,
       fontSize: 8,
-      textAlign: language == 'en' ? pw.TextAlign.left : pw.TextAlign.right,
+      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : (align == pw.TextAlign.center ? pw.TextAlign.center : pw.TextAlign.right)),
     );
   }
 
@@ -376,28 +386,7 @@ class ProductReportPrintSettings extends PrintServices {
       text: text,
       fontSize: 8,
       fontWeight: pw.FontWeight.bold,
-      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.right),
-    );
-  }
-
-  pw.Widget _buildCurrencyCell(double amount, String? currency, String language) {
-    return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.end,
-      children: [
-        zText(
-          text: amount.toAmount(decimal: 2),
-          fontSize: 8,
-          fontWeight: pw.FontWeight.bold,
-          textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
-        ),
-        pw.SizedBox(width: 2),
-        zText(
-          text: currency ?? '',
-          fontSize: 7,
-          color: pw.PdfColors.grey600,
-          textAlign: language == 'en' ? pw.TextAlign.right : pw.TextAlign.left,
-        ),
-      ],
+      textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.center),
     );
   }
 
@@ -431,26 +420,26 @@ class ProductReportPrintSettings extends PrintServices {
                   ),
                   pw.SizedBox(height: 3),
                   pw.Row(
-                      children: [
-                        zText(
-                          text: report.comAddress ?? "",
-                          fontSize: 8,
-                          color: pw.PdfColors.grey600,
-                        ),
-                        verticalDivider(height: 10, width: 1),
-                        zText(
-                          text: report.compPhone ?? "",
-                          fontSize: 8,
-                          color: pw.PdfColors.grey600,
-                        ),
-                        verticalDivider(height: 10, width: 1),
-                        zText(
-                          text: report.comEmail ?? "",
-                          fontSize: 8,
-                          color: pw.PdfColors.grey600,
-                        ),
-                      ]
-                  )
+                    children: [
+                      zText(
+                        text: report.comAddress ?? "",
+                        fontSize: 8,
+                        color: pw.PdfColors.grey600,
+                      ),
+                      verticalDivider(height: 10, width: 1),
+                      zText(
+                        text: report.compPhone ?? "",
+                        fontSize: 8,
+                        color: pw.PdfColors.grey600,
+                      ),
+                      verticalDivider(height: 10, width: 1),
+                      zText(
+                        text: report.comEmail ?? "",
+                        fontSize: 8,
+                        color: pw.PdfColors.grey600,
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),

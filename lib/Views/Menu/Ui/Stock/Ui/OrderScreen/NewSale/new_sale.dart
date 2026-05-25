@@ -989,10 +989,10 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     void addProduct(ProductsStockModel product) {
       if (!mounted) return;
 
-      final salePrice = double.tryParse(product.sellPrice?.toAmount(decimal: 4) ?? "0.0") ?? 0.0;
-      final averagePrice = double.tryParse(product.averagePrice?.toAmount() ?? "0.0") ?? 0.0;
-      final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount() ?? "0.0") ?? 0.0;
-      final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount() ?? "0.0") ?? 0.0;
+      final salePrice = double.tryParse(product.sellPrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;
+      final averagePrice = double.tryParse(product.averagePrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;
+      final landedPrice = double.tryParse(product.recentLandedPurPrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;
+      final purchasePrice = double.tryParse(product.recentPurPrice?.toAmount(decimal: 8) ?? "0.0") ?? 0.0;
       final batch = product.stkQtyInBatch;
 
       context.read<SaleInvoiceBloc>().add(
@@ -1020,7 +1020,7 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
         batchController.text = batch.toString();
       }
 
-      salePriceController.text = salePrice.toAmount();
+      salePriceController.text = salePrice.toAmount(decimal: 4);
       _updateLocalAmountText(item, localAmountController);
 
       WidgetsBinding.instance.addPostFrameCallback((_) {

@@ -397,10 +397,17 @@ class _MenuFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = context.read<LocalizationBloc>().state.languageCode;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Align(
-        alignment: isExpanded? Alignment.centerLeft : Alignment.center,
+        alignment: isExpanded
+            ? (loc == "en"
+            ? Alignment.centerLeft
+            : (loc == "fa" || loc == "ar"
+            ? Alignment.centerRight
+            : Alignment.center))
+            : Alignment.center,
         child: InkWell(
           onTap: onProfileTap,
           child: Padding(

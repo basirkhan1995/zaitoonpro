@@ -403,7 +403,7 @@ class _MobileState extends State<_Mobile> {
                     itemCount: state.stock.length,
                     itemBuilder: (context, index) {
                       final stk = state.stock[index];
-                      final isOutOfStock = _isOutOfStock(stk.availableQuantity);
+                      final isOutOfStock = _isOutOfStock(stk.available);
 
                       return ZCover(
                         radius: 5,
@@ -504,7 +504,7 @@ class _MobileState extends State<_Mobile> {
                                           ),
                                         ),
                                         Text(
-                                          "${stk.pricePerUnit.toAmount()} $baseCcy",
+                                          "${stk.averagePrice.toAmount()} $baseCcy",
                                           style: const TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
@@ -527,7 +527,7 @@ class _MobileState extends State<_Mobile> {
                                           ),
                                         ),
                                         Text(
-                                          stk.availableQuantity?.isEmpty == true ? "0" : stk.availableQuantity!,
+                                          stk.available?.isEmpty == true ? "0" : stk.available!,
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
@@ -551,7 +551,7 @@ class _MobileState extends State<_Mobile> {
                                           ),
                                         ),
                                         Text(
-                                          "${stk.total.toAmount(decimal: 2)} $baseCcy",
+                                          "${stk.totalValue.toAmount(decimal: 2)} $baseCcy",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
@@ -877,7 +877,7 @@ class _TabletState extends State<_Tablet> {
                     itemCount: state.stock.length,
                     itemBuilder: (context, index) {
                       final stk = state.stock[index];
-                      final isOutOfStock = _isOutOfStock(stk.availableQuantity);
+                      final isOutOfStock = _isOutOfStock(stk.available);
 
                       return Card(
                         child: Padding(
@@ -969,7 +969,7 @@ class _TabletState extends State<_Tablet> {
                                         ),
                                       ),
                                       Text(
-                                        stk.pricePerUnit.toAmount(),
+                                        stk.averagePrice.toAmount(),
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
@@ -989,7 +989,7 @@ class _TabletState extends State<_Tablet> {
                                         ),
                                       ),
                                       Text(
-                                        stk.availableQuantity?.isEmpty == true ? "0" : stk.availableQuantity!,
+                                        stk.available?.isEmpty == true ? "0" : stk.available!,
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
@@ -1010,7 +1010,7 @@ class _TabletState extends State<_Tablet> {
                                         ),
                                       ),
                                       Text(
-                                        stk.total.toAmount(),
+                                        stk.totalValue.toAmount(),
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 13,
@@ -1307,10 +1307,10 @@ class _DesktopState extends State<_Desktop> {
                                     SizedBox(width: 150, child: Text(stk.proCode ?? "")),
                                     Expanded(child: Text(stk.proName ?? "")),
                                     SizedBox(width: 150, child: Text(stk.stgName ?? "")),
-                                    SizedBox(width: 150, child: Text("${stk.pricePerUnit.toAmount()} $baseCcy")),
-                                    SizedBox(width: 120, child: Text(stk.availableQuantity.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
-                                    SizedBox(width: 120, child: Text(stk.totalItem.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
-                                    SizedBox(width: 120, child: Text("${stk.total.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 150, child: Text("${stk.averagePrice.toAmount()} $baseCcy")),
+                                    SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 120, child: Text(stk.totalValue.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 120, child: Text("${stk.totalValue.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),
                                   ],
                                 ),
                               ),

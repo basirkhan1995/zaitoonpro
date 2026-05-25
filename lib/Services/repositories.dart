@@ -2570,14 +2570,18 @@ class Repositories {
   Future<List<ProductReportModel>> stockAvailabilityReport({
     int? productId,
     int? storageId,
+    int? categoryId,
     int? isNoStock,
+    int? lowStock,
   }) async {
     final response = await api.post(
       endpoint: "/reports/stockAvailability.php",
       data: {
         "product": productId,
         "storage": storageId,
+        "category" : categoryId,
         "availability": isNoStock,
+        "lsq": lowStock,
       },
     );
 

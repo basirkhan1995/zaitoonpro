@@ -118,8 +118,8 @@ class ProductReportPrintSettings extends PrintServices {
     double totalTotalItem = 0;
 
     for (var product in products) {
-      totalQuantity += double.tryParse(product.availableQuantity ?? '0') ?? 0;
-      totalTotalItem += double.tryParse(product.totalItem ?? '0') ?? 0;
+      totalQuantity += double.tryParse(product.available ?? '0') ?? 0;
+      totalTotalItem += double.tryParse(product.totalValue ?? '0') ?? 0;
     }
 
     document.addPage(
@@ -300,10 +300,10 @@ class ProductReportPrintSettings extends PrintServices {
     for (int i = 0; i < products.length; i++) {
       final product = products[i];
       final isEven = i % 2 == 0;
-      final qty = double.tryParse(product.availableQuantity ?? '0') ?? 0;
-      final price = double.tryParse(product.pricePerUnit ?? '0') ?? 0;
-      final totalItem = double.tryParse(product.totalItem ?? '0') ?? 0;
-      final total = double.tryParse(product.total ?? '0') ?? 0;
+      final qty = double.tryParse(product.available ?? '0') ?? 0;
+      final price = double.tryParse(product.averagePrice ?? '0') ?? 0;
+      final totalItem = double.tryParse(product.totalValue ?? '0') ?? 0;
+      final total = double.tryParse(product.totalValue ?? '0') ?? 0;
 
       // Combine product ID and name
       String productDisplay = product.proName ?? '';

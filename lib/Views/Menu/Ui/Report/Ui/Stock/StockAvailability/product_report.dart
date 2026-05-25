@@ -1215,7 +1215,7 @@ class _DesktopState extends State<_Desktop> {
                     items: [
                       StatusItem(null, tr.all),
                       StatusItem(1, tr.available),
-                      StatusItem(2, tr.outOfStock),
+                      StatusItem(0, tr.outOfStock),
                     ],
                     value: isNoStock,
                     onChanged: (e) {
@@ -1291,6 +1291,17 @@ class _DesktopState extends State<_Desktop> {
                   return Center(child: CircularProgressIndicator());
                 }
                 if(state is ProductReportLoadedState){
+                  // ✅ ADD THIS: Calculate totals
+                  final totalItems = state.stock.length;
+                  final totalQuantity = state.stock.fold<int>(0, (sum, item) {
+                    final qty = int.tryParse(item.available ?? "0") ?? 0;
+                    return sum + qty;
+                  });
+                  final totalProductValue = state.stock.fold<double>(0, (sum, item) {
+                    final value = double.tryParse(item.totalValue ?? "0") ?? 0;
+                    return sum + value;
+                  });
+
                   if(state.stock.isEmpty){
                     return NoDataWidget(
                       title: tr.noData,
@@ -1309,9 +1320,9 @@ class _DesktopState extends State<_Desktop> {
                             final color = Theme.of(context).colorScheme;
                             final qty = int.tryParse(stk.available??"");
                             TextStyle? style = TextStyle(
-                              color: qty == 0 || qty! < 0 ? Colors.red : color.onSurface,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15
+                                color: qty == 0 || qty! < 0 ? Colors.red : color.onSurface,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15
                             );
                             return InkWell(
                               onTap: () {
@@ -1346,7 +1357,98 @@ class _DesktopState extends State<_Desktop> {
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      // ✅ ADD THIS: Summary Footer
+                      Container(
+                        margin: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .05),
+                              blurRadius: 1,
+                              offset: const Offset(0, -1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Total Items
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tr.totalItems,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                  Text(
+                                    totalItems.toString(),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Total Quantity
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    tr.totalQty,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                  Text(
+                                    totalQuantity.toAmount(decimal: 0),
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Total Product Value
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    tr.totalProductValue,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${totalProductValue.toAmount(decimal: 2)} $baseCcy",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ],
                   );
                 }

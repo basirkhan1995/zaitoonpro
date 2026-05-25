@@ -1243,16 +1243,16 @@ class _DesktopState extends State<_Desktop> {
                 Expanded(
                     child: Text(tr.productName,style: titleStyle)),
                 SizedBox(
-                    width: 150,
+                    width: 120,
                     child: Text(tr.storage,style: titleStyle)),
                 SizedBox(
-                    width: 150,
+                    width: 120,
                     child: Text(tr.recentPriceTitle,style: titleStyle)),
                 SizedBox(
-                    width: 150,
+                    width: 120,
                     child: Text(tr.salePrice,style: titleStyle)),
                 SizedBox(
-                    width: 150,
+                    width: 120,
                     child: Text(tr.averagePriceTitle,style: titleStyle)),
                 SizedBox(
                     width: 120,
@@ -1264,7 +1264,7 @@ class _DesktopState extends State<_Desktop> {
                     width: 80,
                     child: Text(tr.unit,style: titleStyle)),
                 SizedBox(
-                    width: 120,
+                    width: 150,
                     child: Text(tr.totalAmount,style: titleStyle)),
               ],
             ),
@@ -1341,14 +1341,14 @@ class _DesktopState extends State<_Desktop> {
                                   children: [
                                     SizedBox(width: 50, child: Text((index + 1).toString())),
                                     Expanded(child: Text(stk.proName ?? "",style: style)),
-                                    SizedBox(width: 150, child: Text(stk.stgName ?? "",style: Theme.of(context).textTheme.titleSmall,)),
-                                    SizedBox(width: 150, child: Text("${stk.recentPurPrice.toAmount()} $baseCcy")),
-                                    SizedBox(width: 150, child: Text("${stk.sellPrice.toAmount()} $baseCcy")),
-                                    SizedBox(width: 150, child: Text("${stk.averagePrice.toAmount()} $baseCcy")),
+                                    SizedBox(width: 120, child: Text(stk.stgName ?? "",style: Theme.of(context).textTheme.titleSmall,)),
+                                    SizedBox(width: 120, child: Text("${stk.recentPurPrice.toAmount()} $baseCcy")),
+                                    SizedBox(width: 120, child: Text("${stk.sellPrice.toAmount()} $baseCcy")),
+                                    SizedBox(width: 120, child: Text("${stk.averagePrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0),style: style)),
                                     SizedBox(width: 120, child: Text(stk.batch.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 80, child: Text(stk.proUnit??"",style: Theme.of(context).textTheme.titleMedium)),
-                                    SizedBox(width: 120, child: Text("${stk.totalValue.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 150, child: Text("${stk.totalValue.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),
                                   ],
                                 ),
                               ),
@@ -1357,7 +1357,7 @@ class _DesktopState extends State<_Desktop> {
                         ),
                       ),
 
-                      // ✅ ADD THIS: Summary Footer
+
                       Container(
                         margin: const EdgeInsets.all(10),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

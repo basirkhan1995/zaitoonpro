@@ -19,6 +19,7 @@ import '../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../Localizations/Bloc/localizations_bloc.dart';
 import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../../../../Settings/Ui/Stock/Ui/ProductCategory/features/pro_cat_drop.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/add_edit_product.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import '../../../../Settings/Ui/Stock/Ui/Products/model/product_model.dart';
@@ -1051,6 +1052,7 @@ class _DesktopState extends State<_Desktop> {
   String? myLocale;
   int? productId;
   int? isNoStock;
+  int? _selectedCategory;
 
   String? _getBaseCurrency() {
     try {
@@ -1120,6 +1122,7 @@ class _DesktopState extends State<_Desktop> {
                   isNoStock: isNoStock,
                   storageId: storageId,
                   productId: productId,
+                  categoryId: _selectedCategory
                 ));
               },
               label: Text(tr.applyFilter)),
@@ -1142,7 +1145,7 @@ class _DesktopState extends State<_Desktop> {
                     hintText: tr.products,
                     bloc: context.read<ProductsBloc>(),
                     fetchAllFunction: (bloc) => bloc.add(LoadProductsEvent()),
-                    searchFunction: (bloc, query) => bloc.add(LoadProductsEvent()),
+                    searchFunction: (bloc, query) => bloc.add(LoadProductsEvent(input: query)),
                     itemBuilder: (context, product) {
                       // Check if this is the "All" option
                       if (product.proId == null) {
@@ -1181,6 +1184,15 @@ class _DesktopState extends State<_Desktop> {
                       proName: tr.all,
                       proCode: '',
                     ),
+                  ),
+                ),
+                SizedBox(
+                  width: 250,
+                  child: ProductCategoryDropdown(
+                    showAllOption: true,
+                    onCategorySelected: (cat) {
+                      _selectedCategory = cat?.pcId;
+                    },
                   ),
                 ),
                 SizedBox(
@@ -1228,9 +1240,6 @@ class _DesktopState extends State<_Desktop> {
                 SizedBox(
                     width: 50,
                     child: Text("#",style: titleStyle)),
-                SizedBox(
-                    width: 150,
-                    child: Text(tr.productCode,style: titleStyle)),
                 Expanded(
                     child: Text(tr.productName,style: titleStyle)),
                 SizedBox(
@@ -1238,13 +1247,22 @@ class _DesktopState extends State<_Desktop> {
                     child: Text(tr.storage,style: titleStyle)),
                 SizedBox(
                     width: 150,
-                    child: Text(tr.unitPrice,style: titleStyle)),
+                    child: Text(tr.recentPriceTitle,style: titleStyle)),
+                SizedBox(
+                    width: 150,
+                    child: Text(tr.salePrice,style: titleStyle)),
+                SizedBox(
+                    width: 150,
+                    child: Text(tr.averagePriceTitle,style: titleStyle)),
                 SizedBox(
                     width: 120,
                     child: Text(tr.qty,style: titleStyle)),
                 SizedBox(
                     width: 120,
-                    child: Text(tr.totalItems,style: titleStyle)),
+                    child: Text(tr.batchTitle,style: titleStyle)),
+                SizedBox(
+                    width: 80,
+                    child: Text(tr.unit,style: titleStyle)),
                 SizedBox(
                     width: 120,
                     child: Text(tr.totalAmount,style: titleStyle)),
@@ -1304,12 +1322,14 @@ class _DesktopState extends State<_Desktop> {
                                 child: Row(
                                   children: [
                                     SizedBox(width: 50, child: Text((index + 1).toString())),
-                                    SizedBox(width: 150, child: Text(stk.proCode ?? "")),
-                                    Expanded(child: Text(stk.proName ?? "")),
-                                    SizedBox(width: 150, child: Text(stk.stgName ?? "")),
+                                    Expanded(child: Text(stk.proName ?? "",style: Theme.of(context).textTheme.titleSmall)),
+                                    SizedBox(width: 150, child: Text(stk.stgName ?? "",style: Theme.of(context).textTheme.titleSmall,)),
+                                    SizedBox(width: 150, child: Text("${stk.recentPurPrice.toAmount()} $baseCcy")),
+                                    SizedBox(width: 150, child: Text("${stk.sellPrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 150, child: Text("${stk.averagePrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
-                                    SizedBox(width: 120, child: Text(stk.totalValue.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 120, child: Text(stk.batch.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
+                                    SizedBox(width: 80, child: Text(stk.proUnit??"",style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 120, child: Text("${stk.totalValue.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),
                                   ],
                                 ),

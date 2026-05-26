@@ -45,7 +45,7 @@ class StockDocumentPrintService extends PrintServices {
   // ==================== CREATE STOCK DOCUMENT ====================
   Future<void> createStockDocument({
     required String documentType,
-    required String documentNumber,
+    required dynamic documentNumber,
     required String? reference,
     required DateTime? documentDate,
     required String customerSupplierName,
@@ -88,7 +88,7 @@ class StockDocumentPrintService extends PrintServices {
   // ==================== PRINT STOCK DOCUMENT ====================
   Future<void> printStockDocument({
     required String documentType,
-    required String documentNumber,
+    required dynamic documentNumber,
     required String? reference,
     required DateTime? documentDate,
     required String customerSupplierName,
@@ -141,7 +141,7 @@ class StockDocumentPrintService extends PrintServices {
   // ==================== PREVIEW STOCK DOCUMENT ====================
   Future<pw.Document> previewStockDocument({
     required String documentType,
-    required String documentNumber,
+    required dynamic documentNumber,
     required String? reference,
     required DateTime? documentDate,
     required String customerSupplierName,
@@ -177,7 +177,7 @@ class StockDocumentPrintService extends PrintServices {
 
   Future<pw.Document> generateStockDocument({
     required String documentType,
-    required String documentNumber,
+    required dynamic documentNumber,
     required String? reference,
     required DateTime? documentDate,
     required String customerSupplierName,
@@ -203,7 +203,7 @@ class StockDocumentPrintService extends PrintServices {
 
     document.addPage(
       pw.MultiPage(
-        maxPages: 1000,  // ✅ Same as invoice
+        maxPages: 1000,
         margin: pw.EdgeInsets.all(25),
         pageFormat: pageFormat,
         textDirection: documentLanguage(language: language),
@@ -295,7 +295,7 @@ class StockDocumentPrintService extends PrintServices {
   pw.Widget _customerInfo({
     required String language,
     required String customerSupplierName,
-    required String documentNumber,
+    required dynamic documentNumber,
     required bool isSale,
     required double totalQuantity,
     required ReportModel com,
@@ -382,14 +382,13 @@ class StockDocumentPrintService extends PrintServices {
     final isWholeSale = report.visible?.isWholeSale ?? false;
 
     // Column widths
-    const numberWidth = 25.0;
-    const skuWidth = 60.0;
+    const numberWidth = 20.0;
+    const skuWidth = 45.0;
     const descriptionWidth = 130.0;
-    const qtyWidth = 40.0;
-    const batchWidth = 45.0;
-    const totalWidth = 50.0;
-    const unitWidth = 35.0;
-    const storageWidth = 60.0;
+    const qtyWidth = 30.0;
+    const batchWidth = 30.0;
+    const totalWidth = 40.0;
+    const unitWidth = 30.0;
 
     final Map<int, pw.TableColumnWidth> columnWidths;
     final List<String> headers;
@@ -398,17 +397,15 @@ class StockDocumentPrintService extends PrintServices {
       if (isWholeSale) {
         // RTL with wholesale - Order: Storage, Unit, Total Qty, Packing, Quantity, Description, #
         columnWidths = {
-          0: pw.FixedColumnWidth(storageWidth),      // Storage
-          1: pw.FixedColumnWidth(unitWidth),         // Unit
-          2: pw.FixedColumnWidth(totalWidth),        // Total Qty
-          3: pw.FixedColumnWidth(batchWidth),        // Packing
-          4: pw.FixedColumnWidth(qtyWidth),          // Quantity
-          5: pw.FixedColumnWidth(descriptionWidth),  // Description
-          6: pw.FixedColumnWidth(skuWidth),          // Sku
-          7: pw.FixedColumnWidth(numberWidth),       // #
+          0: pw.FixedColumnWidth(unitWidth),         // Unit
+          1: pw.FixedColumnWidth(totalWidth),        // Total Qty
+          2: pw.FixedColumnWidth(batchWidth),        // Packing
+          3: pw.FixedColumnWidth(qtyWidth),          // Quantity
+          4: pw.FixedColumnWidth(descriptionWidth),  // Description
+          5: pw.FixedColumnWidth(skuWidth),          // Sku
+          6: pw.FixedColumnWidth(numberWidth),       // #
         };
         headers = [
-          tr(text: 'storage', tr: language),
           tr(text: 'unit', tr: language),
           tr(text: 'totalQty', tr: language),
           tr(text: 'packing', tr: language),
@@ -420,15 +417,13 @@ class StockDocumentPrintService extends PrintServices {
       } else {
         // RTL without wholesale - Order: Storage, Unit, Quantity, Description, #
         columnWidths = {
-          0: pw.FixedColumnWidth(storageWidth),
-          1: pw.FixedColumnWidth(unitWidth),
-          2: pw.FixedColumnWidth(qtyWidth),
-          3: pw.FixedColumnWidth(descriptionWidth),
-          4: pw.FixedColumnWidth(skuWidth),
-          5: pw.FixedColumnWidth(numberWidth),
+          0: pw.FixedColumnWidth(unitWidth),
+          1: pw.FixedColumnWidth(qtyWidth),
+          2: pw.FixedColumnWidth(descriptionWidth),
+          3: pw.FixedColumnWidth(skuWidth),
+          4: pw.FixedColumnWidth(numberWidth),
         };
         headers = [
-          tr(text: 'storage', tr: language),
           tr(text: 'unit', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'items', tr: language),
@@ -447,7 +442,6 @@ class StockDocumentPrintService extends PrintServices {
           4: pw.FixedColumnWidth(batchWidth),        // Packing
           5: pw.FixedColumnWidth(unitWidth),         // Unit
           6: pw.FixedColumnWidth(totalWidth),        // Total Qty
-          7: pw.FixedColumnWidth(storageWidth),      // Storage
         };
         headers = [
           '#',
@@ -457,7 +451,6 @@ class StockDocumentPrintService extends PrintServices {
           tr(text: 'packing', tr: language),
           tr(text: 'unit', tr: language),
           tr(text: 'totalQty', tr: language),
-          tr(text: 'storage', tr: language),
         ];
       } else {
         // LTR without wholesale - Order: #, Description, Quantity, Unit, Storage
@@ -467,7 +460,6 @@ class StockDocumentPrintService extends PrintServices {
           2: pw.FixedColumnWidth(descriptionWidth),
           3: pw.FixedColumnWidth(qtyWidth),
           4: pw.FixedColumnWidth(unitWidth),
-          5: pw.FixedColumnWidth(storageWidth),
         };
         headers = [
           '#',
@@ -475,7 +467,6 @@ class StockDocumentPrintService extends PrintServices {
           tr(text: 'items', tr: language),
           tr(text: 'quantity', tr: language),
           tr(text: 'unit', tr: language),
-          tr(text: 'storage', tr: language),
         ];
       }
     }
@@ -538,7 +529,7 @@ class StockDocumentPrintService extends PrintServices {
       child: zText(
         text: item.sku,
         fontSize: 9,
-        textAlign: pw.TextAlign.left,
+        textAlign: pw.TextAlign.center,
       ),
     ));
 
@@ -598,17 +589,6 @@ class StockDocumentPrintService extends PrintServices {
         ),
       ));
     }
-
-    // Storage
-    widgets.add(pw.Container(
-      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-      child: zText(
-        text: item.storageName,
-        fontSize: 8,
-        textAlign: pw.TextAlign.center,
-      ),
-    ));
-
     return widgets;
   }
 
@@ -616,16 +596,6 @@ class StockDocumentPrintService extends PrintServices {
   List<pw.Widget> _buildRtlStockRow(StockDocumentItem item, int index, bool isWholeSale) {
     final total = (item.quantity * item.batch).toStringAsFixed(0);
     final widgets = <pw.Widget>[];
-
-    // Storage (appears first on right side)
-    widgets.add(pw.Container(
-      padding: pw.EdgeInsets.symmetric(vertical: 3, horizontal: 4),
-      child: zText(
-        text: item.storageName,
-        fontSize: 8,
-        textAlign: pw.TextAlign.center,
-      ),
-    ));
 
     // Unit
     widgets.add(pw.Container(
@@ -688,7 +658,7 @@ class StockDocumentPrintService extends PrintServices {
       child: zText(
         text: item.sku,
         fontSize: 9,
-        textAlign: pw.TextAlign.left,
+        textAlign: pw.TextAlign.center,
       ),
     ));
 

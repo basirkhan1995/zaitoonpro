@@ -2282,13 +2282,13 @@ class _DesktopNewSaleViewState extends State<_DesktopNewSaleView> {
     }
 
     // Determine the invoice number to use
-    final String finalInvoiceNumber;
+    dynamic finalInvoiceNumber;
     if (invoiceNumber != null && invoiceNumber.isNotEmpty) {
       // Case 1: After saving, use the returned invoice number
       finalInvoiceNumber = invoiceNumber;
-    } else if (widget.orderId != null && widget.orderId! > 0) {
+    } else if (current.orderId !=null || widget.orderId != null && widget.orderId! > 0) {
       // Case 2: When loading an existing invoice, use the widget.orderId
-      finalInvoiceNumber = widget.orderId.toString();
+      finalInvoiceNumber = current.orderId;
     } else {
       // Case 3: New invoice - leave empty
       finalInvoiceNumber = '';

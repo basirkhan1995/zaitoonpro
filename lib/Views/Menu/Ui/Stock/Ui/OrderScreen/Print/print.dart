@@ -227,54 +227,53 @@ class InvoicePrintService extends PrintServices {
 
               /// ================= HEADER =================
 
-              pw.Center(
-                child: pw.Column(
-                  children: [
-                    if (logoImage != null)
-                      pw.Image(
-                        logoImage,
-                        width: 45,
-                        height: 45,
-                      ),
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  if (logoImage != null)
+                    pw.Image(
+                      logoImage,
+                      width: 45,
+                      height: 45,
+                    ),
 
-                    pw.SizedBox(height: 3),
+                  pw.SizedBox(height: 3),
 
+                  zText(
+                    text: company.comName??"",
+                    fontSize: 13,
+                    fontWeight: pw.FontWeight.bold,
+                    textAlign: pw.TextAlign.center,
+                  ),
+
+                  if ((company.partyPhone ?? '').isNotEmpty)
                     zText(
-                      text: company.comName??"",
-                      fontSize: 13,
-                      fontWeight: pw.FontWeight.bold,
+                      text: company.partyPhone ?? '',
+                      fontSize: 8,
                       textAlign: pw.TextAlign.center,
                     ),
 
-                    if ((company.partyPhone ?? '').isNotEmpty)
-                      zText(
-                        text: company.partyPhone ?? '',
-                        fontSize: 8,
-                        textAlign: pw.TextAlign.center,
-                      ),
-
-                    if ((company.partyAddress ?? '').isNotEmpty)
-                      pw.Row(
-                          mainAxisAlignment: pw.MainAxisAlignment.center,
-                          children: [
+                  if ((company.partyAddress ?? '').isNotEmpty)
+                    pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.start,
+                        children: [
+                          zText(
+                            text: company.partyAddress ?? '',
+                            fontSize: 7,
+                            textAlign: pw.TextAlign.center,
+                          ),
+                          if ((company.partyCity ?? '').isNotEmpty)...[
+                            pw.SizedBox(width: 1),
                             zText(
-                              text: company.partyAddress ?? '',
+                              text: company.partyCity ?? '',
                               fontSize: 7,
                               textAlign: pw.TextAlign.center,
                             ),
-                            if ((company.partyCity ?? '').isNotEmpty)...[
-                              pw.SizedBox(width: 1),
-                              zText(
-                                text: company.partyCity ?? '',
-                                fontSize: 7,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ]
                           ]
-                      ),
+                        ]
+                    ),
 
-                  ],
-                ),
+                ],
               ),
 
 
@@ -344,7 +343,7 @@ class InvoicePrintService extends PrintServices {
                       flex: 6,
                       child: zText(
                         text: tr(
-                          text: 'description',
+                          text: 'items',
                           tr: language,
                         ),
                         fontSize: 7,
@@ -414,12 +413,12 @@ class InvoicePrintService extends PrintServices {
                     horizontal: 2,
                   ),
                   decoration: pw.BoxDecoration(
-                    border: pw.Border(
-                      bottom: pw.BorderSide(
-                        width: 0.2,
-                        color: pw.PdfColors.grey600,
-                      ),
-                    ),
+                    // border: pw.Border(
+                    //   bottom: pw.BorderSide(
+                    //     width: 0.2,
+                    //     color: pw.PdfColors.grey600,
+                    //   ),
+                    // ),
                   ),
                   child: pw.Row(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -523,7 +522,7 @@ class InvoicePrintService extends PrintServices {
                         language: language,
                       ),
 
-                    pw.Divider(),
+                    horizontalDivider(),
 
                     _rollSummaryRow(
                       label: tr(text: 'grandTotal', tr: language),
@@ -602,8 +601,8 @@ class InvoicePrintService extends PrintServices {
 
               pw.Center(
                 child: zText(
-                  text: company.slogan??"",
-                  fontSize: 8,
+                  text: tr(text: 'thankYou', tr: language),
+                  fontSize: 11,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),

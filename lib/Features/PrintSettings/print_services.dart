@@ -2181,6 +2181,14 @@ abstract class PrintServices {
         "fa": "هزینه های متفرقه",
         "ar": "اضافي لګښتونه"
       },
+      "thankYou": {
+        "en": "THANK YOU",
+        "fa": "متشکرم از شما",
+        "ar": "ستاسو څخه مننه"
+      },
+
+
+
       "creditPayment": {
         "en": "Credit Payment",
         "fa": "پرداخت اعتباری",

@@ -42,6 +42,8 @@ class SaleStockItem implements StockDocumentItem {
 
 class StockDocumentPrintService extends PrintServices {
 
+
+
   // ==================== CREATE STOCK DOCUMENT ====================
   Future<void> createStockDocument({
     required String documentType,

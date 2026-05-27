@@ -101,6 +101,528 @@ class PurchaseInvoiceItemForPrint implements InvoiceItem {
 }
 
 class InvoicePrintService extends PrintServices {
+
+
+  bool _isRollFormat(pw.PdfPageFormat format) {
+    return format.width == pw.PdfPageFormat.roll80.width;
+  }
+
+
+  Future<pw.Document> _generateRoll80Invoice({
+    required String invoiceType,
+    required String invoiceNumber,
+    required String? reference,
+    required DateTime? invoiceDate,
+    required String customerSupplierName,
+    required List<InvoiceItem> items,
+    required double grandTotal,
+    required double cashPayment,
+    required double creditAmount,
+    required AccountsModel? account,
+    required String language,
+    required pw.PageOrientation orientation,
+    required ReportModel company,
+    required pw.PdfPageFormat pageFormat,
+    required bool isSale,
+    String? currency,
+    String? remark,
+    double? totalLocalAmount,
+    String? localCurrency,
+    double? exchangeRate,
+    double? subtotal,
+    double? totalItemDiscount,
+    double? generalDiscount,
+    double? extraCharges,
+  }) async {
+
+    final document = pw.Document();
+
+    final ByteData imageData =
+    await rootBundle.load('assets/images/zaitoonLogo.png');
+
+    final Uint8List imageBytes = imageData.buffer.asUint8List();
+
+    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+
+    final double effectiveSubtotal = subtotal ??
+        items.fold(
+          0.0,
+              (sum, item) =>
+          sum + ((item.quantity * item.batch) * item.unitPrice),
+        );
+
+    final double itemDiscount = totalItemDiscount ?? 0.0;
+    final double generalDisc = generalDiscount ?? 0.0;
+    final double totalDiscount = itemDiscount + generalDisc;
+
+    final double charges = extraCharges ?? 0.0;
+
+    final double finalGrandTotal =
+        effectiveSubtotal - totalDiscount + charges;
+
+    final double totalQty = items.fold(
+      0.0,
+          (sum, item) => sum + item.quantity,
+    );
+
+    document.addPage(
+      pw.Page(
+        pageFormat: const pw.PdfPageFormat(
+          80 * pw.PdfPageFormat.mm,
+          double.infinity,
+          marginLeft: 6,
+          marginRight: 6,
+          marginTop: 8,
+          marginBottom: 8,
+        ),
+        textDirection: documentLanguage(language: language),
+
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+
+              /// ================= HEADER =================
+
+              pw.Center(
+                child: pw.Column(
+                  children: [
+
+                    pw.Image(
+                      logoImage,
+                      width: 45,
+                      height: 45,
+                    ),
+
+                    pw.SizedBox(height: 3),
+
+                    zText(
+                      text: company.comName??"",
+                      fontSize: 13,
+                      fontWeight: pw.FontWeight.bold,
+                      textAlign: pw.TextAlign.center,
+                    ),
+
+                    if ((company.partyPhone ?? '').isNotEmpty)
+                      zText(
+                        text: company.partyPhone ?? '',
+                        fontSize: 8,
+                        textAlign: pw.TextAlign.center,
+                      ),
+
+                    if ((company.partyAddress ?? '').isNotEmpty)
+                      zText(
+                        text: company.partyAddress ?? '',
+                        fontSize: 7,
+                        textAlign: pw.TextAlign.center,
+                      ),
+
+                    if ((company.partyCity ?? '').isNotEmpty)
+                      zText(
+                        text: company.partyCity ?? '',
+                        fontSize: 7,
+                        textAlign: pw.TextAlign.center,
+                      ),
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 6),
+
+              pw.Divider(),
+
+              /// ================= INVOICE INFO =================
+
+              _rollSummaryRow(
+                label: tr(text: 'invoiceNumber', tr: language),
+                value: invoiceNumber,
+                language: language,
+              ),
+
+              _rollSummaryRow(
+                label: tr(
+                  text: isSale ? 'customer' : 'supplier',
+                  tr: language,
+                ),
+                value: customerSupplierName,
+                language: language,
+              ),
+
+              _rollSummaryRow(
+                label: tr(text: 'date', tr: language),
+                value: invoiceDate?.shamsiDateFormatted ?? '',
+                language: language,
+              ),
+
+              if ((reference ?? '').isNotEmpty)
+                _rollSummaryRow(
+                  label: tr(text: 'reference', tr: language),
+                  value: reference ?? '',
+                  language: language,
+                ),
+
+              pw.SizedBox(height: 5),
+
+              /// ================= TABLE HEADER =================
+
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  vertical: 4,
+                  horizontal: 2,
+                ),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border(
+                    top: pw.BorderSide(width: 0.5),
+                    bottom: pw.BorderSide(width: 0.5),
+                  ),
+                ),
+                child: pw.Row(
+                  children: [
+
+                    pw.SizedBox(
+                      width: 14,
+                      child: zText(
+                        text: '#',
+                        fontSize: 7,
+                        fontWeight: pw.FontWeight.bold,
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ),
+
+                    pw.SizedBox(width: 2),
+
+                    pw.Expanded(
+                      flex: 5,
+                      child: zText(
+                        text: tr(
+                          text: 'description',
+                          tr: language,
+                        ),
+                        fontSize: 7,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+
+                    pw.Expanded(
+                      flex: 2,
+                      child: zText(
+                        text: tr(
+                          text: 'quantity',
+                          tr: language,
+                        ),
+                        fontSize: 7,
+                        fontWeight: pw.FontWeight.bold,
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ),
+
+                    pw.Expanded(
+                      flex: 3,
+                      child: zText(
+                        text: tr(
+                          text: 'unitPrice',
+                          tr: language,
+                        ),
+                        fontSize: 7,
+                        fontWeight: pw.FontWeight.bold,
+                        textAlign: pw.TextAlign.center,
+                      ),
+                    ),
+
+                    pw.Expanded(
+                      flex: 3,
+                      child: zText(
+                        text: tr(
+                          text: 'total',
+                          tr: language,
+                        ),
+                        fontSize: 7,
+                        fontWeight: pw.FontWeight.bold,
+                        textAlign: pw.TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              /// ================= ITEMS =================
+
+              ...List.generate(items.length, (index) {
+
+                final item = items[index];
+
+                return pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(
+                    vertical: 3,
+                    horizontal: 2,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border(
+                      bottom: pw.BorderSide(
+                        width: 0.2,
+                        color: pw.PdfColors.grey400,
+                      ),
+                    ),
+                  ),
+                  child: pw.Row(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+
+                      pw.SizedBox(
+                        width: 14,
+                        child: zText(
+                          text: "${index + 1}",
+                          fontSize: 7,
+                          textAlign: pw.TextAlign.center,
+                        ),
+                      ),
+
+                      pw.SizedBox(width: 2),
+
+                      pw.Expanded(
+                        flex: 5,
+                        child: zText(
+                          text: item.productName,
+                          fontSize: 7,
+                        ),
+                      ),
+
+                      pw.Expanded(
+                        flex: 2,
+                        child: zText(
+                          text: item.quantity.toStringAsFixed(0),
+                          fontSize: 7,
+                          textAlign: pw.TextAlign.center,
+                        ),
+                      ),
+
+                      pw.Expanded(
+                        flex: 3,
+                        child: zText(
+                          text: item.unitPrice.toAmount(decimal: 2),
+                          fontSize: 7,
+                          textAlign: pw.TextAlign.center,
+                        ),
+                      ),
+
+                      pw.Expanded(
+                        flex: 3,
+                        child: zText(
+                          text: item.total.toAmount(decimal: 2),
+                          fontSize: 7,
+                          textAlign: pw.TextAlign.right,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+
+              pw.SizedBox(height: 6),
+
+              /// ================= SUMMARY =================
+
+              pw.Container(
+                padding: const pw.EdgeInsets.all(4),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(width: 0.5),
+                ),
+                child: pw.Column(
+                  children: [
+
+                    _rollSummaryRow(
+                      label: tr(text: 'totalQty', tr: language),
+                      value: totalQty.toStringAsFixed(0),
+                      language: language,
+                    ),
+
+                    _rollSummaryRow(
+                      label: tr(text: 'subtotal', tr: language),
+                      value:
+                      "${effectiveSubtotal.toAmount(decimal: 2)} ${currency ?? ''}",
+                      language: language,
+                    ),
+
+                    if (itemDiscount > 0)
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'itemDiscounts',
+                          tr: language,
+                        ),
+                        value:
+                        "- ${itemDiscount.toAmount(decimal: 2)} ${currency ?? ''}",
+                        language: language,
+                      ),
+
+                    if (generalDisc > 0)
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'generalDiscount',
+                          tr: language,
+                        ),
+                        value:
+                        "- ${generalDisc.toAmount(decimal: 2)} ${currency ?? ''}",
+                        language: language,
+                      ),
+
+                    if (charges > 0)
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'extraCharges',
+                          tr: language,
+                        ),
+                        value:
+                        "+ ${charges.toAmount(decimal: 2)} ${currency ?? ''}",
+                        language: language,
+                      ),
+
+                    pw.Divider(),
+
+                    _rollSummaryRow(
+                      label: tr(text: 'grandTotal', tr: language),
+                      value:
+                      "${finalGrandTotal.toAmount(decimal: 2)} ${currency ?? ''}",
+                      language: language,
+                      isBold: true,
+                      fontSize: 10,
+                    ),
+
+                    if (cashPayment > 0)
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'cashReceipt',
+                          tr: language,
+                        ),
+                        value:
+                        "${cashPayment.toAmount(decimal: 2)} ${currency ?? ''}",
+                        language: language,
+                      ),
+
+                    if (creditAmount > 0)
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'invoiceAmount',
+                          tr: language,
+                        ),
+                        value:
+                        "${creditAmount.toAmount(decimal: 2)} ${currency ?? ''}",
+                        language: language,
+                      ),
+
+                    if (account != null) ...[
+
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'previousBalance',
+                          tr: language,
+                        ),
+                        value:
+                        "${(double.tryParse(account.accAvailBalance ?? '0') ?? 0).toAmount(decimal: 2)} ${account.actCurrency ?? currency ?? ''}",
+                        language: language,
+                      ),
+
+                      _rollSummaryRow(
+                        label: tr(
+                          text: 'newBalance',
+                          tr: language,
+                        ),
+                        value:
+                        "${(
+                            isSale
+                                ? ((double.tryParse(account.accAvailBalance ?? '0') ?? 0) - creditAmount)
+                                : ((double.tryParse(account.accAvailBalance ?? '0') ?? 0) + creditAmount)
+                        ).toAmount(decimal: 2)} ${account.actCurrency ?? currency ?? ''}",
+                        language: language,
+                        isBold: true,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
+              pw.SizedBox(height: 6),
+
+              /// ================= REMARK =================
+
+              if ((remark ?? '').isNotEmpty) ...[
+                zText(
+                  text: tr(text: 'note', tr: language),
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+
+                pw.SizedBox(height: 2),
+
+                zText(
+                  text: remark ?? '',
+                  fontSize: 7,
+                ),
+
+                pw.SizedBox(height: 5),
+              ],
+
+              /// ================= FOOTER =================
+
+              pw.Center(
+                child: zText(
+                  text: company.slogan??"",
+                  fontSize: 8,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return document;
+  }
+
+  /// ================= ROLL SUMMARY ROW =================
+
+  pw.Widget _rollSummaryRow({
+    required String label,
+    required String value,
+    required String language,
+    bool isBold = false,
+    double fontSize = 8,
+  }) {
+
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 1),
+      child: pw.Row(
+        children: [
+
+          pw.Expanded(
+            child: zText(
+              text: label,
+              fontSize: fontSize,
+              fontWeight: isBold
+                  ? pw.FontWeight.bold
+                  : pw.FontWeight.normal,
+            ),
+          ),
+
+          pw.SizedBox(width: 5),
+
+          pw.Expanded(
+            child: zText(
+              text: value,
+              fontSize: fontSize,
+              fontWeight: isBold
+                  ? pw.FontWeight.bold
+                  : pw.FontWeight.normal,
+              textAlign: pw.TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   // ==================== CREATE INVOICE ====================
   Future<void> createInvoiceDocument({
     required String invoiceType,
@@ -129,6 +651,7 @@ class InvoicePrintService extends PrintServices {
     double? extraCharges,
   }) async {
     try {
+
       final document = await generateInvoiceDocument(
         invoiceType: invoiceType,
         invoiceNumber: invoiceNumber,
@@ -332,6 +855,35 @@ class InvoicePrintService extends PrintServices {
     final ByteData imageData = await rootBundle.load('assets/images/zaitoonLogo.png');
     final Uint8List imageBytes = imageData.buffer.asUint8List();
     final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+
+    if (_isRollFormat(pageFormat)) {
+      return _generateRoll80Invoice(
+        invoiceType: invoiceType,
+        invoiceNumber: invoiceNumber,
+        reference: reference,
+        invoiceDate: invoiceDate,
+        customerSupplierName: customerSupplierName,
+        items: items,
+        grandTotal: grandTotal,
+        cashPayment: cashPayment,
+        creditAmount: creditAmount,
+        account: account,
+        language: language,
+        orientation: orientation,
+        company: company,
+        pageFormat: pageFormat,
+        isSale: isSale,
+        currency: currency,
+        remark: remark,
+        totalLocalAmount: totalLocalAmount,
+        localCurrency: localCurrency,
+        exchangeRate: exchangeRate,
+        subtotal: subtotal,
+        totalItemDiscount: totalItemDiscount,
+        generalDiscount: generalDiscount,
+        extraCharges: extraCharges,
+      );
+    }
 
     // Load the first page header (company info only)
     final firstPageHeader = await _firstPageHeader(

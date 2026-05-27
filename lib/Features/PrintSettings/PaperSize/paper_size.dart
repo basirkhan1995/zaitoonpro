@@ -11,12 +11,14 @@ class PdfFormatHelper {
     pw.PdfPageFormat.letter,
     pw.PdfPageFormat.a4,
     pw.PdfPageFormat.a5,
+    pw.PdfPageFormat.roll80,
   ];
 
   static String? getDisplayName(pw.PdfPageFormat format) {
     if (format == pw.PdfPageFormat.letter) return 'Letter (216 × 279 mm)';
     if (format == pw.PdfPageFormat.a4) return 'A4 (210 × 297 mm)';
     if (format == pw.PdfPageFormat.a5) return 'A5 (148 × 210 mm)';
+    if (format == pw.PdfPageFormat.roll80) return '80mm Roll';
     return null;
   }
 
@@ -24,6 +26,7 @@ class PdfFormatHelper {
     if (format == pw.PdfPageFormat.letter) return 'letter';
     if (format == pw.PdfPageFormat.a4) return 'a4';
     if (format == pw.PdfPageFormat.a5) return 'a5';
+    if (format == pw.PdfPageFormat.roll80) return 'roll_80mm';
     return 'letter';
   }
 
@@ -33,6 +36,8 @@ class PdfFormatHelper {
         return pw.PdfPageFormat.a5;
       case 'letter':
         return pw.PdfPageFormat.letter;
+      case 'roll_80mm':
+        return pw.PdfPageFormat.roll80;
       case 'a4':
       default:
         return pw.PdfPageFormat.letter;
@@ -82,6 +87,11 @@ class PdfFormatHelper {
     const tolerance = 1.0;
     return (format.width - 612).abs() < tolerance &&
         (format.height - 792).abs() < tolerance;
+  }
+
+  // Check if format is 80mm Roll
+  static bool isRoll80mm(pw.PdfPageFormat format) {
+    return format == pw.PdfPageFormat.roll80;
   }
 }
 

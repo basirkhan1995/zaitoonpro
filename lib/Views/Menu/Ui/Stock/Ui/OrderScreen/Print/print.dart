@@ -108,6 +108,8 @@ class InvoicePrintService extends PrintServices {
   }
 
 
+  // Replace the entire _generateRoll80Invoice method with this:
+
   Future<pw.Document> _generateRoll80Invoice({
     required String invoiceType,
     required String invoiceNumber,
@@ -137,12 +139,25 @@ class InvoicePrintService extends PrintServices {
 
     final document = pw.Document();
 
-    final ByteData imageData =
-    await rootBundle.load('assets/images/zaitoonLogo.png');
+    /// 🔹 Check Logo
+    final bool hasCompanyLogo = company.comLogo != null &&
+        company.comLogo is Uint8List &&
+        company.comLogo!.isNotEmpty;
 
-    final Uint8List imageBytes = imageData.buffer.asUint8List();
+    pw.ImageProvider? logoImage;
+    if (hasCompanyLogo) {
+      logoImage = pw.MemoryImage(company.comLogo!);
+    }
 
-    final pw.MemoryImage logoImage = pw.MemoryImage(imageBytes);
+    // Determine if we need local amount conversion
+    final needsConversion = localCurrency != null &&
+        currency != null &&
+        currency != localCurrency &&
+        exchangeRate != null;
+
+    final safeLocalCurrency = localCurrency ?? '';
+    final safeExchangeRate = exchangeRate ?? 1.0;
+    final safeBaseCurrency = currency ?? '';
 
     final double effectiveSubtotal = subtotal ??
         items.fold(
@@ -157,13 +172,41 @@ class InvoicePrintService extends PrintServices {
 
     final double charges = extraCharges ?? 0.0;
 
-    final double finalGrandTotal =
-        effectiveSubtotal - totalDiscount + charges;
+    final double finalGrandTotal = effectiveSubtotal - totalDiscount + charges;
+
+    // Calculate local amounts
+    final double localSubtotal = needsConversion ? effectiveSubtotal * safeExchangeRate : effectiveSubtotal;
+    final double localCharges = needsConversion ? charges * safeExchangeRate : charges;
+    final double localFinalGrandTotal = needsConversion ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate) : finalGrandTotal;
+    final double localCashPayment = needsConversion ? cashPayment * safeExchangeRate : cashPayment;
+    final double localCreditAmount = needsConversion ? creditAmount * safeExchangeRate : creditAmount;
+
+    final String displayCurrency = needsConversion ? safeLocalCurrency : safeBaseCurrency;
 
     final double totalQty = items.fold(
       0.0,
           (sum, item) => sum + item.quantity,
     );
+
+    // Account currency
+    String accCcy;
+    if (needsConversion && safeLocalCurrency.isNotEmpty) {
+      accCcy = safeLocalCurrency;
+    } else if (account?.actCurrency != null && account!.actCurrency!.isNotEmpty) {
+      accCcy = account.actCurrency!;
+    } else {
+      accCcy = safeBaseCurrency;
+    }
+
+    final double accountBalance = account != null
+        ? double.tryParse(account.accAvailBalance ?? "0.0") ?? 0.0
+        : 0.0;
+
+    // Amount in words
+    final lang = NumberToWords.getLanguageFromLocale(Locale(language));
+    final amountForWords = needsConversion ? (totalLocalAmount ?? finalGrandTotal * safeExchangeRate) : finalGrandTotal;
+    final parsedAmount = int.tryParse(double.tryParse(amountForWords.toString())?.toStringAsFixed(0) ?? "0") ?? 0;
+    final amountInWords = NumberToWords.convert(parsedAmount, lang);
 
     document.addPage(
       pw.Page(
@@ -187,12 +230,12 @@ class InvoicePrintService extends PrintServices {
               pw.Center(
                 child: pw.Column(
                   children: [
-
-                    pw.Image(
-                      logoImage,
-                      width: 45,
-                      height: 45,
-                    ),
+                    if (logoImage != null)
+                      pw.Image(
+                        logoImage,
+                        width: 45,
+                        height: 45,
+                      ),
 
                     pw.SizedBox(height: 3),
 
@@ -211,23 +254,29 @@ class InvoicePrintService extends PrintServices {
                       ),
 
                     if ((company.partyAddress ?? '').isNotEmpty)
-                      zText(
-                        text: company.partyAddress ?? '',
-                        fontSize: 7,
-                        textAlign: pw.TextAlign.center,
+                      pw.Row(
+                          mainAxisAlignment: pw.MainAxisAlignment.center,
+                          children: [
+                            zText(
+                              text: company.partyAddress ?? '',
+                              fontSize: 7,
+                              textAlign: pw.TextAlign.center,
+                            ),
+                            if ((company.partyCity ?? '').isNotEmpty)...[
+                              pw.SizedBox(width: 1),
+                              zText(
+                                text: company.partyCity ?? '',
+                                fontSize: 7,
+                                textAlign: pw.TextAlign.center,
+                              ),
+                            ]
+                          ]
                       ),
 
-                    if ((company.partyCity ?? '').isNotEmpty)
-                      zText(
-                        text: company.partyCity ?? '',
-                        fontSize: 7,
-                        textAlign: pw.TextAlign.center,
-                      ),
                   ],
                 ),
               ),
 
-              pw.SizedBox(height: 6),
 
               pw.Divider(),
 
@@ -292,7 +341,7 @@ class InvoicePrintService extends PrintServices {
                     pw.SizedBox(width: 2),
 
                     pw.Expanded(
-                      flex: 5,
+                      flex: 6,
                       child: zText(
                         text: tr(
                           text: 'description',
@@ -304,7 +353,7 @@ class InvoicePrintService extends PrintServices {
                     ),
 
                     pw.Expanded(
-                      flex: 2,
+                      flex: 1,
                       child: zText(
                         text: tr(
                           text: 'quantity',
@@ -317,7 +366,7 @@ class InvoicePrintService extends PrintServices {
                     ),
 
                     pw.Expanded(
-                      flex: 3,
+                      flex: 2,
                       child: zText(
                         text: tr(
                           text: 'unitPrice',
@@ -330,7 +379,7 @@ class InvoicePrintService extends PrintServices {
                     ),
 
                     pw.Expanded(
-                      flex: 3,
+                      flex: 2,
                       child: zText(
                         text: tr(
                           text: 'total',
@@ -338,7 +387,7 @@ class InvoicePrintService extends PrintServices {
                         ),
                         fontSize: 7,
                         fontWeight: pw.FontWeight.bold,
-                        textAlign: pw.TextAlign.right,
+                        textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                       ),
                     ),
                   ],
@@ -351,6 +400,14 @@ class InvoicePrintService extends PrintServices {
 
                 final item = items[index];
 
+                // Calculate item prices based on conversion
+                final itemUnitPrice = needsConversion
+                    ? (item.unitPrice * safeExchangeRate)
+                    : item.unitPrice;
+                final itemTotal = needsConversion
+                    ? (item.total * safeExchangeRate)
+                    : item.total;
+
                 return pw.Container(
                   padding: const pw.EdgeInsets.symmetric(
                     vertical: 3,
@@ -360,7 +417,7 @@ class InvoicePrintService extends PrintServices {
                     border: pw.Border(
                       bottom: pw.BorderSide(
                         width: 0.2,
-                        color: pw.PdfColors.grey400,
+                        color: pw.PdfColors.grey600,
                       ),
                     ),
                   ),
@@ -380,15 +437,16 @@ class InvoicePrintService extends PrintServices {
                       pw.SizedBox(width: 2),
 
                       pw.Expanded(
-                        flex: 5,
+                        flex: 6,
                         child: zText(
+                          textAlign: language == "en"? pw.TextAlign.left : pw.TextAlign.right,
                           text: item.productName,
                           fontSize: 7,
                         ),
                       ),
 
                       pw.Expanded(
-                        flex: 2,
+                        flex: 1,
                         child: zText(
                           text: item.quantity.toStringAsFixed(0),
                           fontSize: 7,
@@ -397,20 +455,20 @@ class InvoicePrintService extends PrintServices {
                       ),
 
                       pw.Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: zText(
-                          text: item.unitPrice.toAmount(decimal: 2),
+                          text: itemUnitPrice.toAmount(decimal: 2),
                           fontSize: 7,
                           textAlign: pw.TextAlign.center,
                         ),
                       ),
 
                       pw.Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: zText(
-                          text: item.total.toAmount(decimal: 2),
+                          text: itemTotal.toAmount(decimal: 2),
                           fontSize: 7,
-                          textAlign: pw.TextAlign.right,
+                          textAlign: language == "en"? pw.TextAlign.right : pw.TextAlign.left,
                           fontWeight: pw.FontWeight.bold,
                         ),
                       ),
@@ -437,43 +495,31 @@ class InvoicePrintService extends PrintServices {
                       language: language,
                     ),
 
-                    _rollSummaryRow(
-                      label: tr(text: 'subtotal', tr: language),
-                      value:
-                      "${effectiveSubtotal.toAmount(decimal: 2)} ${currency ?? ''}",
-                      language: language,
-                    ),
+                    if (effectiveSubtotal != finalGrandTotal || itemDiscount > 0 || generalDisc > 0 || charges > 0)
+                      _rollSummaryRow(
+                        label: tr(text: 'subtotal', tr: language),
+                        value: "${needsConversion ? localSubtotal.toAmount(decimal: 2) : effectiveSubtotal.toAmount(decimal: 2)} $displayCurrency",
+                        language: language,
+                      ),
 
                     if (itemDiscount > 0)
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'itemDiscounts',
-                          tr: language,
-                        ),
-                        value:
-                        "- ${itemDiscount.toAmount(decimal: 2)} ${currency ?? ''}",
+                        label: tr(text: 'itemDiscounts', tr: language),
+                        value: "- ${needsConversion ? (itemDiscount * safeExchangeRate).toAmount(decimal: 2) : itemDiscount.toAmount(decimal: 2)} $displayCurrency",
                         language: language,
                       ),
 
                     if (generalDisc > 0)
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'generalDiscount',
-                          tr: language,
-                        ),
-                        value:
-                        "- ${generalDisc.toAmount(decimal: 2)} ${currency ?? ''}",
+                        label: tr(text: 'generalDiscount', tr: language),
+                        value: "- ${needsConversion ? (generalDisc * safeExchangeRate).toAmount(decimal: 2) : generalDisc.toAmount(decimal: 2)} $displayCurrency",
                         language: language,
                       ),
 
                     if (charges > 0)
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'extraCharges',
-                          tr: language,
-                        ),
-                        value:
-                        "+ ${charges.toAmount(decimal: 2)} ${currency ?? ''}",
+                        label: tr(text: 'extraCharges', tr: language),
+                        value: "+ ${needsConversion ? localCharges.toAmount(decimal: 2) : charges.toAmount(decimal: 2)} $displayCurrency",
                         language: language,
                       ),
 
@@ -481,8 +527,7 @@ class InvoicePrintService extends PrintServices {
 
                     _rollSummaryRow(
                       label: tr(text: 'grandTotal', tr: language),
-                      value:
-                      "${finalGrandTotal.toAmount(decimal: 2)} ${currency ?? ''}",
+                      value: "${localFinalGrandTotal.toAmount(decimal: 2)} $displayCurrency",
                       language: language,
                       isBold: true,
                       fontSize: 10,
@@ -490,49 +535,29 @@ class InvoicePrintService extends PrintServices {
 
                     if (cashPayment > 0)
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'cashReceipt',
-                          tr: language,
-                        ),
-                        value:
-                        "${cashPayment.toAmount(decimal: 2)} ${currency ?? ''}",
+                        label: tr(text: 'cashReceipt', tr: language),
+                        value: "${localCashPayment.toAmount(decimal: 2)} $displayCurrency",
                         language: language,
                       ),
 
                     if (creditAmount > 0)
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'invoiceAmount',
-                          tr: language,
-                        ),
-                        value:
-                        "${creditAmount.toAmount(decimal: 2)} ${currency ?? ''}",
+                        label: tr(text: 'invoiceAmount', tr: language),
+                        value: "${localCreditAmount.toAmount(decimal: 2)} $displayCurrency",
                         language: language,
                       ),
 
                     if (account != null) ...[
 
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'previousBalance',
-                          tr: language,
-                        ),
-                        value:
-                        "${(double.tryParse(account.accAvailBalance ?? '0') ?? 0).toAmount(decimal: 2)} ${account.actCurrency ?? currency ?? ''}",
+                        label: tr(text: 'previousBalance', tr: language),
+                        value: "${accountBalance.toAmount(decimal: 2)} $accCcy",
                         language: language,
                       ),
 
                       _rollSummaryRow(
-                        label: tr(
-                          text: 'newBalance',
-                          tr: language,
-                        ),
-                        value:
-                        "${(
-                            isSale
-                                ? ((double.tryParse(account.accAvailBalance ?? '0') ?? 0) - creditAmount)
-                                : ((double.tryParse(account.accAvailBalance ?? '0') ?? 0) + creditAmount)
-                        ).toAmount(decimal: 2)} ${account.actCurrency ?? currency ?? ''}",
+                        label: tr(text: 'newBalance', tr: language),
+                        value: "${(isSale ? accountBalance - localCreditAmount : accountBalance + localCreditAmount).toAmount(decimal: 2)} $accCcy",
                         language: language,
                         isBold: true,
                       ),
@@ -542,6 +567,17 @@ class InvoicePrintService extends PrintServices {
               ),
 
               pw.SizedBox(height: 6),
+
+              /// ================= AMOUNT IN WORDS =================
+
+              if (amountInWords.isNotEmpty) ...[
+                zText(
+                  text: amountInWords,
+                  fontSize: 7,
+                  color: pw.PdfColors.grey800,
+                ),
+                pw.SizedBox(height: 4),
+              ],
 
               /// ================= REMARK =================
 

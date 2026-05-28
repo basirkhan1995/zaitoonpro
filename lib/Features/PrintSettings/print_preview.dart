@@ -50,7 +50,7 @@ class PrintPreviewDialog<T> extends StatefulWidget {
   required pw.PageOrientation orientation,
   required PdfPageFormat pageFormat,
   }) onSave;
-
+  final bool showRoll80;
   const PrintPreviewDialog({
     super.key,
     required this.company,
@@ -58,6 +58,7 @@ class PrintPreviewDialog<T> extends StatefulWidget {
     required this.buildPreview,
     required this.onPrint,
     required this.onSave,
+    this.showRoll80 = false,
   });
 
   @override
@@ -431,6 +432,7 @@ class _PrintPreviewDialogState<T> extends State<PrintPreviewDialog<T>> {
           const SizedBox(height: 1),
 
           PageFormatDropdown(
+            showRoll80: widget.showRoll80,
             onFormatSelected: (format) {
               context.read<PaperSizeCubit>().setPaperSize(format);
             },

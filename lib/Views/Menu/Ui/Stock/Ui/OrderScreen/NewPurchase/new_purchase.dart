@@ -1507,6 +1507,7 @@ class _DesktopPurchaseOrderViewState extends State<_DesktopPurchaseOrderView> {
     showDialog(
       context: context,
       builder: (_) => PrintPreviewDialog<dynamic>(
+        showRoll80: true,
         data: null,
         company: company,
         buildPreview: ({

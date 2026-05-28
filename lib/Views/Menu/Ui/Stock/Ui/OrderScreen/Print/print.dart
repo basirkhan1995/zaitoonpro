@@ -102,13 +102,9 @@ class PurchaseInvoiceItemForPrint implements InvoiceItem {
 
 class InvoicePrintService extends PrintServices {
 
-
   bool _isRollFormat(pw.PdfPageFormat format) {
     return format.width == pw.PdfPageFormat.roll80.width;
   }
-
-
-  // Replace the entire _generateRoll80Invoice method with this:
 
   Future<pw.Document> _generateRoll80Invoice({
     required String invoiceType,
@@ -184,8 +180,7 @@ class InvoicePrintService extends PrintServices {
     final String displayCurrency = needsConversion ? safeLocalCurrency : safeBaseCurrency;
 
     final double totalQty = items.fold(
-      0.0,
-          (sum, item) => sum + item.quantity,
+      0.0, (sum, item) => sum + item.quantity,
     );
 
     // Account currency
@@ -246,19 +241,19 @@ class InvoicePrintService extends PrintServices {
                     textAlign: pw.TextAlign.center,
                   ),
 
-                  if ((company.partyPhone ?? '').isNotEmpty)
+                  if ((company.compPhone ?? '').isNotEmpty)
                     zText(
-                      text: company.partyPhone ?? '',
+                      text: company.compPhone ?? '',
                       fontSize: 8,
                       textAlign: pw.TextAlign.center,
                     ),
 
-                  if ((company.partyAddress ?? '').isNotEmpty)
+                  if ((company.comAddress ?? '').isNotEmpty)
                     pw.Row(
                         mainAxisAlignment: pw.MainAxisAlignment.start,
                         children: [
                           zText(
-                            text: company.partyAddress ?? '',
+                            text: company.comAddress ?? '',
                             fontSize: 7,
                             textAlign: pw.TextAlign.center,
                           ),
@@ -412,14 +407,6 @@ class InvoicePrintService extends PrintServices {
                     vertical: 3,
                     horizontal: 2,
                   ),
-                  decoration: pw.BoxDecoration(
-                    // border: pw.Border(
-                    //   bottom: pw.BorderSide(
-                    //     width: 0.2,
-                    //     color: pw.PdfColors.grey600,
-                    //   ),
-                    // ),
-                  ),
                   child: pw.Row(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
@@ -483,7 +470,7 @@ class InvoicePrintService extends PrintServices {
               pw.Container(
                 padding: const pw.EdgeInsets.all(4),
                 decoration: pw.BoxDecoration(
-                  border: pw.Border.all(width: 0.5),
+                  border: pw.Border.all(width: 0.4),
                 ),
                 child: pw.Column(
                   children: [

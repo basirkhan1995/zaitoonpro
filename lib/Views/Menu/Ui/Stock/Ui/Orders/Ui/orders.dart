@@ -7,6 +7,7 @@ import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
+import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewPurchase/bloc/purchase_invoice_bloc.dart';
@@ -885,9 +886,9 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
               if(state is SingleOrderLoadedState){
                 final ordName = state.order['ordName'];
                 if(ordName == "Sale"){
-                  Utils.goto(context, NewSaleView(orderId: invController.text.trim()));
+                  Utils.goto(context, NewSaleView(orderId: searchController.text.trim()));
                 }else if (ordName == "Purchase"){
-                  Utils.goto(context, NewPurchaseOrderView(orderId: invController.text.trim()));
+                  Utils.goto(context, NewPurchaseOrderView(orderId: searchController.text.trim()));
                 }else{
                   ToastManager.show(context: context, message: "No Invoice Found", type: ToastType.warning);
                 }
@@ -933,7 +934,8 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                   ),
                   Expanded(
                     flex: 3,
-                    child: ZSearchField(
+                    child: ZTextFieldEntitled(
+                      showClearButton: true,
                       icon: FontAwesomeIcons.magnifyingGlass,
                       controller: searchController,
                       hint: AppLocalizations.of(context)!.search,
@@ -945,21 +947,10 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                           }
                         });
                       },
-                      title: "",
-                    ),
-                  ),
-
-                  Expanded(
-                    flex: 2,
-                    child: ZSearchField(
                       onSubmit: (e) {
-                       getInvoice(invoiceId: invController.text.trim());
+                        getInvoice(invoiceId: searchController.text.trim());
                       },
-                      controller: invController,
-                      hint: "Find Invoice",
-                      icon: FontAwesomeIcons.file,
-                      title: '',
-
+                      title: "",
                     ),
                   ),
 
@@ -972,7 +963,9 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
                       width: 120,
                     ),
                     ZOutlineButton(
-                      width: 120,
+                      width: 100,
+                      isActive: true,
+                      backgroundHover: Theme.of(context).colorScheme.error,
                       icon: Icons.close,
                       onPressed: _exitSelectionMode,
                       label: Text(tr.cancel),
@@ -1223,13 +1216,9 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
 
                       Expanded(
                         child: ListView.builder(
-
                           itemCount: filteredList.length,
-
                           itemBuilder: (context, index) {
-
                             final ord = filteredList[index];
-
                             final isCopied =
                                 _copiedStates[
                                 ord.ordTrnRef ?? ""
@@ -1237,28 +1226,19 @@ class _DesktopOrdersViewState extends State<_DesktopOrdersView> {
 
                             final reference =
                                 ord.ordTrnRef ?? "";
-
                             final isSelected =
                             _selectedOrderIds.contains(
                                 ord.ordId
                             );
-
                             return InkWell(
-
                               onTap: () {
-
                                 if (_isSelectionMode) {
-
                                   _toggleSelection(
                                       ord.ordId!
                                   );
-
                                 } else {
-
                                   Utils.goto(
-
                                     context,
-
                                     ord.ordName == "Sale"
                                         ? NewSaleView(
                                       orderId: ord.ordId,

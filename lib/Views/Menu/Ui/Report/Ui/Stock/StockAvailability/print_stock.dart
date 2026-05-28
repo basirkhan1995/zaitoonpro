@@ -260,25 +260,7 @@ class ProductReportPrintSettings extends PrintServices {
           // Storage
           pw.Expanded(
             flex: 2,
-            child: _buildHeaderCell(tr(text: 'storage', tr: language), language),
-          ),
-          pw.SizedBox(width: 5),
-          // Quantity (Available)
-          pw.SizedBox(
-            width: 50,
-            child: _buildHeaderCell(tr(text: 'quantity', tr: language), language, align: pw.TextAlign.right),
-          ),
-          pw.SizedBox(width: 5),
-          // Batch
-          pw.SizedBox(
-            width: 50,
-            child: _buildHeaderCell(tr(text: 'batch', tr: language), language, align: pw.TextAlign.right),
-          ),
-          pw.SizedBox(width: 5),
-          // Total Items (Qty × Batch)
-          pw.SizedBox(
-            width: 60,
-            child: _buildHeaderCell(tr(text: 'totalItems', tr: language), language, align: pw.TextAlign.right),
+            child: _buildHeaderCell(tr(text: 'storage', tr: language), language, align: pw.TextAlign.center),
           ),
           pw.SizedBox(width: 5),
           // Unit - Fixed width at the end
@@ -286,15 +268,34 @@ class ProductReportPrintSettings extends PrintServices {
             width: 50,
             child: _buildHeaderCell(tr(text: 'unit', tr: language), language, align: pw.TextAlign.center),
           ),
+          pw.SizedBox(width: 5),
+
+          // Quantity (Available)
+          pw.SizedBox(
+            width: 50,
+            child: _buildHeaderCell(tr(text: 'quantity', tr: language), language, align: pw.TextAlign.center),
+          ),
+          pw.SizedBox(width: 5),
+          // Batch
+          pw.SizedBox(
+            width: 50,
+            child: _buildHeaderCell(tr(text: 'batch', tr: language), language, align: pw.TextAlign.center),
+          ),
+          pw.SizedBox(width: 5),
+          // Total Items (Qty × Batch)
+          pw.SizedBox(
+            width: 60,
+            child: _buildHeaderCell(tr(text: 'totalItems', tr: language), language, align: pw.TextAlign.right),
+          ),
         ],
       ),
     );
   }
 
-  pw.Widget _buildHeaderCell(String text, String language, {pw.TextAlign align = pw.TextAlign.left}) {
+  pw.Widget _buildHeaderCell(String text, String language, {pw.TextAlign align = pw.TextAlign.left, double? fontSize}) {
     return zText(
       text: text,
-      fontSize: 8,
+      fontSize: fontSize ?? 9,
       fontWeight: pw.FontWeight.bold,
       textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.center),
     );
@@ -332,31 +333,13 @@ class ProductReportPrintSettings extends PrintServices {
               // Product Name - Takes remaining space
               pw.Expanded(
                 flex: 5,
-                child: _buildCell(product.proName ?? '', language),
+                child: _buildCell(product.proName ?? '', language, fontSize: 10),
               ),
               pw.SizedBox(width: 5),
               // Storage
               pw.Expanded(
                 flex: 2,
-                child: _buildCell(product.stgName ?? '', language),
-              ),
-              pw.SizedBox(width: 5),
-              // Quantity (Available)
-              pw.SizedBox(
-                width: 50,
-                child: _buildNumberCell(qty.toAmount(decimal: 0), language, align: pw.TextAlign.right),
-              ),
-              pw.SizedBox(width: 5),
-              // Batch
-              pw.SizedBox(
-                width: 50,
-                child: _buildNumberCell(batch.toAmount(decimal: 0), language, align: pw.TextAlign.right),
-              ),
-              pw.SizedBox(width: 5),
-              // Total Items (Qty × Batch)
-              pw.SizedBox(
-                width: 60,
-                child: _buildNumberCell(totalItems.toAmount(decimal: 0), language, align: pw.TextAlign.right),
+                child: _buildCell(product.stgName ?? '', language, align: pw.TextAlign.center),
               ),
               pw.SizedBox(width: 5),
               // Unit - Fixed width at the end
@@ -364,6 +347,25 @@ class ProductReportPrintSettings extends PrintServices {
                 width: 50,
                 child: _buildCell(product.proUnit ?? '', language, align: pw.TextAlign.center),
               ),
+              pw.SizedBox(width: 5),
+              // Quantity (Available)
+              pw.SizedBox(
+                width: 50,
+                child: _buildNumberCell(qty.toAmount(decimal: 0), language, align: pw.TextAlign.center),
+              ),
+              pw.SizedBox(width: 5),
+              // Batch
+              pw.SizedBox(
+                width: 50,
+                child: _buildNumberCell(batch.toAmount(decimal: 0), language, align: pw.TextAlign.center),
+              ),
+              pw.SizedBox(width: 5),
+              // Total Items (Qty × Batch)
+              pw.SizedBox(
+                width: 60,
+                child: _buildNumberCell(totalItems.toAmount(decimal: 0), language, align: pw.TextAlign.right),
+              ),
+
             ],
           ),
         ),
@@ -373,10 +375,10 @@ class ProductReportPrintSettings extends PrintServices {
     return rows;
   }
 
-  pw.Widget _buildCell(String text, String language, {pw.TextAlign align = pw.TextAlign.left}) {
+  pw.Widget _buildCell(String text, String language, {pw.TextAlign align = pw.TextAlign.left, double? fontSize}) {
     return zText(
       text: text,
-      fontSize: 8,
+      fontSize: fontSize ?? 9,
       textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : (align == pw.TextAlign.center ? pw.TextAlign.center : pw.TextAlign.right)),
     );
   }
@@ -384,7 +386,7 @@ class ProductReportPrintSettings extends PrintServices {
   pw.Widget _buildNumberCell(String text, String language, {pw.TextAlign align = pw.TextAlign.right}) {
     return zText(
       text: text,
-      fontSize: 8,
+      fontSize: 9,
       fontWeight: pw.FontWeight.bold,
       textAlign: language == 'en' ? align : (align == pw.TextAlign.right ? pw.TextAlign.left : pw.TextAlign.center),
     );

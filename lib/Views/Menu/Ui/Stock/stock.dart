@@ -455,15 +455,15 @@ class _StockViewState extends State<StockView> {
                 width: double.infinity,
                 onPressed: () => Utils.goto(context, AddEstimateView()),
               ),
-            if (login.hasPermission(61) ?? false)
-              ZOutlineButton(
-                backgroundColor: color.primary.withValues(alpha: opacity),
-                toolTip: "F4 - ${locale.findInvoice}",
-                label: Text(locale.findInvoice),
-                icon: Icons.filter_alt_outlined,
-                width: double.infinity,
-                onPressed: () => getInvoiceById(context),
-              ),
+            // if (login.hasPermission(61) ?? false)
+            //   ZOutlineButton(
+            //     backgroundColor: color.primary.withValues(alpha: opacity),
+            //     toolTip: "F4 - ${locale.findInvoice}",
+            //     label: Text(locale.findInvoice),
+            //     icon: Icons.filter_alt_outlined,
+            //     width: double.infinity,
+            //     onPressed: () => getInvoiceById(context),
+            //   ),
 
             if (_isExpanded) ...[
               const SizedBox(height: 3),

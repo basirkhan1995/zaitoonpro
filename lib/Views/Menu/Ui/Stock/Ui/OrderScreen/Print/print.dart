@@ -1554,13 +1554,13 @@ class InvoicePrintService extends PrintServices {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   zText(
-                    text: DateTime.now().shamsiDateFormatted,
+                    text: invoiceDate!.shamsiDateFormatted,
                     fontSize: 10,
                     fontWeight: pw.FontWeight.bold,
                   ),
                   verticalDivider(height: 10, width: 1),
                   zText(
-                    text: DateTime.now().toDateTime,
+                    text: invoiceDate.toDateTime,
                     fontSize: 9,
                     fontWeight: pw.FontWeight.bold,
                   ),

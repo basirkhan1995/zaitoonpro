@@ -66,6 +66,7 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
       final records = parsed['records'] as List<Map<String, dynamic>>;
       final payments = parsed['payments'] as List<Map<String, dynamic>>;
       final orderId = parsed['orderId'] as dynamic ?? event.orderId;
+      final orderDate = parsed['entryDate'];
 
       IndividualsModel? customer;
       final partyId = parsed['partyId'] as int?;
@@ -284,7 +285,8 @@ class SaleInvoiceBloc extends Bloc<SaleInvoiceEvent, SaleInvoiceState> {
         trnRef: parsed['reference'],
         remark: parsed['remarks'],
         ordName: parsed['orderType'],
-        orderId: orderId
+        orderId: orderId,
+        orderDate: orderDate
       ));
 
     } catch (e) {

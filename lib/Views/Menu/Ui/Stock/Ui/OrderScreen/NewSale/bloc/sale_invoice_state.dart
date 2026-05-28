@@ -22,6 +22,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   final List<SaleInvoiceItem> items;
   final List<SalePaymentRecord> payments;
   final AccountsModel? customerAccount;
+  final String? orderDate;
   final IndividualsModel? customer;
   final PaymentMode paymentMode;
   final List<StorageModel>? storages;
@@ -44,6 +45,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     required this.payments,
     this.customer,
     this.customerAccount,
+    this.orderDate,
     this.paymentMode = PaymentMode.cash,
     this.storages,
     this.generalDiscount = 0.0,
@@ -216,6 +218,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
     String? remark,
     String? ordName,
     int? orderId,
+    String? orderDate,
   }) {
     return SaleInvoiceLoaded(
       items: items ?? this.items,
@@ -236,7 +239,8 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
       trnRef: trnRef ?? this.trnRef,
       remark: remark ?? this.remark,
       ordName: ordName ?? this.ordName,
-      orderId: orderId ?? this.orderId
+      orderId: orderId ?? this.orderId,
+      orderDate: orderDate ?? this.orderDate
     );
   }
 
@@ -244,7 +248,7 @@ class SaleInvoiceLoaded extends SaleInvoiceState {
   List<Object?> get props => [
     items, payments, customer, customerAccount, paymentMode, storages,
     generalDiscount, generalDiscountType, exchangeRate, fromCurrency,
-    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate, trnRef, remark, ordName, orderId
+    toCurrency, extraCharges, cashPayment, cashCurrency, cashExchangeRate, trnRef, remark, ordName, orderId, orderDate
   ];
 }
 

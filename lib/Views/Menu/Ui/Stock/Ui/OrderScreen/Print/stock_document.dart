@@ -221,6 +221,7 @@ class StockDocumentPrintService extends PrintServices {
           _customerInfo(
             com: company,
             language: language,
+            documentDate: documentDate,
             totalQuantity: totalQuantity,
             documentNumber: documentNumber,
             customerSupplierName: customerSupplierName,
@@ -272,19 +273,21 @@ class StockDocumentPrintService extends PrintServices {
               fontSize: 18,
               fontWeight: pw.FontWeight.bold,
             ),
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.end,
+            pw.Row(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
               children: [
-                zText(
-                  text: DateTime.now().toDateTime,
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.normal,
-                ),
                 zText(
                   text: DateTime.now().shamsiDateFormatted,
                   fontSize: 10,
                   color: pw.PdfColors.grey800,
                 ),
+                verticalDivider(height: 8, width: 1),
+                zText(
+                  text: DateTime.now().toDateTime,
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.normal,
+                ),
+
               ],
             ),
           ],
@@ -298,6 +301,7 @@ class StockDocumentPrintService extends PrintServices {
     required String language,
     required String customerSupplierName,
     required dynamic documentNumber,
+    required DateTime? documentDate,
     required bool isSale,
     required double totalQuantity,
     required ReportModel com,
@@ -365,7 +369,7 @@ class StockDocumentPrintService extends PrintServices {
           ),
           pw.SizedBox(width: 5),
           zText(
-            text: com.statementDate.toFormattedDate(),
+            text: documentDate.toFormattedDate(),
             fontSize: 9,
             fontWeight: pw.FontWeight.normal,
           ),

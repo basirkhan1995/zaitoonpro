@@ -22,6 +22,7 @@ class _Desktop extends StatefulWidget {
   @override
   State<_Desktop> createState() => _DesktopState();
 }
+
 class _DesktopState extends State<_Desktop> {
   String _version = '';
 
@@ -33,91 +34,339 @@ class _DesktopState extends State<_Desktop> {
 
   Future<void> _loadVersion() async {
     final info = await PackageInfo.fromPlatform();
+
     setState(() {
       _version = "${info.version} + ${info.buildNumber}";
     });
   }
+
+  Widget _teamCard({
+    required String image,
+    required String name,
+    required String role,
+    required String description,
+  }) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: 270,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: .08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: .04),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// IMAGE
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Image.asset(
+              image,
+              width: double.infinity,
+              height: 200,
+              fit: BoxFit.cover,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          /// NAME
+          Text(
+            name,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          /// ROLE
+          Text(
+            role,
+            style: TextStyle(
+              color: theme.colorScheme.primary,
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          /// DESCRIPTION
+          Text(
+            description,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              height: 1.5,
+              color: theme.colorScheme.onSurface.withValues(alpha: .75),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: theme.colorScheme.surface,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(18.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
 
-                SizedBox(
-                    width: 130,
-                    height: 130,
-                    child: Image.asset("assets/images/zaitoonLogo.png")),
-                SizedBox(height: 10),
-                Text(AppLocalizations.of(context)!.zPetroleum,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 23)),
-                SizedBox(height: 2),
-                Text(_version,style: theme.textTheme.titleMedium),
-                SizedBox(height: 20),
-                InkWell(
-                  highlightColor: Theme.of(context).colorScheme.surface,
-                  hoverColor: Theme.of(context).colorScheme.surface,
-                  onTap: (){
-                    Utils.launchWhatsApp(phoneNumber: '+93792496200');
-                  },
-                  child: Row(
-                    spacing: 10,
+              Row(
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      ZCover(
-                          padding: EdgeInsets.symmetric(vertical: 2,horizontal: 3),
-                          color: Theme.of(context).colorScheme.surface,
-                          child: Icon(FontAwesomeIcons.whatsapp,color: Theme.of(context).colorScheme.primary)),
-                      Text("WhatsApp"),
+                      /// LOGO
+                      Center(
+                        child: SizedBox(
+                          width: 130,
+                          height: 130,
+                          child: Image.asset(
+                            "assets/images/zaitoonLogo.png",
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      /// APP TITLE
+                      Center(
+                        child: Text(
+                          AppLocalizations.of(context)!.zPetroleum,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 24,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 5),
+
+                      /// VERSION
+                      Center(
+                        child: Text(
+                          _version,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ),
+
                     ],
                   ),
-                ),
-                SizedBox(height: 10),
-                Row(
-                  spacing: 8,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ZCover(
-                        padding: EdgeInsets.symmetric(vertical: 2,horizontal: 3),
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Icon(Icons.phone,color: Theme.of(context).colorScheme.primary)),
-                    Text("93792496200",style: TextStyle(color: Theme.of(context).colorScheme.onSurface))
-                  ],
-                ),
-                SizedBox(height: 10),
-                Row(
-                  spacing: 8,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    ZCover(
-                        padding: EdgeInsets.symmetric(vertical: 2,horizontal: 3),
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Icon(Icons.language_rounded,color: Theme.of(context).colorScheme.primary)),
-                    Text("www.zaitoonsoft.com",style: TextStyle(color: Theme.of(context).colorScheme.onSurface),)
-                  ],
-                ),
+                ],
+              ),
+              const SizedBox(height: 30),
 
-                SizedBox(height: 10),
-                Row(
-                  spacing: 8,
-                  mainAxisAlignment: MainAxisAlignment.start,
+              /// CONTACT SECTION
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: .08),
+                  ),
+                ),
+                child: Column(
                   children: [
-                    ZCover(
-                        padding: EdgeInsets.symmetric(vertical: 2,horizontal: 3),
-                        color: Theme.of(context).colorScheme.surface,
-                        child: Icon(Icons.email,color: Theme.of(context).colorScheme.primary)),
-                    Text("basirkhan.hashemi@gmail.com",style: TextStyle(color: Theme.of(context).colorScheme.onSurface))
+
+                    /// WHATSAPP
+                    InkWell(
+                      highlightColor: Colors.transparent,
+                      hoverColor: Colors.transparent,
+                      onTap: () {
+                        Utils.launchWhatsApp(
+                          phoneNumber: '+93792496200',
+                        );
+                      },
+                      child: Row(
+                        children: [
+
+                          ZCover(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 3,
+                              horizontal: 4,
+                            ),
+                            color: theme.colorScheme.surface,
+                            child: Icon(
+                              FontAwesomeIcons.whatsapp,
+                              color: theme.colorScheme.primary,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          const Text(
+                            "WhatsApp",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    /// PHONE
+                    Row(
+                      children: [
+
+                        ZCover(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 3,
+                            horizontal: 4,
+                          ),
+                          color: theme.colorScheme.surface,
+                          child: Icon(
+                            Icons.phone,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Text(
+                          "93792496200",
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    /// WEBSITE
+                    Row(
+                      children: [
+
+                        ZCover(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 3,
+                            horizontal: 4,
+                          ),
+                          color: theme.colorScheme.surface,
+                          child: Icon(
+                            Icons.language_rounded,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Text(
+                          "www.zaitoonsoft.com",
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    /// EMAIL
+                    Row(
+                      children: [
+
+                        ZCover(
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 3,
+                            horizontal: 4,
+                          ),
+                          color: theme.colorScheme.surface,
+                          child: Icon(
+                            Icons.email,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Text(
+                          "basirkhan.hashemi@gmail.com",
+                          style: TextStyle(
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 30),
+
+              /// TEAM TITLE
+              Text(
+                "Our Team",
+                style: theme.textTheme.headlineMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              /// TEAM SUBTITLE
+              Text(
+                "Meet the talented people behind Zaitoon Software solutions.",
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: .7),
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              /// TEAM MEMBERS
+              Wrap(
+                spacing: 20,
+                runSpacing: 20,
+                children: [
+
+                  _teamCard(
+                    image: "assets/images/ataie.png",
+                    name: "Ghufran Ataie",
+                    role: "Senior Software Developer",
+                    description:
+                    "Builds APIs, designs database architectures, develops accounting systems, and manages backend financial and business operation solutions.",
+                  ),
+
+                  _teamCard(
+                    image: "assets/images/basir.jpeg",
+                    name: "Basir Hashimi",
+                    role: "Software & App Developer",
+                    description:
+                    "Builds cross-platform mobile, tablet, and desktop applications with modern UI, scalable architecture, and integrated database solutions.",
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+            ],
           ),
-        )
+        ),
+      ),
     );
   }
 }

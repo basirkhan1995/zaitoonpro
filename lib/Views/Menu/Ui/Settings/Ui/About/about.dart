@@ -69,6 +69,7 @@ class _DesktopState extends State<_Desktop> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
+
           /// IMAGE
           ClipRRect(
             borderRadius: BorderRadius.circular(12),

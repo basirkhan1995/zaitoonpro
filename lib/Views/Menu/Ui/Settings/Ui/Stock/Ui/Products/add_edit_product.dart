@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
+import 'package:zaitoonpro/Features/PrintSettings/report_model.dart';
+import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +13,7 @@ import '../ProductCategory/features/pro_cat_drop.dart';
 import '../ProductCategory/model/pro_cat_model.dart';
 import 'Features/GradeDrop/grade_drop.dart';
 import 'Features/product_image.dart';
+import 'LabelPrint/label_print.dart';
 import 'bloc/products_bloc.dart';
 import 'model/product_model.dart';
 import 'dart:math';
@@ -202,7 +205,6 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     final rand = Random.secure();
     final now = DateTime.now();
-
     final batch = List.generate(3, (_) => chars[rand.nextInt(chars.length)]).join();
     final date = '${now.year % 100}${now.month.toString().padLeft(2, '0')}';
     return '$prefix-$date-$batch';
@@ -213,7 +215,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(tr.areYouSure),
-        content: Text("Are you sure you want to delete this product?"),
+        content: Text(tr.deleteMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -515,25 +517,46 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
+  void _showLabelPrintDialog() {
+    final productData = ProductsModel(
+      proId: widget.proId ?? _loadedProduct?.proId,
+      proName: productName.text.isNotEmpty ? productName.text : _loadedProduct?.proName,
+      proCode: productCode.text.isNotEmpty ? productCode.text : _loadedProduct?.proCode,
+      proColor: productColor.text.isNotEmpty ? productColor.text : _loadedProduct?.proColor,
+      proGrade: productGrade ?? _loadedProduct?.proGrade,
+      proBrand: productBrand.text.isNotEmpty ? productBrand.text : _loadedProduct?.proBrand,
+      proModel: productModel.text.isNotEmpty ? productModel.text : _loadedProduct?.proModel,
+      proUnit: productUnit.text.isNotEmpty ? productUnit.text : _loadedProduct?.proUnit,
+      proSpp: salePricePercentage.text.isNotEmpty ? salePricePercentage.text : _loadedProduct?.proSpp,
+      pcName: _selectedCategory?.pcName ?? _loadedProduct?.pcName,
+      batches: _loadedProduct?.batches,
+      proMadeIn: madeIn.text.isNotEmpty ? madeIn.text : _loadedProduct?.proMadeIn,
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => ProductLabelPrintDialog(
+        product: productData.toLabelData(),
+        company: ReportModel(),
+      ),
+    );
+  }
   Widget _buildDeleteButton(AppLocalizations tr, ColorScheme color) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 16),
-      decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: .05),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: TextButton.icon(
-        onPressed: _isSubmitting ? null : () => _showDeleteConfirmation(tr),
-        icon: const Icon(Icons.delete_outline, color: Colors.red),
-        label: Text(
-          tr.delete,
-          style: const TextStyle(color: Colors.red),
+    return Row(
+      spacing: 8,
+      children: [
+        ZOutlineButton(
+          onPressed: _isSubmitting ? null : () => _showDeleteConfirmation(tr),
+          icon: Icons.delete_outline,
+          backgroundHover: color.error,
+          label: Text(tr.delete),
         ),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+        ZOutlineButton(
+          onPressed: _showLabelPrintDialog,
+          icon: Icons.label,
+          label: Text("Label"),
         ),
-      ),
+      ],
     );
   }
 
@@ -857,8 +880,10 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                   state.product.batches!.isNotEmpty)
                                 _buildBatchesSection(state.product.batches!, tr, color, textTheme),
                               // Delete button for edit mode
-                              if (isEdit)
+                              if (isEdit)...[
                                 _buildDeleteButton(tr, color),
+                              ],
+
                               const SizedBox(height: 24),
                               // Action Button
                               _buildActionButton(tr, color, isEdit, context.watch<ProductsBloc>().state),
@@ -909,6 +934,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         child: ZFormDialog(
           onAction: _isSubmitting ? null : onSubmit,
           title: isEdit ? tr.update : tr.newKeyword,
+
           actionLabel: _buildActionButton(tr, color, isEdit, context.watch<ProductsBloc>().state),
           width: 650,
           child: BlocBuilder<SingleProductBloc, SingleProductState>(

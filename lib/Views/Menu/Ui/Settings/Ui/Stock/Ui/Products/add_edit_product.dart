@@ -284,8 +284,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
 
   Widget _buildBatchesSection(List<Batch> batches, AppLocalizations tr, ColorScheme color, TextTheme textTheme) {
     final totalBox = batches.fold(0, (sum, batch) =>
-    sum + (int.tryParse(batch.availableQuantity ?? "0") ?? 0)
-    );
+    sum + (int.tryParse(batch.availableQuantity ?? "0") ?? 0));
 
     final totalItems = batches.fold(0, (sum, batch) {
       final quantity = int.tryParse(batch.availableQuantity ?? "0") ?? 0;
@@ -316,7 +315,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                 Icon(Icons.inventory, size: 20, color: color.onPrimary),
                 const SizedBox(width: 8),
                 Text(
-                  "Stock Batches",
+                  tr.batchTitle,
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: color.onPrimary,
@@ -519,7 +518,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
-  // Add this method to _BaseProductAddEditState
+
   void _onProductLabelPrint() {
     // Get currency code from your authenticated state
     final authState = context.read<AuthBloc>().state; // Adjust to your auth bloc
@@ -552,7 +551,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
-  Widget _buildDeleteButton(AppLocalizations tr, ColorScheme color) {
+  Widget _buildOtherButton(AppLocalizations tr, ColorScheme color) {
     return Row(
       spacing: 8,
       children: [
@@ -564,7 +563,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         ),
         ZOutlineButton(
           onPressed: _onProductLabelPrint,
-          icon: Icons.label,
+          icon: Icons.qr_code_2_sharp,
           label: Text(AppLocalizations.of(context)!.printLabel),
         ),
       ],
@@ -886,13 +885,11 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                                 ),
                               ),
                               // Show batches if available
-                              if (state is SingleProductLoadedState &&
-                                  state.product.batches != null &&
-                                  state.product.batches!.isNotEmpty)
+                              if (state is SingleProductLoadedState && state.product.batches != null && state.product.batches!.isNotEmpty)
                                 _buildBatchesSection(state.product.batches!, tr, color, textTheme),
                               // Delete button for edit mode
                               if (isEdit)...[
-                                _buildDeleteButton(tr, color),
+                                _buildOtherButton(tr, color),
                               ],
 
                               const SizedBox(height: 24),
@@ -1032,12 +1029,10 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                           keyboardInputType: TextInputType.multiline,
                           maxLength: 100,
                         ),
-                        if (state is SingleProductLoadedState &&
-                            state.product.batches != null &&
-                            state.product.batches!.isNotEmpty)
+                        if (state is SingleProductLoadedState && state.product.batches != null && state.product.batches!.isNotEmpty)
                           _buildBatchesSection(state.product.batches!, tr, color, textTheme),
                         if (isEdit)
-                          _buildDeleteButton(tr, color),
+                          _buildOtherButton(tr, color),
                       ],
                     ),
                   ),
@@ -1391,7 +1386,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
                       ],
                       if (isEdit) ...[
                         const SizedBox(height: 16),
-                        _buildDeleteButton(tr, color),
+                        _buildOtherButton(tr, color),
                       ],
                     ],
                   ),

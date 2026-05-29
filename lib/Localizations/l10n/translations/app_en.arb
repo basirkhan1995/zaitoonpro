@@ -1108,5 +1108,10 @@
   "addNewProduct": "Add New Product",
   "typeMessageHere": "Type message here",
   "copyClipboard": "Copy clipboard",
-  "productAlreadyExist": "This product already exists."
+  "productAlreadyExist": "This product already exists.",
+  "optionsTitle": "Options",
+  "barcodeTitle": "Barcode",
+  "priceTag": "Price Tag",
+  "colorTitle": "Color",
+  "printLabel": "Label Print"
 }

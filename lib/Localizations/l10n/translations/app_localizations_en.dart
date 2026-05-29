@@ -3354,4 +3354,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get productAlreadyExist => 'This product already exists.';
+
+  @override
+  String get optionsTitle => 'Options';
+
+  @override
+  String get barcodeTitle => 'Barcode';
+
+  @override
+  String get priceTag => 'Price Tag';
+
+  @override
+  String get colorTitle => 'Color';
+
+  @override
+  String get printLabel => 'Label Print';
 }

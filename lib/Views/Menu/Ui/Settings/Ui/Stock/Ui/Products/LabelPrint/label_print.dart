@@ -1,9 +1,12 @@
+// product_label_print.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../../../../Features/Generic/generic_drop.dart';
 import '../../../../../../../../../Features/PrintSettings/Features/printers.dart';
 import '../../../../../../../../../Features/PrintSettings/bloc/PageOrientation/page_orientation_cubit.dart';
@@ -14,13 +17,13 @@ import '../model/product_model.dart';
 
 // ==================== PRODUCT LABEL DATA MODEL ====================
 class ProductLabelData {
-  final String? ccyCode;
   final int? proId;
   final String? proName;
   final String? proCode;
   final String? proColor;
   final String? proUnit;
   final String? proSpp;
+  final String? currencyCode;
   final List<BatchOption> batches;
 
   ProductLabelData({
@@ -30,7 +33,7 @@ class ProductLabelData {
     this.proColor,
     this.proUnit,
     this.proSpp,
-    this.ccyCode,
+    this.currencyCode,
     this.batches = const [],
   });
 }
@@ -64,6 +67,11 @@ class ProductLabelPrintService extends PrintServices {
   }) async {
     final document = pw.Document();
 
+    // Build price text with optional currency
+    final priceText = product.proSpp != null
+        ? '${product.proSpp}${product.currencyCode != null && product.currencyCode!.isNotEmpty ? ' ${product.currencyCode}' : ''}'
+        : null;
+
     document.addPage(
       pw.Page(
         pageFormat: pageFormat,
@@ -87,47 +95,48 @@ class ProductLabelPrintService extends PrintServices {
                   ),
 
                   // Price & Batch Row
-                  if ((showPrice && product.proSpp != null) || showBatch)
+                  if ((showPrice && priceText != null) || showBatch)
                     pw.SizedBox(height: 3),
 
                   pw.Column(
                     children: [
                       // Price Tag
-                      if (showPrice && product.proSpp != null)
+                      if (showPrice && priceText != null)
                         zText(
-                          text: '${product.proSpp} AFN',
+                          text: priceText,
                           fontSize: 13,
                           fontWeight: pw.FontWeight.bold,
                         ),
 
-                      if (showPrice && product.proSpp != null && showBatch)
+                      if (showPrice && priceText != null && showBatch)
                         pw.SizedBox(width: 5),
 
                       // Batch Tag
                       if (showBatch)
-                      pw.Row(
-                        crossAxisAlignment: pw.CrossAxisAlignment.center,
-                        mainAxisAlignment: pw.MainAxisAlignment.center,
-                        children: [
-                          zText(
-                            text: 'BATCH: $selectedBatch',
-                            fontSize: 12,
-                            fontWeight: pw.FontWeight.bold,
-                            color: pw.PdfColors.grey800,
-                          ),
+                        pw.Row(
+                            crossAxisAlignment: pw.CrossAxisAlignment.center,
+                            mainAxisAlignment: pw.MainAxisAlignment.center,
+                            children: [
+                              zText(
+                                text: 'BATCH: $selectedBatch',
+                                fontSize: 12,
+                                fontWeight: pw.FontWeight.bold,
+                                color: pw.PdfColors.grey800,
+                              ),
 
-                          // Unit
-                          if (showUnit && product.proUnit != null && product.proUnit!.isNotEmpty)...[
-                            pw.SizedBox(width: 2),
-                            zText(
-                              text: '${product.proUnit}',
-                              fontSize: 12,
-                            ),
-                          ],
-                        ]
-                      ),
+                              // Unit
+                              if (showUnit && product.proUnit != null && product.proUnit!.isNotEmpty)...[
+                                pw.SizedBox(width: 2),
+                                zText(
+                                  text: '${product.proUnit}',
+                                  fontSize: 12,
+                                ),
+                              ],
+                            ]
+                        ),
                       // Color
                       if (showColor && product.proColor != null && product.proColor!.isNotEmpty)...[
+                        pw.SizedBox(height: 2),
                         zText(
                           text: 'COLOR: ${product.proColor}',
                           fontSize: 10,
@@ -209,9 +218,9 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
 
   // Label paper sizes
   static final Map<String, pw.PdfPageFormat> _labelFormats = {
-    'Label 70×35mm': pw.PdfPageFormat(70 * 2.83465, 35 * 2.83465),
-    'Label 100×50mm': pw.PdfPageFormat(100 * 2.83465, 50 * 2.83465),
-    'Label 100×100mm': pw.PdfPageFormat(100 * 2.83465, 100 * 2.83465),
+    '70×35mm': pw.PdfPageFormat(70 * 2.83465, 35 * 2.83465),
+    '100×50mm': pw.PdfPageFormat(100 * 2.83465, 50 * 2.83465),
+    '100×100mm': pw.PdfPageFormat(100 * 2.83465, 100 * 2.83465),
   };
 
   @override
@@ -282,7 +291,6 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
       }
 
       if (mounted) {
-        _showSnackBar('Label printed successfully');
         Navigator.pop(context);
       }
     } catch (e) {
@@ -339,7 +347,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Print Preview',
+                      AppLocalizations.of(context)!.printPreview,
                       style: textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: colorScheme.primary,
@@ -434,7 +442,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Copies field and Print button (like your PrintPreviewDialog)
+          // Copies field and Print button
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -446,7 +454,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
                   child: ElevatedButton.icon(
                     onPressed: _handlePrint,
                     icon: const Icon(Icons.print, size: 18),
-                    label: const Text('Print'),
+                    label: Text(AppLocalizations.of(context)!.print),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
@@ -472,7 +480,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
 
           // Paper Size using CustomDropdown
           CustomDropdown<String>(
-            title: 'Paper Size',
+            title: AppLocalizations.of(context)!.paper,
             items: _labelFormats.keys.toList(),
             initialValue: _getCurrentFormatKey(),
             itemLabel: (key) => key,
@@ -488,7 +496,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
           // Batch Selection using CustomDropdown
           if (widget.product.batches.isNotEmpty)
             CustomDropdown<int>(
-              title: 'Select Batch',
+              title: AppLocalizations.of(context)!.batchTitle,
               items: widget.product.batches.map((b) => b.batch).toList(),
               initialValue: _selectedBatch.toString(),
               itemLabel: (batch) {
@@ -506,39 +514,39 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
           const SizedBox(height: 16),
 
           // Display Options
-          Text('Display Options', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+          Text(AppLocalizations.of(context)!.optionsTitle, style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
 
           SwitchListTile(
-            title: const Text('Barcode', style: TextStyle(fontSize: 13)),
+            title: Text(AppLocalizations.of(context)!.barcodeTitle, style: TextStyle(fontSize: 13)),
             value: _showBarcode,
             onChanged: (v) => setState(() => _showBarcode = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Price Tag', style: TextStyle(fontSize: 13)),
+            title: Text(AppLocalizations.of(context)!.priceTag, style: TextStyle(fontSize: 13)),
             value: _showPrice,
             onChanged: (v) => setState(() => _showPrice = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Batch', style: TextStyle(fontSize: 13)),
+            title: Text(AppLocalizations.of(context)!.batchTitle, style: TextStyle(fontSize: 13)),
             value: _showBatch,
             onChanged: (v) => setState(() => _showBatch = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Color', style: TextStyle(fontSize: 13)),
+            title: Text(AppLocalizations.of(context)!.colorTitle, style: TextStyle(fontSize: 13)),
             value: _showColor,
             onChanged: (v) => setState(() => _showColor = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Unit', style: TextStyle(fontSize: 13)),
+            title: Text(AppLocalizations.of(context)!.unit, style: TextStyle(fontSize: 13)),
             value: _showUnit,
             onChanged: (v) => setState(() => _showUnit = v),
             dense: true,
@@ -548,13 +556,13 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
           const SizedBox(height: 16),
 
           // Orientation
-          Text('Orientation', style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+          Text(AppLocalizations.of(context)!.orientation, style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: _orientationButton(
-                  label: 'Portrait',
+                  label: AppLocalizations.of(context)!.portrait,
                   icon: Icons.stay_current_portrait,
                   selected: context.watch<PageOrientationCubit>().state == pw.PageOrientation.portrait,
                   onTap: () => context.read<PageOrientationCubit>().setOrientation(pw.PageOrientation.portrait),
@@ -563,7 +571,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
               const SizedBox(width: 8),
               Expanded(
                 child: _orientationButton(
-                  label: 'Landscape',
+                  label: AppLocalizations.of(context)!.landscape,
                   icon: Icons.stay_current_landscape,
                   selected: context.watch<PageOrientationCubit>().state == pw.PageOrientation.landscape,
                   onTap: () => context.read<PageOrientationCubit>().setOrientation(pw.PageOrientation.landscape),
@@ -577,7 +585,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
     );
   }
 
-  // ==================== COPIES FIELD (Same style as PrintPreviewDialog) ====================
+  // ==================== COPIES FIELD ====================
   Widget _buildCopiesField() {
     final bool isRTL = Directionality.of(context) == TextDirection.rtl;
     final colorScheme = Theme.of(context).colorScheme;
@@ -586,7 +594,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Copies',
+          AppLocalizations.of(context)!.copies,
           style: TextStyle(
             fontSize: 13,
             color: colorScheme.onSurface,
@@ -795,7 +803,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
 
 // ==================== EXTENSION ====================
 extension ProductLabelPrintExtension on ProductsModel {
-  ProductLabelData toLabelData() {
+  ProductLabelData toLabelData({String? currencyCode}) {
     return ProductLabelData(
       proId: proId,
       proName: proName,
@@ -803,6 +811,7 @@ extension ProductLabelPrintExtension on ProductsModel {
       proColor: proColor,
       proUnit: proUnit,
       proSpp: proSpp,
+      currencyCode: currencyCode,
       batches: batches?.map((b) => BatchOption(
         batch: b.batch ?? 0,
         storage: b.storage,

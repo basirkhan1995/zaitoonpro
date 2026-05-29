@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pdf/pdf.dart' as pw;
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
@@ -8,6 +9,8 @@ import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/%D9%8FSingleProduct/single_product_bloc.dart';
+import '../../../../../../../../Features/PrintSettings/bloc/PageSize/paper_size_cubit.dart';
+import '../../../../../../../Auth/bloc/auth_bloc.dart';
 import '../ProductCategory/features/pro_cat_drop.dart';
 import '../ProductCategory/model/pro_cat_model.dart';
 import 'Features/GradeDrop/grade_drop.dart';
@@ -518,6 +521,10 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
   }
   // Add this method to _BaseProductAddEditState
   void _onProductLabelPrint() {
+    // Get currency code from your authenticated state
+    final authState = context.read<AuthBloc>().state; // Adjust to your auth bloc
+    final currencyCode = authState is AuthenticatedState ? authState.loginData.company?.comLocalCcy??"" : null;
+
     final productData = ProductLabelData(
       proId: widget.proId ?? _loadedProduct?.proId,
       proName: productName.text.isNotEmpty ? productName.text.trim() : _loadedProduct?.proName,
@@ -525,11 +532,17 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       proColor: productColor.text.isNotEmpty ? productColor.text.trim() : _loadedProduct?.proColor,
       proUnit: productUnit.text.isNotEmpty ? productUnit.text.trim() : _loadedProduct?.proUnit,
       proSpp: salePricePercentage.text.isNotEmpty ? salePricePercentage.text.trim() : _loadedProduct?.proSpp,
+      currencyCode: currencyCode, // Pass currency from auth state, null if not available
       batches: _loadedProduct?.batches?.map((b) => BatchOption(
         batch: b.batch ?? 0,
         storage: b.storage,
         availableQuantity: b.availableQuantity,
       )).toList() ?? [],
+    );
+
+    // Set default paper size to label format
+    context.read<PaperSizeCubit>().setPaperSize(
+        pw.PdfPageFormat(100 * 2.83465, 50 * 2.83465)
     );
 
     showDialog(
@@ -552,7 +565,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
         ZOutlineButton(
           onPressed: _onProductLabelPrint,
           icon: Icons.label,
-          label: Text("Label"),
+          label: Text(AppLocalizations.of(context)!.printLabel),
         ),
       ],
     );

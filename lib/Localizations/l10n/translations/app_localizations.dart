@@ -6633,6 +6633,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This product already exists.'**
   String get productAlreadyExist;
+
+  /// No description provided for @optionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Options'**
+  String get optionsTitle;
+
+  /// No description provided for @barcodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Barcode'**
+  String get barcodeTitle;
+
+  /// No description provided for @priceTag.
+  ///
+  /// In en, this message translates to:
+  /// **'Price Tag'**
+  String get priceTag;
+
+  /// No description provided for @colorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get colorTitle;
+
+  /// No description provided for @printLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label Print'**
+  String get printLabel;
 }
 
 class _AppLocalizationsDelegate

@@ -3346,4 +3346,19 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get productAlreadyExist => 'دا محصول له مخکې نه شتون لري.';
+
+  @override
+  String get optionsTitle => 'تنظیمات';
+
+  @override
+  String get barcodeTitle => 'بارکد';
+
+  @override
+  String get priceTag => 'قیمت جنس';
+
+  @override
+  String get colorTitle => 'رنگ';
+
+  @override
+  String get printLabel => 'چاپ برچسپ';
 }

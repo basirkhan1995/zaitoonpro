@@ -1108,5 +1108,10 @@
   "addNewProduct": "ثبت کالا جدید",
   "typeMessageHere": "متن را اینجا بنویسید",
   "copyClipboard": "کپی متن",
-  "productAlreadyExist": "این محصول قبلاً وجود دارد."
+  "productAlreadyExist": "این محصول قبلاً وجود دارد.",
+  "optionsTitle": "تنظیمات",
+  "barcodeTitle": "بارکد",
+  "priceTag": "قیمت جنس",
+  "colorTitle": "رنگ",
+  "printLabel": "چاپ برچسپ"
 }

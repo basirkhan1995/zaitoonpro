@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
-import 'package:zaitoonpro/Features/PrintSettings/report_model.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
@@ -517,27 +516,26 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
       ),
     );
   }
-  void _showLabelPrintDialog() {
-    final productData = ProductsModel(
+  // Add this method to _BaseProductAddEditState
+  void _onProductLabelPrint() {
+    final productData = ProductLabelData(
       proId: widget.proId ?? _loadedProduct?.proId,
-      proName: productName.text.isNotEmpty ? productName.text : _loadedProduct?.proName,
-      proCode: productCode.text.isNotEmpty ? productCode.text : _loadedProduct?.proCode,
-      proColor: productColor.text.isNotEmpty ? productColor.text : _loadedProduct?.proColor,
-      proGrade: productGrade ?? _loadedProduct?.proGrade,
-      proBrand: productBrand.text.isNotEmpty ? productBrand.text : _loadedProduct?.proBrand,
-      proModel: productModel.text.isNotEmpty ? productModel.text : _loadedProduct?.proModel,
-      proUnit: productUnit.text.isNotEmpty ? productUnit.text : _loadedProduct?.proUnit,
-      proSpp: salePricePercentage.text.isNotEmpty ? salePricePercentage.text : _loadedProduct?.proSpp,
-      pcName: _selectedCategory?.pcName ?? _loadedProduct?.pcName,
-      batches: _loadedProduct?.batches,
-      proMadeIn: madeIn.text.isNotEmpty ? madeIn.text : _loadedProduct?.proMadeIn,
+      proName: productName.text.isNotEmpty ? productName.text.trim() : _loadedProduct?.proName,
+      proCode: productCode.text.isNotEmpty ? productCode.text.trim() : _loadedProduct?.proCode,
+      proColor: productColor.text.isNotEmpty ? productColor.text.trim() : _loadedProduct?.proColor,
+      proUnit: productUnit.text.isNotEmpty ? productUnit.text.trim() : _loadedProduct?.proUnit,
+      proSpp: salePricePercentage.text.isNotEmpty ? salePricePercentage.text.trim() : _loadedProduct?.proSpp,
+      batches: _loadedProduct?.batches?.map((b) => BatchOption(
+        batch: b.batch ?? 0,
+        storage: b.storage,
+        availableQuantity: b.availableQuantity,
+      )).toList() ?? [],
     );
 
     showDialog(
       context: context,
-      builder: (context) => ProductLabelPrintDialog(
-        product: productData.toLabelData(),
-        company: ReportModel(),
+      builder: (context) => ProductLabelPreviewDialog(
+        product: productData,
       ),
     );
   }
@@ -552,7 +550,7 @@ class _BaseProductAddEditState extends State<_BaseProductAddEdit> {
           label: Text(tr.delete),
         ),
         ZOutlineButton(
-          onPressed: _showLabelPrintDialog,
+          onPressed: _onProductLabelPrint,
           icon: Icons.label,
           label: Text("Label"),
         ),

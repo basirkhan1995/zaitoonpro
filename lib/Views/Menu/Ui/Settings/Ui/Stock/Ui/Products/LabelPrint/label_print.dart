@@ -1,5 +1,3 @@
-// product_label_print.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,6 +14,7 @@ import '../model/product_model.dart';
 
 // ==================== PRODUCT LABEL DATA MODEL ====================
 class ProductLabelData {
+  final String? ccyCode;
   final int? proId;
   final String? proName;
   final String? proCode;
@@ -31,6 +30,7 @@ class ProductLabelData {
     this.proColor,
     this.proUnit,
     this.proSpp,
+    this.ccyCode,
     this.batches = const [],
   });
 }
@@ -71,84 +71,74 @@ class ProductLabelPrintService extends PrintServices {
         margin: pw.EdgeInsets.all(10),
         build: (context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.center,
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               // Product Info Section
               pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                mainAxisAlignment: pw.MainAxisAlignment.center,
                 children: [
                   // Product Name
                   zText(
                     text: product.proName ?? '',
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: pw.FontWeight.bold,
                   ),
 
-                  pw.SizedBox(height: 8),
-
-                  // Color
-                  if (showColor && product.proColor != null && product.proColor!.isNotEmpty)
-                    zText(
-                      text: 'رنگ: ${product.proColor}',
-                      fontSize: 10,
-                    ),
-
-                  // Unit
-                  if (showUnit && product.proUnit != null && product.proUnit!.isNotEmpty)
-                    zText(
-                      text: 'واحد: ${product.proUnit}',
-                      fontSize: 10,
-                    ),
-
                   // Price & Batch Row
                   if ((showPrice && product.proSpp != null) || showBatch)
-                    pw.SizedBox(height: 8),
+                    pw.SizedBox(height: 3),
 
-                  pw.Row(
+                  pw.Column(
                     children: [
                       // Price Tag
                       if (showPrice && product.proSpp != null)
-                        pw.Container(
-                          padding: pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: pw.BoxDecoration(
-                            color: pw.PdfColors.blue50,
-                            border: pw.Border.all(color: pw.PdfColors.blue400, width: 1.5),
-                            borderRadius: pw.BorderRadius.circular(6),
-                          ),
-                          child: zText(
-                            text: '${product.proSpp} AFN',
-                            fontSize: 13,
-                            fontWeight: pw.FontWeight.bold,
-                            color: pw.PdfColors.blue900,
-                          ),
+                        zText(
+                          text: '${product.proSpp} AFN',
+                          fontSize: 13,
+                          fontWeight: pw.FontWeight.bold,
                         ),
 
                       if (showPrice && product.proSpp != null && showBatch)
-                        pw.SizedBox(width: 8),
+                        pw.SizedBox(width: 5),
 
                       // Batch Tag
                       if (showBatch)
-                        pw.Container(
-                          padding: pw.EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: pw.BoxDecoration(
-                            color: pw.PdfColors.grey100,
-                            border: pw.Border.all(color: pw.PdfColors.grey500, width: 1.5),
-                            borderRadius: pw.BorderRadius.circular(6),
-                          ),
-                          child: zText(
-                            text: 'بچ: $selectedBatch',
+                      pw.Row(
+                        crossAxisAlignment: pw.CrossAxisAlignment.center,
+                        mainAxisAlignment: pw.MainAxisAlignment.center,
+                        children: [
+                          zText(
+                            text: 'BATCH: $selectedBatch',
                             fontSize: 12,
                             fontWeight: pw.FontWeight.bold,
                             color: pw.PdfColors.grey800,
                           ),
+
+                          // Unit
+                          if (showUnit && product.proUnit != null && product.proUnit!.isNotEmpty)...[
+                            pw.SizedBox(width: 2),
+                            zText(
+                              text: '${product.proUnit}',
+                              fontSize: 12,
+                            ),
+                          ],
+                        ]
+                      ),
+                      // Color
+                      if (showColor && product.proColor != null && product.proColor!.isNotEmpty)...[
+                        zText(
+                          text: 'COLOR: ${product.proColor}',
+                          fontSize: 10,
                         ),
+                        pw.SizedBox(height: 4),
+                      ],
+
                     ],
                   ),
                 ],
               ),
-
-              pw.SizedBox(height: 20),
 
               // Barcode Section
               if (showBarcode)
@@ -157,7 +147,7 @@ class ProductLabelPrintService extends PrintServices {
                     barcode: pw.Barcode.code128(),
                     data: product.proCode ?? '${product.proId ?? 0}',
                     width: pageFormat.width * 0.75,
-                    height: 50,
+                    height: showColor || showPrice ? 40 : 50,
                   ),
                 ),
 
@@ -166,13 +156,13 @@ class ProductLabelPrintService extends PrintServices {
                 mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                 children: [
                   pw.Text(
-                    'ID: ${product.proId ?? ''}',
-                    style: const pw.TextStyle(fontSize: 8, color: pw.PdfColors.grey600),
+                    '${product.proId ?? ''}',
+                    style: const pw.TextStyle(fontSize: 8, color: pw.PdfColors.grey700),
                   ),
                   if (product.proCode != null)
                     pw.Text(
                       product.proCode!,
-                      style: const pw.TextStyle(fontSize: 8, color: pw.PdfColors.grey600),
+                      style: const pw.TextStyle(fontSize: 8, color: pw.PdfColors.grey700),
                     ),
                 ],
               ),
@@ -506,7 +496,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
                       (b) => b.batch == batch,
                   orElse: () => BatchOption(batch: batch),
                 );
-                return 'بچ $batch${batchOption.availableQuantity != null ? ' (${batchOption.availableQuantity})' : ''}';
+                return 'BATCH | $batch${batchOption.availableQuantity != null ? ' (${batchOption.availableQuantity})' : ''}';
               },
               onItemSelected: (value) {
                 setState(() => _selectedBatch = value);
@@ -520,35 +510,35 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
           const SizedBox(height: 8),
 
           SwitchListTile(
-            title: const Text('Show Barcode', style: TextStyle(fontSize: 13)),
+            title: const Text('Barcode', style: TextStyle(fontSize: 13)),
             value: _showBarcode,
             onChanged: (v) => setState(() => _showBarcode = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Show Price', style: TextStyle(fontSize: 13)),
+            title: const Text('Price Tag', style: TextStyle(fontSize: 13)),
             value: _showPrice,
             onChanged: (v) => setState(() => _showPrice = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Show Batch', style: TextStyle(fontSize: 13)),
+            title: const Text('Batch', style: TextStyle(fontSize: 13)),
             value: _showBatch,
             onChanged: (v) => setState(() => _showBatch = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Show Color', style: TextStyle(fontSize: 13)),
+            title: const Text('Color', style: TextStyle(fontSize: 13)),
             value: _showColor,
             onChanged: (v) => setState(() => _showColor = v),
             dense: true,
             contentPadding: EdgeInsets.zero,
           ),
           SwitchListTile(
-            title: const Text('Show Unit', style: TextStyle(fontSize: 13)),
+            title: const Text('Unit', style: TextStyle(fontSize: 13)),
             value: _showUnit,
             onChanged: (v) => setState(() => _showUnit = v),
             dense: true,

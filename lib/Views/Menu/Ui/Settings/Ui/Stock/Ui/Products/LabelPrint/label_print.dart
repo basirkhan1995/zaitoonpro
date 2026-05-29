@@ -322,7 +322,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
         height: isMobile ? screenHeight : screenHeight * 0.9,
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(4),
         ),
         child: Column(
           children: [
@@ -331,7 +331,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: colorScheme.primary.withValues(alpha: 0.1),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
               ),
               child: Row(
                 children: [
@@ -711,7 +711,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(4),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
@@ -719,7 +719,7 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
             color: selected ? colorScheme.primary : Colors.grey[300]!,
             width: selected ? 2 : 1,
           ),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(4),
           color: selected ? colorScheme.primary.withValues(alpha: 0.1) : null,
         ),
         child: Column(
@@ -753,29 +753,41 @@ class _ProductLabelPreviewDialogState extends State<ProductLabelPreviewDialog> {
     final paperSizeCubit = context.watch<PaperSizeCubit>();
     final orientationCubit = context.watch<PageOrientationCubit>();
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: PdfPreview(
-        padding: const EdgeInsets.all(16),
-        useActions: false,
-        previewPageMargin: const EdgeInsets.all(20),
-        maxPageWidth: 800,
-        canChangeOrientation: false,
-        canChangePageFormat: false,
-        build: (_) async {
-          final doc = await _service.generateLabel(
-            product: widget.product,
-            pageFormat: paperSizeCubit.state,
-            orientation: orientationCubit.state,
-            selectedBatch: _selectedBatch,
-            showBarcode: _showBarcode,
-            showPrice: _showPrice,
-            showBatch: _showBatch,
-            showColor: _showColor,
-            showUnit: _showUnit,
-          );
-          return doc.save();
-        },
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 1,
+            color: Colors.grey.withAlpha(77),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: PdfPreview(
+          padding: const EdgeInsets.all(16),
+          useActions: false,
+          previewPageMargin: const EdgeInsets.all(20),
+          maxPageWidth: 800,
+          canChangeOrientation: false,
+          canChangePageFormat: false,
+          pdfPreviewPageDecoration: const BoxDecoration(color: Colors.white),
+          build: (_) async {
+            final doc = await _service.generateLabel(
+              product: widget.product,
+              pageFormat: paperSizeCubit.state,
+              orientation: orientationCubit.state,
+              selectedBatch: _selectedBatch,
+              showBarcode: _showBarcode,
+              showPrice: _showPrice,
+              showBatch: _showBatch,
+              showColor: _showColor,
+              showUnit: _showUnit,
+            );
+            return doc.save();
+          },
+        ),
       ),
     );
   }

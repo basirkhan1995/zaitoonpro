@@ -49,7 +49,7 @@ class _DesktopState extends State<_Desktop> {
     final theme = Theme.of(context);
 
     return Container(
-      width: 270,
+      width: 220,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -85,12 +85,12 @@ class _DesktopState extends State<_Desktop> {
           /// NAME
           Text(
             name,
-            style: theme.textTheme.titleLarge?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
 
-          const SizedBox(height: 5),
+          const SizedBox(height: 2),
 
           /// ROLE
           Text(
@@ -98,16 +98,16 @@ class _DesktopState extends State<_Desktop> {
             style: TextStyle(
               color: theme.colorScheme.primary,
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: 12,
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
 
           /// DESCRIPTION
           Text(
             description,
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: theme.textTheme.bodySmall?.copyWith(
               height: 1.5,
               color: theme.colorScheme.onSurface.withValues(alpha: .75),
             ),

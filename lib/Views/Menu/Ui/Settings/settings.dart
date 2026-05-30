@@ -63,12 +63,12 @@ class _Desktop extends StatelessWidget {
             //     screen: const ServicesView(),
             //   ),
 
-            if ((login.usrRole == "Super") || (login.hasPermission(72) ?? false))
-              ZTabItem(
-                value: SettingsTabName.txnTypes,
-                label: AppLocalizations.of(context)!.transactionType,
-                screen: const TxnTypesView(),
-              ),
+            // if ((login.usrRole == "Super") || (login.hasPermission(72) ?? false))
+            //   ZTabItem(
+            //     value: SettingsTabName.txnTypes,
+            //     label: AppLocalizations.of(context)!.transactionType,
+            //     screen: const TxnTypesView(),
+            //   ),
 
             if (login.hasPermission(73) ?? false)
             ZTabItem(

@@ -5,7 +5,7 @@ import 'localization_services.dart';
 
 class ApiServices {
   static const String baseUrl = "http://52.202.21.195/rapi";
-  static const String imageUrl = "http://ec2-52-202-21-195.compute-1.amazonaws.com/images/personal/";
+  static const String imageUrl = "http://52.202.21.195/images/personal/";
   ApiServices() {
     _dio = Dio(
       BaseOptions(

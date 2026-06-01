@@ -20,7 +20,6 @@ import '../../../../Features/Widgets/outline_button.dart';
 import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
 import '../Report/Ui/Stock/Cardx/Ui/cardx.dart';
-import 'Ui/Adjustment/adjustment.dart';
 import 'Ui/GoodsShift/goods_shift.dart';
 import 'Ui/Orders/bloc/orders_bloc.dart';
 import 'bloc/stock_tab_bloc.dart';
@@ -214,13 +213,13 @@ class _StockViewState extends State<StockView> {
                     screen: const GoodsShiftView(),
                     icon: Icons.compare_arrows,
                   ),
-                if (login.hasPermission(55) ?? false)
-                  ZTabItem(
-                    value: StockTabsName.adjustment,
-                    label: locale.adjustment,
-                    screen: const AdjustmentView(),
-                    icon: Icons.tune,
-                  ),
+                // if (login.hasPermission(55) ?? false)
+                //   ZTabItem(
+                //     value: StockTabsName.adjustment,
+                //     label: locale.adjustment,
+                //     screen: const AdjustmentView(),
+                //     icon: Icons.tune,
+                //   ),
               ];
 
               final available = tabs.map((t) => t.value).toList();
@@ -292,13 +291,13 @@ class _StockViewState extends State<StockView> {
                     screen: const GoodsShiftView(),
                     icon: Icons.compare_arrows,
                   ),
-                if (login.hasPermission(55) ?? false)
-                  ZTabItem(
-                    value: StockTabsName.adjustment,
-                    label: locale.adjustment,
-                    screen: const AdjustmentView(),
-                    icon: Icons.tune,
-                  ),
+                // if (login.hasPermission(55) ?? false)
+                //   ZTabItem(
+                //     value: StockTabsName.adjustment,
+                //     label: locale.adjustment,
+                //     screen: const AdjustmentView(),
+                //     icon: Icons.tune,
+                //   ),
               ];
 
               final available = tabs.map((t) => t.value).toList();
@@ -370,23 +369,28 @@ class _StockViewState extends State<StockView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          spacing: 8,
+          spacing: 12,
           children: [
             // Toggle arrow
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 0),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisAlignment: _isExpanded
                     ? MainAxisAlignment.spaceBetween
                     : MainAxisAlignment.start,
                 children: [
                   if (_isExpanded)
                     Flexible(
-                      child: Text(
-                        locale.shortcuts,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleSmall,
+                      child: Wrap(
+                        spacing: 5,
+                        children: [
+                          Icon(Icons.shopify_rounded, size: 20, color: color.outline),
+                          Text(
+                            locale.stock,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ],
                       ),
                     ),
                   Container(
@@ -412,19 +416,6 @@ class _StockViewState extends State<StockView> {
                 ],
               ),
             ),
-
-            if (_isExpanded) ...[
-              Wrap(
-                spacing: 5,
-                children: [
-                  Icon(Icons.shopify_rounded, size: 20, color: color.outline),
-                  Text(
-                    locale.invoiceTitle,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ],
-              ),
-            ],
 
             if (login.hasPermission(56) ?? false)
               ZOutlineButton(
@@ -465,20 +456,6 @@ class _StockViewState extends State<StockView> {
             //     onPressed: () => getInvoiceById(context),
             //   ),
 
-            if (_isExpanded) ...[
-              const SizedBox(height: 3),
-              Wrap(
-                spacing: 5,
-                children: [
-                  Icon(Icons.inventory_2_outlined, size: 18, color: color.outline),
-                  Text(
-                    locale.stock,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ],
-              ),
-            ],
-
             if (login.hasPermission(59) ?? false)
               ZOutlineButton(
                 backgroundColor: color.primary.withValues(alpha: opacity),
@@ -489,15 +466,15 @@ class _StockViewState extends State<StockView> {
                 onPressed: () => Utils.goto(context, AddGoodsShiftView()),
               ),
 
-            if (login.hasPermission(60) ?? false)
-              ZOutlineButton(
-                backgroundColor: color.primary.withValues(alpha: opacity),
-                toolTip: "F8 - ${locale.adjustment}",
-                label: Text(locale.adjustment),
-                icon: Icons.settings_backup_restore_rounded,
-                width: double.infinity,
-                onPressed: () => Utils.goto(context, AddAdjustmentView()),
-              ),
+            // if (login.hasPermission(60) ?? false)
+            //   ZOutlineButton(
+            //     backgroundColor: color.primary.withValues(alpha: opacity),
+            //     toolTip: "F8 - ${locale.adjustment}",
+            //     label: Text(locale.adjustment),
+            //     icon: Icons.settings_backup_restore_rounded,
+            //     width: double.infinity,
+            //     onPressed: () => Utils.goto(context, AddAdjustmentView()),
+            //   ),
 
             if (_isExpanded) ...[
               const SizedBox(height: 3),

@@ -57,7 +57,6 @@ class _BaseProductsViewState extends State<_BaseProductsView> {
   @override
   void dispose() {
     searchController.dispose();
-    context.read<SingleProductBloc>().add(ClearSingleProductEvent());
     super.dispose();
   }
 

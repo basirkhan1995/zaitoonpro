@@ -310,8 +310,8 @@ class InvoicePrintService extends PrintServices {
 
               pw.Container(
                 padding: const pw.EdgeInsets.symmetric(
-                  vertical: 4,
-                  horizontal: 2,
+                  vertical: 2,
+                  horizontal: 1,
                 ),
                 decoration: pw.BoxDecoration(
                   border: pw.Border(
@@ -326,7 +326,7 @@ class InvoicePrintService extends PrintServices {
                       width: 14,
                       child: zText(
                         text: '#',
-                        fontSize: 7,
+                        fontSize: 6,
                         fontWeight: pw.FontWeight.bold,
                         textAlign: pw.TextAlign.center,
                       ),
@@ -335,7 +335,7 @@ class InvoicePrintService extends PrintServices {
                     pw.SizedBox(width: 2),
 
                     pw.Expanded(
-                      flex: 6,
+                      flex: 5,
                       child: zText(
                         text: tr(
                           text: 'items',
@@ -404,18 +404,18 @@ class InvoicePrintService extends PrintServices {
 
                 return pw.Container(
                   padding: const pw.EdgeInsets.symmetric(
-                    vertical: 3,
-                    horizontal: 2,
+                    vertical: 2,
+                    horizontal: 1,
                   ),
                   child: pw.Row(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
 
                       pw.SizedBox(
-                        width: 14,
+                        width: 12,
                         child: zText(
                           text: "${index + 1}",
-                          fontSize: 7,
+                          fontSize: 6,
                           textAlign: pw.TextAlign.center,
                         ),
                       ),
@@ -423,7 +423,7 @@ class InvoicePrintService extends PrintServices {
                       pw.SizedBox(width: 2),
 
                       pw.Expanded(
-                        flex: 6,
+                        flex: 5,
                         child: zText(
                           textAlign: language == "en"? pw.TextAlign.left : pw.TextAlign.right,
                           text: item.productName,

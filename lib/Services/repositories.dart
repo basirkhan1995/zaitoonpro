@@ -2831,6 +2831,7 @@ class Repositories {
       throw Exception(response.data['msg']);
     }
 
+
     // Parse as list
     if (response.data is List) {
       return List<AttendanceRecord>.from(

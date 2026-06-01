@@ -2787,7 +2787,7 @@ class Repositories {
         '${now.hour.toString().padLeft(2, '0')}-${now.minute.toString().padLeft(
         2, '0')}';
 
-    final filePath = '${backupDir.path}/zaitoon_backup_$formattedDate.db';
+    final filePath = '${backupDir.path}/zaitoon_backup_$formattedDate.sql';
 
     await api.downloadFile(
       endpoint: "/setting/backupLocally.php",

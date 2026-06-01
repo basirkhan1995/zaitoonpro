@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zaitoonpro/Features/Generic/underline_searchable_textfield.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/thousand_separator.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
@@ -13,16 +11,16 @@ import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/bloc/storag
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/model/storage_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/bloc/products_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Stock/Ui/Products/model/product_stock_model.dart';
-import '../../../../../../../Features/Other/cover.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../../Features/Generic/rounded_searchable_textfield.dart';
+import '../../../../../../Features/Generic/stock_product_field.dart';
+import '../../../../../../Features/Generic/underline_searchable_textfield.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import '../../../Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import '../../../Stakeholders/Ui/Accounts/model/acc_model.dart';
 import 'bloc/goods_shift_bloc.dart';
 import 'model/shift_model.dart';
-
 
 class AddGoodsShiftView extends StatefulWidget {
   const AddGoodsShiftView({super.key});
@@ -36,7 +34,6 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
   final List<TextEditingController> _fromStorageControllers = [];
   final List<TextEditingController> _toStorageControllers = [];
   final List<TextEditingController> _qtyControllers = [];
-  final List<TextEditingController> _purchasePriceControllers = [];
 
   final TextEditingController _accountController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -52,6 +49,11 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
   bool _isSaving = false;
   bool _hasError = false;
   String? _errorMessage;
+
+  // Focus nodes for form navigation
+  final List<List<FocusNode>> _rowFocusNodes = [];
+  final FocusNode _accountFocusNode = FocusNode();
+  final FocusNode _amountFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -83,11 +85,15 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
     for (final controller in _qtyControllers) {
       controller.dispose();
     }
-    for (final controller in _purchasePriceControllers) {
-      controller.dispose();
+    for (final nodes in _rowFocusNodes) {
+      for (final node in nodes) {
+        node.dispose();
+      }
     }
     _accountController.dispose();
     _amountController.dispose();
+    _accountFocusNode.dispose();
+    _amountFocusNode.dispose();
     super.dispose();
   }
 
@@ -96,7 +102,6 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
     _fromStorageControllers.add(TextEditingController());
     _toStorageControllers.add(TextEditingController());
     _qtyControllers.add(TextEditingController(text: "1"));
-    _purchasePriceControllers.add(TextEditingController(text: "0.00"));
 
     _selectedProducts.add(null);
     _selectedFromStorages.add(null);
@@ -108,7 +113,16 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
       toStorageId: 0,
       stkQuantity: "1",
       stkPurPrice: "0.00",
+      stkLandedPurPrice: "0.00",
+      stkQtyInBatch: "0",
     ));
+
+    // Add focus nodes for new row (product, qty, toStorage)
+    _rowFocusNodes.add([
+      FocusNode(), // Product
+      FocusNode(), // Quantity
+      FocusNode(), // To Storage
+    ]);
   }
 
   void _removeItem(int index) {
@@ -122,11 +136,11 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
       _fromStorageControllers.removeAt(index);
       _toStorageControllers.removeAt(index);
       _qtyControllers.removeAt(index);
-      _purchasePriceControllers.removeAt(index);
       _selectedProducts.removeAt(index);
       _selectedFromStorages.removeAt(index);
       _selectedToStorages.removeAt(index);
       _records.removeAt(index);
+      _rowFocusNodes.removeAt(index);
     });
   }
 
@@ -136,6 +150,8 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
     int? toStorage,
     double? quantity,
     double? purchasePrice,
+    double? landedPurPrice,
+    int? qtyInBatch,
   }) {
     final record = _records[index];
 
@@ -145,15 +161,17 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
       toStorage: toStorage ?? record.toStorageId,
       stkQuantity: quantity?.toStringAsFixed(2) ?? record.stkQuantity,
       stkPurPrice: purchasePrice?.toStringAsFixed(2) ?? record.stkPurPrice,
+      stkLandedPurPrice: landedPurPrice?.toStringAsFixed(2) ?? record.stkLandedPurPrice,
+      stkQtyInBatch: qtyInBatch?.toString() ?? record.stkQtyInBatch,
     );
 
     setState(() {});
   }
 
-  double get _totalValue {
+  double get _totalQuantity {
     double total = 0.0;
     for (final record in _records) {
-      total += record.totalValue;
+      total += record.quantity;
     }
     return total;
   }
@@ -208,10 +226,10 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                   _fromStorageControllers.clear();
                   _toStorageControllers.clear();
                   _qtyControllers.clear();
-                  _purchasePriceControllers.clear();
                   _selectedProducts.clear();
                   _selectedFromStorages.clear();
                   _selectedToStorages.clear();
+                  _rowFocusNodes.clear();
                   _addEmptyItem();
                   _accountController.clear();
                   _amountController.clear();
@@ -250,17 +268,19 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                         flex: 3,
                         child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
                           controller: _accountController,
+                          focusNode: _accountFocusNode,
                           title: tr.accounts,
                           hintText: tr.accNameOrNumber,
                           bloc: context.read<AccountsBloc>(),
                           fetchAllFunction: (bloc) => bloc.add(
-                            LoadAccountsFilterEvent(include: "11,12",ccy: baseCurrency,exclude: ""),
+                            LoadAccountsFilterEvent(include: "11,12", ccy: baseCurrency, exclude: ""),
                           ),
                           searchFunction: (bloc, query) => bloc.add(
                             LoadAccountsFilterEvent(
                                 include: "11,12",
                                 ccy: baseCurrency,
-                                input: query, exclude: ""
+                                input: query,
+                                exclude: ""
                             ),
                           ),
                           validator: (value) {
@@ -270,10 +290,7 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                             return null;
                           },
                           itemBuilder: (context, account) => Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 5,
-                              vertical: 5,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -306,6 +323,7 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                             setState(() {
                               _accountController.text = value.accNumber.toString();
                             });
+                            _amountFocusNode.requestFocus();
                           },
                           noResultsText: tr.noDataFound,
                           showClearButton: true,
@@ -316,11 +334,17 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                         child: ZTextFieldEntitled(
                           title: tr.amount,
                           controller: _amountController,
+                          focusNode: _amountFocusNode,
                           hint: '0.00',
                           inputFormat: [
                             FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                             SmartThousandsDecimalFormatter(),
                           ],
+                          onSubmit: (_) {
+                            if (_rowFocusNodes.isNotEmpty && _rowFocusNodes[0].isNotEmpty) {
+                              _rowFocusNodes[0][0].requestFocus();
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -330,6 +354,8 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
 
                   // Items header
                   _buildItemsHeader(tr),
+
+                  const SizedBox(height: 8),
 
                   // Items list
                   ...List.generate(_records.length, (index) {
@@ -425,123 +451,132 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
       ),
       child: Row(
         children: [
-          SizedBox(width: 40, child: Text('#', style: TextStyle(color: color.surface))),
-          Expanded(flex: 5, child: Text(tr.products, style: TextStyle(color: color.surface))),
-          Expanded(flex: 3, child: Text(tr.fromStorage, style: TextStyle(color: color.surface))),
-          Expanded(flex: 3, child: Text(tr.toStorage, style: TextStyle(color: color.surface))),
-          SizedBox(width: 80, child: Text(tr.qty, style: TextStyle(color: color.surface))),
-          SizedBox(width: 120, child: Text(tr.costPrice, style: TextStyle(color: color.surface))),
-          SizedBox(width: 120, child: Text(tr.totalCost, style: TextStyle(color: color.surface))),
-          SizedBox(width: 60, child: Text(tr.actions, style: TextStyle(color: color.surface))),
-        ],
+          const SizedBox(width: 40, child: Text('#', textAlign: TextAlign.center)),
+          Expanded(flex: 5, child: Text(tr.products, textAlign: TextAlign.left)),
+          Expanded(flex: 3, child: Text(tr.fromStorage, textAlign: TextAlign.left)),
+          Expanded(flex: 3, child: Text(tr.toStorage, textAlign: TextAlign.left)),
+           SizedBox(width: 80, child: Text(tr.qty, textAlign: TextAlign.center)),
+           SizedBox(width: 60, child: Text(tr.actions, textAlign: TextAlign.center)),
+        ].map((child) => DefaultTextStyle(
+          style: TextStyle(color: color.surface),
+          child: child,
+        )).toList(),
       ),
     );
   }
 
   Widget _buildItemRow(int index, AppLocalizations tr) {
     final color = Theme.of(context).colorScheme;
-    final record = _records[index];
-    final textTheme = Theme.of(context).textTheme;
-    TextStyle? title = textTheme.titleSmall?.copyWith(color: color.primary);
+    final nodes = _rowFocusNodes[index];
+    // Remove this line - it's not being used
+    // final record = _records[index];
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: color.outline.withAlpha(50))),
-          color: index.isOdd? color.outline.withValues(alpha: .06) : Colors.transparent
+        border: Border(bottom: BorderSide(color: color.outline.withAlpha(50))),
+        color: index.isOdd ? color.outline.withValues(alpha: .06) : Colors.transparent,
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          SizedBox(width: 40, child: Text((index + 1).toString())),
+          // Row number
+          SizedBox(
+            width: 40,
+            child: Text(
+              (index + 1).toString(),
+              textAlign: TextAlign.center,
+            ),
+          ),
 
-          // Product
+          // Product - Using ProductSearchField
           Expanded(
             flex: 5,
-            child: GenericUnderlineTextfield<ProductsStockModel, ProductsBloc, ProductsState>(
+            child: ProductSearchField<ProductsStockModel, ProductsBloc, ProductsState>(
               controller: _productControllers[index],
               hintText: tr.products,
+              focusNode: nodes[0],
               bloc: context.read<ProductsBloc>(),
+              searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent(input: query)),
               fetchAllFunction: (bloc) => bloc.add(LoadProductsStockEvent()),
-              searchFunction: (bloc, query) => bloc.add(LoadProductsStockEvent()),
-              itemBuilder: (context, product) => ListTile(
-                title: Text(product.proName ?? ''),
-                subtitle: Wrap(
-                  children: [
-                    ZCover(radius: 0,child: Text(tr.costPrice,style: title),),
-                    ZCover(radius: 0,child: Text(product.averagePrice?.toAmount()??"")),
-                  ],
-                ),
-                trailing: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(product.available?.toAmount()??"",style: TextStyle(fontSize: 18),),
-                    Text(product.stgName??"",style: TextStyle(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),),
-                  ],
-                ),
-              ),
-              itemToString: (product) => product.proName ?? '',
-              stateToLoading: (state) => state is ProductsLoadingState,
               stateToItems: (state) {
                 if (state is ProductsStockLoadedState) return state.products;
                 return [];
               },
-              onSelected: (product) {
+              stateToLoading: (state) => state is ProductsLoadingState,
+              itemToString: (product) => product.proName ?? '',
+              getProductId: (product) => product.proId?.toString(),
+              getProductName: (product) => product.proName,
+              getProductCode: (product) => product.proCode,
+              getStorageId: (product) => product.stkStorage,
+              getStorageName: (product) => product.stgName,
+              getAvailable: (product) => product.available,
+              getBatch: (product) => product.stkQtyInBatch ?? 0,
+              getLandedPrice: (product) => product.recentLandedPurPrice,
+              getProductUnit: (product) => product.proUnit,
+              getAveragePrice: (product) => product.averagePrice,
+              getRecentPrice: (product) => product.recentPurPrice,
+              getSellPrice: (product) => product.sellPrice,
+              onProductSelected: (product) {
+                if (product == null) return;
+
+                // Extract all required values from the selected product
                 final purchasePrice = double.tryParse(
                   product.averagePrice?.replaceAll(',', '') ?? "0.0",
                 ) ?? 0.0;
 
+                final landedPurPrice = double.tryParse(
+                  product.recentLandedPurPrice?.replaceAll(',', '') ?? "0.0",
+                ) ?? 0.0;
+
+                final qtyInBatch = product.stkQtyInBatch ?? 0;
+
                 _selectedProducts[index] = product;
                 _fromStorageControllers[index].text = product.stgName ?? '';
-                _purchasePriceControllers[index].text = purchasePrice.toAmount();
 
-                _updateRecord(index,
+                // Update the record with all product data
+                _updateRecord(
+                  index,
                   productId: product.proId,
                   fromStorage: product.stkStorage,
                   purchasePrice: purchasePrice,
+                  landedPurPrice: landedPurPrice,
+                  qtyInBatch: qtyInBatch,
                 );
               },
-              title: '',
-              enabled: !_isSaving,
+              onSubmit: () {
+                // Move to quantity field
+                if (nodes.length > 1) {
+                  nodes[1].requestFocus();
+                }
+              },
+              openOverlayOnFocus: true,
+              showAllOnFocus: true,
+              noResultsText: tr.noDataFound,
             ),
           ),
 
-          // From Storage
+          // From Storage (Auto-filled from product, read-only)
           Expanded(
             flex: 3,
-            child: GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
+            child: TextField(
               controller: _fromStorageControllers[index],
-              hintText: tr.fromStorage,
-              enabled: false,
-              bloc: context.read<StorageBloc>(),
-              fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
-              searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
-              itemBuilder: (context, stg) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(stg.stgName ?? ''),
+              readOnly: true,
+              decoration: const InputDecoration(
+                hintText: 'From Storage',
+                border: InputBorder.none,
+                isDense: true,
               ),
-              itemToString: (stg) => stg.stgName ?? '',
-              stateToLoading: (state) => state is StorageLoadingState,
-              stateToItems: (state) {
-                if (state is StorageLoadedState) return state.storage;
-                return [];
-              },
-              onSelected: (storage) {
-                _selectedFromStorages[index] = storage;
-                _updateRecord(index, fromStorage: storage.stgId);
-              },
-              title: '',
             ),
           ),
 
-          // To Storage
+          // To Storage - Searchable storage selection
           Expanded(
             flex: 3,
             child: GenericUnderlineTextfield<StorageModel, StorageBloc, StorageState>(
               controller: _toStorageControllers[index],
               hintText: tr.toStorage,
+              focusNode: nodes[2],
               bloc: context.read<StorageBloc>(),
               fetchAllFunction: (bloc) => bloc.add(LoadStorageEvent()),
               searchFunction: (bloc, query) => bloc.add(LoadStorageEvent()),
@@ -569,12 +604,13 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
             width: 80,
             child: TextField(
               controller: _qtyControllers[index],
+              focusNode: nodes[1],
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
               ],
-              decoration: InputDecoration(
-                hintText: tr.qty,
+              decoration: const InputDecoration(
+                hintText: 'Qty',
                 border: InputBorder.none,
                 isDense: true,
               ),
@@ -582,49 +618,21 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
                 final qty = double.tryParse(value) ?? 0.0;
                 _updateRecord(index, quantity: qty);
               },
-              enabled: !_isSaving,
-            ),
-          ),
-
-          // Purchase Price (Cost Price)
-          SizedBox(
-            width: 120,
-            child: TextField(
-              controller: _purchasePriceControllers[index],
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-                SmartThousandsDecimalFormatter(),
-              ],
-              decoration: InputDecoration(
-                hintText: tr.costPrice,
-                border: InputBorder.none,
-                isDense: true,
-              ),
-              onChanged: (value) {
-                final price = double.tryParse(value.replaceAll(',', '')) ?? 0.0;
-                _updateRecord(index, purchasePrice: price);
+              onSubmitted: (_) {
+                // Move to toStorage field
+                if (nodes.length > 2) {
+                  nodes[2].requestFocus();
+                } else {
+                  // Add new row if this is the last field
+                  _addEmptyItem();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (index + 1 < _rowFocusNodes.length) {
+                      _rowFocusNodes[index + 1][0].requestFocus();
+                    }
+                  });
+                }
               },
               enabled: !_isSaving,
-            ),
-          ),
-
-          // Total Value
-          SizedBox(
-            width: 120,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  record.totalValue.toAmount(),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: color.primary,
-                  ),
-                ),
-              ],
             ),
           ),
 
@@ -656,7 +664,7 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(tr.summary, style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(tr.summary, style: const TextStyle(fontWeight: FontWeight.bold)),
               Icon(Icons.summarize, size: 22, color: color.primary),
             ],
           ),
@@ -667,32 +675,23 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
             label: tr.totalItems,
             value: _records.length.toDouble(),
             isAmount: false,
-            isPercent: false,
           ),
 
-          // Total Value
+          // Total Quantity
           _buildSummaryRow(
-            label: tr.totalTitle,
-            value: _totalValue,
-            isPercent: false,
-            isBold: true,
+            label: tr.totalQty,
+            value: _totalQuantity,
+            isAmount: false,
           ),
 
           Divider(color: color.outline.withValues(alpha: .2)),
 
           // Account and Amount from form
-          if (_accountController.text.isNotEmpty)
+          if (_accountController.text.isNotEmpty && _amountController.text.isNotEmpty)
             _buildSummaryRow(
-              label: tr.accounts,
-              value: double.tryParse(_accountController.text.replaceAll(',', '')) ?? 0.0,
-              isPercent: false,
-            ),
-
-          if (_amountController.text.isNotEmpty)
-            _buildSummaryRow(
-              label: tr.amount,
+              label: '${tr.accounts} / ${tr.amount}',
               value: double.tryParse(_amountController.text.replaceAll(',', '')) ?? 0.0,
-              isPercent: false,
+              isAmount: true,
             ),
         ],
       ),
@@ -702,8 +701,6 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
   Widget _buildSummaryRow({
     required String label,
     required double value,
-    bool isBold = false,
-    bool isPercent = false,
     bool isAmount = true,
   }) {
     return Padding(
@@ -713,18 +710,13 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              fontSize: isBold ? 16 : 14,
-            ),
+            style: const TextStyle(fontSize: 14),
           ),
           Text(
-            isPercent
-                ? "${value.toAmount(decimal: 2)}%"
-                : isAmount? "${value.toAmount()} $baseCurrency" : value.toAmount(),
+            isAmount ? "${value.toAmount()} $baseCurrency" : value.toAmount(decimal: 0),
             style: TextStyle(
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              fontSize: isBold ? 16 : 14,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
@@ -741,10 +733,9 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
 
     final accountText = _accountController.text.trim();
     final amountText = _amountController.text.trim();
-// Case 1: If both are empty → allow (no error, continue)
-    if (accountText.isEmpty && amountText.isEmpty) {
-      // do nothing, just continue
-    } else if (amountText.isNotEmpty && accountText.isEmpty) {
+
+    // Validate account and amount
+    if (amountText.isNotEmpty && accountText.isEmpty) {
       Utils.showOverlayMessage(
         context,
         message: 'Please enter account number',
@@ -760,38 +751,52 @@ class _AddGoodsShiftViewState extends State<AddGoodsShiftView> {
       return;
     }
 
-    // Validate items
+    // Validate all items have required data
     for (var i = 0; i < _records.length; i++) {
       final record = _records[i];
+
       if (record.stkProduct == null || record.stkProduct == 0) {
         Utils.showOverlayMessage(context, message: 'Please select a product for item ${i + 1}', isError: true);
         return;
       }
+
       if (record.fromStorageId == null || record.fromStorageId == 0) {
         Utils.showOverlayMessage(context, message: 'Please select from storage for item ${i + 1}', isError: true);
         return;
       }
+
       if (record.toStorageId == null || record.toStorageId == 0) {
         Utils.showOverlayMessage(context, message: 'Please select to storage for item ${i + 1}', isError: true);
         return;
       }
+
       if (record.fromStorageId == record.toStorageId) {
         Utils.showOverlayMessage(context, message: 'From and to storage cannot be same for item ${i + 1}', isError: true);
         return;
       }
+
       final qty = record.quantity;
       if (qty <= 0) {
         Utils.showOverlayMessage(context, message: 'Please enter a valid quantity for item ${i + 1}', isError: true);
         return;
       }
+
+      // Validate purchase price
       final price = record.purchasePrice;
       if (price <= 0) {
-        Utils.showOverlayMessage(context, message: 'Please enter a valid price for item ${i + 1}', isError: true);
+        Utils.showOverlayMessage(context, message: 'Please enter a valid purchase price for item ${i + 1}', isError: true);
         return;
       }
     }
 
-    // Create the goods shift
+    // Log the records being sent for debugging
+    debugPrint('Sending goods shift with ${_records.length} items');
+    for (var i = 0; i < _records.length; i++) {
+      final record = _records[i];
+      debugPrint('Item ${i + 1}: Product=${record.stkProduct}, From=${record.fromStorageId}, To=${record.toStorageId}, Qty=${record.stkQuantity}, Batch=${record.stkQtyInBatch}, PurPrice=${record.stkPurPrice}, LandedPurPrice=${record.stkLandedPurPrice}');
+    }
+
+    // Create the goods shift with all required fields
     context.read<GoodsShiftBloc>().add(AddGoodsShiftEvent(
       usrName: _userName!,
       account: _accountController.text,

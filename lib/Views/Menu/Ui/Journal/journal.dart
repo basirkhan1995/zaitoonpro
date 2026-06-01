@@ -4530,7 +4530,7 @@ class _DesktopViewState extends State<_DesktopView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
-                        spacing: 6,
+                        spacing: 10,
                         children: [
                           /// Toggle arrow
                           Padding(

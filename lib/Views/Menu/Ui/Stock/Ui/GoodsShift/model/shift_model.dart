@@ -122,6 +122,8 @@ class ShiftRecord {
   final String? stkQuantity;
   final String? stkPurPrice;
   final String? stkSalePrice;
+  final String? stkLandedPurPrice;
+  final String? stkQtyInBatch;
 
   ShiftRecord({
     this.stkID,
@@ -136,6 +138,8 @@ class ShiftRecord {
     this.stkQuantity,
     this.stkPurPrice,
     this.stkSalePrice,
+    this.stkLandedPurPrice,
+    this.stkQtyInBatch,
   });
 
   ShiftRecord copyWith({
@@ -148,6 +152,8 @@ class ShiftRecord {
     String? stkQuantity,
     String? stkPurPrice,
     String? stkSalePrice,
+    String? stkLandedPurPrice,
+    String? stkQtyInBatch,
   }) => ShiftRecord(
     stkID: stkID ?? this.stkID,
     stkOrder: stkOrder ?? this.stkOrder,
@@ -158,6 +164,8 @@ class ShiftRecord {
     stkQuantity: stkQuantity ?? this.stkQuantity,
     stkPurPrice: stkPurPrice ?? this.stkPurPrice,
     stkSalePrice: stkSalePrice ?? this.stkSalePrice,
+    stkLandedPurPrice: stkLandedPurPrice ?? this.stkLandedPurPrice,
+    stkQtyInBatch: stkQtyInBatch ?? this.stkQtyInBatch,
   );
 
   factory ShiftRecord.fromMap(Map<String, dynamic> json) => ShiftRecord(
@@ -173,6 +181,8 @@ class ShiftRecord {
     stkQuantity: json["stkQuantity"],
     stkPurPrice: json["stkPurPrice"],
     stkSalePrice: json["stkSalePrice"],
+    stkLandedPurPrice: json["stkLandedPurPrice"],
+    stkQtyInBatch: json["stkQtyInBatch"]?.toString(),
   );
 
   Map<String, dynamic> toMap() => {
@@ -184,12 +194,15 @@ class ShiftRecord {
     "toStorage": toStorageId,
     "stkQuantity": stkQuantity,
     "stkPurPrice": stkPurPrice,
-    "stkSalePrice": stkSalePrice,
+    "stkLandedPurPrice": stkLandedPurPrice,
+    "stkQtyInBatch": stkQtyInBatch,
   };
 
   double get quantity => double.tryParse(stkQuantity ?? "0") ?? 0;
   double get purchasePrice => double.tryParse(stkPurPrice ?? "0") ?? 0;
   double get salePrice => double.tryParse(stkSalePrice ?? "0") ?? 0;
+  double get landedPurPrice => double.tryParse(stkLandedPurPrice ?? "0") ?? 0;
+  int get qtyInBatch => int.tryParse(stkQtyInBatch ?? "0") ?? 0;
   double get totalValue => quantity * purchasePrice;
   bool get isOutEntry => stkEntryType == "OUT";
   bool get isInEntry => stkEntryType == "IN";

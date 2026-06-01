@@ -1215,7 +1215,7 @@ class _DesktopState extends State<_Desktop> {
                     items: [
                       StatusItem(null, tr.all),
                       StatusItem(1, tr.available),
-                      StatusItem(0, tr.outOfStock),
+                      StatusItem(2, tr.outOfStock),
                     ],
                     value: isNoStock,
                     onChanged: (e) {
@@ -1302,6 +1302,8 @@ class _DesktopState extends State<_Desktop> {
                     return sum + value;
                   });
 
+
+
                   if(state.stock.isEmpty){
                     return NoDataWidget(
                       title: tr.noData,
@@ -1319,6 +1321,7 @@ class _DesktopState extends State<_Desktop> {
                             final stk = state.stock[index];
                             final color = Theme.of(context).colorScheme;
                             final qty = int.tryParse(stk.available??"");
+
                             TextStyle? style = TextStyle(
                                 color: qty == 0 || qty! < 0 ? Colors.red : color.onSurface,
                                 fontWeight: FontWeight.bold,
@@ -1345,7 +1348,7 @@ class _DesktopState extends State<_Desktop> {
                                     SizedBox(width: 120, child: Text("${stk.recentPurPrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 120, child: Text("${stk.sellPrice.toAmount()} $baseCcy")),
                                     SizedBox(width: 120, child: Text("${stk.averagePrice.toAmount()} $baseCcy")),
-                                    SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0),style: style)),
+                                    SizedBox(width: 120, child: Text(stk.available.toAmount(decimal: 0) == "0"? "No Stock" : stk.available.toAmount(decimal: 0),style: style)),
                                     SizedBox(width: 120, child: Text(stk.batch.toAmount(decimal: 0),style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 80, child: Text(stk.proUnit??"",style: Theme.of(context).textTheme.titleMedium)),
                                     SizedBox(width: 150, child: Text("${stk.totalValue.toAmount(decimal: 2)} $baseCcy",style: Theme.of(context).textTheme.titleMedium)),

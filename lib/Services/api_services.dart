@@ -198,8 +198,6 @@ class ApiServices {
     }
   }
 
-  // Add this method to your ApiServices class after the uploadFile method:
-
 /* -------------------------------------------------------------------------- */
 /*                              FILE DOWNLOAD                                 */
 /* -------------------------------------------------------------------------- */

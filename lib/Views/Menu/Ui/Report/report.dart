@@ -22,6 +22,8 @@ import 'Ui/Finance/ArApReport/Receivables/receivables.dart';
 import 'Ui/Finance/ExchangeRate/exchange_rate.dart';
 import 'Ui/Finance/Treasury/all_cash.dart';
 import 'Ui/Finance/TrialBalance/trial_balance.dart';
+import 'Ui/Projects/ProjectList/projects_report.dart';
+import 'Ui/Projects/ServicesReport/Ui/services_report.dart';
 import 'Ui/Stock/StockAvailability/product_report.dart';
 import 'Ui/TransactionRef/transaction_ref.dart';
 import 'Ui/TxnReport/txn_report.dart';
@@ -60,6 +62,10 @@ enum ActionKey {
   users,
   individualsReport,
   attendance,
+
+  //Projects
+  projects,
+  services
 
 }
 class ReportView extends StatelessWidget {
@@ -146,6 +152,13 @@ class _DesktopState extends State<_Desktop> {
         {"title": tr.attendance, "icon": Icons.timer, "action": ActionKey.attendance},
     ];
 
+    final List<Map<String, dynamic>> projectsButtons = [
+      if(login.hasPermission(114) ?? false)
+        {"title": tr.projects, "icon": Icons.folder_open_rounded, "action": ActionKey.projects},
+      if(login.hasPermission(115) ?? false)
+        {"title": tr.services, "icon": Icons.access_time_rounded, "action": ActionKey.services},
+    ];
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Container(
@@ -176,6 +189,11 @@ class _DesktopState extends State<_Desktop> {
               SectionTitle(title: "${tr.users} & ${tr.activities}"),
               SizedBox(height: 8),
               _buildButtonGroup(activitiesButtons, color),
+
+              const SizedBox(height: 15),
+              SectionTitle(title: tr.projects),
+              SizedBox(height: 8),
+              _buildButtonGroup(projectsButtons, color),
 
             ],
           ),
@@ -283,6 +301,10 @@ class _DesktopState extends State<_Desktop> {
       case ActionKey.users: Utils.goto(context, UsersReportView());
       case ActionKey.userLog: Utils.goto(context, UserLogReportView());
       case ActionKey.attendance: Utils.goto(context, AttendanceReportView());
+
+      // Projects
+      case ActionKey.projects: Utils.goto(context, ProjectsReportView());
+      case ActionKey.services: Utils.goto(context, ServicesReportView());
 
     }
   }

@@ -19,6 +19,7 @@ import '../../Localizations/l10n/translations/app_localizations.dart';
 import 'Ui/Dashboard/dashboard.dart';
 import 'Ui/Finance/finance.dart';
 import 'Ui/Journal/journal.dart';
+import 'Ui/Projects/Ui/AllProjects/all_projects.dart';
 import 'Ui/Report/report.dart';
 import 'Ui/Settings/Ui/Company/bloc/company_settings_menu_bloc.dart';
 import 'Ui/Settings/bloc/settings_tab_bloc.dart';
@@ -163,6 +164,15 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
       ),
     ],
     ],
+
+      if(login.hasPermission(46) ?? false)...[
+          MenuDefinition(
+            value: MenuName.projects,
+            label: AppLocalizations.of(context)!.projects,
+            screen: const AllProjectsView(),
+            icon: Icons.folder_open_rounded,
+          ),
+      ],
 
     if(login.hasPermission(62) ?? false)...[
       MenuDefinition(
@@ -1123,6 +1133,8 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
         return const HrTabView();
       case MenuName.stock:
         return const StockView();
+      case MenuName.projects:
+        return const AllProjectsView();
       case MenuName.settings:
         return const SettingsView();
       case MenuName.report:
@@ -1144,6 +1156,8 @@ class _DrawerHomeViewState extends State<_DrawerHomeView> {
         return AppLocalizations.of(context)!.hr;
       case MenuName.stock:
         return AppLocalizations.of(context)!.stock;
+      case MenuName.projects:
+        return AppLocalizations.of(context)!.projects;
       case MenuName.settings:
         return AppLocalizations.of(context)!.settings;
       case MenuName.report:

@@ -101,6 +101,8 @@ import 'Views/Menu/Ui/Projects/Ui/AllProjects/bloc/projects_bloc.dart';
 import 'Views/Menu/Ui/Reminder/bloc/reminder_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/Finance/AllBalances/bloc/all_balances_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/HR/AttendanceReport/bloc/attendance_report_bloc.dart';
+import 'Views/Menu/Ui/Report/Ui/Projects/ProjectList/bloc/projects_report_bloc.dart';
+import 'Views/Menu/Ui/Report/Ui/Projects/ServicesReport/bloc/services_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/TransactionRef/bloc/txn_ref_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/TxnReport/bloc/txn_report_bloc.dart';
 import 'Views/Menu/Ui/Settings/Ui/Company/Branches/bloc/branch_bloc.dart';
@@ -194,10 +196,15 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => ReminderBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => AttendanceBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => PayrollBloc(Repositories(ApiServices()))),
+
+        //Projects
         BlocProvider(create: (context) => ProjectsBloc(Repositories(ApiServices()))..add(LoadProjectsEvent())),
         BlocProvider(create: (context) => ServicesBloc(Repositories(ApiServices()))..add(LoadServicesEvent())),
         BlocProvider(create: (context) => ProjectServicesBloc(Repositories(ApiServices()))),
+        BlocProvider(create: (context) => ProjectsReportBloc(Repositories(ApiServices()))..add(ResetProjectReportEvent())),
+        BlocProvider(create: (context) => ServicesReportBloc(Repositories(ApiServices()))..add(ResetServicesReportEvent())),
         BlocProvider(create: (context) => ProjectIncExpBloc(Repositories(ApiServices()))),
+
         BlocProvider(create: (context) => UserRoleBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => PermissionSettingsBloc(Repositories(ApiServices()))..add(LoadPermissionsSettingsEvent())),
         BlocProvider(create: (context) => SubscriptionBloc(Repositories(ApiServices()))..add(LoadSubscriptionEvent())),

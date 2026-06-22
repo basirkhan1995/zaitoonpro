@@ -4,8 +4,8 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'localization_services.dart';
 
 class ApiServices {
-  static const String baseUrl = "http://52.202.21.195/rapi";
-  static const String imageUrl = "http://52.202.21.195/images/personal/";
+  static const String baseUrl = "https://www.ostanesabz.com/rapi";
+  static const String imageUrl = "https://www.ostanesabz.com/images/personal/";
   ApiServices() {
     _dio = Dio(
       BaseOptions(

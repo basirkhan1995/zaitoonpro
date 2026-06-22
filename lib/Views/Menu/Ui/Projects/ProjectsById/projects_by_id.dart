@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
@@ -15,8 +17,10 @@ import '../../../../../Features/Generic/tab_bar.dart';
 import '../../../../../Features/Date/shamsi_converter.dart';
 import '../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../Features/PrintSettings/report_model.dart';
+import '../../../../../Features/Widgets/outline_button.dart';
 import '../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'Print/print.dart';
+import 'Print/projects_excel.dart';
 
 class ProjectsByIdView extends StatelessWidget {
   final int projectId;
@@ -192,10 +196,27 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
           BlocBuilder<ProjectsByIdBloc, ProjectsByIdState>(
             builder: (context, state) {
               if (state is ProjectByIdLoadedState) {
-                return IconButton(
-                  icon: const Icon(Icons.print),
-                  onPressed: () => _showPrintDialog(context, state.project),
-                  tooltip: tr.print,
+                return Row(
+                  children: [
+                    ZOutlineButton(
+                      icon: FontAwesomeIcons.fileExcel,
+                      backgroundHover: Colors.green,
+                      onPressed: () {
+                        ProjectExcelService.exportToExcel(
+                          project: state.project,
+                          fileName: 'Project_${state.project.prjName ?? 'Report'}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx',
+                          context: context,
+                        );
+                      },
+                      label: Text("EXCEL"),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.print),
+                      onPressed: () => _showPrintDialog(context, state.project),
+                      tooltip: tr.print,
+                    ),
+                  ],
                 );
               }
               return const SizedBox();

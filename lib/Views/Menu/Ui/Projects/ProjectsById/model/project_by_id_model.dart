@@ -112,6 +112,7 @@ class ProjectPayment {
   final String? trdCcy;
   final String? payments;
   final String? expenses;
+  final String? trdNarration;
 
   ProjectPayment({
     this.prjId,
@@ -122,6 +123,7 @@ class ProjectPayment {
     this.trdCcy,
     this.payments,
     this.expenses,
+    this.trdNarration,
   });
 
   ProjectPayment copyWith({
@@ -133,6 +135,8 @@ class ProjectPayment {
     String? trdCcy,
     String? payments,
     String? expenses,
+    String? trdNarration,
+
   }) =>
       ProjectPayment(
         prjId: prjId ?? this.prjId,
@@ -143,6 +147,7 @@ class ProjectPayment {
         trdCcy: trdCcy ?? this.trdCcy,
         payments: payments ?? this.payments,
         expenses: expenses ?? this.expenses,
+        trdNarration: trdNarration ?? this.trdNarration
       );
 
   factory ProjectPayment.fromMap(Map<String, dynamic> json) => ProjectPayment(
@@ -154,6 +159,7 @@ class ProjectPayment {
     trdCcy: json["trdCcy"],
     payments: json["payments"],
     expenses: json["expenses"],
+    trdNarration: json["trdNarration"]
   );
 
   Map<String, dynamic> toMap() => {
@@ -165,6 +171,7 @@ class ProjectPayment {
     "trdCcy": trdCcy,
     "payments": payments,
     "expenses": expenses,
+    "trdNarration":trdNarration,
   };
 }
 

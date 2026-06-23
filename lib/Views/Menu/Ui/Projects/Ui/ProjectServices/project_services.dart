@@ -325,7 +325,6 @@ class _DesktopState extends State<_Desktop> {
               ),
             ),
           const SizedBox(height: 8),
-          // Rest of your UI remains the same...
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
             decoration: BoxDecoration(
@@ -333,7 +332,12 @@ class _DesktopState extends State<_Desktop> {
             ),
             child: Row(
               children: [
-                Expanded(child: Text(tr.projectServices, style: titleStyle)),
+                Expanded(
+                    flex: 2,
+                    child: Text(tr.projectServices, style: titleStyle)),
+                Expanded(
+                    flex: 3,
+                    child: Text(tr.narration, style: titleStyle)),
                 SizedBox(
                   width: 50,
                   child: Text(tr.qty, style: titleStyle),
@@ -357,7 +361,7 @@ class _DesktopState extends State<_Desktop> {
               ],
             ),
           ),
-          // Add this after your Expanded child in the Column
+
           Expanded(
             child: BlocConsumer<ProjectServicesBloc, ProjectServicesState>(
               listener: (context, state) {
@@ -374,8 +378,7 @@ class _DesktopState extends State<_Desktop> {
                 }
               },
               builder: (context, state) {
-                // Don't show full screen loading indicator anymore
-                // since we have button-specific loading indicator
+
                 if (state is ProjectServicesErrorState) {
                   return NoDataWidget(
                     title: tr.errorTitle,
@@ -426,6 +429,7 @@ class _DesktopState extends State<_Desktop> {
                                 child: Row(
                                   children: [
                                     Expanded(
+                                      flex: 2,
                                       child: Column(
                                         mainAxisAlignment: MainAxisAlignment.start,
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,6 +440,10 @@ class _DesktopState extends State<_Desktop> {
                                             Text(prjServices.pjdRemark ?? "", style: subtitleStyle),
                                         ],
                                       ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(prjServices.pjdRemark?.toString() ?? ''),
                                     ),
                                     SizedBox(
                                       width: 50,
@@ -540,6 +548,7 @@ class _DesktopState extends State<_Desktop> {
     final data = ProjectServicesModel(
       prjId: widget.projectId!.prjId!,
       srvId: serviceId,
+      pjdRemark: remark.text,
       pjdQuantity: double.tryParse(qty.text),
       pjdPricePerQty: double.tryParse(amount.text),
       usrName: loginData?.usrName,

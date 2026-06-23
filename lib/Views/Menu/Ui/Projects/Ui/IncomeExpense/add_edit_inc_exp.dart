@@ -947,7 +947,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       }
 
       _accountController.text = widget.project.prjOwnerAccount.toString();
-      _remarkController.text = '';
+      _remarkController.text = widget.existingData?.trdNarration ?? "";
     } else if (widget.project.prjOwnerAccount != null) {
       _accountController.text = widget.project.prjOwnerAccount!.toString();
     }
@@ -1103,8 +1103,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                               }
                               _amountController.clear();
                             });
-                          }
-                              : null, // This null is outside the function
+                          } : null,
                         ),
                       ),
                     ],
@@ -1156,6 +1155,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
             ],
             if (widget.existingData == null)
               if (_selectedType == "Expense") ...[
@@ -1221,9 +1221,9 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                   noResultsText: tr.noDataFound,
                   showClearButton: true,
                 ),
-              ],
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
 
             // Remark Field
             ZTextFieldEntitled(

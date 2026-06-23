@@ -814,7 +814,7 @@ class _DesktopState extends State<_Desktop> {
       context: context,
       builder: (context) => AddEditIncomeExpenseDialog(
         project: widget.project!,
-        existingData: payment, // Pass the Payment object
+        existingData: payment,
       ),
     );
   }
@@ -964,9 +964,18 @@ class _DesktopState extends State<_Desktop> {
                         child: Text(tr.date, style: titleStyle),
                       ),
                       Expanded(
-                        flex: 3,
+                        flex: 2,
                         child: Text(tr.referenceNumber, style: titleStyle),
                       ),
+
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          tr.narration,
+                          style: titleStyle,
+                        ),
+                      ),
+
                       Expanded(
                         child: Text(
                           tr.payment,
@@ -976,12 +985,6 @@ class _DesktopState extends State<_Desktop> {
                       Expanded(
                         child: Text(
                           tr.expense,
-                          style: titleStyle,
-                        ),
-                      ),
-                      Expanded(
-                        child: Text(
-                          tr.status,
                           style: titleStyle,
                         ),
                       ),
@@ -1026,7 +1029,7 @@ class _DesktopState extends State<_Desktop> {
                                 ),
                               ),
                               Expanded(
-                                flex: 3,
+                                flex: 2,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1052,6 +1055,9 @@ class _DesktopState extends State<_Desktop> {
                                 ),
                               ),
                               Expanded(
+                                  flex: 3,
+                                  child: Text(payment.trdNarration??"")),
+                              Expanded(
                                 child: Text(
                                   income > 0 ? '${income.toAmount()} $currency' : '',
                                   style: textTheme.bodyMedium?.copyWith(
@@ -1069,9 +1075,7 @@ class _DesktopState extends State<_Desktop> {
                                   ),
                                 ),
                               ),
-                              Expanded(
-                                child: TransactionStatusBadge(status: payment.trnStateText ?? ""),
-                              ),
+
                             ],
                           ),
                         ),

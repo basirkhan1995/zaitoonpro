@@ -153,7 +153,7 @@ class _DesktopState extends State<_Desktop> {
                       child: ZTextFieldEntitled(
                         controller: findProjectById,
                         title: "",
-                        hint: "Find project by ID",
+                        hint: "Find Project by ID",
                         onSubmit: (e) {
                           context.read<ProjectsBloc>().add(
                             LoadProjectsEvent(

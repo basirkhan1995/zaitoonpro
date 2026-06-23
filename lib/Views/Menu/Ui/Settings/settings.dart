@@ -11,6 +11,7 @@ import '../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
 import 'Ui/About/about.dart';
 import 'Ui/General/general.dart';
+import 'Ui/Services/Ui/services.dart';
 import 'bloc/settings_tab_bloc.dart';
 
 class SettingsView extends StatelessWidget {
@@ -56,12 +57,12 @@ class _Desktop extends StatelessWidget {
                 screen: const CompanyTabsView(),
               ),
 
-            // if (login.hasPermission(49) ?? false)
-            //   ZTabItem(
-            //     value: SettingsTabName.services,
-            //     label: AppLocalizations.of(context)!.services,
-            //     screen: const ServicesView(),
-            //   ),
+            if (login.hasPermission(49) ?? false)
+              ZTabItem(
+                value: SettingsTabName.services,
+                label: AppLocalizations.of(context)!.services,
+                screen: const ServicesView(),
+              ),
 
             // if ((login.usrRole == "Super") || (login.hasPermission(72) ?? false))
             //   ZTabItem(

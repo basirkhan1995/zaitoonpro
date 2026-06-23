@@ -17,6 +17,7 @@ class ProjectInOutModel {
   final List<Payment>? payments;
   final String? usrName;
   final String? reference;
+
   ProjectInOutModel({
     this.prpType,
     this.prjId,
@@ -28,7 +29,8 @@ class ProjectInOutModel {
     this.totalProjectAmount,
     this.payments,
     this.usrName,
-    this.reference
+    this.reference,
+
   });
 
   ProjectInOutModel copyWith({
@@ -55,7 +57,7 @@ class ProjectInOutModel {
         totalProjectAmount: totalProjectAmount ?? this.totalProjectAmount,
         payments: payments ?? this.payments,
         usrName: usrName ?? this.usrName,
-        reference: reference ?? this.reference
+        reference: reference ?? this.reference,
       );
 
   factory ProjectInOutModel.fromMap(Map<String, dynamic> json) => ProjectInOutModel(
@@ -69,6 +71,7 @@ class ProjectInOutModel {
     totalProjectAmount: json["total_project_amount"],
     payments: json["payments"] == null ? [] : List<Payment>.from(json["payments"]!.map((x) => Payment.fromMap(x))),
     usrName: json["usrName"],
+
   );
 
   Map<String, dynamic> toMap() => {
@@ -82,7 +85,7 @@ class ProjectInOutModel {
     "total_project_amount": totalProjectAmount,
     "payments": payments == null ? [] : List<dynamic>.from(payments!.map((x) => x.toMap())),
     "usrName": usrName,
-    "prpTrnRef": reference
+    "prpTrnRef": reference,
   };
 }
 
@@ -94,7 +97,7 @@ class Payment {
   final String? trdCcy;
   final String? payments;
   final String? expenses;
-
+  final String? trdNarration;
   Payment({
     this.prpType,
     this.prpTrnRef,
@@ -103,6 +106,7 @@ class Payment {
     this.trdCcy,
     this.payments,
     this.expenses,
+    this.trdNarration,
   });
 
   Payment copyWith({
@@ -113,6 +117,7 @@ class Payment {
     String? trdCcy,
     String? payments,
     String? expenses,
+    String? trdNarration,
   }) =>
       Payment(
         prpType: prpType ?? this.prpType,
@@ -122,6 +127,7 @@ class Payment {
         trdCcy: trdCcy ?? this.trdCcy,
         payments: payments ?? this.payments,
         expenses: expenses ?? this.expenses,
+        trdNarration: trdNarration ?? this.trdNarration
       );
 
   factory Payment.fromMap(Map<String, dynamic> json) => Payment(
@@ -132,6 +138,7 @@ class Payment {
     trdCcy: json["trdCcy"],
     payments: json["payments"],
     expenses: json["expenses"],
+    trdNarration: json["trdNarration"]
   );
 
   Map<String, dynamic> toMap() => {
@@ -142,5 +149,6 @@ class Payment {
     "trdCcy": trdCcy,
     "payments": payments,
     "expenses": expenses,
+    "narration": trdNarration,
   };
 }

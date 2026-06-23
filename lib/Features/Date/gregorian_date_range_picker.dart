@@ -69,14 +69,25 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
   void initState() {
     super.initState();
     _today = DateTime.now();
-    _selectedRange = widget.initialRange ?? ZGregorianRangePicker(_today, _today);
+
+    // Set default to current month if no initial range provided
+    if (widget.initialRange == null) {
+      final currentMonthStart = DateTime(_today.year, _today.month, 1);
+      final currentMonthEnd = DateTime(_today.year, _today.month + 1, 0);
+      _selectedRange = ZGregorianRangePicker(currentMonthStart, currentMonthEnd);
+      _startDate = currentMonthStart;
+      _endDate = currentMonthEnd;
+      _selectedQuickOption = QuickOption.thisMonth; // Set this month as selected option
+    } else {
+      _selectedRange = widget.initialRange!;
+      _startDate = _selectedRange.start;
+      _endDate = _selectedRange.end;
+    }
+
     _currentMonth = DateTime(_selectedRange.start.year, _selectedRange.start.month, 1);
     _selectedYear = _selectedRange.start.year;
-    _startDate = _selectedRange.start;
-    _endDate = _selectedRange.end;
     _yearScrollController = ScrollController();
 
-    // Determine which quick option matches the initial range
     _determineInitialQuickOption();
   }
 
@@ -86,7 +97,6 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
       return;
     }
 
-    // Create date objects without time components for comparison
     final todayDate = DateTime(_today.year, _today.month, _today.day);
     final startDateOnly = DateTime(_startDate!.year, _startDate!.month, _startDate!.day);
     final endDateOnly = DateTime(_endDate!.year, _endDate!.month, _endDate!.day);
@@ -105,15 +115,15 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
     }
 
     // Check Last Week
-    final lastWeekEnd = todayDate.subtract(const Duration(days: 1));
+    final lastWeekEnd = todayDate;  // Include today
     final lastWeekStart = todayDate.subtract(const Duration(days: 7));
     if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
       _selectedQuickOption = QuickOption.lastWeek;
       return;
     }
 
-    // Check Last 90 Days
-    final last90DaysEnd = todayDate.subtract(const Duration(days: 1));
+    // Check Last 90 Days - FIXED to include today
+    final last90DaysEnd = todayDate;  // Include today
     final last90DaysStart = todayDate.subtract(const Duration(days: 90));
     if (startDateOnly == last90DaysStart && endDateOnly == last90DaysEnd) {
       _selectedQuickOption = QuickOption.last90Days;
@@ -230,8 +240,8 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
   }
 
   void _selectLastWeek() {
-    final end = _today.subtract(const Duration(days: 1));
-    final start = _today.subtract(const Duration(days: 7));
+    final end = _today;  // Include today
+    final start = _today.subtract(const Duration(days: 7)); // Last 7 days including today
     setState(() {
       _selectedQuickOption = QuickOption.lastWeek;
       _startDate = start;
@@ -242,7 +252,7 @@ class GregorianDateRangePickerState extends State<GregorianDateRangePicker> {
   }
 
   void _selectLast90Days() {
-    final end = _today.subtract(const Duration(days: 1));
+    final end = _today;
     final start = _today.subtract(const Duration(days: 90));
     setState(() {
       _selectedQuickOption = QuickOption.last90Days;

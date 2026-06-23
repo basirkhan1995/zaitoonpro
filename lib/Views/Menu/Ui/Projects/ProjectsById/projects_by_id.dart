@@ -1006,13 +1006,12 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
             ),
             child: Row(
               children: [
-                const SizedBox(width: 40), // For index
-                Expanded(flex: 2, child: _buildHeaderText(context, tr.date)),
-                Expanded(flex: 3, child: _buildHeaderText(context, tr.referenceNumber)),
-                Expanded(flex: 2, child: _buildHeaderText(context, tr.txnType)),
-                Expanded(flex: 2, child: _buildHeaderText(context, tr.amount)),
-                Expanded(flex: 2, child: _buildHeaderText(context, tr.currencyTitle)),
-                Expanded(flex: 2, child: _buildHeaderText(context, tr.status)),
+                const SizedBox(width: 40,child: Text("#"),),
+                SizedBox(width: 100, child: _buildHeaderText(context, tr.date)),
+                Expanded(flex: 2, child: _buildHeaderText(context, tr.referenceNumber)),
+                Expanded(flex: 3, child: _buildHeaderText(context, tr.narration)),
+                Expanded(flex: 1, child: _buildHeaderText(context, tr.txnType)),
+                Expanded(flex: 1, child: _buildHeaderText(context, tr.amount)),
               ],
             ),
           ),
@@ -1068,15 +1067,15 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
                                 ),
                               ),
                             ),
-                            Expanded(
-                              flex: 2,
+                            SizedBox(
+                              width: 100,
                               child: Text(
                                 payment.trnEntryDate?.toFormattedDate() ?? '-',
                                 style: textTheme.bodyMedium,
                               ),
                             ),
                             Expanded(
-                              flex: 3,
+                              flex: 2,
                               child: Text(
                                 payment.prpTrnRef ?? '-',
                                 style: textTheme.bodyMedium?.copyWith(
@@ -1084,42 +1083,33 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
                                 ),
                               ),
                             ),
+
                             Expanded(
-                              flex: 2,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
+                              flex: 3,
+                              child: Text(payment.trdNarration ?? "")
+                            ),
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                isPayment
+                                    ? tr.payment
+                                    : isExpense
+                                    ? tr.expense
+                                    : payment.prpType ?? '-',
+                                style: textTheme.bodySmall?.copyWith(
                                   color: isPayment
-                                      ? Colors.green.withValues(alpha: .1)
+                                      ? Colors.green
                                       : isExpense
-                                      ? color.error.withValues(alpha: .1)
-                                      : Colors.grey.withValues(alpha: .1),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  isPayment
-                                      ? tr.payment
-                                      : isExpense
-                                      ? tr.expense
-                                      : payment.prpType ?? '-',
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: isPayment
-                                        ? Colors.green
-                                        : isExpense
-                                        ? color.error
-                                        : Colors.grey,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                      ? color.error
+                                      : Colors.grey,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             ),
                             Expanded(
-                              flex: 2,
+                              flex: 1,
                               child: Text(
-                                amount.toAmount(),
+                                "${amount.toAmount()} $currency",
                                 style: textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.w600,
                                   color: isPayment
@@ -1128,19 +1118,6 @@ class _ProjectByIdContentState extends State<_ProjectByIdContent> {
                                       ? color.error
                                       : color.onSurface,
                                 ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                currency,
-                                style: textTheme.bodyMedium,
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: TransactionStatusBadge(
-                                status: payment.trnStateText ?? "",
                               ),
                             ),
                           ],

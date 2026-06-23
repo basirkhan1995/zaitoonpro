@@ -105,16 +105,16 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
         return;
       }
 
-      // Check Last Week
-      final lastWeekEnd = _getYesterday(todayDate);
+      // Check Last Week - FIXED to include today
+      final lastWeekEnd = todayDate; // Include today
       final lastWeekStart = _getDaysAgo(todayDate, 7);
       if (startDateOnly == lastWeekStart && endDateOnly == lastWeekEnd) {
         _selectedQuickOption = QuickOption.lastWeek;
         return;
       }
 
-      // Check Last 90 Days
-      final last90DaysEnd = _getYesterday(todayDate);
+      // Check Last 90 Days - FIXED to include today
+      final last90DaysEnd = todayDate; // Include today
       final last90DaysStart = _getDaysAgo(todayDate, 90);
       if (startDateOnly == last90DaysStart && endDateOnly == last90DaysEnd) {
         _selectedQuickOption = QuickOption.last90Days;
@@ -128,7 +128,7 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
         return;
       }
 
-      // Check Last Month - FIXED: Proper month calculation
+      // Check Last Month
       int lastMonthYear = _today.year;
       int lastMonthMonth = _today.month - 1;
       if (lastMonthMonth < 1) {
@@ -320,8 +320,8 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   }
 
   void _selectLastWeek() {
-    final end = _getYesterday(_today);
-    final start = _getDaysAgo(_today, 7);
+    final end = Jalali(_today.year, _today.month, _today.day); // Include today
+    final start = _getDaysAgo(_today, 7); // 7 days ago from today
     setState(() {
       _selectedQuickOption = QuickOption.lastWeek;
       _startDate = start;
@@ -332,8 +332,9 @@ class AfghanDateRangePickerState extends State<AfghanDateRangePicker> {
   }
 
   void _selectLast90Days() {
-    final end = _getYesterday(_today);
-    final start = _getDaysAgo(_today, 90);
+    // Include today instead of yesterday
+    final end = Jalali(_today.year, _today.month, _today.day); // Today
+    final start = _getDaysAgo(_today, 90); // 90 days ago from today
     setState(() {
       _selectedQuickOption = QuickOption.last90Days;
       _startDate = start;

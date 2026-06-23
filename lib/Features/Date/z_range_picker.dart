@@ -59,6 +59,11 @@ class _ZRangeDatePickerState extends State<ZRangeDatePicker> {
   }
 
   void _initializeDates() {
+    // Get current month dates
+    final now = DateTime.now();
+    final currentMonthStart = DateTime(now.year, now.month, 1);
+    final currentMonthEnd = DateTime(now.year, now.month + 1, 0);
+
     // Initialize start date
     if (widget.startValue != null && widget.startValue!.isNotEmpty) {
       selectedStartGregorianDate = widget.startValue!;
@@ -68,7 +73,11 @@ class _ZRangeDatePickerState extends State<ZRangeDatePicker> {
         widget.onStartDateChanged(selectedStartGregorianDate);
       });
     } else {
-      selectedStartGregorianDate = DateTime.now().toFormattedDate();
+      // Default to current month start
+      selectedStartGregorianDate = currentMonthStart.toFormattedDate();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onStartDateChanged(selectedStartGregorianDate);
+      });
     }
 
     // Initialize end date
@@ -80,7 +89,11 @@ class _ZRangeDatePickerState extends State<ZRangeDatePicker> {
         widget.onEndDateChanged(selectedEndGregorianDate);
       });
     } else {
-      selectedEndGregorianDate = DateTime.now().toFormattedDate();
+      // Default to current month end
+      selectedEndGregorianDate = currentMonthEnd.toFormattedDate();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onEndDateChanged(selectedEndGregorianDate);
+      });
     }
   }
 

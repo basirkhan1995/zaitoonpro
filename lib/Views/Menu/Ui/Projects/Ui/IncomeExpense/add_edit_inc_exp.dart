@@ -113,7 +113,7 @@ class _AddEditIncomeExpenseMobileState extends State<_AddEditIncomeExpenseMobile
       reference: widget.existingData?.prpTrnRef,
       prpType: _selectedType == 'Income' ? 'Payment' : 'Expense',
       prjId: widget.project.prjId,
-      account: _accountController.text,
+      debitAccountNumber: _accountController.text,
       amount: _amountController.text.cleanAmount,
       currency: widget.project.actCurrency,
       ppRemark: _remarkController.text,
@@ -524,7 +524,7 @@ class _AddEditIncomeExpenseTabletState extends State<_AddEditIncomeExpenseTablet
       reference: widget.existingData?.prpTrnRef,
       prpType: _selectedType == 'Income' ? 'Payment' : 'Expense',
       prjId: widget.project.prjId,
-      account: _accountController.text,
+      debitAccountNumber: _accountController.text,
       amount: _amountController.text.cleanAmount,
       currency: widget.project.actCurrency,
       ppRemark: _remarkController.text,
@@ -923,7 +923,8 @@ class _AddEditIncomeExpenseDesktop extends StatefulWidget {
 class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDesktop> {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
-  final _accountController = TextEditingController();
+  final _expensesAccountsController = TextEditingController();
+  final _creditAccountsController = TextEditingController();
   final _remarkController = TextEditingController();
 
   String _selectedType = 'Income';
@@ -946,17 +947,17 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
         _amountController.text = widget.existingData!.expenses.toAmount();
       }
 
-      _accountController.text = widget.project.prjOwnerAccount.toString();
+      _expensesAccountsController.text = widget.project.prjOwnerAccount.toString();
       _remarkController.text = widget.existingData?.trdNarration ?? "";
     } else if (widget.project.prjOwnerAccount != null) {
-      _accountController.text = widget.project.prjOwnerAccount!.toString();
+      _expensesAccountsController.text = widget.project.prjOwnerAccount!.toString();
     }
   }
 
   @override
   void dispose() {
     _amountController.dispose();
-    _accountController.dispose();
+    _expensesAccountsController.dispose();
     _remarkController.dispose();
     super.dispose();
   }
@@ -971,7 +972,8 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       reference: widget.existingData?.prpTrnRef,
       prpType: _selectedType == 'Income' ? 'Payment' : 'Expense',
       prjId: widget.project.prjId,
-      account: _accountController.text,
+      debitAccountNumber: _expensesAccountsController.text,
+      creditAccountNumber: _creditAccountsController.text,
       amount: _amountController.text.cleanAmount,
       currency: widget.project.actCurrency,
       ppRemark: _remarkController.text,
@@ -1028,6 +1030,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       icon: widget.existingData == null ? Icons.add_circle_outline : null,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       onAction: _submitForm,
+      width: MediaQuery.of(context).size.width *.6,
       isButtonEnabled: !_isLoading,
       actionLabel: _isLoading
           ? const SizedBox(
@@ -1079,12 +1082,11 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                             setState(() {
                               _selectedType = 'Income';
                               if (widget.existingData == null && widget.project.prjOwnerAccount != null) {
-                                _accountController.text = widget.project.prjOwnerAccount.toString();
+                                _expensesAccountsController.text = widget.project.prjOwnerAccount.toString();
                               }
                               _amountController.clear();
                             });
-                          }
-                              : null, // This null is outside the function
+                          } : null,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1099,7 +1101,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                             setState(() {
                               _selectedType = 'Expense';
                               if (widget.existingData == null) {
-                                _accountController.clear();
+                                _expensesAccountsController.clear();
                               }
                               _amountController.clear();
                             });
@@ -1113,6 +1115,163 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
             ),
 
             const SizedBox(height: 16),
+
+            // Account Field
+            if (_selectedType == "Income") ...[
+              ZTextFieldEntitled(
+                controller: _expensesAccountsController,
+                title: 'Account Number',
+                isRequired: true,
+                isEnabled: false,
+                icon: Icons.account_balance,
+                hint: 'Using project owner account',
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter account number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (widget.existingData == null)
+              if (_selectedType == "Expense") ...[
+                Row(
+                  spacing: 8,
+                  children: [
+                    Expanded(
+                      child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
+                        showAllOnFocus: true,
+                        controller: _expensesAccountsController,
+                        title: tr.debitAccount,
+                        hintText: tr.accNameOrNumber,
+                        isRequired: true,
+                        bloc: context.read<AccountsBloc>(),
+                        fetchAllFunction: (bloc) => bloc.add(
+                          LoadAccountsFilterEvent(
+                            include: "11,12",
+                            ccy: widget.project.actCurrency,
+                            exclude: "",
+                          ),
+                        ),
+                        searchFunction: (bloc, query) => bloc.add(
+                          LoadAccountsFilterEvent(
+                            include: "11,12",
+                            ccy: widget.project.actCurrency,
+                            input: query,
+                            exclude: "",
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null && value!.isEmpty) {
+                            return tr.required(tr.accounts);
+                          }
+                          return null;
+                        },
+                        itemBuilder: (context, account) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "${account.accNumber} | ${account.accName}",
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
+                        stateToLoading: (state) => state is AccountLoadingState,
+                        loadingBuilder: (context) => const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                        stateToItems: (state) {
+                          if (state is AccountLoadedState) {
+                            return state.accounts;
+                          }
+                          return [];
+                        },
+                        onSelected: (value) {},
+                        noResultsText: tr.noDataFound,
+                        showClearButton: true,
+                      ),
+                    ),
+                    Expanded(
+                      child: GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
+                        showAllOnFocus: true,
+                        controller: _creditAccountsController,
+                        title: tr.creditAccount,
+                        hintText: tr.accNameOrNumber,
+                        isRequired: true,
+                        bloc: context.read<AccountsBloc>(),
+                        fetchAllFunction: (bloc) => bloc.add(
+                          LoadAccountsFilterEvent(
+                            include: "1,8",
+                            ccy: widget.project.actCurrency,
+                            exclude: "10101011,10101019,10101020,10101012,10101013,10101021",
+                          ),
+                        ),
+                        searchFunction: (bloc, query) => bloc.add(
+                          LoadAccountsFilterEvent(
+                            include: "11,12",
+                            ccy: widget.project.actCurrency,
+                            input: query,
+                            exclude: "10101011,10101019,10101020,10101012,10101013,10101021",
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null && value!.isEmpty) {
+                            return tr.required(tr.accounts);
+                          }
+                          return null;
+                        },
+                        itemBuilder: (context, account) => Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "${account.accNumber} | ${account.accName}",
+                                    style: Theme.of(context).textTheme.bodyLarge,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
+                        stateToLoading: (state) => state is AccountLoadingState,
+                        loadingBuilder: (context) => const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 3),
+                        ),
+                        stateToItems: (state) {
+                          if (state is AccountLoadedState) {
+                            return state.accounts;
+                          }
+                          return [];
+                        },
+                        onSelected: (value) {},
+                        noResultsText: tr.noDataFound,
+                        showClearButton: true,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+              ],
 
             // Amount Field
             ZTextFieldEntitled(
@@ -1136,95 +1295,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                 return null;
               },
             ),
-
             const SizedBox(height: 16),
-
-            // Account Field
-            if (_selectedType == "Income") ...[
-              ZTextFieldEntitled(
-                controller: _accountController,
-                title: 'Account Number',
-                isRequired: true,
-                isEnabled: false,
-                icon: Icons.account_balance,
-                hint: 'Using project owner account',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter account number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (widget.existingData == null)
-              if (_selectedType == "Expense") ...[
-                GenericTextField<AccountsModel, AccountsBloc, AccountsState>(
-                  showAllOnFocus: true,
-                  controller: _accountController,
-                  title: tr.accounts,
-                  hintText: tr.accNameOrNumber,
-                  isRequired: true,
-                  bloc: context.read<AccountsBloc>(),
-                  fetchAllFunction: (bloc) => bloc.add(
-                    LoadAccountsFilterEvent(
-                      include: "11,12",
-                      ccy: widget.project.actCurrency,
-                      exclude: "",
-                    ),
-                  ),
-                  searchFunction: (bloc, query) => bloc.add(
-                    LoadAccountsFilterEvent(
-                      include: "11,12",
-                      ccy: widget.project.actCurrency,
-                      input: query,
-                      exclude: "",
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null && value!.isEmpty) {
-                      return tr.required(tr.accounts);
-                    }
-                    return null;
-                  },
-                  itemBuilder: (context, account) => Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "${account.accNumber} | ${account.accName}",
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  itemToString: (acc) => "${acc.accNumber} | ${acc.accName}",
-                  stateToLoading: (state) => state is AccountLoadingState,
-                  loadingBuilder: (context) => const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 3),
-                  ),
-                  stateToItems: (state) {
-                    if (state is AccountLoadedState) {
-                      return state.accounts;
-                    }
-                    return [];
-                  },
-                  onSelected: (value) {},
-                  noResultsText: tr.noDataFound,
-                  showClearButton: true,
-                ),
-
-                const SizedBox(height: 16),
-              ],
-
             // Remark Field
             ZTextFieldEntitled(
               controller: _remarkController,

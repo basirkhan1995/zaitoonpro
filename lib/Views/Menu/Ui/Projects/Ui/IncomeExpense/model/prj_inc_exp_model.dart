@@ -9,7 +9,8 @@ class ProjectInOutModel {
   final String? prpType;
   final int? prjId;
   final String? trdCcy;
-  final String? account;
+  final String? debitAccountNumber; // Expenses
+  final String? creditAccountNumber; // Cash/Bank/Stakeholders
   final String? amount;
   final String? currency;
   final String? ppRemark;
@@ -22,7 +23,8 @@ class ProjectInOutModel {
     this.prpType,
     this.prjId,
     this.trdCcy,
-    this.account,
+    this.debitAccountNumber,
+    this.creditAccountNumber,
     this.amount,
     this.currency,
     this.ppRemark,
@@ -37,7 +39,7 @@ class ProjectInOutModel {
     String? prpType,
     int? prjId,
     String? trdCcy,
-    String? account,
+    String? debitAccountNumber,
     String? amount,
     String? currency,
     String? ppRemark,
@@ -45,12 +47,14 @@ class ProjectInOutModel {
     List<Payment>? payments,
     String? usrName,
     String? reference,
+    String? creditAccountNumber,
   }) =>
       ProjectInOutModel(
         prpType: prpType ?? this.prpType,
         prjId: prjId ?? this.prjId,
         trdCcy: trdCcy ?? this.trdCcy,
-        account: account ?? this.account,
+        debitAccountNumber: debitAccountNumber ?? this.debitAccountNumber,
+        creditAccountNumber: creditAccountNumber ?? this.creditAccountNumber,
         amount: amount ?? this.amount,
         currency: currency ?? this.currency,
         ppRemark: ppRemark ?? this.ppRemark,
@@ -64,7 +68,8 @@ class ProjectInOutModel {
     prpType: json["prpType"],
     prjId: json["prjID"],
     trdCcy: json["trdCcy"],
-    account: json["account"],
+    debitAccountNumber: json["debitAccount"],
+    creditAccountNumber: json["creditAccount"],
     amount: json["Amount"],
     currency: json["currency"],
     ppRemark: json["ppRemark"],
@@ -78,7 +83,8 @@ class ProjectInOutModel {
     "prpType": prpType,
     "prjID": prjId,
     "trdCcy": trdCcy,
-    "account": account,
+    "debitAccount": debitAccountNumber,
+    "creditAccount": creditAccountNumber,
     "Amount": amount,
     "currency": currency,
     "ppRemark": ppRemark,

@@ -120,10 +120,6 @@ class _DesktopState extends State<_Desktop> {
     TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
       color: color.surface
     );
-    TextStyle? subtitleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(
-      color: color.secondary.withValues(alpha: .8),
-    );
-
     final state = context.watch<AuthBloc>().state;
     if (state is! AuthenticatedState) {
       return const SizedBox();
@@ -336,7 +332,7 @@ class _DesktopState extends State<_Desktop> {
                     flex: 2,
                     child: Text(tr.projectServices, style: titleStyle)),
                 Expanded(
-                    flex: 3,
+                    flex: 4,
                     child: Text(tr.narration, style: titleStyle)),
                 SizedBox(
                   width: 50,
@@ -346,12 +342,12 @@ class _DesktopState extends State<_Desktop> {
                   width: 120,
                   child: Text(
                     textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
-                    tr.amount,
+                    tr.unitPrice,
                     style: titleStyle,
                   ),
                 ),
                 SizedBox(
-                  width: 120,
+                  width: 150,
                   child: Text(
                     textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,
                     tr.totalTitle,
@@ -430,17 +426,10 @@ class _DesktopState extends State<_Desktop> {
                                   children: [
                                     Expanded(
                                       flex: 2,
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.start,
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(prjServices.srvName ?? "", style: titleStyle?.copyWith(color: color.onSurface)),
-                                          Text(prjServices.prpTrnRef ?? "", style: subtitleStyle),
-                                        ],
-                                      ),
+                                      child: Text(prjServices.srvName ?? "", style: titleStyle?.copyWith(color: color.onSurface)),
                                     ),
                                     Expanded(
-                                      flex: 3,
+                                      flex: 4,
                                       child: Text(prjServices.pjdRemark?.toString() ?? ''),
                                     ),
                                     SizedBox(
@@ -455,7 +444,7 @@ class _DesktopState extends State<_Desktop> {
                                       ),
                                     ),
                                     SizedBox(
-                                      width: 120,
+                                      width: 150,
                                       child: Text(
                                         "${(prjServices.total ?? 0).toAmount()} ${widget.projectId?.actCurrency}",
                                         textAlign: myLocale == "en" ? TextAlign.right : TextAlign.left,

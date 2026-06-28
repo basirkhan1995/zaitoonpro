@@ -17,6 +17,13 @@ class OnACTATTransactionEvent extends TransactionsEvent{
   @override
   List<Object?> get props => [transaction];
 }
+class UnAuthorizedTxnEvent extends TransactionsEvent {
+  final String reference;
+  final String usrName;
+  const UnAuthorizedTxnEvent({required this.reference,required this.usrName});
+  @override
+  List<Object?> get props => [reference, usrName];
+}
 
 class UpdatePendingTransactionEvent extends TransactionsEvent{
   final TransactionsModel transaction;

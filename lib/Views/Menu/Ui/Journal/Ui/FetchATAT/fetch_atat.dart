@@ -1409,7 +1409,7 @@ class _DesktopState extends State<_Desktop> {
             }
           }
         }
-
+        final bool isAuthorized = loadedAtat?.trnStateText == "Authorized";
         final bool showAuthorizeButton = loadedAtat?.trnStatus == 0 &&
             login.usrName != loadedAtat?.maker;
         final bool showDeleteButton = loadedAtat?.trnStatus == 0 &&
@@ -1859,69 +1859,81 @@ class _DesktopState extends State<_Desktop> {
               ),
               const SizedBox(height: 2),
               // Action Buttons
-              if (showAnyButton)...[
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Row(
-                    children: [
-                      if (showAuthorizeButton)
+              Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: Row(
+                  children: [
+                    if(showAnyButton)
+                      Row(
+                        children: [
+                          if (showAuthorizeButton)
+                            ZOutlineButton(
+                              onPressed: isAuthorizeLoading ? null : () {
+                                context.read<TransactionsBloc>().add(
+                                  AuthorizeTxnEvent(
+                                    reference: loadedAtat?.trnReference ?? "",
+                                    usrName: login.usrName ?? "",
+                                  ),
+                                );
+                              },
+                              icon: isAuthorizeLoading ? null : Icons.check_box_outlined,
+                              isActive: true,
+                              label: isAuthorizeLoading
+                                  ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 3),
+                              )
+                                  : Text(tr.authorize),
+                            ),
+                          if (showAuthorizeButton && showDeleteButton)
+                            const SizedBox(width: 8),
+                          if (showDeleteButton)
+                            ZOutlineButton(
+                              onPressed: isDeleteLoading ? null : () {
+                                context.read<TransactionsBloc>().add(
+                                  DeletePendingTxnEvent(
+                                    reference: loadedAtat?.trnReference ?? "",
+                                    usrName: login.usrName ?? "",
+                                  ),
+                                );
+                              },
+                              icon: isDeleteLoading ? null : Icons.delete_outline_rounded,
+                              backgroundHover: Theme.of(context).colorScheme.error,
+                              label: isDeleteLoading
+                                  ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 3),
+                              )
+                                  : Text(tr.delete),
+                            ),
+                        ],
+                      ),
+
+                    Row(
+                      children: [
+                        SizedBox(width: 5),
                         ZOutlineButton(
-                          onPressed: isAuthorizeLoading ? null : () {
-                            context.read<TransactionsBloc>().add(
-                              AuthorizeTxnEvent(
-                                reference: loadedAtat?.trnReference ?? "",
-                                usrName: login.usrName ?? "",
-                              ),
-                            );
-                          },
-                          icon: isAuthorizeLoading ? null : Icons.check_box_outlined,
-                          isActive: true,
-                          label: isAuthorizeLoading
-                              ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 3),
-                          )
-                              : Text(tr.authorize),
-                        ),
-                      if (showAuthorizeButton && showDeleteButton)
-                        const SizedBox(width: 8),
-                      if (showDeleteButton)
-                        ZOutlineButton(
-                          onPressed: isDeleteLoading ? null : () {
-                            context.read<TransactionsBloc>().add(
-                              DeletePendingTxnEvent(
-                                reference: loadedAtat?.trnReference ?? "",
-                                usrName: login.usrName ?? "",
-                              ),
-                            );
-                          },
-                          icon: isDeleteLoading ? null : Icons.delete_outline_rounded,
-                          isActive: true,
-                          backgroundHover: Theme.of(context).colorScheme.error,
-                          label: isDeleteLoading
-                              ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 3),
-                          )
-                              : Text(tr.delete),
-                        ),
-                    ],
-                  ),
+                            onPressed: _printTransaction,
+                            icon: Icons.print,
+                            label: Text(tr.print)),
+
+                        if(isAuthorized && (auth.loginData.usrRole == "Admin" || auth.loginData.usrRole == "Super"))...[
+                          SizedBox(width: 5),
+                          ZOutlineButton(
+                              onPressed: (){
+                                context.read<TransactionsBloc>().add(UnAuthorizedTxnEvent(reference: loadedAtat?.trnReference??"", usrName: auth.loginData.usrName??""));
+                              },
+                              icon: Icons.lock_open_rounded,
+                              label: Text("Unlock")),
+                        ]
+                      ],
+                    ),
+                  ],
                 ),
-              ],
-              Row(
-                children: [
-                  SizedBox(width: 5),
-                  ZOutlineButton(
-                      onPressed: _printTransaction,
-                      isActive: true,
-                      icon: Icons.print,
-                      label: Text(tr.print)),
-                ],
               ),
-              if (!showAnyButton) const SizedBox(height: 10),
+
             ],
           ),
         );

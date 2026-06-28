@@ -19,6 +19,33 @@ class TransactionsBloc extends Bloc<TransactionsEvent, TransactionsState> {
         emit(TransactionErrorState(e.toString()));
       }
     });
+
+    on<UnAuthorizedTxnEvent>((event, emit) async{
+      final locale = localizationService.loc;
+      emit(TxnReverseLoadingState());
+      try{
+        final response = await _repo.unAuthorizeTxn(reference: event.reference,usrName: event.usrName);
+
+        final msg = response['msg'];
+        switch (msg) {
+          case "success":
+            emit(TransactionSuccessState());
+            break;
+
+          case "unauthorized":
+            emit(TransactionSuccessState());
+            break;
+
+          case "invalid":
+            emit(TransactionErrorState(locale.reverseInvalidMessage));
+            break;
+
+          default:emit(TransactionErrorState(msg));
+        }
+      }catch(e){
+        emit(TransactionErrorState(e.toString()));
+      }
+    });
     on<OnCashTransactionEvent>((event, emit) async {
       final locale = localizationService.loc;
 

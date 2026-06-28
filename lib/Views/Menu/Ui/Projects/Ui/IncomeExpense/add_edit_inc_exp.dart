@@ -222,14 +222,7 @@ class _AddEditIncomeExpenseMobileState extends State<_AddEditIncomeExpenseMobile
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Transaction Type
-                      Text(
-                        'Transaction Type',
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
+
                       Row(
                         children: [
                           Expanded(
@@ -632,14 +625,6 @@ class _AddEditIncomeExpenseTabletState extends State<_AddEditIncomeExpenseTablet
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Transaction Type
-                      Text(
-                        'Transaction Type',
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Expanded(
@@ -1060,15 +1045,6 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 4, bottom: 8),
-                    child: Text(
-                      'Transaction Type',
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
                   Row(
                     children: [
                       Expanded(

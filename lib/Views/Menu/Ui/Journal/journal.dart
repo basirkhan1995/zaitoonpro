@@ -2425,14 +2425,12 @@ class _MobileViewState extends State<_MobileView> {
   }
 }
 
-// Desktop View (unchanged from original)
 class _DesktopView extends StatefulWidget {
   const _DesktopView();
 
   @override
   State<_DesktopView> createState() => _DesktopViewState();
 }
-
 class _DesktopViewState extends State<_DesktopView> {
   String? currentLocale;
   String? trnCurrency;

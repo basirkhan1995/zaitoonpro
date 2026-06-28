@@ -28,7 +28,9 @@ class DeleteProjectEvent extends ProjectsEvent {
 
 class LoadProjectsEvent extends ProjectsEvent {
   final int? prjId;
-  const LoadProjectsEvent({this.prjId});
+  final String? search;
+  final int? status;
+  const LoadProjectsEvent({this.prjId,this.search,this.status});
   @override
-  List<Object?> get props => [prjId];
+  List<Object?> get props => [prjId,search,status];
 }

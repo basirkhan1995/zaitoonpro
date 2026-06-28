@@ -339,41 +339,11 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
                     ),
 
                     // Amount value with highlight
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            color.primary.withValues(alpha: .1),
-                            color.primary.withValues(alpha: .05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(30),
-                        border: Border.all(
-                          color: color.primary.withValues(alpha: .2),
-                        ),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "₹",
-                            style: textTheme.titleLarge?.copyWith(
-                              color: color.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            amountValue.toAmount(),
-                            style: textTheme.titleLarge?.copyWith(
-                              color: color.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                    Text(
+                      amountValue.toAmount(),
+                      style: textTheme.titleLarge?.copyWith(
+                        color: color.primary,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -525,41 +495,11 @@ class _BaseBranchLimitsState extends State<_BaseBranchLimits> {
                 ),
 
                 // Amount with styling
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        color.primary.withValues(alpha: .1),
-                        color.primary.withValues(alpha: .05),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: color.primary.withValues(alpha: .2),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        "₹",
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: color.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        amountValue.toAmount(),
-                        style: textTheme.bodyLarge?.copyWith(
-                          color: color.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+                Text(
+                  amountValue.toAmount() == "9,999,999,999,999.00"? locale.unlimited : amountValue.toAmount(),
+                  style: textTheme.bodyLarge?.copyWith(
+                    color: color.primary,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],

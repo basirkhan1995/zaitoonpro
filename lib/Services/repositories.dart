@@ -2967,14 +2967,34 @@ class Repositories {
   }
 
   /// Projects .................................................................
-  Future<List<ProjectsModel>> getProjects({int? prjId}) async {
+  Future<List<ProjectsModel>> getProjects({
+    int? prjId,
+    String? search,
+    int? status,
+  }) async {
+    // Build query parameters dynamically
+    final Map<String, dynamic> queryParams = {};
+
+    // Handle search (can be ID or name)
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
+    } else if (prjId != null) {
+      // For backward compatibility - pass ID as search
+      queryParams['search'] = prjId.toString();
+    }
+
+    // Handle status filter (0 = pending, 1 = completed)
+    if (status != null && (status == 0 || status == 1)) {
+      queryParams['status'] = status.toString();
+    }
+
     final response = await api.get(
       endpoint: "/project/project.php",
-      queryParams: {"prjID": prjId},
+      queryParams: queryParams.isNotEmpty ? queryParams : null,
     );
 
+    // Handle error response
     if (response.data is Map<String, dynamic> && response.data['msg'] != null) {
-      // If no records found, return empty list
       if (response.data['msg'] == 'failed') {
         return [];
       }
@@ -2983,6 +3003,9 @@ class Repositories {
 
     // Parse as list
     if (response.data is List) {
+      if ((response.data).isEmpty) {
+        return [];
+      }
       return List<ProjectsModel>.from(
         response.data.map((x) => ProjectsModel.fromMap(x)),
       );
@@ -2995,7 +3018,7 @@ class Repositories {
 
     return [];
   }
-  Future<Map<String, dynamic>> addProject({required ProjectsModel newData,}) async {
+  Future<Map<String, dynamic>> addProject({required ProjectsModel newData}) async {
     final response = await api.post(
       endpoint: "/project/project.php",
       data: newData.toMap(),

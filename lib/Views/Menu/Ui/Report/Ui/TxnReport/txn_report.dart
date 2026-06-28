@@ -13,6 +13,18 @@ import '../../../../../../Features/Date/z_generic_date.dart';
 import '../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../Features/Other/utils.dart';
 import '../../../../../../Features/Widgets/z_dragable_sheet.dart';
+import '../../../Journal/Ui/FetchATAT/bloc/fetch_atat_bloc.dart';
+import '../../../Journal/Ui/FetchATAT/fetch_atat.dart';
+import '../../../Journal/Ui/FetchGLAT/Ui/glat_view.dart';
+import '../../../Journal/Ui/FetchGLAT/bloc/glat_bloc.dart';
+import '../../../Journal/Ui/GetOrder/bloc/order_txn_bloc.dart';
+import '../../../Journal/Ui/GetOrder/txn_oder.dart';
+import '../../../Journal/Ui/ProjectTxn/bloc/project_txn_bloc.dart';
+import '../../../Journal/Ui/ProjectTxn/project_txn.dart';
+import '../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
+import '../../../Journal/Ui/TxnByReference/txn_reference.dart';
+import '../../../Stock/Ui/OrderScreen/NewPurchase/new_purchase.dart';
+import '../../../Stock/Ui/OrderScreen/NewSale/new_sale.dart';
 import '../UserReport/status_drop.dart';
 import 'bloc/txn_report_bloc.dart';
 import 'features/txn_type_drop.dart';
@@ -733,6 +745,9 @@ class _DesktopState extends State<_Desktop> {
   late String toDate;
   String? myLocale;
 
+  // Add loading state for dialog
+  bool _isLoadingDialog = false;
+  String? _loadingRef;
 
   @override
   void initState() {
@@ -746,6 +761,7 @@ class _DesktopState extends State<_Desktop> {
     myLocale = context.read<LocalizationBloc>().state.languageCode;
     context.read<TxnReportBloc>().add(ResetTxnReportEvent());
   }
+
   bool get hasAnyFilter {
     return status != null ||
         currency != null ||
@@ -759,263 +775,490 @@ class _DesktopState extends State<_Desktop> {
   String? maker;
   String? checker;
   String? txnType;
+
+  // Extract transaction type from reference
+  String? _extractTxnType(String? reference) {
+    if (reference == null || reference.isEmpty) return null;
+
+    // List of known transaction types to look for in the reference
+    final txnTypes = ['SALE', 'PRCH', 'ATAT', 'CHDP', 'CHWL', 'GLAT', 'SLRY', 'PLCL', 'CRFX', 'PRJT'];
+
+    for (final type in txnTypes) {
+      if (reference.contains(type)) {
+        return type;
+      }
+    }
+    return null;
+  }
+
+  // Handle transaction tap
+  void _handleTransactionTap(dynamic txn) {
+    final reference = txn.reference?.toString();
+    if (reference == null || reference.isEmpty) return;
+
+    // Extract transaction type from reference
+    final txnType = _extractTxnType(reference);
+    if (txnType == null) return;
+
+    // Handle SALE and PRCH - navigate directly to invoice views
+    if (txnType == 'SALE') {
+      Utils.goto(
+        context,
+        NewSaleView(orderId: reference), // Will be handled by OrderInvoiceWrapper
+      );
+      return;
+    }
+
+    if (txnType == 'PRCH') {
+      Utils.goto(
+        context,
+        NewPurchaseOrderView(orderId: reference), // Will be handled by OrderInvoiceWrapper
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoadingDialog = true;
+      _loadingRef = reference;
+    });
+
+    // Handle different transaction types
+    switch (txnType) {
+      case 'PRJT':
+        context.read<ProjectTxnBloc>().add(LoadProjectTxnEvent(reference));
+        break;
+      case 'ATAT':
+      case 'SLRY':
+      case 'PLCL':
+      case 'CRFX':
+        context.read<FetchAtatBloc>().add(FetchAccToAccEvent(reference));
+        break;
+      case 'GLAT':
+        context.read<GlatBloc>().add(LoadGlatEvent(reference));
+        break;
+      case 'CHDP':
+      case 'CHWL':
+        context.read<TxnReferenceBloc>().add(FetchTxnByReferenceEvent(reference));
+        break;
+      default:
+        context.read<TxnReferenceBloc>().add(FetchTxnByReferenceEvent(reference));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.surface);
     final tr = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(title: Text("${tr.transactions} ${tr.report}"),
-       titleSpacing: 0,
-       actionsPadding: EdgeInsets.symmetric(horizontal: 10),
-        actions: [
-          if (hasAnyFilter)
-          ZOutlineButton(
-              isActive: true,
-              onPressed: (){
-                setState(() {
-                  maker = null;
-                  checker = null;
-                  txnType = null;
-                  currency = null;
-                  status = null;
-                   fromDate = DateTime.now().toFormattedDate();
-                   toDate = DateTime.now().toFormattedDate();
-                });
-                context.read<TxnReportBloc>().add(ResetTxnReportEvent());
-              },
-              icon: Icons.filter_alt_off_outlined,
-              label: Text(tr.clearFilters)),
-          SizedBox(width: 8),
-          ZOutlineButton(
-              onPressed: (){},
-              icon: Icons.print,
-              label: Text(tr.print)),
-          SizedBox(width: 8),
-          ZOutlineButton(
-              onPressed: (){
-                context.read<TxnReportBloc>().add(LoadTxnReportEvent(
-                  fromDate: fromDate,
-                  toDate: toDate,
-                  checker: checker,
-                  maker: maker,
-                  status: status,
-                  txnType: txnType,
-                  currency: currency,
-                ));
-              },
-              isActive: true,
-              icon: Icons.filter_alt,
-              label: Text(tr.apply)),
-        ],
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              spacing: 8,
-              children: [
-                SizedBox(
-                  width: 220,
-                  child: ZRangeDatePicker(
-                    label: tr.selectDate,
-                    initialStartDate: DateTime.tryParse(fromDate),
-                    initialEndDate: DateTime.tryParse(toDate),
-                    startValue: fromDate,
-                    endValue: toDate,
-                    onStartDateChanged: (startDate) {
-                      setState(() {
-                        fromDate = startDate;
-                      });
-                    },
-                    onEndDateChanged: (endDate) {
-                      setState(() {
-                        toDate = endDate;
-                      });
-                      context.read<TxnReportBloc>().add(LoadTxnReportEvent(
-                        fromDate: fromDate,
-                        toDate: toDate,
-                        checker: checker,
-                        maker: maker,
-                        status: status,
-                        txnType: txnType,
-                        currency: currency,
-                      ));
-                    },
-                    disablePastDate: false,
-                    minYear: 2000,
-                    maxYear: 2100,
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<ProjectTxnBloc, ProjectTxnState>(
+          listener: (context, state) {
+            if (state is ProjectTxnLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => ProjectTxnView(reference: state.txn.transaction?.trnReference ?? ""),
+              );
+            } else if (state is ProjectTxnErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<OrderTxnBloc, OrderTxnState>(
+          listener: (context, state) {
+            if (state is OrderTxnLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => OrderTxnView(reference: state.data.trnReference ?? ""),
+              );
+            } else if (state is OrderTxnErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<GlatBloc, GlatState>(
+          listener: (context, state) {
+            if (state is GlatLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => GlatView(),
+              );
+            } else if (state is GlatErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<FetchAtatBloc, FetchAtatState>(
+          listener: (context, state) {
+            if (state is FetchATATLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => FetchAtatView(),
+              );
+            } else if (state is FetchATATErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.noData,
+                message: state.message,
+                isError: true,
+              );
+            }
+          },
+        ),
+        BlocListener<TxnReferenceBloc, TxnReferenceState>(
+          listener: (context, state) {
+            if (state is TxnReferenceLoadedState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              showDialog(
+                context: context,
+                builder: (context) => TxnReferenceView(),
+              );
+            } else if (state is TxnReferenceErrorState) {
+              setState(() {
+                _isLoadingDialog = false;
+                _loadingRef = null;
+              });
+              Utils.showOverlayMessage(
+                context,
+                title: tr.accessDenied,
+                message: state.error,
+                isError: true,
+              );
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        appBar: AppBar(title: Text("${tr.transactions} ${tr.report}"),
+          titleSpacing: 0,
+          actionsPadding: EdgeInsets.symmetric(horizontal: 10),
+          actions: [
+            if (hasAnyFilter)
+              ZOutlineButton(
+                  isActive: true,
+                  onPressed: (){
+                    setState(() {
+                      maker = null;
+                      checker = null;
+                      txnType = null;
+                      currency = null;
+                      status = null;
+                      fromDate = DateTime.now().toFormattedDate();
+                      toDate = DateTime.now().toFormattedDate();
+                    });
+                    context.read<TxnReportBloc>().add(ResetTxnReportEvent());
+                  },
+                  icon: Icons.filter_alt_off_outlined,
+                  label: Text(tr.clearFilters)),
+            SizedBox(width: 8),
+            ZOutlineButton(
+                onPressed: (){},
+                icon: Icons.print,
+                label: Text(tr.print)),
+            SizedBox(width: 8),
+            ZOutlineButton(
+                onPressed: (){
+                  context.read<TxnReportBloc>().add(LoadTxnReportEvent(
+                    fromDate: fromDate,
+                    toDate: toDate,
+                    checker: checker,
+                    maker: maker,
+                    status: status,
+                    txnType: txnType,
+                    currency: currency,
+                  ));
+                },
+                isActive: true,
+                icon: Icons.filter_alt,
+                label: Text(tr.apply)),
+          ],
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                spacing: 8,
+                children: [
+                  SizedBox(
+                    width: 220,
+                    child: ZRangeDatePicker(
+                      label: tr.selectDate,
+                      initialStartDate: DateTime.tryParse(fromDate),
+                      initialEndDate: DateTime.tryParse(toDate),
+                      startValue: fromDate,
+                      endValue: toDate,
+                      onStartDateChanged: (startDate) {
+                        setState(() {
+                          fromDate = startDate;
+                        });
+                      },
+                      onEndDateChanged: (endDate) {
+                        setState(() {
+                          toDate = endDate;
+                        });
+                        context.read<TxnReportBloc>().add(LoadTxnReportEvent(
+                          fromDate: fromDate,
+                          toDate: toDate,
+                          checker: checker,
+                          maker: maker,
+                          status: status,
+                          txnType: txnType,
+                          currency: currency,
+                        ));
+                      },
+                      disablePastDate: false,
+                      minYear: 2000,
+                      maxYear: 2100,
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: UserDropdown(
-                    title: tr.maker,
-                    isMulti: false,
-                    onSingleChanged: (e) {
-                      setState(() {
-                        maker = e?.usrName;
-                      });
-                    },
-                    onMultiChanged: (e) {},
+                  Expanded(
+                    child: UserDropdown(
+                      title: tr.maker,
+                      isMulti: false,
+                      onSingleChanged: (e) {
+                        setState(() {
+                          maker = e?.usrName;
+                        });
+                      },
+                      onMultiChanged: (e) {},
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: UserDropdown(
-                    isMulti: false,
-                    title: tr.checker,
-                    onSingleChanged: (e) {
-                      setState(() {
-                        checker = e?.usrName;
-                      });
-                    },
-                    onMultiChanged: (e) {},
+                  Expanded(
+                    child: UserDropdown(
+                      isMulti: false,
+                      title: tr.checker,
+                      onSingleChanged: (e) {
+                        setState(() {
+                          checker = e?.usrName;
+                        });
+                      },
+                      onMultiChanged: (e) {},
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: TxnTypeDropDown(
-                    title: tr.txnType,
-                    isMulti: false,
-                    onSingleChanged: (e) {
-                      setState(() {
-                        txnType = e?.trntCode;
-                      });
-                    },
-                    onMultiChanged: (e) {},
+                  Expanded(
+                    child: TxnTypeDropDown(
+                      title: tr.txnType,
+                      isMulti: false,
+                      onSingleChanged: (e) {
+                        setState(() {
+                          txnType = e?.trntCode;
+                        });
+                      },
+                      onMultiChanged: (e) {},
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: CurrencyDropdown(
-                    isMulti: false,
-                    title: tr.currencyTitle,
-                    onSingleChanged: (e) {
-                      setState(() {
-                        currency = e?.ccyCode;
-                      });
-                    },
-                    onMultiChanged: (e) {},
+                  Expanded(
+                    child: CurrencyDropdown(
+                      isMulti: false,
+                      title: tr.currencyTitle,
+                      onSingleChanged: (e) {
+                        setState(() {
+                          currency = e?.ccyCode;
+                        });
+                      },
+                      onMultiChanged: (e) {},
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: StatusDropdown(
-                    value: status,
-                    items: [
-                      StatusItem(null, tr.all),
-                      StatusItem(1, tr.authorizedTitle),
-                      StatusItem(0, tr.pendingTitle),
-                    ],
-                    onChanged: (v) {
-                      setState(() => status = v);
-                    },
+                  Expanded(
+                    child: StatusDropdown(
+                      value: status,
+                      items: [
+                        StatusItem(null, tr.all),
+                        StatusItem(1, tr.authorizedTitle),
+                        StatusItem(0, tr.pendingTitle),
+                      ],
+                      onChanged: (v) {
+                        setState(() => status = v);
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 8),
-          Container(
-            height: 35,
-            decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: .9)
+            SizedBox(height: 8),
+            Container(
+              height: 35,
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: .9)
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 8),
+              margin:  const EdgeInsets.symmetric(horizontal: 15.0),
+              child: Row(
+                children: [
+                  SizedBox(
+                      width: 100,
+                      child: Text(tr.date,style: titleStyle)),
+                  SizedBox(
+                      width: 200,
+                      child: Text(tr.referenceNumber,style: titleStyle)),
+                  Expanded(
+                      child: Text(tr.narration,style: titleStyle)),
+                  SizedBox(
+                      width: 150,
+                      child: Text(tr.txnType,style: titleStyle)),
+                  SizedBox(
+                      width: 100,
+                      child: Text(tr.maker,style: titleStyle)),
+                  SizedBox(
+                      width: 100,
+                      child: Text(tr.checker,style: titleStyle)),
+                  SizedBox(
+                      width: 100,
+                      child: Text(tr.status,style: titleStyle)),
+                  SizedBox(
+                      width: 150,
+                      child: Text(tr.amount,style: titleStyle, textAlign: myLocale == "en"? TextAlign.right : TextAlign.left)),
+                ],
+              ),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 8),
-            margin:  const EdgeInsets.symmetric(horizontal: 15.0),
-            child: Row(
-              children: [
-                SizedBox(
-                    width: 180,
-                    child: Text(tr.date,style: titleStyle)),
-                Expanded(
-                    child: Text(tr.referenceNumber,style: titleStyle)),
-                SizedBox(
-                    width: 200,
-                    child: Text(tr.txnType,style: titleStyle)),
-                SizedBox(
-                    width: 120,
-                    child: Text(tr.maker,style: titleStyle)),
-                SizedBox(
-                    width: 120,
-                    child: Text(tr.checker,style: titleStyle)),
-                SizedBox(
-                    width: 120,
-                    child: Text(tr.status,style: titleStyle)),
-                SizedBox(
-                    width: 150,
-                    child: Text(tr.amount,style: titleStyle, textAlign: myLocale == "en"? TextAlign.right : TextAlign.left)),
-              ],
-            ),
-          ),
-          Expanded(
-            child: BlocBuilder<TxnReportBloc, TxnReportState>(
-              builder: (context, state) {
-                if(state is TxnReportInitial){
-                  return NoDataWidget(
-                    title: "Transaction Report",
-                    message: "Select filters above and click Apply to view transactions.",
-                    enableAction: false,
-                  );
-                }
-                if(state is TxnReportLoadingState){
-                  return Center(child: CircularProgressIndicator());
-                }
-                if(state is TxnReportErrorState){
-                  return NoDataWidget(
-                    title: "Error",
-                    message: state.error,
-                    enableAction: false,
-                  );
-                }if(state is TxnReportLoadedState){
-                  if(state.txn.isEmpty){
+            Expanded(
+              child: BlocBuilder<TxnReportBloc, TxnReportState>(
+                builder: (context, state) {
+                  if(state is TxnReportInitial){
                     return NoDataWidget(
-                      title: tr.noData,
-                      message: tr.noDataFound,
+                      title: "Transaction Report",
+                      message: "Select filters above and click Apply to view transactions.",
                       enableAction: false,
                     );
                   }
-                  return ListView.builder(
-                      itemCount: state.txn.length,
-                      itemBuilder: (context,index){
-                      final txn = state.txn[index];
-                      return Container(
-                        decoration: BoxDecoration(
-                          color: index.isOdd? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 5.0,vertical: 8),
-                        margin:  const EdgeInsets.symmetric(horizontal: 15.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                                width: 180,
-                                child: Text(txn.timing?.toDateTime ?? "")),
-                            Expanded(
-                                child: Text(txn.reference.toString())),
-
-                            SizedBox(
-                                width: 200,
-                                child: Text(txn.type.toString())),
-                            SizedBox(
-                                width: 120,
-                                child: Text(txn.maker.toString())),
-                            SizedBox(
-                                width: 120,
-                                child: Text(txn.checker.toString())),
-                            SizedBox(
-                                width: 120,
-                                child: Text(txn.statusText??"")),
-                            SizedBox(
-                                width: 150,
-                                child: Text("${txn.actualAmount.toAmount()} ${txn.currency}", textAlign: myLocale == "en"? TextAlign.right : TextAlign.left)),
-                          ],
-                        ),
+                  if(state is TxnReportLoadingState){
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if(state is TxnReportErrorState){
+                    return NoDataWidget(
+                      title: "Error",
+                      message: state.error,
+                      enableAction: false,
+                    );
+                  }if(state is TxnReportLoadedState){
+                    if(state.txn.isEmpty){
+                      return NoDataWidget(
+                        title: tr.noData,
+                        message: tr.noDataFound,
+                        enableAction: false,
                       );
-                  });
-                }
-                return const SizedBox();
-              },
+                    }
+                    return ListView.builder(
+                        itemCount: state.txn.length,
+                        itemBuilder: (context,index){
+                          final txn = state.txn[index];
+                          final reference = txn.reference?.toString() ?? "";
+                          final isLoadingThisItem = _isLoadingDialog && _loadingRef == reference;
+                          final txnType = _extractTxnType(reference);
+                          final canClick = txnType != null;
+
+                          return InkWell(
+                            onTap: canClick ? () => _handleTransactionTap(txn) : null,
+                            hoverColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
+                            highlightColor: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                  color: index.isOdd? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 5.0,vertical: 8),
+                              margin:  const EdgeInsets.symmetric(horizontal: 15.0),
+                              child: Row(
+                                children: [
+                                  SizedBox(
+                                      width: 100,
+                                      child: Text(txn.timing?.toFormattedDate() ?? "")),
+                                  SizedBox(
+                                      width: 180,
+                                      child: Row(
+                                        children: [
+                                          if (isLoadingThisItem)
+                                            Container(
+                                              width: 14,
+                                              height: 14,
+                                              margin: EdgeInsets.only(right: 4),
+                                              child: const CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                              ),
+                                            ),
+                                          Expanded(child: Text(reference)),
+                                        ],
+                                      )),
+                                  Expanded(
+                                      child: Text(txn.narration.toString())),
+                                  SizedBox(
+                                      width: 150,
+                                      child: Text(txn.type.toString())),
+                                  SizedBox(
+                                      width: 100,
+                                      child: Text(txn.maker.toString())),
+                                  SizedBox(
+                                      width: 100,
+                                      child: Text(txn.checker.toString())),
+                                  SizedBox(
+                                      width: 100,
+                                      child: Text(txn.statusText??"")),
+                                  SizedBox(
+                                      width: 150,
+                                      child: Text("${txn.actualAmount.toAmount()} ${txn.currency}", textAlign: myLocale == "en"? TextAlign.right : TextAlign.left)),
+                                ],
+                              ),
+                            ),
+                          );
+                        });
+                  }
+                  return const SizedBox();
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

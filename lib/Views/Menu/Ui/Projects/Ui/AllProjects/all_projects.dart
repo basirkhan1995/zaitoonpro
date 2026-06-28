@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
@@ -9,7 +11,6 @@ import 'package:zaitoonpro/Features/Widgets/no_data_widget.dart';
 import 'package:zaitoonpro/Features/Widgets/outline_button.dart';
 import 'package:zaitoonpro/Features/Widgets/search_field.dart';
 import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
-import 'package:zaitoonpro/Features/Widgets/textfield_entitled.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
@@ -33,7 +34,6 @@ class AllProjectsView extends StatelessWidget {
   }
 }
 
-enum ProjectStatus { all, inProgress, completed }
 
 class _Desktop extends StatefulWidget {
   const _Desktop();
@@ -44,10 +44,17 @@ class _Desktop extends StatefulWidget {
 
 class _DesktopState extends State<_Desktop> {
   final _searchController = TextEditingController();
-  String _searchQuery = '';
+  final String _searchQuery = '';
   final String _filterStatus = 'All';
-  List<String> _selectedStatuses = [];
+  final List<String> _selectedStatuses = [];
+  Timer? _debounce;
 
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -56,17 +63,9 @@ class _DesktopState extends State<_Desktop> {
     super.initState();
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
 
-  Future<void> onRefresh() async {
-    context.read<ProjectsBloc>().add(LoadProjectsEvent());
+  Future<void> onRefresh() async {context.read<ProjectsBloc>().add(LoadProjectsEvent());
   }
-
-  final findProjectById = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -86,170 +85,78 @@ class _DesktopState extends State<_Desktop> {
           // Header with gradient background
           Container(
             padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 5),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Title and add button
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tr.projects,
-                          style: textTheme.headlineSmall?.copyWith(
-                            color: color.onSurface,
-                            fontWeight: FontWeight.bold,
-                          ),
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tr.projects,
+                        style: textTheme.headlineSmall?.copyWith(
+                          color: color.onSurface,
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Manage and track all your projects',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: color.onSurface.withValues(alpha: .8),
-                          ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'پروژه های خود را مدیریت کنید',
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: color.onSurface.withValues(alpha: .8),
                         ),
-                      ],
-                    ),
-                    if (login.hasPermission(47) ?? false)
-                    ZOutlineButton(
-                      isActive: true,
-                      icon: Icons.add,
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AddNewProjectView(),
-                        );
-                      },
-
-                      label: Text(tr.newProject),
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-
-                // Search and filter bar
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    // Search field
-                    Expanded(
-                      flex: 3,
-                      child: ZSearchField(
-                        title: "",
-                        hint: "Search project name",
-                        icon: Icons.search,
-                        controller: _searchController,
-                        onChanged: (value) {
-                          setState(() {
-                            _searchQuery = value;
-                          });
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: ZTextFieldEntitled(
-                        controller: findProjectById,
-                        title: "",
-                        hint: "Find Project by ID",
-                        onSubmit: (e) {
-                          context.read<ProjectsBloc>().add(
-                            LoadProjectsEvent(
-                              prjId: int.tryParse(findProjectById.text),
-                            ),
-                          );
-                        },
-                        trailing: IconButton(
-                          onPressed: () {
-                            findProjectById.clear();
-                            context.read<ProjectsBloc>().add(
-                              LoadProjectsEvent(),
-                            );
-                          },
-                          icon: Icon(Icons.clear),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-
-                    Expanded(
-                      flex: 1,
-                      child: ZDropdown<String>(
-                        onItemSelected: (e) {},
-                        title: "",
-                        items: [tr.inProgress, tr.completed],
-                        itemLabel: (item) => item,
-                        multiSelect: true,
-                        selectedItems: _selectedStatuses,
-                        onMultiSelectChanged: (selected) {
-                          setState(() {
-                            _selectedStatuses = selected;
-                          });
-                        },
-                        initialValue: tr.all,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ZOutlineButton(
-                      onPressed: onRefresh,
-                      icon: Icons.refresh,
-                      height: 47,
-                      label: Text(tr.refresh),
-                    ),
-                  ],
+                // Search field
+                Expanded(
+                  flex: 3,
+                  child: ZSearchField(
+                    title: "",
+                    hint: tr.search,
+                    icon: Icons.search,
+                    controller: _searchController,
+                    onChanged: (value) {
+                      _debounce = Timer(const Duration(milliseconds: 1000), () {
+                        context.read<ProjectsBloc>().add(LoadProjectsEvent(
+                          search: value,
+                          prjId: int.tryParse(value),
+                        ));
+                      });
+                    },
+                  ),
                 ),
+                const SizedBox(width: 8),
+                ZOutlineButton(
+                  onPressed: onRefresh,
+                  icon: Icons.refresh,
+                  height: 47,
+                  label: Text(tr.refresh),
+                ),
+                if (login.hasPermission(47) ?? false)...[
+                  const SizedBox(width: 8),
+                  ZOutlineButton(
+                    height: 47,
+                    isActive: true,
+                    icon: Icons.add,
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AddNewProjectView(),
+                      );
+                    },
+
+                    label: Text(tr.newProject),
+                  ),
+                ]
+
               ],
             ),
           ),
-
-          // Stats cards
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 8),
-            child: BlocBuilder<ProjectsBloc, ProjectsState>(
-              builder: (context, state) {
-                if (state is ProjectsLoadedState) {
-                  final totalProjects = state.pjr.length;
-                  final completed = state.pjr
-                      .where((p) => p.prjStatus == 1)
-                      .length;
-                  final pending = state.pjr
-                      .where((p) => p.prjStatus == 0)
-                      .length;
-
-                  return Row(
-                    children: [
-                      _buildStatCard(
-                        title: tr.totalProjectTitle,
-                        value: totalProjects.toString(),
-                        icon: Icons.folder_copy,
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(),
-                      ),
-                      const SizedBox(width: 8),
-                      _buildStatCard(
-                        title: tr.completed,
-                        value: completed.toString(),
-                        icon: Icons.check_circle,
-                        color: Colors.green,
-                      ),
-                      const SizedBox(width: 8),
-                      _buildStatCard(
-                        title: tr.inProgress,
-                        value: pending.toString(),
-                        icon: Icons.pending,
-                        color: Colors.orange,
-                      ),
-                    ],
-                  );
-                }
-                return const SizedBox();
-              },
-            ),
-          ),
-
+          const SizedBox(height: 20),
           // Projects list
           Expanded(
             child: BlocConsumer<ProjectsBloc, ProjectsState>(
@@ -342,57 +249,6 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: .1),
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: color.withValues(alpha: .2)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: .2),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildProjectCard(
     ProjectsModel pjr,
     int index,
@@ -423,23 +279,15 @@ class _DesktopState extends State<_Desktop> {
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
             child: Row(
               children: [
-                Expanded(
-                  flex: 0,
-                  child: Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: color.primary.withValues(alpha: .1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${pjr.prjId}',
-                        style: TextStyle(
-                          color: color.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
+                SizedBox(
+                  width: 40,
+                  child: Center(
+                    child: Text(
+                      '${pjr.prjId}',
+                      style: TextStyle(
+                        color: color.primary,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -472,23 +320,6 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 SizedBox(
-                  width: 110,
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.calendar_today,
-                        size: 14,
-                        color: color.outline,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        pjr.prjDateLine.toFormattedDate(),
-                        style: textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
                   width: 160,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -499,7 +330,10 @@ class _DesktopState extends State<_Desktop> {
                       color: _getDeadlineColor(
                         pjr.prjDateLine,
                       ).withValues(alpha: .1),
-                      borderRadius: BorderRadius.circular(5),
+                      borderRadius: BorderRadius.circular(3),
+                      border: Border.all(
+                        color: _getDeadlineColor(pjr.prjDateLine)
+                      )
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,

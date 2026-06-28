@@ -11,6 +11,7 @@ String transactionReportModelToMap(List<TransactionReportModel> data) => json.en
 class TransactionReportModel {
   final int? no;
   final String? reference;
+  final String? narration;
   final String? type;
   final int? status;
   final String? statusText;
@@ -32,6 +33,7 @@ class TransactionReportModel {
     this.currency,
     this.actualAmount,
     this.sysEquavalint,
+    this.narration,
     this.timing,
   });
 
@@ -46,6 +48,7 @@ class TransactionReportModel {
     String? currency,
     String? actualAmount,
     String? sysEquavalint,
+    String? narration,
     DateTime? timing,
   }) =>
       TransactionReportModel(
@@ -60,6 +63,7 @@ class TransactionReportModel {
         actualAmount: actualAmount ?? this.actualAmount,
         sysEquavalint: sysEquavalint ?? this.sysEquavalint,
         timing: timing ?? this.timing,
+        narration: narration ?? this.narration
       );
 
   factory TransactionReportModel.fromMap(Map<String, dynamic> json) => TransactionReportModel(
@@ -73,6 +77,7 @@ class TransactionReportModel {
     currency: json["currency"],
     actualAmount: json["actual_amount"],
     sysEquavalint: json["sys_equivalent"],
+    narration: json["narration"],
     timing: json["timing"] == null ? null : DateTime.parse(json["timing"]),
   );
 
@@ -88,5 +93,6 @@ class TransactionReportModel {
     "actual_amount": actualAmount,
     "sys_equivalent": sysEquavalint,
     "timing": timing?.toIso8601String(),
+    "narration": narration,
   };
 }

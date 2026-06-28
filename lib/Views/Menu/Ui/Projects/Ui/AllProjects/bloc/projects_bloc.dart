@@ -15,7 +15,7 @@ class ProjectsBloc extends Bloc<ProjectsEvent, ProjectsState> {
     on<LoadProjectsEvent>((event, emit)async {
       emit(ProjectsLoadingState());
      try{
-      final pjr = await _repo.getProjects(prjId: event.prjId);
+      final pjr = await _repo.getProjects(prjId: event.prjId,search: event.search,status: event.status);
       emit(ProjectsLoadedState(pjr));
      }catch(e){
        emit(ProjectsErrorState(e.toString()));

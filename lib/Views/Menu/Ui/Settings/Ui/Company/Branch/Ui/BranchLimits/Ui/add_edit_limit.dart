@@ -8,6 +8,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/features/currency_drop.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/BranchLimits/bloc/branch_limit_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Branch/Ui/BranchLimits/model/limit_model.dart';
+import '../../../../../../../../../../Features/Generic/complex_textfield.dart';
 import '../../../../../../../../../../Features/Other/thousand_separator.dart';
 import '../../../../../../../../../../Features/Widgets/textfield_entitled.dart';
 import '../../../../../../../../../../Localizations/l10n/translations/app_localizations.dart';
@@ -270,6 +271,21 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
                                     title: locale.amount,
                                   ),
                                   const SizedBox(height: 16),
+                                  ZGenericTextField(
+                                    controller: amountLimit,
+                                    title: locale.amount,
+                                    onSubmit: (_) => onSubmit(),
+                                    defaultCurrencyCode: widget.model?.balCurrency,
+                                    fieldType: ZTextFieldType.currency,
+                                    onCurrencyChanged: (currency) {
+                                      currencyCode = currency?.ccyCode ?? "";
+                                    },
+                                    showFlag: true,
+                                    showClearButton: true,
+                                    showSymbol: false,
+                                    isRequired: true,
+                                  ),
+                                  const SizedBox(height: 16),
                                   Container(
                                     width: double.infinity,
                                     decoration: BoxDecoration(
@@ -522,49 +538,20 @@ class _BaseBranchLimitAddEditState extends State<_BaseBranchLimitAddEdit> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    spacing: 5,
-                    children: [
-                      Expanded(
-                        child: ZTextFieldEntitled(
-                          isRequired: true,
-                          onSubmit: (_) => onSubmit(),
-                          keyboardInputType: TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          inputFormat: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9.,]*'),
-                            ),
-                            SmartThousandsDecimalFormatter(),
-                          ],
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return locale.required(locale.amount);
-                            }
-                            return null;
-                          },
-                          controller: amountLimit,
-                          title: locale.amount,
-                        ),
-                      ),
-                      SizedBox(
-                        width: 140,
-                        child: CurrencyDropdown(
-                          height: 40,
-                          initiallySelected: [],
-                          isMulti: false,
-                          onMultiChanged: (_) {},
-                          onSingleChanged: (value) {
-                            setState(() {
-                              currencyCode = value?.ccyCode ?? "";
-                            });
-                          },
-                          title: locale.currencyTitle,
-                          initiallySelectedSingle: CurrenciesModel(ccyCode: currencyCode),
-                        ),
-                      ),
-                    ],
+
+                  ZGenericTextField(
+                    controller: amountLimit,
+                    title: locale.amount,
+                    onSubmit: (_) => onSubmit(),
+                    defaultCurrencyCode: widget.model?.balCurrency,
+                    fieldType: ZTextFieldType.currency,
+                    onCurrencyChanged: (currency) {
+                      currencyCode = currency?.ccyCode ?? "";
+                    },
+                    showFlag: true,
+                    showClearButton: true,
+                    showSymbol: false,
+                    isRequired: true,
                   ),
                   const SizedBox(height: 8),
 

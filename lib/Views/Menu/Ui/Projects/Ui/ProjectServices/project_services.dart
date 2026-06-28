@@ -436,8 +436,6 @@ class _DesktopState extends State<_Desktop> {
                                         children: [
                                           Text(prjServices.srvName ?? "", style: titleStyle?.copyWith(color: color.onSurface)),
                                           Text(prjServices.prpTrnRef ?? "", style: subtitleStyle),
-                                          if (prjServices.pjdRemark != null)
-                                            Text(prjServices.pjdRemark ?? "", style: subtitleStyle),
                                         ],
                                       ),
                                     ),

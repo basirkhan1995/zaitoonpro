@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
@@ -13,6 +15,7 @@ import '../../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../Finance/Ui/GlAccounts/GlCategories/category_view.dart';
 import '../../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
+import '../Print/all_balances_excel.dart';
 import '../Print/print.dart';
 import '../bloc/all_balances_bloc.dart';
 import '../model/all_balances_model.dart';
@@ -380,7 +383,6 @@ class _TabletState extends State<_Tablet> {
   }
 }
 
-
 class _Mobile extends StatefulWidget {
   const _Mobile();
 
@@ -708,7 +710,6 @@ class _MobileState extends State<_Mobile> {
   }
 }
 
-
 class _Desktop extends StatefulWidget {
   const _Desktop();
 
@@ -716,12 +717,17 @@ class _Desktop extends StatefulWidget {
   State<_Desktop> createState() => _DesktopState();
 }
 class _DesktopState extends State<_Desktop> {
-
   int? catId;
+  String? _selectedCategoryName;
+
   @override
   Widget build(BuildContext context) {
-    TextStyle? titleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.surface);
+    TextStyle? titleStyle = Theme.of(context)
+        .textTheme
+        .titleSmall
+        ?.copyWith(color: Theme.of(context).colorScheme.surface);
     final tr = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 0,
@@ -732,126 +738,140 @@ class _DesktopState extends State<_Desktop> {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
-
               children: [
                 SizedBox(
                   width: 300,
                   child: GlSubCategoriesDrop(
-                      mainCategoryId: 0,
-                      onChanged: (e){
-                        setState(() {
-                          catId = e?.acgId;
-                        });
-                        context.read<AllBalancesBloc>().add(LoadAllBalancesEvent(catId: catId));
-                      }),
+                    mainCategoryId: 0,
+                    showAllOption: true,
+                    onChanged: (e) {
+                      setState(() {
+                        catId = e?.acgId;
+                        _selectedCategoryName = e?.acgName;
+                      });
+                      context
+                          .read<AllBalancesBloc>()
+                          .add(LoadAllBalancesEvent(catId: catId));
+                    },
+                  ),
                 ),
-
-                if(catId !=null)...[
+                if (catId != null) ...[
                   SizedBox(width: 8),
                   ZOutlineButton(
-                      width: 130,
-                      backgroundHover: Theme.of(context).colorScheme.error,
-                      isActive: true,
-                      onPressed: (){
-                        setState(() {
-                          catId = null;
-                        });
-                        context.read<AllBalancesBloc>().add(ResetAllBalancesEvent());
-                      },
-                      icon: Icons.filter_alt_off_outlined,
-                      label: Text(tr.clearFilters)),
+                    width: 130,
+                    backgroundHover: Theme.of(context).colorScheme.error,
+                    isActive: true,
+                    onPressed: () {
+                      setState(() {
+                        catId = null;
+                        _selectedCategoryName = null;
+                      });
+                      context
+                          .read<AllBalancesBloc>()
+                          .add(ResetAllBalancesEvent());
+                    },
+                    icon: Icons.filter_alt_off_outlined,
+                    label: Text(tr.clearFilters),
+                  ),
                 ],
                 SizedBox(width: 8),
                 ZOutlineButton(
-                    width: 100,
-                    onPressed: _printAllBalances,
-                    icon: Icons.print,
-                    label: Text(tr.print)),
+                  width: 100,
+                  onPressed: _exportToExcel,
+                  icon: FontAwesomeIcons.fileExcel,
+                  label: Text('Excel'),
+                ),
                 SizedBox(width: 8),
                 ZOutlineButton(
-                    width: 120,
-                    onPressed: (){
-                      context.read<AllBalancesBloc>().add(LoadAllBalancesEvent(catId: catId));
-                    },
-                    isActive: true,
-                    icon: Icons.filter_alt,
-                    label: Text(tr.apply)),
+                  width: 100,
+                  onPressed: _printAllBalances,
+                  icon: Icons.print,
+                  label: Text(tr.print),
+                ),
+                SizedBox(width: 8),
+                ZOutlineButton(
+                  width: 120,
+                  onPressed: () {
+                    context
+                        .read<AllBalancesBloc>()
+                        .add(LoadAllBalancesEvent(catId: catId));
+                  },
+                  isActive: true,
+                  icon: Icons.filter_alt,
+                  label: Text(tr.apply),
+                ),
               ],
             ),
           ),
         ],
       ),
-
       body: Column(
         children: [
-
           Container(
-            padding: EdgeInsets.symmetric(vertical: 8,horizontal: 5),
+            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 5),
             margin: EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: .9),
+              color: Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: .9),
             ),
             child: Row(
               children: [
                 SizedBox(
-                    width: 100,
-                    child: Text(tr.accountNumber,style: titleStyle)),
-
-                Expanded(
-                    child: Text(tr.accountName,style: titleStyle)),
-
+                    width: 100, child: Text(tr.accountNumber, style: titleStyle)),
+                Expanded(child: Text(tr.accountName, style: titleStyle)),
                 SizedBox(
-                    width: 100,
-                    child: Text(tr.branchId,style: titleStyle)),
-
+                    width: 100, child: Text(tr.branchId, style: titleStyle)),
                 SizedBox(
                     width: 250,
-                    child: Text(tr.accountCategory,style: titleStyle)),
-
+                    child: Text(tr.accountCategory, style: titleStyle)),
                 SizedBox(
-                    width: 150,
-                    child: Text(tr.balance,style: titleStyle)),
+                    width: 150, child: Text(tr.balance, style: titleStyle)),
               ],
             ),
           ),
           Expanded(
             child: BlocBuilder<AllBalancesBloc, AllBalancesState>(
               builder: (context, state) {
-                if(state is AllBalancesInitial){
+                if (state is AllBalancesInitial) {
                   return NoDataWidget(
                     title: "All Balances",
                     message: "View all accounts balances here",
                     enableAction: false,
                   );
                 }
-                if(state is AllBalancesLoadingState){
+                if (state is AllBalancesLoadingState) {
                   return Center(child: CircularProgressIndicator());
                 }
-                if(state is AllBalancesLoadedState){
-                  if(state.balances.isEmpty){
+                if (state is AllBalancesLoadedState) {
+                  if (state.balances.isEmpty) {
                     return NoDataWidget(
                       title: tr.noData,
                       message: tr.noDataFound,
                     );
                   }
                   return ListView.builder(
-                      itemCount: state.balances.length,
-                      itemBuilder: (context,index){
+                    itemCount: state.balances.length,
+                    itemBuilder: (context, index) {
                       final ab = state.balances[index];
-                        return Container(
-                          padding: EdgeInsets.symmetric(vertical: 8,horizontal: 5),
-                          margin: EdgeInsets.symmetric(horizontal: 15),
-                          decoration: BoxDecoration(
-                            color: index.isOdd? Theme.of(context).colorScheme.primary.withValues(alpha: .05) : Colors.transparent
-                          ),
-                          child: Row(
+                      return Container(
+                        padding: EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+                        margin: EdgeInsets.symmetric(horizontal: 15),
+                        decoration: BoxDecoration(
+                          color: index.isOdd
+                              ? Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: .05)
+                              : Colors.transparent,
+                        ),
+                        child: Row(
                           children: [
                             SizedBox(
                                 width: 100,
                                 child: Text(ab.trdAccount.toString())),
-
-                            Expanded(
-                                child: Text(ab.accName.toString())),
+                            Expanded(child: Text(ab.accName.toString())),
                             SizedBox(
                                 width: 100,
                                 child: Text(ab.trdBranch.toString())),
@@ -861,14 +881,15 @@ class _DesktopState extends State<_Desktop> {
                             SizedBox(
                                 width: 220,
                                 child: Text(ab.acgName.toString())),
-
                             SizedBox(
                                 width: 150,
-                                child: Text("${ab.balance.toAmount()} ${ab.trdCcy}")),
+                                child: Text(
+                                    "${ab.balance.toAmount()} ${ab.trdCcy}")),
                           ],
-                                          ),
-                        );
-                  });
+                        ),
+                      );
+                    },
+                  );
                 }
                 return const SizedBox();
               },
@@ -879,7 +900,42 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
+  // Excel Export Method
+  Future<void> _exportToExcel() async {
+    final state = context.read<AllBalancesBloc>().state;
 
+    if (state is AllBalancesLoadedState) {
+      if (state.balances.isEmpty) {
+        ToastManager.show(
+          context: context,
+          title: "No Data",
+          message: "No balances to export",
+          type: ToastType.warning,
+        );
+        return;
+      }
+
+      // Generate filename with timestamp
+      String fileName =
+          "All_Balances_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx";
+
+      await AllBalancesExcelService.exportToExcel(
+        balances: state.balances,
+        fileName: fileName,
+        context: context,
+        filterCategory: _selectedCategoryName,
+      );
+    } else {
+      ToastManager.show(
+        context: context,
+        title: "Attention",
+        message: "Please load the data first.",
+        type: ToastType.warning,
+      );
+    }
+  }
+
+  // Print Method
   Future<void> _printAllBalances() async {
     final state = context.read<AllBalancesBloc>().state;
 
@@ -901,8 +957,6 @@ class _DesktopState extends State<_Desktop> {
         );
       }
 
-
-
       if (context.mounted) {
         showDialog(
           context: context,
@@ -921,7 +975,6 @@ class _DesktopState extends State<_Desktop> {
                 orientation: orientation,
                 company: company,
                 pageFormat: pageFormat,
-
               );
             },
             onPrint: ({
@@ -962,7 +1015,12 @@ class _DesktopState extends State<_Desktop> {
         );
       }
     } else {
-     ToastManager.show(context: context, title: "Attention", message: "Please load the data first.", type: ToastType.warning);
+      ToastManager.show(
+        context: context,
+        title: "Attention",
+        message: "Please load the data first.",
+        type: ToastType.warning,
+      );
     }
   }
 }

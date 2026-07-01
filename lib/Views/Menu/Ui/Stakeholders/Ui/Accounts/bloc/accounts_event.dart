@@ -42,3 +42,10 @@ class UpdateAccountEvent extends AccountsEvent{
   @override
   List<Object?> get props => [newAccount];
 }
+
+class DeleteAccountEvent extends AccountsEvent{
+  final int accNumber;
+  const DeleteAccountEvent(this.accNumber);
+  @override
+  List<Object?> get props => [accNumber];
+}

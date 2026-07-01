@@ -101,18 +101,23 @@ class Payment {
   final String? trnStateText;
   final DateTime? trnEntryDate;
   final String? trdCcy;
+  final String? trdNarration;
+  final int? debitAccount;
+  final int? creditAccount;
   final String? payments;
   final String? expenses;
-  final String? trdNarration;
+
   Payment({
     this.prpType,
     this.prpTrnRef,
     this.trnStateText,
     this.trnEntryDate,
     this.trdCcy,
+    this.trdNarration,
+    this.debitAccount,
+    this.creditAccount,
     this.payments,
     this.expenses,
-    this.trdNarration,
   });
 
   Payment copyWith({
@@ -121,9 +126,11 @@ class Payment {
     String? trnStateText,
     DateTime? trnEntryDate,
     String? trdCcy,
+    String? trdNarration,
+    int? debitAccount,
+    int? creditAccount,
     String? payments,
     String? expenses,
-    String? trdNarration,
   }) =>
       Payment(
         prpType: prpType ?? this.prpType,
@@ -131,9 +138,11 @@ class Payment {
         trnStateText: trnStateText ?? this.trnStateText,
         trnEntryDate: trnEntryDate ?? this.trnEntryDate,
         trdCcy: trdCcy ?? this.trdCcy,
+        trdNarration: trdNarration ?? this.trdNarration,
+        debitAccount: debitAccount ?? this.debitAccount,
+        creditAccount: creditAccount ?? this.creditAccount,
         payments: payments ?? this.payments,
         expenses: expenses ?? this.expenses,
-        trdNarration: trdNarration ?? this.trdNarration
       );
 
   factory Payment.fromMap(Map<String, dynamic> json) => Payment(
@@ -142,9 +151,11 @@ class Payment {
     trnStateText: json["trnStateText"],
     trnEntryDate: json["trnEntryDate"] == null ? null : DateTime.parse(json["trnEntryDate"]),
     trdCcy: json["trdCcy"],
+    trdNarration: json["trdNarration"],
+    debitAccount: json["debitAccount"],
+    creditAccount: json["creditAccount"],
     payments: json["payments"],
     expenses: json["expenses"],
-    trdNarration: json["trdNarration"]
   );
 
   Map<String, dynamic> toMap() => {
@@ -153,8 +164,11 @@ class Payment {
     "trnStateText": trnStateText,
     "trnEntryDate": trnEntryDate?.toIso8601String(),
     "trdCcy": trdCcy,
+    "trdNarration": trdNarration,
+    "debitAccount": debitAccount,
+    "creditAccount": creditAccount,
     "payments": payments,
     "expenses": expenses,
-    "narration": trdNarration,
   };
 }
+

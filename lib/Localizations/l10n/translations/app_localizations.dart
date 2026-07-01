@@ -6663,6 +6663,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Label Print'**
   String get printLabel;
+
+  /// No description provided for @bank.
+  ///
+  /// In en, this message translates to:
+  /// **'Bank'**
+  String get bank;
+
+  /// No description provided for @projectsReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Projects Report'**
+  String get projectsReport;
 }
 
 class _AppLocalizationsDelegate

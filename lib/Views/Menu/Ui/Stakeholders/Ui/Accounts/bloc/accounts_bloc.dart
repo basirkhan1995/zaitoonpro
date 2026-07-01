@@ -19,7 +19,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         emit(AccountErrorState(e.toString()));
       }
     });
-
     on<LoadAccountsEvent>((event, emit) async{
       emit(AccountLoadingState());
       try{
@@ -29,7 +28,6 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         emit(AccountErrorState(e.toString()));
       }
     });
-
     on<LoadStkAccountsEvent>((event, emit) async{
       emit(AccountLoadingState());
       try{
@@ -58,6 +56,23 @@ class AccountsBloc extends Bloc<AccountsEvent, AccountsState> {
         if(response["msg"] == "success"){
           emit(AccountSuccessState());
           add(LoadAccountsEvent(ownerId: event.newAccount.actSignatory));
+        }if(response["error"] == "trn_exists"){
+          final trnCount = response["transaction_count"];
+          emit(AccountErrorState("Failed, there are existing transactions for this account: $trnCount"));
+        }
+      }catch(e){
+        emit(AccountErrorState(e.toString()));
+      }
+    });
+    on<DeleteAccountEvent>((event, emit) async{
+      emit(AccountLoadingState());
+      try{
+        final response = await _repo.deleteAccount(accNumber: event.accNumber);
+        if(response["msg"] == "success"){
+          emit(AccountSuccessState());
+        }if(response["error"] == "trn_exists"){
+          final trnCount = response["transaction_count"];
+          emit(AccountErrorState("Failed, there are existing transactions for this account: $trnCount"));
         }
       }catch(e){
         emit(AccountErrorState(e.toString()));

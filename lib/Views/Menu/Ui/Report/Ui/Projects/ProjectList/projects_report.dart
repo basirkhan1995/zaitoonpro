@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../../../../Features/Date/shamsi_converter.dart';
 import '../../../../../../../Features/Date/z_generic_date.dart';
+import '../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../Features/Other/extensions.dart';
 import '../../../../../../../Features/Other/responsive.dart';
@@ -9,6 +10,7 @@ import '../../../../../../../Features/Widgets/no_data_widget.dart';
 import '../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../Features/Widgets/z_dragable_sheet.dart';
 import '../../../../../../../Localizations/l10n/translations/app_localizations.dart';
+import '../../../../../../Auth/bloc/auth_bloc.dart';
 import '../../../../Finance/Ui/Currency/features/currency_drop.dart';
 import '../../../../Projects/ProjectsById/projects_by_id.dart';
 import '../../../../Stakeholders/Ui/Individuals/bloc/individuals_bloc.dart';
@@ -570,6 +572,7 @@ class _Desktop extends StatefulWidget {
   State<_Desktop> createState() => _DesktopState();
 }
 class _DesktopState extends State<_Desktop> {
+  String? currency;
   String fromDate = DateTime.now()
       .subtract(const Duration(days: 7))
       .toFormattedDate();
@@ -579,6 +582,10 @@ class _DesktopState extends State<_Desktop> {
   int? status;
   @override
   void initState() {
+    final auth = context.read<AuthBloc>().state;
+    if(auth is AuthenticatedState){
+      currency = auth.loginData.company?.comLocalCcy ?? "";
+    }
     WidgetsBinding.instance.addPostFrameCallback((_){
       context.read<ProjectsReportBloc>().add(ResetProjectReportEvent());
     });
@@ -595,7 +602,7 @@ class _DesktopState extends State<_Desktop> {
         color: color.outline.withValues(alpha: .8)
     );
     return Scaffold(
-      appBar: AppBar(title: Text("Projects Report")),
+      appBar: AppBar(title: Text(tr.projectsReport)),
       body: Column(
         children: [
           //Header
@@ -610,8 +617,8 @@ class _DesktopState extends State<_Desktop> {
                       GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                         showAllOnFocus: true,
                         controller: customerController,
-                        title: tr.individuals,
-                        hintText: tr.userOwner,
+                        title: tr.clientTitle,
+                        hintText: tr.clientTitle,
                         bloc: context.read<IndividualsBloc>(),
                         fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
                         searchFunction: (bloc, query) => bloc.add(SearchIndividualsEvent(query)),
@@ -663,27 +670,35 @@ class _DesktopState extends State<_Desktop> {
                       ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.fromDate,
-                    value: fromDate,
-                    onDateChanged: (v) {
+                SizedBox(
+                  width: 220,
+                  child: ZRangeDatePicker(
+                    label: tr.selectDate,
+                    initialStartDate: DateTime.tryParse(fromDate),
+                    initialEndDate: DateTime.tryParse(toDate),
+                    startValue: fromDate,
+                    endValue: toDate,
+                    onStartDateChanged: (startDate) {
                       setState(() {
-                        fromDate = v;
+                        fromDate = startDate;
                       });
                     },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.toDate,
-                    value: toDate,
-                    onDateChanged: (v) {
+                    onEndDateChanged: (endDate) {
                       setState(() {
-                        toDate = v;
+                        toDate = endDate;
                       });
+                      context.read<ProjectsReportBloc>().add(
+                        LoadProjectReportEvent(
+                            fromDate: fromDate,
+                            toDate: toDate,
+                            customerId: customerId,
+                            status: status,
+                            currency: currency
+                        ),
+                      );
                     },
+                    minYear: 2000,
+                    maxYear: 2100,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -693,6 +708,9 @@ class _DesktopState extends State<_Desktop> {
                     isMulti: false,
                     onMultiChanged: (e){},
                     onSingleChanged: (e){
+                      setState(() {
+                        currency = e?.ccyCode;
+                      });
                       context.read<ProjectsReportBloc>().add(
                         LoadProjectReportEvent(
                             fromDate: fromDate,

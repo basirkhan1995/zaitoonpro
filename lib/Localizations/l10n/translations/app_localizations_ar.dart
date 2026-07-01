@@ -3361,4 +3361,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get printLabel => 'چاپ برچسپ';
+
+  @override
+  String get bank => 'بانک';
+
+  @override
+  String get projectsReport => 'گزارش پروژه ها';
 }

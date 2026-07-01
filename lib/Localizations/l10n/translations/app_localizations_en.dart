@@ -3369,4 +3369,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get printLabel => 'Label Print';
+
+  @override
+  String get bank => 'Bank';
+
+  @override
+  String get projectsReport => 'Projects Report';
 }

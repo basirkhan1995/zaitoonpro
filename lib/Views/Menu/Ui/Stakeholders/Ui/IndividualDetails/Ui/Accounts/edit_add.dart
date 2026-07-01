@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/zform_dialog.dart';
+import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/model/ccy_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/bloc/accounts_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Stakeholders/Ui/Accounts/model/acc_model.dart';
@@ -305,15 +306,20 @@ class _DesktopState extends State<_Desktop> {
   final TextEditingController accName = TextEditingController();
   final TextEditingController accountLimit = TextEditingController();
 
+
   bool status = true;
   int statusValue = 0;
-  String defaultCcy = "USD";
+  String defaultCcy = "";
   CurrenciesModel? ccyCode;
   final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
+    final auth = context.read<AuthBloc>().state;
+    if(auth is AuthenticatedState){
+      defaultCcy = auth.loginData.company?.comLocalCcy ?? "";
+    }
     // Pre-fill for edit mode
     if (widget.model != null) {
       final m = widget.model!;
@@ -372,7 +378,7 @@ class _DesktopState extends State<_Desktop> {
                   controller: accName,
                   title: tr.accountName,
                   hint: "e.g Ahmad",
-                  defaultCurrencyCode: widget.model?.actCurrency,
+                  defaultCurrencyCode: widget.model?.actCurrency ?? defaultCcy,
                   fieldType: ZTextFieldType.currency,
                   onCurrencyChanged: (currency) {
                     ccyCode = currency;
@@ -397,6 +403,10 @@ class _DesktopState extends State<_Desktop> {
 
                 Row(
                   children: [
+                    if(widget.model !=null)...[
+                      IconButton(onPressed: ()=> onDelete(widget.model!.accNumber!), icon: Icon(Icons.delete)),
+                      SizedBox(width: 8)
+                    ],
                     Checkbox(
                       visualDensity: const VisualDensity(horizontal: -4),
                       value: status,
@@ -424,7 +434,7 @@ class _DesktopState extends State<_Desktop> {
 
     final data = AccountsModel(
       accName: accName.text,
-      actCurrency: ccyCode?.ccyCode ?? "USD",
+      actCurrency: ccyCode?.ccyCode ?? defaultCcy,
       accStatus: statusValue,
       accCreditLimit: accountLimit.text.cleanAmount,
       actSignatory: widget.perId,
@@ -438,5 +448,8 @@ class _DesktopState extends State<_Desktop> {
     } else {
       bloc.add(UpdateAccountEvent(data));
     }
+  }
+  void onDelete(int accNumber){
+    context.read<AccountsBloc>().add(DeleteAccountEvent(accNumber));
   }
 }

@@ -1113,5 +1113,7 @@
   "barcodeTitle": "بارکد",
   "priceTag": "قیمت جنس",
   "colorTitle": "رنگ",
-  "printLabel": "چاپ برچسپ"
+  "printLabel": "چاپ برچسپ",
+  "bank": "بانک",
+  "projectsReport": "گزارش پروژه ها"
 }

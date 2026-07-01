@@ -1113,5 +1113,7 @@
   "barcodeTitle": "Barcode",
   "priceTag": "Price Tag",
   "colorTitle": "Color",
-  "printLabel": "Label Print"
+  "printLabel": "Label Print",
+  "bank": "Bank",
+  "projectsReport": "Projects Report"
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
@@ -953,7 +954,7 @@ class _DesktopState extends State<_Desktop> {
 
                 // Header
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                   decoration: BoxDecoration(
                     color: color.primary,
                   ),
@@ -963,8 +964,8 @@ class _DesktopState extends State<_Desktop> {
                         width: 90,
                         child: Text(tr.date, style: titleStyle),
                       ),
-                      Expanded(
-                        flex: 2,
+                      SizedBox(
+                        width: 190,
                         child: Text(tr.referenceNumber, style: titleStyle),
                       ),
 
@@ -1006,7 +1007,7 @@ class _DesktopState extends State<_Desktop> {
                             ? () => _showEditTransactionDialog(payment)
                             : null,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
                           decoration: BoxDecoration(
                             color: index.isOdd
                                 ? color.primary.withValues(alpha: .05)
@@ -1021,15 +1022,21 @@ class _DesktopState extends State<_Desktop> {
                             children: [
                               SizedBox(
                                 width: 90,
-                                child: Text(
-                                  payment.trnEntryDate != null
-                                      ? '${payment.trnEntryDate!.day}/${payment.trnEntryDate!.month}/${payment.trnEntryDate!.year}'
-                                      : '',
-                                  style: textTheme.bodyMedium,
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      payment.trnEntryDate.toFormattedDate(),
+                                      style: textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline),
+                                    ),
+                                    Text(
+                                      payment.trnEntryDate!.shamsiDateFormatted,
+                                      style: textTheme.bodyMedium,
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Expanded(
-                                flex: 2,
+                              SizedBox(
+                                width: 190,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

@@ -293,6 +293,10 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 SizedBox(width: 8),
+                SizedBox(
+                  width: 100,
+                  child: Text(pjr.prjEntryDate?.toFormattedDate()??""),
+                ),
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -318,6 +322,10 @@ class _DesktopState extends State<_Desktop> {
                         ),
                     ],
                   ),
+                ),
+                SizedBox(
+                  width: 180,
+                  child: Text(pjr.prjOwnerfullName??""),
                 ),
                 SizedBox(
                   width: 160,

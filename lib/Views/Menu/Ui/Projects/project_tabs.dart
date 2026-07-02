@@ -189,8 +189,6 @@ class _ProjectTabsMobileState extends State<_ProjectTabsMobile> {
   }
 }
 
-// Tablet View with Enhanced Tab Bar
-// Tablet View with ZTabContainer
 class _ProjectTabsTablet extends StatelessWidget {
   final ProjectsModel? project;
   const _ProjectTabsTablet({required this.project});

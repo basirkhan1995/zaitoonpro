@@ -162,6 +162,7 @@ class _DesktopState extends State<_Desktop> {
             child: BlocConsumer<ProjectsBloc, ProjectsState>(
               listener: (context, state) {
                 if (state is ProjectSuccessState) {
+                  Navigator.of(context).pop();
                   ToastManager.show(
                     context: context,
                     title: tr.successTitle,
@@ -170,6 +171,7 @@ class _DesktopState extends State<_Desktop> {
                   );
                 }
                 if (state is ProjectsErrorState) {
+                  Navigator.of(context).pop();
                   ToastManager.show(
                     context: context,
                     title: tr.errorTitle,
@@ -297,6 +299,10 @@ class _DesktopState extends State<_Desktop> {
                   width: 100,
                   child: Text(pjr.prjEntryDate?.toFormattedDate()??""),
                 ),
+                SizedBox(
+                  width: 150,
+                  child: Text(pjr.prjOwnerfullName??""),
+                ),
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -323,10 +329,8 @@ class _DesktopState extends State<_Desktop> {
                     ],
                   ),
                 ),
-                SizedBox(
-                  width: 180,
-                  child: Text(pjr.prjOwnerfullName??""),
-                ),
+
+                if(pjr.prjStatus !=1)
                 SizedBox(
                   width: 160,
                   child: Container(
@@ -442,7 +446,6 @@ class _DesktopState extends State<_Desktop> {
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {
-                  Navigator.pop(context);
                   _showDeleteConfirmation(context, project);
                 },
               ),

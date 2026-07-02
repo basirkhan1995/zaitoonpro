@@ -47,8 +47,6 @@ class ProjectsBloc extends Bloc<ProjectsEvent, ProjectsState> {
           add(LoadProjectsEvent());
         }if(response == "payment mismatch"){
           emit(ProjectsErrorState(tr.paymentNotMatch));
-        }else{
-          emit(ProjectsErrorState(response));
         }
       }catch(e){
         emit(ProjectsErrorState(e.toString()));

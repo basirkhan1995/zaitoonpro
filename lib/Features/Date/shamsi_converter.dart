@@ -381,11 +381,11 @@ extension DeadlineExtension on Object {
     if (days == null) return null;
 
     if (days > 0) {
-      return '$days days remaining';
+      return '$days روز باقی مانده';
     } else if (days == 0) {
-      return 'Deadline is today';
+      return 'مهلت امروز است';
     } else {
-      return '${days.abs()} days overdue';
+      return '${days.abs()} روز گذشته از مهلت';
     }
   }
 

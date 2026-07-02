@@ -429,7 +429,7 @@ class _DesktopState extends State<_Desktop> {
             children: [
               ListTile(
                 leading: const Icon(Icons.visibility),
-                title: const Text('View Details'),
+                title: Text(AppLocalizations.of(context)!.details),
                 onTap: () {
                   Navigator.pop(context);
                   showDialog(
@@ -441,8 +441,8 @@ class _DesktopState extends State<_Desktop> {
 
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text(
-                  'Delete',
+                title: Text(
+                  AppLocalizations.of(context)!.delete,
                   style: TextStyle(color: Colors.red),
                 ),
                 onTap: () {

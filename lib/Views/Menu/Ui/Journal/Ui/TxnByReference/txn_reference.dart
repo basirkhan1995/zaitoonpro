@@ -602,6 +602,8 @@ class _DesktopState extends State<_Desktop> {
 
                       final bool isAlreadyReversed = loadedTxn?.trnStatusText == "Reversed";
                       final bool isAlreadyDeleted = loadedTxn?.trnStatusText == "Deleted";
+                      final bool isAuthorized = loadedTxn?.trnStatusText == "Authorized";
+
 
                       final bool showAuthorizeButton = loadedTxn?.trnStatus == 0 && login.usrName != loadedTxn?.maker;
                       final bool showReverseButton = loadedTxn?.trnStatus == 1 && loadedTxn?.maker == login.usrName;
@@ -830,6 +832,29 @@ class _DesktopState extends State<_Desktop> {
                                               child: CircularProgressIndicator(strokeWidth: 3),
                                             )
                                                 : Text(locale.delete),
+                                          ),
+                                        ),
+
+
+                                      if(isAuthorized && (auth.loginData.usrRole == "Admin" || auth.loginData.usrRole == "Super"))
+                                        Expanded(
+                                          child: ZOutlineButton(
+                                            onPressed: () {
+                                              context.read<TransactionsBloc>().add(
+                                                UnAuthorizedTxnEvent(
+                                                  reference: reference ?? "",
+                                                  usrName: login.usrName ?? "",
+                                                ),
+                                              );
+                                            },
+                                            icon: isAuthorizeLoading ? null : Icons.refresh_rounded,
+                                            label: isAuthorizeLoading
+                                                ? const SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(strokeWidth: 3),
+                                            )
+                                                : Text("لغو تایید"),
                                           ),
                                         ),
                                     ],

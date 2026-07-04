@@ -862,7 +862,7 @@ class _DesktopState extends State<_Desktop> {
                   flex: 3,
                   child: ZTextFieldEntitled(
                     controller: projectLocation,
-                    title: tr.location,
+                    title: tr.address,
                   ),
                 ),
                 SizedBox(width: 5),
@@ -880,15 +880,15 @@ class _DesktopState extends State<_Desktop> {
               ],
             ),
             SizedBox(height: 8),
-            SectionTitle(title: tr.ownerInformation),
+            SectionTitle(title: "${tr.ownerInformation} | ${tr.accounts}"),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
               child:
                   GenericTextField<IndividualsModel, IndividualsBloc, IndividualsState>(
                     showAllOnFocus: true,
                     controller: projectOwner,
-                    title: tr.individuals,
-                    hintText: tr.individuals,
+                    title: tr.customer,
+                    hintText: tr.selectCustomer,
                     trailing: IconButton(
                       onPressed: () {
                         showDialog(
@@ -904,9 +904,9 @@ class _DesktopState extends State<_Desktop> {
                     bloc: context.read<IndividualsBloc>(),
                     fetchAllFunction: (bloc) => bloc.add(LoadIndividualsEvent()),
                     searchFunction: (bloc, query) => bloc.add(LoadIndividualsEvent(search: query)),
-                    validator: (value) {
-                      if (value == null && value!.isEmpty) {
-                        return tr.required(tr.individuals);
+                    validator: (e) {
+                      if (e== null || e.isEmpty) {
+                        return tr.required(tr.selectCustomer);
                       }
                       return null;
                     },
@@ -959,10 +959,7 @@ class _DesktopState extends State<_Desktop> {
                     showClearButton: true,
                   ),
             ),
-            SizedBox(height: 8),
 
-            // Account Information Card
-            SectionTitle(title: tr.ownerAccount),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 5),
               child:
@@ -977,8 +974,8 @@ class _DesktopState extends State<_Desktop> {
                         bloc.add(LoadAccountsEvent(ownerId: ownerId)),
                     searchFunction: (bloc, query) =>
                         bloc.add(LoadAccountsEvent(ownerId: ownerId)),
-                    validator: (value) {
-                      if (value == null && value!.isEmpty) {
+                    validator: (e) {
+                      if (e== null || e.isEmpty) {
                         return tr.required(tr.accounts);
                       }
                       return null;

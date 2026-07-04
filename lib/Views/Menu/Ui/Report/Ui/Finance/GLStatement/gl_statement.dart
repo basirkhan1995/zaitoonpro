@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Date/z_generic_date.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
@@ -30,6 +31,7 @@ import '../../../../Journal/Ui/TxnByReference/bloc/txn_reference_bloc.dart';
 import '../../../../Journal/Ui/TxnByReference/txn_reference.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 import '../../TransactionRef/transaction_ref.dart';
+import 'PDF/gl_excel.dart';
 import 'PDF/pdf.dart';
 import 'package:flutter/services.dart';
 
@@ -574,8 +576,9 @@ class _DesktopState extends State<_Desktop> {
   @override
   void initState() {
     final now = DateTime.now();
-    final lastMonthEnd = DateTime(now.year, now.month, 0);
-    final lastMonthStart = DateTime(now.year, now.month - 1, 1);
+    final lastMonthEnd = DateTime(now.year, now.month, now.day);
+    final lastMonthStart = DateTime(now.year, now.month, 1);
+
     fromDate = lastMonthStart.toFormattedDate();
     toDate = lastMonthEnd.toFormattedDate();
     WidgetsBinding.instance.addPostFrameCallback((_){
@@ -601,8 +604,36 @@ class _DesktopState extends State<_Desktop> {
         actionsPadding: EdgeInsets.symmetric(horizontal: 8),
         actions: [
           ZOutlineButton(
-            icon: Icons.print,
-            label: Text(tr.print),
+            icon: FontAwesomeIcons.fileExcel, // or Icons.table_chart_outlined
+            backgroundHover: Colors.green,
+            onPressed: () {
+              if (accountStatementModel != null &&
+                  accountStatementModel!.records != null &&
+                  accountStatementModel!.records!.isNotEmpty) {
+                GlStatementExcelService.exportToExcel(
+                  glStatement: accountStatementModel!,
+                  fromDate: fromDate,
+                  toDate: widget.isSingleDate ? fromDate : toDate,
+                  currency: currency ?? baseCurrency ?? '',
+                  branchName: accountStatementModel!.brcName,
+                  fileName: 'GL_Statement_${accountStatementModel!.accNumber}_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx',
+                  context: context,
+                );
+              } else {
+                ToastManager.show(
+                  context: context,
+                  title: "No Data",
+                  message: "Please load GL statement first.",
+                  type: ToastType.warning,
+                );
+              }
+            },
+            label: Text("EXCEL"),
+          ),
+          SizedBox(width: 8),
+          ZOutlineButton(
+            icon: FontAwesomeIcons.solidFilePdf,
+            label: Text("PDF"),
             onPressed: (){
               if(formKey.currentState!.validate()){
                 pdf();
@@ -680,12 +711,8 @@ class _DesktopState extends State<_Desktop> {
                                 hintText: tr.accNameOrNumber,
                                 isRequired: true,
                                 bloc: context.read<GlAccountsBloc>(),
-                                fetchAllFunction: (bloc) => bloc.add(
-                                  const LoadGlAccountEvent(),
-                                ),
-                                searchFunction: (bloc, query) => bloc.add(
-                                  LoadGlAccountEvent(query: query),
-                                ),
+                                fetchAllFunction: (bloc) => bloc.add(const LoadGlAccountEvent()),
+                                searchFunction: (bloc, query) => bloc.add(LoadGlAccountEvent(query: query)),
                                 validator: (value) {
                                   if (value == null && value!.isEmpty) {
                                     return tr.required(tr.accounts);
@@ -757,42 +784,42 @@ class _DesktopState extends State<_Desktop> {
                               width: 160,
                               child: CurrencyDropdown(
                                 initiallySelectedSingle: CurrenciesModel(ccyCode: baseCurrency),
-                                   title: AppLocalizations.of(context)!.currencyTitle,
-                                  isMulti: false,
-                                  onMultiChanged: (e){},
-                                 onSingleChanged: (e){
-                                   setState(() {
-                                     currency = e?.ccyCode ??"";
-                                   });
-                                   onSubmit();
-                                 },
-                              ),
-                            ),
-                            if(widget.isSingleDate !=true)
-                            SizedBox(
-                              width: 220,
-                              child: ZRangeDatePicker(
-                                label: tr.selectDate,
-                                initialStartDate: DateTime.tryParse(fromDate),
-                                initialEndDate: DateTime.tryParse(toDate),
-                                startValue: fromDate,
-                                endValue: toDate,
-                                onStartDateChanged: (startDate) {
+                                title: AppLocalizations.of(context)!.currencyTitle,
+                                isMulti: false,
+                                onMultiChanged: (e){},
+                                onSingleChanged: (e){
                                   setState(() {
-                                    fromDate = startDate;
-                                  });
-                                },
-                                onEndDateChanged: (endDate) {
-                                  setState(() {
-                                    toDate = endDate;
+                                    currency = e?.ccyCode ??"";
                                   });
                                   onSubmit();
                                 },
-                                disablePastDate: false,
-                                minYear: 2000,
-                                maxYear: 2100,
                               ),
                             ),
+                            if(widget.isSingleDate !=true)
+                              SizedBox(
+                                width: 220,
+                                child: ZRangeDatePicker(
+                                  label: tr.selectDate,
+                                  initialStartDate: DateTime.tryParse(fromDate),
+                                  initialEndDate: DateTime.tryParse(toDate),
+                                  startValue: fromDate,
+                                  endValue: toDate,
+                                  onStartDateChanged: (startDate) {
+                                    setState(() {
+                                      fromDate = startDate;
+                                    });
+                                  },
+                                  onEndDateChanged: (endDate) {
+                                    setState(() {
+                                      toDate = endDate;
+                                    });
+                                    onSubmit();
+                                  },
+                                  disablePastDate: false,
+                                  minYear: 2000,
+                                  maxYear: 2100,
+                                ),
+                              ),
                             if(widget.isSingleDate)...[
                               SizedBox(
                                 width: 150,

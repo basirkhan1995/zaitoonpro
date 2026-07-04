@@ -398,11 +398,13 @@ class _DesktopState extends State<_Desktop> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0,vertical: 5),
               child: Row(
                 children: [
-                  Text(tr.accountNumber,style: textTheme.titleMedium?.copyWith(color: color.outline)),
-                  SizedBox(width: 55),
+                  SizedBox(
+                      width: 120,
+                      child: Text(tr.accountNumber,style: textTheme.titleMedium?.copyWith(color: color.outline))),
+
                   Expanded(child: Text(tr.accountName,style: textTheme.titleMedium?.copyWith(color: color.outline))),
                   SizedBox(
-                    width: 150,
+                    width: 130,
                     child: Text(tr.categoryTitle,style: textTheme.titleMedium?.copyWith(color: color.outline)),
                   ),
                   SizedBox(

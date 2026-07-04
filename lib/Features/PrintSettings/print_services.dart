@@ -512,7 +512,6 @@ abstract class PrintServices {
       ),
     );
   }
-
   PdfColor hexToPdfColor(String hexColor) {
     hexColor = hexColor.replaceAll('#', '');
     if (hexColor.length == 6) {

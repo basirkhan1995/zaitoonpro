@@ -94,7 +94,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
     // Use context.select here, at the top of build method
     final currentTab = context.select((MenuBloc bloc) => bloc.state.tabs);
     final authState = context.select((AuthBloc bloc) => bloc.state);
-    final visibility = context.watch<SettingsVisibleBloc>().state;
+    // final visibility = context.watch<SettingsVisibleBloc>().state;
     if (authState is! AuthenticatedState) return const SizedBox();
 
     final String adminName = authState.loginData.usrFullName ?? "";
@@ -154,16 +154,16 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
       ),
     ],
 
-    if(login.hasPermission(51) ?? false)...[
-    if(visibility.orders)...[
-      MenuDefinition(
-        value: MenuName.stock,
-        label: AppLocalizations.of(context)!.inventory,
-        screen: const StockView(),
-        icon: Icons.shopping_basket_outlined,
-      ),
-    ],
-    ],
+    // if(login.hasPermission(51) ?? false)...[
+    // if(visibility.orders)...[
+    //   MenuDefinition(
+    //     value: MenuName.stock,
+    //     label: AppLocalizations.of(context)!.inventory,
+    //     screen: const StockView(),
+    //     icon: Icons.shopping_basket_outlined,
+    //   ),
+    // ],
+    // ],
 
       if(login.hasPermission(46) ?? false)...[
           MenuDefinition(

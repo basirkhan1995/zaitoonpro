@@ -280,10 +280,7 @@ class AccountStatementPrintSettings extends PrintServices {
             children: [
               buildSummary(
                 distance: 150,
-                label: tr(
-                  text: 'statementAccount',
-                  tr: language,
-                ),
+                label: tr(text: 'statementAccount', tr: language),
                 value: "",
                 fontSize: 12,
                 isEmphasized: true,
@@ -291,60 +288,40 @@ class AccountStatementPrintSettings extends PrintServices {
               pw.SizedBox(height: 1),
               horizontalDivider(width: 200),
               pw.SizedBox(height: 1),
+              // Combined account name & number
               buildSummary(
                 color: pw.PdfColors.grey800,
                 distance: 75,
-                label: tr(
-                  text: 'accountName',
-                  tr: language,
-                ),
-                value: statement.accName??"",
+                label: tr(text: 'accountName', tr: language),
+                value: "${statement.accName ?? ""} - ${statement.accNumber}",
               ),
-              pw.SizedBox(height: 1),
-              buildSummary(
-                distance: 75,
-                color: pw.PdfColors.grey800,
-                label: tr(
-                  text: 'accountNumber',
-                  tr: language,
-                ),
-                value: statement.accNumber.toString(),
-              ),
-
               pw.SizedBox(height: 1),
               buildSummary(
                 color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'signatory', tr: language),
-                value: "${statement.signatory}",
+                value: statement.signatory ?? "",
               ),
               pw.SizedBox(height: 1),
               buildSummary(
                 color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'currency', tr: language),
-                value: "${statement.actCurrency}",
+                value: statement.actCurrency ?? "",
               ),
               pw.SizedBox(height: 1),
               buildSummary(
                 color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'mobile', tr: language),
-                value: "${statement.perPhone}",
-              ),
-              pw.SizedBox(height: 1),
-              buildSummary(
-                color: pw.PdfColors.grey800,
-                distance: 75,
-                label: tr(text: 'email', tr: language),
-                value: statement.perEmail??"",
+                value: statement.perPhone ?? "",
               ),
               pw.SizedBox(height: 1),
               buildSummary(
                 color: pw.PdfColors.grey800,
                 distance: 75,
                 label: tr(text: 'address', tr: language),
-                value: "${statement.address}",
+                value: statement.address ?? "",
               ),
             ],
           ),

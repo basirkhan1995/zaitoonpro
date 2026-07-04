@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Views/Auth/Subscription/Ui/subscription.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Settings/Ui/Company/Storage/storage.dart';
 import '../../../../../../Features/Generic/generic_menu.dart';
 import '../../../../../../Localizations/l10n/translations/app_localizations.dart';
 import '../../../../../Auth/bloc/auth_bloc.dart';
@@ -45,13 +44,13 @@ class _CompanyTabsViewState extends State<CompanyTabsView> {
           screen: const BranchesView(),
           icon: Icons.location_city_rounded,
         ),
-      if (login.hasPermission(71) ?? false)
-        MenuDefinition(
-          value: CompanySettingsMenuName.storage,
-          label: AppLocalizations.of(context)!.storages,
-          screen: const StorageView(),
-          icon: Icons.inventory_2_rounded,
-        ),
+      // if (login.hasPermission(71) ?? false)
+      //   MenuDefinition(
+      //     value: CompanySettingsMenuName.storage,
+      //     label: AppLocalizations.of(context)!.storages,
+      //     screen: const StorageView(),
+      //     icon: Icons.inventory_2_rounded,
+      //   ),
       if (login.hasPermission(64) ?? false)
         MenuDefinition(
           value: CompanySettingsMenuName.subscriptions,

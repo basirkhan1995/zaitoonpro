@@ -71,12 +71,12 @@ class _Desktop extends StatelessWidget {
             //     screen: const TxnTypesView(),
             //   ),
 
-            if (login.hasPermission(73) ?? false)
-            ZTabItem(
-              value: SettingsTabName.stock,
-              label: AppLocalizations.of(context)!.stock,
-              screen: const StockSettingsView(),
-            ),
+            // if (login.hasPermission(73) ?? false)
+            // ZTabItem(
+            //   value: SettingsTabName.stock,
+            //   label: AppLocalizations.of(context)!.stock,
+            //   screen: const StockSettingsView(),
+            // ),
 
             if (login.hasPermission(76) ?? false)
               ZTabItem(

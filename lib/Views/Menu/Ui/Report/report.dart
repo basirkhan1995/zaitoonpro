@@ -109,18 +109,18 @@ class _DesktopState extends State<_Desktop> {
       {"title": tr.debtors, "icon": FontAwesomeIcons.arrowTrendDown, "action": ActionKey.receivable},
     ];
 
-    final List<Map<String, dynamic>> stockButtons = [
-      if(login.hasPermission(84) ?? false)
-      {"title": tr.stockAvailability, "icon": Icons.storage, "action": ActionKey.products},
-      if(login.hasPermission(85) ?? false)
-      {"title": tr.productMovement, "icon": Icons.shopping_bag_outlined, "action": ActionKey.stockRecord},
-      if(login.hasPermission(86) ?? false)
-      {"title": tr.purchaseInvoice, "icon": Icons.add_shopping_cart_sharp, "action": ActionKey.purchase},
-      if(login.hasPermission(87) ?? false)
-      {"title": tr.salesInvoice, "icon": Icons.add_shopping_cart_sharp, "action": ActionKey.sale},
-      if(login.hasPermission(88) ?? false)
-      {"title": tr.estimateTitle, "icon": Icons.file_copy_outlined, "action": ActionKey.estimate},
-    ];
+    // final List<Map<String, dynamic>> stockButtons = [
+    //   if(login.hasPermission(84) ?? false)
+    //   {"title": tr.stockAvailability, "icon": Icons.storage, "action": ActionKey.products},
+    //   if(login.hasPermission(85) ?? false)
+    //   {"title": tr.productMovement, "icon": Icons.shopping_bag_outlined, "action": ActionKey.stockRecord},
+    //   if(login.hasPermission(86) ?? false)
+    //   {"title": tr.purchaseInvoice, "icon": Icons.add_shopping_cart_sharp, "action": ActionKey.purchase},
+    //   if(login.hasPermission(87) ?? false)
+    //   {"title": tr.salesInvoice, "icon": Icons.add_shopping_cart_sharp, "action": ActionKey.sale},
+    //   if(login.hasPermission(88) ?? false)
+    //   {"title": tr.estimateTitle, "icon": Icons.file_copy_outlined, "action": ActionKey.estimate},
+    // ];
 
     final List<Map<String, dynamic>> transactionsButtons = [
       if(login.hasPermission(92) ?? false)
@@ -171,11 +171,11 @@ class _DesktopState extends State<_Desktop> {
               SectionTitle(title: tr.finance),
               SizedBox(height: 8),
               _buildButtonGroup(financeButtons, color),
-              const SizedBox(height: 15),
-
-              SectionTitle(title: tr.inventory),
-              SizedBox(height: 8),
-              _buildButtonGroup(stockButtons, color),
+              // const SizedBox(height: 15),
+              //
+              // SectionTitle(title: tr.inventory),
+              // SizedBox(height: 8),
+              // _buildButtonGroup(stockButtons, color),
 
               const SizedBox(height: 15),
               SectionTitle(title: tr.cashFlow),

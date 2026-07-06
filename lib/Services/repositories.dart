@@ -40,6 +40,7 @@ import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/OrderScreen/NewSale/model/sale
 import 'package:zaitoonpro/Views/Menu/Ui/Stock/Ui/Orders/model/orders_model.dart';
 import '../Views/Auth/Subscription/model/sub_model.dart';
 import '../Views/Menu/Ui/Dashboard/Views/DailyGross/model/gross_model.dart';
+import '../Views/Menu/Ui/Dashboard/Views/ProjectStats/project_stats_model.dart';
 import '../Views/Menu/Ui/Dashboard/Views/Stats/model/stats_model.dart';
 import '../Views/Menu/Ui/Finance/Ui/EndOfYear/model/eoy_model.dart';
 import '../Views/Menu/Ui/Finance/Ui/Payroll/model/payroll_model.dart';
@@ -2267,6 +2268,27 @@ class Repositories {
     }
 
     return DashboardStatsModel.fromMap(
+      Map<String, dynamic>.from(response.data),
+    );
+  }
+
+  Future<ProjectStatsModel> getProjectStats({
+    CancelToken? cancelToken,
+  }) async {
+    final response = await api.get(
+      endpoint: "/reports/dashboard.php",
+      cancelToken: cancelToken,
+    );
+
+    if (response.data is Map && response.data['result'] != null) {
+      throw response.data['result'];
+    }
+
+    if (response.data == null || response.data.isEmpty) {
+      throw "No data received";
+    }
+
+    return ProjectStatsModel.fromMap(
       Map<String, dynamic>.from(response.data),
     );
   }

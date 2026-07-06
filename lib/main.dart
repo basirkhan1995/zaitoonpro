@@ -14,6 +14,7 @@ import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Auth/Ui/login.dart';
 import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Dashboard/Views/DailyGross/bloc/daily_gross_bloc.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Dashboard/Views/ProjectStats/bloc/project_stats_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Dashboard/Views/Stats/bloc/dashboard_stats_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/Currencies/bloc/currencies_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/bloc/exchange_rate_bloc.dart';
@@ -166,6 +167,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => GlAccountsBloc(Repositories(ApiServices()))..add(LoadGlAccountEvent())),
         BlocProvider(create: (context) => StakeholderByIdBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => PermissionsBloc(Repositories(ApiServices()))),
+        BlocProvider(create: (context) => ProjectStatsBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => AuthBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => ForgotPasswordBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => PasswordBloc(Repositories(ApiServices()))),

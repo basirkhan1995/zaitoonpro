@@ -6675,6 +6675,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Projects Report'**
   String get projectsReport;
+
+  /// No description provided for @manageServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your services'**
+  String get manageServices;
+
+  /// No description provided for @addServices.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Services'**
+  String get addServices;
+
+  /// No description provided for @dasboardTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dashboard'**
+  String get dasboardTitle;
+
+  /// No description provided for @projectStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Project Stats'**
+  String get projectStats;
+
+  /// No description provided for @costsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Costs'**
+  String get costsTitle;
+
+  /// No description provided for @allProjects.
+  ///
+  /// In en, this message translates to:
+  /// **'All Projects'**
+  String get allProjects;
+
+  /// No description provided for @revenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue'**
+  String get revenue;
+
+  /// No description provided for @distributable.
+  ///
+  /// In en, this message translates to:
+  /// **'Distributable'**
+  String get distributable;
+
+  /// No description provided for @finished.
+  ///
+  /// In en, this message translates to:
+  /// **'Finished'**
+  String get finished;
+
+  /// No description provided for @completedIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed Income'**
+  String get completedIncome;
+
+  /// No description provided for @completedExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed Expenses'**
+  String get completedExpenses;
+
+  /// No description provided for @completedProfit.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed Profit'**
+  String get completedProfit;
+
+  /// No description provided for @fromCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'From Completed'**
+  String get fromCompleted;
+
+  /// No description provided for @activeIncome.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Income'**
+  String get activeIncome;
+
+  /// No description provided for @activeExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Active Expenses'**
+  String get activeExpenses;
+
+  /// No description provided for @netWip.
+  ///
+  /// In en, this message translates to:
+  /// **'Net WIP'**
+  String get netWip;
+
+  /// No description provided for @received.
+  ///
+  /// In en, this message translates to:
+  /// **'Received'**
+  String get received;
+
+  /// No description provided for @incurred.
+  ///
+  /// In en, this message translates to:
+  /// **'Incurred'**
+  String get incurred;
+
+  /// No description provided for @moneyTiedUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Money Tied Up'**
+  String get moneyTiedUp;
+
+  /// No description provided for @excessCash.
+  ///
+  /// In en, this message translates to:
+  /// **'Excess Cash'**
+  String get excessCash;
 }
 
 class _AppLocalizationsDelegate

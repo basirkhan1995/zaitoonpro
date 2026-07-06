@@ -3375,4 +3375,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get projectsReport => 'Projects Report';
+
+  @override
+  String get manageServices => 'Manage your services';
+
+  @override
+  String get addServices => 'Add Services';
+
+  @override
+  String get dasboardTitle => 'Dashboard';
+
+  @override
+  String get projectStats => 'Project Stats';
+
+  @override
+  String get costsTitle => 'Costs';
+
+  @override
+  String get allProjects => 'All Projects';
+
+  @override
+  String get revenue => 'Revenue';
+
+  @override
+  String get distributable => 'Distributable';
+
+  @override
+  String get finished => 'Finished';
+
+  @override
+  String get completedIncome => 'Completed Income';
+
+  @override
+  String get completedExpenses => 'Completed Expenses';
+
+  @override
+  String get completedProfit => 'Completed Profit';
+
+  @override
+  String get fromCompleted => 'From Completed';
+
+  @override
+  String get activeIncome => 'Active Income';
+
+  @override
+  String get activeExpenses => 'Active Expenses';
+
+  @override
+  String get netWip => 'Net WIP';
+
+  @override
+  String get received => 'Received';
+
+  @override
+  String get incurred => 'Incurred';
+
+  @override
+  String get moneyTiedUp => 'Money Tied Up';
+
+  @override
+  String get excessCash => 'Excess Cash';
 }

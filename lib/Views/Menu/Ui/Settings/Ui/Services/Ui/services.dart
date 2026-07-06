@@ -69,15 +69,15 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(AppLocalizations.of(context)!.services, style: textTheme.titleLarge),
+            Text(tr.services, style: textTheme.titleLarge),
             Text(
-              'Manage your services',
+              tr.manageServices,
               style: textTheme.bodySmall?.copyWith(color: color.outline),
             ),
             const SizedBox(height: 12),
             ZSearchField(
               controller: searchController,
-              hint: "Service name",
+              hint: tr.serviceName,
               title: '',
               end: searchController.text.isNotEmpty
                   ? InkWell(
@@ -143,7 +143,7 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
                     children: [
                       Text(AppLocalizations.of(context)!.services, style: textTheme.titleLarge),
                       Text(
-                        'Manage your services',
+                        tr.manageServices,
                         style: textTheme.bodySmall?.copyWith(color: color.outline),
                       ),
                     ],
@@ -173,7 +173,7 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
             const SizedBox(height: 8),
             ZSearchField(
               controller: searchController,
-              hint: "Service name",
+              hint: tr.search,
               title: '',
               end: searchController.text.isNotEmpty
                   ? InkWell(
@@ -214,7 +214,7 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
                 children: [
                   Text(AppLocalizations.of(context)!.services, style: textTheme.titleLarge),
                   Text(
-                    'Manage your services',
+                    tr.manageServices,
                     style: textTheme.bodySmall?.copyWith(color: color.outline),
                   ),
                 ],
@@ -224,7 +224,7 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
               flex: 2,
               child: ZSearchField(
                 controller: searchController,
-                hint: "Service name",
+                hint: tr.search,
                 title: '',
                 end: searchController.text.isNotEmpty
                     ? InkWell(
@@ -284,7 +284,7 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
         child: Row(
           children: [
             Expanded(
-              child: Text('Service Name', style: titleStyle),
+              child: Text(tr.serviceName, style: titleStyle),
             ),
             SizedBox(
               width: 80,
@@ -299,7 +299,7 @@ class _BaseServicesViewState extends State<_BaseServicesView> {
         padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
         child: Row(
           children: [
-            Expanded(child: Text('Service Name', style: titleStyle)),
+            Expanded(child: Text(tr.serviceName, style: titleStyle)),
             SizedBox(
               width: 60,
               child: Text(tr.status, style: titleStyle, textAlign: TextAlign.right),

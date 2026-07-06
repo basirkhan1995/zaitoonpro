@@ -3364,4 +3364,64 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get projectsReport => 'گزارش پروژه ها';
+
+  @override
+  String get manageServices => 'خدمات خود را اینجا تنظیم کنید';
+
+  @override
+  String get addServices => 'خدمات جدید';
+
+  @override
+  String get dasboardTitle => 'داشبورد';
+
+  @override
+  String get projectStats => 'ارقام پروژه ها';
+
+  @override
+  String get costsTitle => 'هزینه ها';
+
+  @override
+  String get allProjects => 'همه پروژه ها';
+
+  @override
+  String get revenue => 'عواید';
+
+  @override
+  String get distributable => 'قابل تقسیم';
+
+  @override
+  String get finished => 'تحویل شده';
+
+  @override
+  String get completedIncome => 'درآمد پروژه‌های تکمیل شده';
+
+  @override
+  String get completedExpenses => 'هزینه پروژه‌های تکمیل شده';
+
+  @override
+  String get completedProfit => 'سود پروژه‌های تکمیل شده';
+
+  @override
+  String get fromCompleted => 'از پروژه‌های تکمیل شده';
+
+  @override
+  String get activeIncome => 'درآمد پروژه‌های فعال';
+
+  @override
+  String get activeExpenses => 'هزینه پروژه‌های فعال';
+
+  @override
+  String get netWip => 'موجودی کار در جریان';
+
+  @override
+  String get received => 'دریافت شده';
+
+  @override
+  String get incurred => 'هزینه شده';
+
+  @override
+  String get moneyTiedUp => 'پول درگیر شده';
+
+  @override
+  String get excessCash => 'پول اضافی';
 }

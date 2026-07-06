@@ -168,7 +168,7 @@ class _BaseServiceAddEditState extends State<_BaseServiceAddEdit> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            isEdit ? 'Edit Service' : 'New Service',
+                            isEdit ? tr.edit : tr.addServices,
                             style: textTheme.headlineSmall?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -176,7 +176,7 @@ class _BaseServiceAddEditState extends State<_BaseServiceAddEdit> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            isEdit ? 'Update service information' : 'Create a new service',
+                            isEdit ? tr.update : tr.addServices,
                             style: textTheme.bodyMedium?.copyWith(
                               color: Colors.white.withValues(alpha: .8),
                             ),
@@ -227,12 +227,12 @@ class _BaseServiceAddEditState extends State<_BaseServiceAddEdit> {
                                 ],
                               ),
                               child: ZTextFieldEntitled(
-                                title: 'Service Name',
+                                title: tr.serviceName,
                                 controller: serviceName,
                                 isRequired: true,
                                 validator: (value) {
                                   if (value.isEmpty) {
-                                    return 'Service name is required';
+                                    return tr.required(tr.serviceName);
                                   }
                                   return null;
                                 },
@@ -348,7 +348,7 @@ class _BaseServiceAddEditState extends State<_BaseServiceAddEdit> {
         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
         width: 500,
         actionLabel: _buildActionButton(tr, color, isEdit),
-        title: isEdit ? 'Edit Service' : 'New Service',
+        title: isEdit ? tr.edit : tr.newKeyword,
         child: Form(
           key: formKey,
           child: BlocBuilder<ServicesBloc, ServicesState>(
@@ -358,12 +358,12 @@ class _BaseServiceAddEditState extends State<_BaseServiceAddEdit> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     ZTextFieldEntitled(
-                      title: 'Service Name',
+                      title: tr.serviceName,
                       controller: serviceName,
                       isRequired: true,
                       validator: (value) {
                         if (value.isEmpty) {
-                          return 'Service name is required';
+                          return tr.required(tr.serviceName);
                         }
                         return null;
                       },
@@ -466,18 +466,18 @@ class _BaseServiceAddEditState extends State<_BaseServiceAddEdit> {
               ),
             )
                 : Text(isEdit ? tr.update : tr.create),
-            title: isEdit ? 'Edit Service' : 'New Service',
+            title: isEdit ? tr.edit : tr.addServices,
             child: Form(
               key: formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ZTextFieldEntitled(
-                    title: 'Service Name',
+                    title: tr.serviceName,
                     controller: serviceName,
                     validator: (value) {
                       if (value.isEmpty) {
-                        return 'Service name is required';
+                        return tr.required(tr.serviceName);
                       }
                       return null;
                     },

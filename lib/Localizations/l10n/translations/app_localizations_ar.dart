@@ -3367,4 +3367,64 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get projectsReport => 'گزارش پروژه ها';
+
+  @override
+  String get manageServices => 'خدمات خود را اینجا تنظیم کنید';
+
+  @override
+  String get addServices => 'خدمات جدید';
+
+  @override
+  String get dasboardTitle => 'داشبورد';
+
+  @override
+  String get projectStats => 'ارقام پروژه ها';
+
+  @override
+  String get costsTitle => 'هزینه ها';
+
+  @override
+  String get allProjects => 'همه پروژه ها';
+
+  @override
+  String get revenue => 'عواید';
+
+  @override
+  String get distributable => 'قابل تقسیم';
+
+  @override
+  String get finished => 'تحویل شده';
+
+  @override
+  String get completedIncome => 'د پای ته رسیدلو پروژو عاید';
+
+  @override
+  String get completedExpenses => 'د پای ته رسیدلو پروژو لګښتونه';
+
+  @override
+  String get completedProfit => 'د پای ته رسیدلو پروژو ګټه';
+
+  @override
+  String get fromCompleted => 'له پای ته رسیدلو پروژو';
+
+  @override
+  String get activeIncome => 'د فعالو پروژو عاید';
+
+  @override
+  String get activeExpenses => 'د فعالو پروژو لګښتونه';
+
+  @override
+  String get netWip => 'د کار پاتې شونې';
+
+  @override
+  String get received => 'ترلاسه شوی';
+
+  @override
+  String get incurred => 'لګښت شوی';
+
+  @override
+  String get moneyTiedUp => 'پیسې تړل شوې';
+
+  @override
+  String get excessCash => 'اضافي پیسې';
 }

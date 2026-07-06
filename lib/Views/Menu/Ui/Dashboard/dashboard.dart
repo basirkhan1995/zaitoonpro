@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
+import 'package:zaitoonpro/Features/Widgets/section_title.dart';
+import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/models/login_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Dashboard/Views/DailyGross/daily_gross.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Dashboard/Views/ProjectStats/project_stats.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Dashboard/Views/Stats/stats.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/dashboard_rate.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Finance/Ui/Currency/Ui/ExchangeRate/Ui/exchange_rate.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TotalDailyTxn/column_chart_view.dart';
-import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/TotalDailyTxn/total_daily_txn.dart';
 import '../../../Auth/bloc/auth_bloc.dart';
 import '../Reminder/reminder_widget.dart';
 import '../Report/Ui/Finance/ExchangeRate/chart.dart';
@@ -193,25 +194,25 @@ class _Desktop extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    //Stats Count - Total Accounts, Total Stakeholders ...
+                    //Stats Count - Total Accounts, Total Stakeholders
                     if (login.hasPermission(2) ?? false) ...[
                       if (visibility.statsCount) ...[
+                        SectionTitle(title: AppLocalizations.of(context)!.dashboard),
                         DashboardStatsView(),
                       ],
                     ],
+
+                      SizedBox(height: 10),
+                      SectionTitle(title: AppLocalizations.of(context)!.projectStats),
+
+                      ProjectStatsView(),
 
                       //Exchange Rate Graph
                       if (login.hasPermission(3) ?? false) ...[
                         SizedBox(height: 400, child: FxRateDashboardChart()),
                       ],
 
-                      if (login.hasPermission(4) ?? false) ...[
-                        TotalDailyColumnView(),
-                      ],
 
-                    if (login.hasPermission(5) ?? false) ...[
-                      const TotalDailyTxnView(),
-                    ],
 
                   ],
                 ),

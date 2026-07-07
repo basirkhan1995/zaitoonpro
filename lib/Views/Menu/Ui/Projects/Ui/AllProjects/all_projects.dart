@@ -259,13 +259,13 @@ class _DesktopState extends State<_Desktop> {
     AppLocalizations tr,
   ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.only(bottom: 8,right: 5,left: 5),
       decoration: BoxDecoration(
         color: index.isOdd
             ? color.primary.withValues(alpha: .02)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: Colors.grey.withValues(alpha: .1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: .3)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -275,31 +275,9 @@ class _DesktopState extends State<_Desktop> {
           },
           borderRadius: BorderRadius.circular(5),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
             child: Row(
               children: [
-                SizedBox(
-                  width: 40,
-                  child: Center(
-                    child: Text(
-                      '${pjr.prjId}',
-                      style: TextStyle(
-                        color: color.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8),
-                SizedBox(
-                  width: 100,
-                  child: Text(pjr.prjEntryDate?.toFormattedDate()??""),
-                ),
-                SizedBox(
-                  width: 150,
-                  child: Text(pjr.prjOwnerfullName??""),
-                ),
                 Expanded(
                   flex: 3,
                   child: Column(
@@ -307,7 +285,7 @@ class _DesktopState extends State<_Desktop> {
                     children: [
                       Text(
                         pjr.prjName ?? '',
-                        style: textTheme.titleSmall?.copyWith(
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -318,6 +296,7 @@ class _DesktopState extends State<_Desktop> {
                             pjr.prjDetails ?? "",
                             style: textTheme.bodySmall?.copyWith(
                               color: color.outline,
+                              fontSize: 13
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,

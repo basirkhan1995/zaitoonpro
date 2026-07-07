@@ -126,7 +126,14 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
         icon: Icons.money,
       ),
     ],
-
+      if(login.hasPermission(35) ?? false)...[
+        MenuDefinition(
+          value: MenuName.hr,
+          label: AppLocalizations.of(context)!.hr,
+          screen: const HrTabView(),
+          icon: Icons.group_rounded,
+        ),
+      ],
     if(login.hasPermission(18) ?? false)...[
       MenuDefinition(
         value: MenuName.journal,
@@ -145,14 +152,7 @@ class _DesktopState extends State<_Desktop> with AutomaticKeepAliveClientMixin {
       ),
     ],
 
-    if(login.hasPermission(35) ?? false)...[
-      MenuDefinition(
-        value: MenuName.hr,
-        label: AppLocalizations.of(context)!.hr,
-        screen: const HrTabView(),
-        icon: Icons.group_rounded,
-      ),
-    ],
+
 
     // if(login.hasPermission(51) ?? false)...[
     // if(visibility.orders)...[

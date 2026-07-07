@@ -1,20 +1,23 @@
 import 'package:equatable/equatable.dart';
 
 class ProjectStatsModel extends Equatable {
+  // Project Stats
   final int activeProjects;
   final int completedProjects;
   final int allProjects;
-  final double completedIncome;
-  final double completedExpenses;
-  final double completedNetProfit;
+
+  // Financial Stats (from entire ERP)
+  final double totalIncome;
+  final double totalExpense;
+  final double netProfit;
 
   const ProjectStatsModel({
     required this.activeProjects,
     required this.completedProjects,
     required this.allProjects,
-    required this.completedIncome,
-    required this.completedExpenses,
-    required this.completedNetProfit,
+    required this.totalIncome,
+    required this.totalExpense,
+    required this.netProfit,
   });
 
   factory ProjectStatsModel.fromMap(Map<String, dynamic> map) {
@@ -38,9 +41,9 @@ class ProjectStatsModel extends Equatable {
       activeProjects: toInt(map['active_projects']),
       completedProjects: toInt(map['completed_projects']),
       allProjects: toInt(map['all_projects']),
-      completedIncome: toDouble(map['completed_income']),
-      completedExpenses: toDouble(map['completed_expenses']),
-      completedNetProfit: toDouble(map['completed_net_profit']),
+      totalIncome: toDouble(map['total_income']),
+      totalExpense: toDouble(map['total_expense']),
+      netProfit: toDouble(map['net_profit']),
     );
   }
 
@@ -49,9 +52,9 @@ class ProjectStatsModel extends Equatable {
       'active_projects': activeProjects,
       'completed_projects': completedProjects,
       'all_projects': allProjects,
-      'completed_income': completedIncome,
-      'completed_expenses': completedExpenses,
-      'completed_net_profit': completedNetProfit,
+      'total_income': totalIncome,
+      'total_expense': totalExpense,
+      'net_profit': netProfit,
     };
   }
 
@@ -59,9 +62,9 @@ class ProjectStatsModel extends Equatable {
     return activeProjects > 0 ||
         completedProjects > 0 ||
         allProjects > 0 ||
-        completedIncome > 0 ||
-        completedExpenses > 0 ||
-        completedNetProfit > 0;
+        totalIncome > 0 ||
+        totalExpense > 0 ||
+        netProfit > 0;
   }
 
   @override
@@ -69,8 +72,8 @@ class ProjectStatsModel extends Equatable {
     activeProjects,
     completedProjects,
     allProjects,
-    completedIncome,
-    completedExpenses,
-    completedNetProfit,
+    totalIncome,
+    totalExpense,
+    netProfit,
   ];
 }

@@ -131,24 +131,24 @@ class _StatsContentState extends State<_StatsContent> {
 
             // 💰 COMPLETED Projects Financials
             {
-              "title": tr.completedIncome,
-              "value": stats.completedIncome,
+              "title": tr.income,
+              "value": stats.totalIncome,
               "color": Colors.teal,
               "icon": Icons.check_circle,
               "subtitle": tr.fromCompleted,
               "isCurrency": true,
             },
             {
-              "title": tr.completedExpenses,
-              "value": stats.completedExpenses,
+              "title": tr.expenses,
+              "value": stats.totalExpense,
               "color": Colors.red,
               "icon": Icons.remove_circle,
               "subtitle": tr.fromCompleted,
               "isCurrency": true,
             },
             {
-              "title": tr.completedProfit,
-              "value": stats.completedNetProfit,
+              "title": tr.netProfit,
+              "value": stats.netProfit,
               "color": Colors.amber,
               "icon": Icons.trending_up,
               "subtitle": tr.distributable,

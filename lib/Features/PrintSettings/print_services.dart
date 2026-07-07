@@ -1605,12 +1605,12 @@ abstract class PrintServices {
       'quantity': {
         'en': 'Qty',
         'fa': 'تعداد',
-        'ar': 'الكمية',
+        'ar': 'تعداد',
       },
       'batch': {
         'en': 'Batch',
-        'fa': 'مقدار',
-        'ar': 'مقدار',
+        'fa': 'بسته',
+        'ar': 'بسته',
       },
       'actualBalance': {
         'en': 'Actual Balance',
@@ -1634,8 +1634,8 @@ abstract class PrintServices {
       },
       'liabilitiesEquity': {
         'en': 'LIABILITIES AND EQUITY',
-        'fa': 'بدهی ها و حقوق صاحبان سهام',
-        'ar': 'الالتزامات وحقوق الملكية',
+        'fa': 'بدهی ها و سهام',
+        'ar': 'بدهی ها و سهام',
       },
       'copy': {
         'en': 'Copy',

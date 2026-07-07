@@ -432,7 +432,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get referenceTransaction => 'معامله - مراجعې ';
 
   @override
-  String get balanceSheet => 'ترازنامه';
+  String get balanceSheet => 'بیلانس شیت';
 
   @override
   String get activities => 'فعالیتونه';
@@ -2068,7 +2068,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get totalAssets => 'ټول شتمنۍ';
 
   @override
-  String get totalLiabilitiesEquity => 'ټول پورونه او د مالک حق';
+  String get totalLiabilitiesEquity => 'ټول پورونه او سهام';
 
   @override
   String get assets => 'شتمنۍ';

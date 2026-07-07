@@ -432,7 +432,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get referenceTransaction => 'معامله - مرجع';
 
   @override
-  String get balanceSheet => 'ترازنامه';
+  String get balanceSheet => 'بیلانس شیت';
 
   @override
   String get activities => 'فعالیت ها';
@@ -2065,7 +2065,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get totalAssets => 'جمع دارایی‌ها';
 
   @override
-  String get totalLiabilitiesEquity => 'جمع بدهی‌ها و حقوق صاحبان سهام';
+  String get totalLiabilitiesEquity => 'کل بدهی‌ ها و سهام';
 
   @override
   String get assets => 'دارایی‌ها';
@@ -3393,7 +3393,7 @@ class AppLocalizationsFa extends AppLocalizations {
   String get finished => 'تحویل شده';
 
   @override
-  String get completedIncome => 'درآمد پروژه‌های تکمیل شده';
+  String get completedIncome => 'عواید پروژه‌ های تکمیل شده';
 
   @override
   String get completedExpenses => 'هزینه پروژه‌های تکمیل شده';

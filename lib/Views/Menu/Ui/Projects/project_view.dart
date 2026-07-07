@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
-import 'package:zaitoonpro/Features/Other/zForm_dialog.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/project_tabs.dart';
 
@@ -51,16 +50,13 @@ class _ProjectViewDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ZFormDialog(
-      icon: Icons.folder_open_rounded,
-      width: MediaQuery.of(context).size.width * 0.7,
-      onAction: null,
-      isActionTrue: false,
-      title: project.prjName ?? "",
-      child: Padding(
-        padding: const EdgeInsets.all(4.0),
-        child: ProjectTabsView(project: project),
-      ),
-    );
+    return Scaffold(
+        appBar: AppBar(
+          title: Text(project.prjName??""),
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ProjectTabsView(project: project),
+        ));
   }
 }

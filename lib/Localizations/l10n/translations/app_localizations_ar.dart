@@ -2633,7 +2633,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get ownerAccount => 'حساب فرمایش دهنده';
 
   @override
-  String get incomeAndExpenses => 'پرداخت ها و مصارف';
+  String get incomeAndExpenses => 'عواید و مصارف';
 
   @override
   String get inProgress => 'در حال کار';
@@ -2767,7 +2767,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currentPhase => 'روان پړاو ';
 
   @override
-  String get incomeAndExpense => 'مصارف و پرداخت ها';
+  String get incomeAndExpense => 'عواید و مصارف';
 
   @override
   String get activeServices => 'خدمات فعال';

@@ -271,10 +271,7 @@ class _DesktopState extends State<_Desktop> {
         color: Colors.transparent,
         child: InkWell(
           onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => ProjectView(project: pjr),
-            );
+            Utils.goto(context, ProjectView(project: pjr));
           },
           borderRadius: BorderRadius.circular(5),
           child: Padding(

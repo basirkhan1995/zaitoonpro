@@ -104,6 +104,8 @@ class Payment {
   final String? trdNarration;
   final int? debitAccount;
   final int? creditAccount;
+  final String? creditAccName;
+  final String? debitAccName;
   final String? payments;
   final String? expenses;
 
@@ -116,6 +118,8 @@ class Payment {
     this.trdNarration,
     this.debitAccount,
     this.creditAccount,
+    this.creditAccName,
+    this.debitAccName,
     this.payments,
     this.expenses,
   });
@@ -129,6 +133,8 @@ class Payment {
     String? trdNarration,
     int? debitAccount,
     int? creditAccount,
+    String? debitAccName,
+    String? creditAccName,
     String? payments,
     String? expenses,
   }) =>
@@ -141,6 +147,8 @@ class Payment {
         trdNarration: trdNarration ?? this.trdNarration,
         debitAccount: debitAccount ?? this.debitAccount,
         creditAccount: creditAccount ?? this.creditAccount,
+        creditAccName: creditAccName ?? this.creditAccName,
+        debitAccName: debitAccName ?? this.debitAccName,
         payments: payments ?? this.payments,
         expenses: expenses ?? this.expenses,
       );
@@ -153,6 +161,8 @@ class Payment {
     trdCcy: json["trdCcy"],
     trdNarration: json["trdNarration"],
     debitAccount: json["debitAccount"],
+    debitAccName: json["debitAccountName"],
+    creditAccName: json["creditAccountName"],
     creditAccount: json["creditAccount"],
     payments: json["payments"],
     expenses: json["expenses"],

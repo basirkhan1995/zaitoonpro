@@ -954,7 +954,7 @@ class _DesktopState extends State<_Desktop> {
 
                 // Header
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                   decoration: BoxDecoration(
                     color: color.primary,
                   ),
@@ -965,9 +965,18 @@ class _DesktopState extends State<_Desktop> {
                         child: Text(tr.date, style: titleStyle),
                       ),
                       SizedBox(
-                        width: 190,
-                        child: Text(tr.referenceNumber, style: titleStyle),
+                        width: 90,
+                        child: Text(tr.txnType, style: titleStyle),
                       ),
+                      SizedBox(
+                        width: 100,
+                        child: Text(tr.accountNumber, style: titleStyle),
+                      ),
+                      Expanded(
+                        flex:  2,
+                        child: Text(tr.accountName, style: titleStyle),
+                      ),
+
 
                       Expanded(
                         flex: 3,
@@ -979,12 +988,14 @@ class _DesktopState extends State<_Desktop> {
 
                       Expanded(
                         child: Text(
-                          tr.payment,
+                          textAlign: TextAlign.end,
+                          tr.income,
                           style: titleStyle,
                         ),
                       ),
                       Expanded(
                         child: Text(
+                          textAlign: TextAlign.end,
                           tr.expense,
                           style: titleStyle,
                         ),
@@ -1007,22 +1018,20 @@ class _DesktopState extends State<_Desktop> {
                             ? () => _showEditTransactionDialog(payment)
                             : null,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 9),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
                           decoration: BoxDecoration(
                             color: index.isOdd
-                                ? color.primary.withValues(alpha: .05)
+                                ? color.outline.withValues(alpha: .1)
                                 : Colors.transparent,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: Colors.grey.withValues(alpha: .2),
-                              ),
-                            ),
+
                           ),
                           child: Row(
                             children: [
                               SizedBox(
                                 width: 90,
                                 child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
                                       payment.trnEntryDate.toFormattedDate(),
@@ -1035,30 +1044,38 @@ class _DesktopState extends State<_Desktop> {
                                   ],
                                 ),
                               ),
+
                               SizedBox(
-                                width: 190,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      payment.prpTrnRef ?? '',
-                                      style: textTheme.bodyMedium?.copyWith(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      payment.prpType == "Payment"
-                                          ? tr.payment
-                                          : payment.prpType == "Expense"
-                                          ? tr.expense
-                                          : payment.prpType ?? "",
-                                      style: textTheme.bodySmall?.copyWith(
-                                        color: payment.prpType == 'Payment'
-                                            ? Colors.green
-                                            : color.error,
-                                      ),
-                                    ),
-                                  ],
+                                width: 90,
+                                child:Text(
+                                  payment.prpType == "Payment"
+                                      ? tr.income
+                                      : payment.prpType == "Expense"
+                                      ? tr.expense
+                                      : payment.prpType ?? "",
+                                  style: textTheme.titleSmall?.copyWith(
+                                    color: payment.prpType == 'Payment'
+                                        ? Colors.green
+                                        : color.error,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 100,
+                                child: Text(
+                                  payment.debitAccount.toString(),
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  payment.debitAccName ?? '',
+                                  style: textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                               Expanded(
@@ -1066,6 +1083,7 @@ class _DesktopState extends State<_Desktop> {
                                   child: Text(payment.trdNarration??"")),
                               Expanded(
                                 child: Text(
+                                  textAlign: TextAlign.end,
                                   income > 0 ? '${income.toAmount()} $currency' : '',
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: Colors.green,
@@ -1076,6 +1094,7 @@ class _DesktopState extends State<_Desktop> {
                               Expanded(
                                 child: Text(
                                   expense > 0 ? '${expense.toAmount()} $currency' : '',
+                                  textAlign: TextAlign.end,
                                   style: textTheme.bodyMedium?.copyWith(
                                     color: color.error,
                                     fontWeight: FontWeight.w500,

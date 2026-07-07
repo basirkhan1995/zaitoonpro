@@ -876,6 +876,7 @@ class _AddEditIncomeExpenseTabletState extends State<_AddEditIncomeExpenseTablet
 }
 
 
+
 // Desktop View
 class _AddEditIncomeExpenseDesktop extends StatefulWidget {
   final ProjectsModel project;
@@ -913,17 +914,13 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
 
       if (_selectedType == 'Income') {
         _amountController.text = widget.existingData!.payments.toAmount();
-        // IMPORTANT: For Income, the API returns debitAccount as CLIENT and creditAccount as CASH
-        // So we need to swap them for the UI
-        // Debit in UI = Cash/Bank (which is creditAccount in API)
-        _debitAccountController.text = widget.existingData?.creditAccount?.toString() ?? '10101010';
-        // Credit in UI = Client (which is debitAccount in API)
-        _creditAccountController.text = widget.existingData?.debitAccount?.toString() ?? widget.project.prjOwnerAccount.toString();
+        // FIXED: For Income/Payment, debitAccount = Cash/Bank, creditAccount = Client
+        _debitAccountController.text = widget.existingData?.debitAccount?.toString() ?? '10101010';
+        _creditAccountController.text = widget.existingData?.creditAccount?.toString() ?? widget.project.prjOwnerAccount.toString();
       } else {
         _amountController.text = widget.existingData!.expenses.toAmount();
-        // For Expense: debitAccount in API = Expense account (correct)
+        // For Expense: debitAccount = Expense, creditAccount = Cash/Bank
         _debitAccountController.text = widget.existingData?.debitAccount?.toString() ?? '';
-        // For Expense: creditAccount in API = Cash/Bank (correct)
         _creditAccountController.text = widget.existingData?.creditAccount?.toString() ?? '10101010';
       }
 
@@ -931,7 +928,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
     } else if (widget.project.prjOwnerAccount != null) {
       // For new Income, set client account as credit
       _creditAccountController.text = widget.project.prjOwnerAccount.toString();
-      // For new Income, default debit account is 10101010
+      // For new Income, default debit account is 10101010 (Cash/Bank)
       _debitAccountController.text = '10101010';
     }
   }
@@ -955,13 +952,13 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       reference: widget.existingData?.prpTrnRef,
       prpType: _selectedType == 'Income' ? 'Payment' : 'Expense',
       prjId: widget.project.prjId,
-      // For Income: Send Client as debitAccount and Cash as creditAccount (matching API expectations)
+      // FIXED: For Income: debitAccount = Cash/Bank, creditAccount = Client
       debitAccountNumber: _selectedType == 'Income'
-          ? _creditAccountController.text  // Client account goes to debitAccount in API
-          : _debitAccountController.text,  // Expense account goes to debitAccount in API
+          ? _debitAccountController.text  // Cash/Bank
+          : _debitAccountController.text,  // Expense account
       creditAccountNumber: _selectedType == 'Income'
-          ? _debitAccountController.text   // Cash/Bank goes to creditAccount in API
-          : _creditAccountController.text, // Cash/Bank goes to creditAccount in API
+          ? _creditAccountController.text  // Client account
+          : _creditAccountController.text, // Cash/Bank
       amount: _amountController.text.cleanAmount,
       currency: widget.project.actCurrency,
       ppRemark: _remarkController.text,
@@ -1028,8 +1025,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       )
           : Text(widget.existingData == null ? tr.create : tr.update),
       expandedAction: widget.existingData != null
-          ?
-    IconButton(onPressed: _isLoading ? null : _deleteTransaction, icon: Icon(Icons.delete))
+          ? IconButton(onPressed: _isLoading ? null : _deleteTransaction, icon: Icon(Icons.delete))
           : null,
       child: Form(
         key: _formKey,
@@ -1047,7 +1043,7 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                     children: [
                       Expanded(
                         child: _buildDesktopTypeCard(
-                          title: tr.payment,
+                          title: tr.income,
                           isSelected: _selectedType == 'Income',
                           selectedColor: Colors.green,
                           icon: Icons.arrow_downward,
@@ -1196,17 +1192,17 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
                       bloc: context.read<AccountsBloc>(),
                       fetchAllFunction: (bloc) => bloc.add(
                         LoadAccountsFilterEvent(
-                          include: "11,12",
+                          include: "1,11,12",
                           ccy: widget.project.actCurrency,
-                          exclude: "",
+                          exclude: "10101011",
                         ),
                       ),
                       searchFunction: (bloc, query) => bloc.add(
                         LoadAccountsFilterEvent(
-                          include: "11,12",
+                          include: "1,11,12",
                           ccy: widget.project.actCurrency,
                           input: query,
-                          exclude: "",
+                          exclude: "10101011",
                         ),
                       ),
                       validator: (value) {

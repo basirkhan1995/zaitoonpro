@@ -5221,7 +5221,7 @@ abstract class AppLocalizations {
   /// No description provided for @incomeAndExpenses.
   ///
   /// In en, this message translates to:
-  /// **'Payment & Expense'**
+  /// **'Income & Expense'**
   String get incomeAndExpenses;
 
   /// No description provided for @inProgress.
@@ -5485,7 +5485,7 @@ abstract class AppLocalizations {
   /// No description provided for @incomeAndExpense.
   ///
   /// In en, this message translates to:
-  /// **'Payment & Expense'**
+  /// **'Income & Expenses'**
   String get incomeAndExpense;
 
   /// No description provided for @activeServices.

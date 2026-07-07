@@ -333,12 +333,12 @@ class _ProjectTabsDesktop extends StatelessWidget {
       body: BlocBuilder<ProjectTabsBloc, ProjectTabsState>(
         builder: (context, state) {
           final tabs = <ZTabItem<ProjectTabsName>>[
-            if (login.hasPermission(48) ?? false)
-              ZTabItem(
-                value: ProjectTabsName.overview,
-                label: tr.overview,
-                screen: ProjectOverview(model: project),
-              ),
+            // if (login.hasPermission(48) ?? false)
+            //   ZTabItem(
+            //     value: ProjectTabsName.overview,
+            //     label: tr.overview,
+            //     screen: ProjectOverview(model: project),
+            //   ),
             if (login.hasPermission(49) ?? false)
               ZTabItem(
                 value: ProjectTabsName.services,

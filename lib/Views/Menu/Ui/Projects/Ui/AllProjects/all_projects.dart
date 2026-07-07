@@ -14,6 +14,7 @@ import 'package:zaitoonpro/Features/Widgets/status_badge.dart';
 import 'package:zaitoonpro/Localizations/l10n/translations/app_localizations.dart';
 import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/Overview/project_overview.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/project_view.dart';
 import '../../../../../../Features/Generic/zaitoon_drop.dart';
 import '../../../../../../Features/Widgets/zcard_mobile.dart';
@@ -411,6 +412,18 @@ class _DesktopState extends State<_Desktop> {
                   showDialog(
                     context: context,
                     builder: (context) => ProjectView(project: project),
+                  );
+                },
+              ),
+
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: Text(AppLocalizations.of(context)!.edit),
+                onTap: () {
+                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (context) => ProjectOverview(model: project),
                   );
                 },
               ),

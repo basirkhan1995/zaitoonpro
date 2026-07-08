@@ -3435,4 +3435,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get excessCash => 'Excess Cash';
+
+  @override
+  String get serviceReport => 'Services Report';
+
+  @override
+  String get charges => 'Charges';
 }

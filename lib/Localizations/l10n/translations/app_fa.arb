@@ -1135,5 +1135,7 @@
   "received": "دریافت شده",
   "incurred": "هزینه شده",
   "moneyTiedUp": "پول درگیر شده",
-  "excessCash": "پول اضافی"
+  "excessCash": "پول اضافی",
+  "serviceReport": "گزارشات خدمات",
+  "charges": "هزینه ها"
 }

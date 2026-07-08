@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../../../../Features/Date/shamsi_converter.dart';
 import '../../../../../../../../Features/Date/z_generic_date.dart';
+import '../../../../../../../../Features/Date/z_range_picker.dart';
 import '../../../../../../../../Features/Generic/rounded_searchable_textfield.dart';
 import '../../../../../../../../Features/Other/extensions.dart';
 import '../../../../../../../../Features/Other/responsive.dart';
@@ -596,7 +597,7 @@ class _Desktop extends StatefulWidget {
 class _DesktopState extends State<_Desktop> {
   String fromDate = DateTime.now().subtract(const Duration(days: 7)).toFormattedDate();
   String toDate = DateTime.now().toFormattedDate();
-
+  String? ccyCode = "AFN";
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_){
@@ -619,7 +620,7 @@ class _DesktopState extends State<_Desktop> {
     TextStyle? subtitleStyle = Theme.of(context).textTheme.titleSmall?.copyWith(color: color.outline);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Services Report"),
+        title: Text(tr.serviceReport),
         titleSpacing: 0,
       ),
       body: Column(
@@ -727,27 +728,33 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.fromDate,
-                    value: fromDate,
-                    onDateChanged: (v) {
+                SizedBox(
+                  width: 220,
+                  child: ZRangeDatePicker(
+                    label: tr.selectDate,
+                    initialStartDate: DateTime.tryParse(fromDate),
+                    initialEndDate: DateTime.tryParse(toDate),
+                    startValue: fromDate,
+                    endValue: toDate,
+                    onStartDateChanged: (startDate) {
                       setState(() {
-                        fromDate = v;
+                        fromDate = startDate;
                       });
                     },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ZDatePicker(
-                    label: tr.toDate,
-                    value: toDate,
-                    onDateChanged: (v) {
+                    onEndDateChanged: (endDate) {
                       setState(() {
-                        toDate = v;
+                        toDate = endDate;
                       });
+                      context.read<ServicesReportBloc>().add(LoadServicesReportEvent(
+                          fromDate: fromDate,
+                          toDate: toDate,
+                          serviceId: serviceId,
+                          projectId: projectId,
+                          currency: ccyCode
+                      ));
                     },
+                    minYear: 2000,
+                    maxYear: 2100,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -757,6 +764,9 @@ class _DesktopState extends State<_Desktop> {
                     isMulti: false,
                     onMultiChanged: (e){},
                     onSingleChanged: (e){
+                      setState(() {
+                        ccyCode = e?.ccyCode??"";
+                      });
                       context.read<ServicesReportBloc>().add(LoadServicesReportEvent(
                           fromDate: fromDate,
                           toDate: toDate,
@@ -798,19 +808,20 @@ class _DesktopState extends State<_Desktop> {
                     child: Text(tr.date,style: titleStyle)),
 
                 Expanded(
-                    child: Text("Service & Project name",style: titleStyle)),
+                  flex: 3,
+                    child: Text(tr.description,style: titleStyle)),
+                Expanded(
+                    child: Text(
+                        tr.qty,style: titleStyle)),
+                Expanded(
 
-                SizedBox(
-                    width: 100,
-                    child: Text("Charges",style: titleStyle)),
-
-                SizedBox(
-                    width: 100,
-                    child: Text(tr.qty,style: titleStyle)),
-
-                SizedBox(
-                    width: 100,
-                    child: Text("Total Value",style: titleStyle)),
+                    child: Text(
+                        textAlign: TextAlign.end,
+                        tr.charges,style: titleStyle)),
+                Expanded(
+                    child: Text(
+                        textAlign: TextAlign.end,
+                        tr.totalTitle,style: titleStyle)),
               ],
             ),
           ),
@@ -840,6 +851,7 @@ class _DesktopState extends State<_Desktop> {
                                width: 100,
                                child: Text(service.entryDate.toFormattedDate())),
                           Expanded(
+                            flex: 3,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -849,15 +861,20 @@ class _DesktopState extends State<_Desktop> {
                               ],
                             ),
                           ),
-                           SizedBox(
-                               width: 100,
-                               child: Text("${service.pjdPricePerQty.toAmount()} ${service.currency}")),
-                           SizedBox(
-                               width: 100,
-                               child: Text(service.pjdQuantity.toString())),
-                           SizedBox(
-                               width: 100,
-                               child: Text("${service.totalAmount.toAmount()} ${service.currency}")),
+                           Expanded(
+                               child: Text(
+
+                                   service.pjdQuantity.toString())),
+                           Expanded(
+                               child: Text(
+                                   textAlign: TextAlign.end,
+                                   "${service.pjdPricePerQty.toAmount()} ${service.currency}")),
+
+                           Expanded(
+                               child: Text(
+                                   textAlign: TextAlign.end,
+                                   style: Theme.of(context).textTheme.titleSmall,
+                                   "${service.totalAmount.toAmount()} ${service.currency}")),
 
                          ],
                        ),

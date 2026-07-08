@@ -1135,5 +1135,7 @@
   "received": "ترلاسه شوی",
   "incurred": "لګښت شوی",
   "moneyTiedUp": "پیسې تړل شوې",
-  "excessCash": "اضافي پیسې"
+  "excessCash": "اضافي پیسې",
+  "serviceReport": "گزارشات خدمات",
+  "charges": "هزینه ها"
 }

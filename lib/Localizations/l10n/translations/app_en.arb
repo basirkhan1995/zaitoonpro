@@ -1135,5 +1135,7 @@
   "received": "Received",
   "incurred": "Incurred",
   "moneyTiedUp": "Money Tied Up",
-  "excessCash": "Excess Cash"
+  "excessCash": "Excess Cash",
+  "serviceReport": "Services Report",
+  "charges": "Charges"
 }

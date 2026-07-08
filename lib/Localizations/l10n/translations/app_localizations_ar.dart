@@ -3427,4 +3427,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get excessCash => 'اضافي پیسې';
+
+  @override
+  String get serviceReport => 'گزارشات خدمات';
+
+  @override
+  String get charges => 'هزینه ها';
 }

@@ -3008,11 +3008,7 @@ class Repositories {
   }
 
   /// Projects .................................................................
-  Future<List<ProjectsModel>> getProjects({
-    int? prjId,
-    String? search,
-    int? status,
-  }) async {
+  Future<List<ProjectsModel>> getProjects({int? prjId, String? search, int? status,}) async {
     // Build query parameters dynamically
     final Map<String, dynamic> queryParams = {};
 

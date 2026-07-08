@@ -6795,6 +6795,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Excess Cash'**
   String get excessCash;
+
+  /// No description provided for @serviceReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Services Report'**
+  String get serviceReport;
+
+  /// No description provided for @charges.
+  ///
+  /// In en, this message translates to:
+  /// **'Charges'**
+  String get charges;
 }
 
 class _AppLocalizationsDelegate

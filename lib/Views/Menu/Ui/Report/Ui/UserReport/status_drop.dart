@@ -5,6 +5,7 @@ import '../../../../../../../../Localizations/l10n/translations/app_localization
 
 class StatusDropdown extends StatelessWidget {
   final int? value;
+  final String? title;
   final List<StatusItem>? items;
   final ValueChanged<int?> onChanged;
   final double? height;
@@ -14,6 +15,7 @@ class StatusDropdown extends StatelessWidget {
     super.key,
     required this.onChanged,
     this.items,
+    this.title,
     this.value,
     this.height,
     this.disable = false,
@@ -35,7 +37,7 @@ class StatusDropdown extends StatelessWidget {
     );
 
     return ZDropdown<StatusItem>(
-      title: l10n.status,
+      title: title ?? l10n.status,
       items: dropdownItems,
       selectedItem: selectedItem,
       initialValue: selectedItem.label,

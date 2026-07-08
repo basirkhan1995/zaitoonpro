@@ -3424,4 +3424,10 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get excessCash => 'پول اضافی';
+
+  @override
+  String get serviceReport => 'گزارشات خدمات';
+
+  @override
+  String get charges => 'هزینه ها';
 }

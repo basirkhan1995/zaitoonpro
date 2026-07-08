@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
 import 'package:zaitoonpro/Features/Other/alert_dialog.dart';
+import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/toast.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
@@ -16,6 +17,8 @@ import 'package:zaitoonpro/Views/Auth/bloc/auth_bloc.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/Ui/Overview/project_overview.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Projects/project_view.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/UserReport/status_drop.dart';
+import '../../../../../../Features/Generic/shimmer.dart';
 import '../../../../../../Features/Generic/zaitoon_drop.dart';
 import '../../../../../../Features/Widgets/zcard_mobile.dart';
 import '../../../../../Auth/models/login_model.dart';
@@ -59,14 +62,13 @@ class _DesktopState extends State<_Desktop> {
   @override
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ProjectsBloc>().add(LoadProjectsEvent());
+      context.read<ProjectsBloc>().add(LoadProjectsEvent(status: 0));
     });
     super.initState();
   }
 
 
-  Future<void> onRefresh() async {context.read<ProjectsBloc>().add(LoadProjectsEvent());
-  }
+  Future<void> onRefresh() async {context.read<ProjectsBloc>().add(LoadProjectsEvent());}
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +82,7 @@ class _DesktopState extends State<_Desktop> {
     }
     final login = authState.loginData;
     return Scaffold(
-      backgroundColor: color.surface,
+      backgroundColor: Colors.transparent,
       body: Column(
         children: [
           // Header with gradient background
@@ -129,6 +131,21 @@ class _DesktopState extends State<_Desktop> {
                       });
                     },
                   ),
+                ),
+                const SizedBox(width: 8),
+                SizedBox(
+                  width: 150,
+                  child: StatusDropdown(
+                      title: "",
+                      value: 0,
+                      items: [
+                        StatusItem(null, tr.all),
+                        StatusItem(1, tr.completed),
+                        StatusItem(0, tr.inProgress),
+                      ],
+                      onChanged: (e){
+                        context.read<ProjectsBloc>().add(LoadProjectsEvent(status: e));
+                      }),
                 ),
                 const SizedBox(width: 8),
                 ZOutlineButton(
@@ -183,7 +200,13 @@ class _DesktopState extends State<_Desktop> {
               },
               builder: (context, state) {
                 if (state is ProjectsLoadingState) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Container(
+                    color: Theme.of(context).colorScheme.surface,
+                    child: UniversalShimmer.dataList(
+                      itemCount: 15,
+                      numberOfColumns: 5,
+                    ),
+                  );
                 }
                 if (state is ProjectsErrorState) {
                   return NoDataWidget(
@@ -260,11 +283,9 @@ class _DesktopState extends State<_Desktop> {
     AppLocalizations tr,
   ) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8,right: 5,left: 5),
+      margin: const EdgeInsets.only(bottom: 5,right: 5,left: 5),
       decoration: BoxDecoration(
-        color: index.isOdd
-            ? color.primary.withValues(alpha: .02)
-            : Colors.transparent,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(5),
         border: Border.all(color: Colors.grey.withValues(alpha: .3)),
       ),
@@ -307,6 +328,12 @@ class _DesktopState extends State<_Desktop> {
                   ),
                 ),
 
+                ZCover(
+                  padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
+                  margin: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(pjr.prjOwnerfullName??"",style: Theme.of(context).textTheme.titleSmall,),
+                ),
+
                 if(pjr.prjStatus !=1)
                 SizedBox(
                   width: 160,
@@ -344,7 +371,9 @@ class _DesktopState extends State<_Desktop> {
                     ),
                   ),
                 ),
-                SizedBox(width: 8),
+                if(pjr.prjStatus != 1)...[
+                  SizedBox(width: 8),
+                ],
                 SizedBox(
                   width: 115,
                   child: StatusBadge(
@@ -356,16 +385,64 @@ class _DesktopState extends State<_Desktop> {
 
                 Expanded(
                   flex: 0,
-                  child: IconButton(
-                    icon: Icon(
-                      Icons.more_vert,
-                      size: 18,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    onPressed: () {
-                      _showProjectMenu(context, pjr);
+                  child: PopupMenuButton<String>(
+                    icon: const Icon(Icons.more_vert),
+                    onSelected: (value) {
+                      switch (value) {
+                        case 'details':
+                          showDialog(
+                            context: context,
+                            builder: (context) => ProjectView(project: pjr),
+                          );
+                          break;
+                        case 'edit':
+                          showDialog(
+                            context: context,
+                            builder: (context) => ProjectOverview(model: pjr),
+                          );
+                          break;
+                        case 'delete':
+                          _showDeleteConfirmation(context, pjr);
+                          break;
+                      }
                     },
-                  ),
+                    itemBuilder: (context) => [
+                      PopupMenuItem(
+                        value: 'details',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.visibility),
+                            const SizedBox(width: 12),
+                            Text(AppLocalizations.of(context)!.details),
+                          ],
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit),
+                            const SizedBox(width: 12),
+                            Text(AppLocalizations.of(context)!.edit),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuDivider(),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete, color: Colors.red),
+                            const SizedBox(width: 12),
+                            Text(
+                              AppLocalizations.of(context)!.delete,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
                 ),
               ],
             ),
@@ -393,57 +470,6 @@ class _DesktopState extends State<_Desktop> {
     return Icons.error_outline;
   }
 
-  void _showProjectMenu(BuildContext context, dynamic project) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.visibility),
-                title: Text(AppLocalizations.of(context)!.details),
-                onTap: () {
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (context) => ProjectView(project: project),
-                  );
-                },
-              ),
-
-              ListTile(
-                leading: const Icon(Icons.edit),
-                title: Text(AppLocalizations.of(context)!.edit),
-                onTap: () {
-                  Navigator.pop(context);
-                  showDialog(
-                    context: context,
-                    builder: (context) => ProjectOverview(model: project),
-                  );
-                },
-              ),
-
-              ListTile(
-                leading: const Icon(Icons.delete, color: Colors.red),
-                title: Text(
-                  AppLocalizations.of(context)!.delete,
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  _showDeleteConfirmation(context, project);
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   void _showDeleteConfirmation(BuildContext context, ProjectsModel project) {
     showDialog(

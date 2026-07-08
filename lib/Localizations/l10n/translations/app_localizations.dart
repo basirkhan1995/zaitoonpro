@@ -6807,6 +6807,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Charges'**
   String get charges;
+
+  /// No description provided for @unlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlock'**
+  String get unlock;
 }
 
 class _AppLocalizationsDelegate

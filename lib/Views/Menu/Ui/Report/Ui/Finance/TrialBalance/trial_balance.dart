@@ -300,7 +300,7 @@ class _DesktopState extends State<_Desktop> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
             ),
           ),
           SizedBox(
@@ -310,7 +310,7 @@ class _DesktopState extends State<_Desktop> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
             ),
           ),
           SizedBox(
@@ -320,7 +320,7 @@ class _DesktopState extends State<_Desktop> {
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.end,
             ),
           ),
         ],

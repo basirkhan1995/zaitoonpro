@@ -810,6 +810,7 @@ class _DesktopState extends State<_Desktop> {
                 Expanded(
                   flex: 3,
                     child: Text(tr.description,style: titleStyle)),
+
                 Expanded(
                     child: Text(
                         tr.qty,style: titleStyle)),

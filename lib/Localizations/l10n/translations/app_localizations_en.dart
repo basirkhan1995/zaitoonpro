@@ -3441,4 +3441,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get charges => 'Charges';
+
+  @override
+  String get unlock => 'Unlock';
 }

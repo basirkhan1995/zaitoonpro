@@ -1415,9 +1415,8 @@ class _DesktopState extends State<_Desktop> {
         final bool showDeleteButton = loadedAtat?.trnStatus == 0 &&
             loadedAtat?.maker == login.usrName;
         final bool showAnyButton = showAuthorizeButton || showDeleteButton;
-        final isEnglish = context.read<LocalizationBloc>().state.languageCode == "en";
         return ZFormDialog(
-          width: MediaQuery.of(context).size.width * .6,
+          width: MediaQuery.of(context).size.width * .7,
           isActionTrue: false,
           padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
           onAction: null,
@@ -1506,39 +1505,22 @@ class _DesktopState extends State<_Desktop> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
+                                  Text(
+                                    tr.debitTitle,
+                                    style: textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
 
-                                      Text(
-                                        tr.debitTitle,
-                                        style: textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
-
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '${tr.totalTitle}: ',
-                                          style: textTheme.bodySmall?.copyWith(
-
-                                          ),
-                                        ),
-                                        Text(
-                                          totalDebit.toAmount(),
-                                          style: textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-
-                                          ),
-                                        ),
-                                      ],
                                     ),
                                   ),
+
+                                  Text(
+                                    totalDebit.toAmount(),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+
+                                    ),
+                                  ),
+
                                 ],
                               ),
                             ),
@@ -1554,8 +1536,16 @@ class _DesktopState extends State<_Desktop> {
                               ),
                               child: Row(
                                 children: [
+                                  SizedBox(
+                                    width: 100,
+                                    child: Text(
+                                      tr.accountNumber,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                   Expanded(
-                                    flex: 2,
                                     child: Text(
                                       tr.accountName,
                                       style: textTheme.bodySmall?.copyWith(
@@ -1563,24 +1553,15 @@ class _DesktopState extends State<_Desktop> {
                                       ),
                                     ),
                                   ),
+
                                   SizedBox(
-                                    width: 80,
-                                    child: Text(
-                                      tr.accountNumber,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: isEnglish? TextAlign.right : TextAlign.left,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 100,
+                                    width: 150,
                                     child: Text(
                                       tr.amount,
                                       style: textTheme.bodySmall?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
-                                      textAlign: isEnglish? TextAlign.right : TextAlign.left,
+                                      textAlign: TextAlign.end,
                                     ),
                                   ),
                                 ],
@@ -1616,8 +1597,14 @@ class _DesktopState extends State<_Desktop> {
                                     ),
                                     child: Row(
                                       children: [
+                                        SizedBox(
+                                          width: 100,
+                                          child: Text(
+                                            dr.trdAccount.toString(),
+                                            style: bodyStyle,
+                                          ),
+                                        ),
                                         Expanded(
-                                          flex: 2,
                                           child: Text(
                                             dr.accName ?? "",
                                             style: bodyStyle,
@@ -1625,28 +1612,19 @@ class _DesktopState extends State<_Desktop> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
+
                                         SizedBox(
-                                          width: 80,
-                                          child: Text(
-                                            dr.trdAccount.toString(),
-                                            style: bodyStyle,
-                                            textAlign: isEnglish? TextAlign.right : TextAlign.left,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 100,
+                                          width: 150,
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
-                                              Flexible(
-                                                child: Text(
-                                                  dr.trdAmount?.toAmount() ?? "",
-                                                  style: bodyStyle?.copyWith(
-                                                    fontWeight: FontWeight.w500,
+                                              Text(
+                                                dr.trdAmount?.toAmount() ?? "",
+                                                style: bodyStyle?.copyWith(
+                                                  fontWeight: FontWeight.w500,
 
-                                                  ),
-                                                  textAlign: isEnglish? TextAlign.right : TextAlign.left,
                                                 ),
+                                                textAlign: TextAlign.end,
                                               ),
                                               const SizedBox(width: 4),
                                               Text(
@@ -1670,7 +1648,7 @@ class _DesktopState extends State<_Desktop> {
                     // Credit Table
                     Expanded(
                       child: Container(
-                        margin: const EdgeInsets.only(left: 4),
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
                           border: Border.all(color: color.outline.withValues(alpha: .2)),
                           borderRadius: BorderRadius.circular(8),
@@ -1691,35 +1669,20 @@ class _DesktopState extends State<_Desktop> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        tr.creditTitle,
-                                        style: textTheme.titleSmall?.copyWith(
-                                          fontWeight: FontWeight.bold,
-
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '${tr.totalTitle}: ',
-                                        ),
-                                        Text(
-                                          totalCredit.toAmount(),
-                                          style: textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.bold,
-
-                                          ),
-                                        ),
-                                      ],
+                                  Text(
+                                    tr.creditTitle,
+                                    style: textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  Text(
+                                    totalCredit.toAmount(),
+                                    style: textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+
+                                    ),
+                                  ),
+
                                 ],
                               ),
                             ),
@@ -1735,8 +1698,16 @@ class _DesktopState extends State<_Desktop> {
                               ),
                               child: Row(
                                 children: [
+                                  SizedBox(
+                                    width: 100,
+                                    child: Text(
+                                      tr.accountNumber,
+                                      style: textTheme.bodySmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
                                   Expanded(
-                                    flex: 2,
                                     child: Text(
                                       tr.accountName,
                                       style: textTheme.bodySmall?.copyWith(
@@ -1744,24 +1715,15 @@ class _DesktopState extends State<_Desktop> {
                                       ),
                                     ),
                                   ),
+
                                   SizedBox(
-                                    width: 80,
-                                    child: Text(
-                                      tr.accountNumber,
-                                      style: textTheme.bodySmall?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      textAlign: isEnglish? TextAlign.right : TextAlign.left,
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 100,
+                                    width: 150,
                                     child: Text(
                                       tr.amount,
                                       style: textTheme.bodySmall?.copyWith(
                                         fontWeight: FontWeight.bold,
                                       ),
-                                      textAlign: isEnglish? TextAlign.right : TextAlign.left,
+                                      textAlign: TextAlign.end,
                                     ),
                                   ),
                                 ],
@@ -1797,6 +1759,13 @@ class _DesktopState extends State<_Desktop> {
                                     ),
                                     child: Row(
                                       children: [
+                                        SizedBox(
+                                          width: 100,
+                                          child: Text(
+                                            cr.trdAccount.toString(),
+                                            style: bodyStyle,
+                                          ),
+                                        ),
                                         Expanded(
                                           flex: 2,
                                           child: Text(
@@ -1806,16 +1775,9 @@ class _DesktopState extends State<_Desktop> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
+
                                         SizedBox(
-                                          width: 80,
-                                          child: Text(
-                                            cr.trdAccount.toString(),
-                                            style: bodyStyle,
-                                            textAlign: isEnglish? TextAlign.right : TextAlign.left,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          width: 100,
+                                          width: 150,
                                           child: Row(
                                             mainAxisAlignment: MainAxisAlignment.end,
                                             children: [
@@ -1824,9 +1786,8 @@ class _DesktopState extends State<_Desktop> {
                                                   cr.trdAmount?.toAmount() ?? "",
                                                   style: bodyStyle?.copyWith(
                                                     fontWeight: FontWeight.w500,
-                                                    color: Colors.red,
                                                   ),
-                                                  textAlign: isEnglish? TextAlign.right : TextAlign.left,
+                                                  textAlign: TextAlign.end,
                                                 ),
                                               ),
                                               const SizedBox(width: 4),
@@ -1926,7 +1887,7 @@ class _DesktopState extends State<_Desktop> {
                                 context.read<TransactionsBloc>().add(UnAuthorizedTxnEvent(reference: loadedAtat?.trnReference??"", usrName: auth.loginData.usrName??""));
                               },
                               icon: Icons.lock_open_rounded,
-                              label: Text("Unlock")),
+                              label: Text(tr.unlock)),
                         ]
                       ],
                     ),

@@ -3430,4 +3430,7 @@ class AppLocalizationsFa extends AppLocalizations {
 
   @override
   String get charges => 'هزینه ها';
+
+  @override
+  String get unlock => 'از قفل کشیدن';
 }

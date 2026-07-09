@@ -18,6 +18,10 @@ final class ProjectSuccessState extends ProjectsState {
   @override
   List<Object> get props => [];
 }
+final class ProjectDeletedState extends ProjectsState {
+  @override
+  List<Object> get props => [];
+}
 
 final class ProjectsErrorState extends ProjectsState {
   final String message;

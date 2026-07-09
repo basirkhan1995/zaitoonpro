@@ -166,7 +166,6 @@ class _DesktopState extends State<_Desktop> {
                         builder: (context) => AddNewProjectView(),
                       );
                     },
-
                     label: Text(tr.newProject),
                   ),
                 ]
@@ -179,7 +178,7 @@ class _DesktopState extends State<_Desktop> {
           Expanded(
             child: BlocConsumer<ProjectsBloc, ProjectsState>(
               listener: (context, state) {
-                if (state is ProjectSuccessState) {
+                if (state is ProjectSuccessState || state is ProjectDeletedState) {
                   Navigator.of(context).pop();
                   ToastManager.show(
                     context: context,
@@ -487,7 +486,6 @@ class _DesktopState extends State<_Desktop> {
             title: AppLocalizations.of(context)!.areYouSure,
             content: 'Do you want to delete "${project.prjName}"?',
             onYes: () {
-
               if (userName != null) {
                 context.read<ProjectsBloc>().add(
                   DeleteProjectEvent(

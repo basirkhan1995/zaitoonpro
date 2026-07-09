@@ -59,7 +59,7 @@ class ProjectsBloc extends Bloc<ProjectsEvent, ProjectsState> {
         final res = await _repo.deleteProject(projectId: event.pjrId,usrName: event.usrName);
         final response = res['msg'];
         if(response == "success"){
-          emit(ProjectSuccessState());
+          emit(ProjectDeletedState());
           add(LoadProjectsEvent());
         }else if(response == "dependency"){
           emit(ProjectsErrorState(tr.projectDependency));

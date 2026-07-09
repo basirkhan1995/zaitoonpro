@@ -178,7 +178,7 @@ class _DesktopState extends State<_Desktop> {
           Expanded(
             child: BlocConsumer<ProjectsBloc, ProjectsState>(
               listener: (context, state) {
-                if (state is ProjectSuccessState || state is ProjectDeletedState) {
+                if (state is ProjectSuccessState) {
                   Navigator.of(context).pop();
                   ToastManager.show(
                     context: context,

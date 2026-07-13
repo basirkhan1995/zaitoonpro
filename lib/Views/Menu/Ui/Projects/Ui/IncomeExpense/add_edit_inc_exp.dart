@@ -932,16 +932,6 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       _debitAccountController.text = '10101010';
     }
   }
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _debitAccountController.dispose();
-    _creditAccountController.dispose();
-    _remarkController.dispose();
-    super.dispose();
-  }
-
   void _submitForm() {
     if (!_formKey.currentState!.validate()) return;
     if (loginData == null) return;
@@ -975,7 +965,6 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       if (mounted) Navigator.of(context).pop();
     });
   }
-
   void _deleteTransaction() {
     if (widget.existingData == null || loginData == null) return;
 
@@ -999,6 +988,18 @@ class _AddEditIncomeExpenseDesktopState extends State<_AddEditIncomeExpenseDeskt
       ),
     );
   }
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _debitAccountController.dispose();
+    _creditAccountController.dispose();
+    _remarkController.dispose();
+    super.dispose();
+  }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {

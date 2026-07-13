@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 ProjectInOutModel projectInOutModelFromMap(String str) => ProjectInOutModel.fromMap(json.decode(str));
@@ -9,8 +8,8 @@ class ProjectInOutModel {
   final String? prpType;
   final int? prjId;
   final String? trdCcy;
-  final String? debitAccountNumber; // Expenses
-  final String? creditAccountNumber; // Cash/Bank/Stakeholders
+  final String? debitAccountNumber; // Account that gets DEBITED
+  final String? creditAccountNumber; // Account that gets CREDITED
   final String? amount;
   final String? currency;
   final String? ppRemark;
@@ -32,7 +31,6 @@ class ProjectInOutModel {
     this.payments,
     this.usrName,
     this.reference,
-
   });
 
   ProjectInOutModel copyWith({
@@ -40,6 +38,7 @@ class ProjectInOutModel {
     int? prjId,
     String? trdCcy,
     String? debitAccountNumber,
+    String? creditAccountNumber,
     String? amount,
     String? currency,
     String? ppRemark,
@@ -47,7 +46,6 @@ class ProjectInOutModel {
     List<Payment>? payments,
     String? usrName,
     String? reference,
-    String? creditAccountNumber,
   }) =>
       ProjectInOutModel(
         prpType: prpType ?? this.prpType,
@@ -68,23 +66,23 @@ class ProjectInOutModel {
     prpType: json["prpType"],
     prjId: json["prjID"],
     trdCcy: json["trdCcy"],
-    debitAccountNumber: json["debitAccount"],
-    creditAccountNumber: json["creditAccount"],
+    debitAccountNumber: json["debitAccountNumber"], // ✅ Fixed: Match API response
+    creditAccountNumber: json["creditAccountNumber"], // ✅ Fixed: Match API response
     amount: json["Amount"],
     currency: json["currency"],
     ppRemark: json["ppRemark"],
     totalProjectAmount: json["total_project_amount"],
     payments: json["payments"] == null ? [] : List<Payment>.from(json["payments"]!.map((x) => Payment.fromMap(x))),
     usrName: json["usrName"],
-
+    reference: json["prpTrnRef"],
   );
 
   Map<String, dynamic> toMap() => {
     "prpType": prpType,
     "prjID": prjId,
     "trdCcy": trdCcy,
-    "debitAccount": debitAccountNumber,
-    "creditAccount": creditAccountNumber,
+    "debitAccountNumber": debitAccountNumber, // ✅ Fixed: Match API
+    "creditAccountNumber": creditAccountNumber, // ✅ Fixed: Match API
     "Amount": amount,
     "currency": currency,
     "ppRemark": ppRemark,
@@ -181,4 +179,3 @@ class Payment {
     "expenses": expenses,
   };
 }
-

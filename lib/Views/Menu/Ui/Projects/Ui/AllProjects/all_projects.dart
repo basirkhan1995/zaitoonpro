@@ -188,7 +188,6 @@ class _DesktopState extends State<_Desktop> {
                   );
                 }
                 if (state is ProjectsErrorState) {
-                  Navigator.of(context).pop();
                   ToastManager.show(
                     context: context,
                     title: tr.errorTitle,

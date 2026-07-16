@@ -100,6 +100,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'Views/Menu/Ui/HR/Ui/UserDetail/Ui/Permissions/bloc/permissions_bloc.dart';
 import 'Views/Menu/Ui/Projects/Ui/AllProjects/bloc/projects_bloc.dart';
 import 'Views/Menu/Ui/Reminder/bloc/reminder_bloc.dart';
+import 'Views/Menu/Ui/Report/Ui/ExpenseReport/bloc/expense_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/Finance/AllBalances/bloc/all_balances_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/HR/AttendanceReport/bloc/attendance_report_bloc.dart';
 import 'Views/Menu/Ui/Report/Ui/Projects/ProjectList/bloc/projects_report_bloc.dart';
@@ -168,6 +169,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => StakeholderByIdBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => PermissionsBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => ProjectStatsBloc(Repositories(ApiServices()))),
+        BlocProvider(create: (context) => ExpenseReportBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => AuthBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => ForgotPasswordBloc(Repositories(ApiServices()))),
         BlocProvider(create: (context) => PasswordBloc(Repositories(ApiServices()))),

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zaitoonpro/Features/Date/shamsi_converter.dart';
-import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Other/utils.dart';
@@ -15,8 +14,6 @@ import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Treasury/model/cash_b
 import '../../../../../../../Features/Other/toast.dart';
 import '../../../../../../../Features/PrintSettings/print_preview.dart';
 import '../../../../../../../Features/PrintSettings/report_model.dart';
-import '../../../../../../../Features/Widgets/amount_display.dart';
-import '../../../../Settings/Ui/Company/CompanyProfile/bloc/company_profile_bloc.dart';
 import 'Print/cash_print.dart';
 import 'Print/feature_model.dart';
 import 'package:flutter/services.dart';
@@ -34,12 +31,14 @@ class CashBalancesBranchWiseView extends StatelessWidget {
   }
 }
 
+// ==================== DESKTOP VIEW ====================
 class _Desktop extends StatefulWidget {
   const _Desktop();
 
   @override
   State<_Desktop> createState() => _DesktopState();
 }
+
 class _DesktopState extends State<_Desktop> {
   String? baseCcy;
   int? branchId;
@@ -178,11 +177,9 @@ class _DesktopState extends State<_Desktop> {
 
   Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
     final Map<String, CurrencyTotal> currencyTotals = {};
-
     if (branch.records != null) {
       for (var record in branch.records!) {
         final currencyCode = record.trdCcy ?? 'UNKNOWN';
-
         currencyTotals[currencyCode] = CurrencyTotal(
           name: record.ccyName ?? currencyCode,
           symbol: record.ccySymbol ?? '',
@@ -193,25 +190,19 @@ class _DesktopState extends State<_Desktop> {
         );
       }
     }
-
     return currencyTotals;
   }
 
   Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
     double totalOpeningSys = 0;
     double totalClosingSys = 0;
-
     if (branch.records != null) {
       for (var record in branch.records!) {
         totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
         totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
       }
     }
-
-    return {
-      'opening': totalOpeningSys,
-      'closing': totalClosingSys,
-    };
+    return {'opening': totalOpeningSys, 'closing': totalClosingSys};
   }
 
   @override
@@ -246,7 +237,6 @@ class _DesktopState extends State<_Desktop> {
         if (state is CashBalancesLoadingState) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (state is CashBalancesErrorState) {
           return Center(
             child: NoDataWidget(
@@ -259,11 +249,9 @@ class _DesktopState extends State<_Desktop> {
             ),
           );
         }
-
         if (state is CashBalancesLoadedState) {
           return _buildBranchDetails(state.cash);
         }
-
         return const SizedBox();
       },
     );
@@ -272,54 +260,88 @@ class _DesktopState extends State<_Desktop> {
   Widget _buildBranchDetails(CashBalancesModel branch) {
     final tr = AppLocalizations.of(context)!;
 
-    // Calculate branch totals
     double totalOpeningSys = 0;
     double totalClosingSys = 0;
-
     if (branch.records != null) {
       for (var record in branch.records!) {
         totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
         totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
       }
     }
-
     final totalCashFlowSys = totalClosingSys - totalOpeningSys;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Compact Branch Information Section
-          _buildCompactBranchInfo(branch, tr),
-
-          const SizedBox(height: 16),
-
-          // Currency Balances Section
-          if (branch.records != null && branch.records!.isNotEmpty)
-            _buildCurrencyBalancesSection(branch, tr),
-
-          const SizedBox(height: 16),
-
-          // Grand Total Card
-          _buildGrandTotalCard(
-            totalOpeningSys,
-            totalClosingSys,
-            totalCashFlowSys,
-            tr,
-            branch.brcName ?? '',
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Left Column - Balances (40%)
+        Expanded(
+          flex: 4,
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCompactBranchInfo(branch, tr),
+                const SizedBox(height: 16),
+                if (branch.records != null && branch.records!.isNotEmpty)
+                  _buildCurrencyBalancesSection(branch, tr),
+                const SizedBox(height: 16),
+                _buildGrandTotalCard(
+                  totalOpeningSys,
+                  totalClosingSys,
+                  totalCashFlowSys,
+                  tr,
+                  branch.brcName ?? '',
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
+        ),
+        // Right Column - Transactions (60%)
+        Expanded(
+          flex: 6,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                left: BorderSide(
+                  color: Colors.grey.shade300,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: branch.transactions != null && branch.transactions!.isNotEmpty
+                ? _buildTransactionHistorySection(branch, tr)
+                : Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.history,
+                    size: 64,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No Transactions',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  // UPDATED: Compact branch info - takes much less space
   Widget _buildCompactBranchInfo(CashBalancesModel branch, AppLocalizations tr) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withValues(alpha: .05),
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: Theme.of(context).colorScheme.primary.withValues(alpha: .1),
@@ -347,7 +369,7 @@ class _DesktopState extends State<_Desktop> {
                 ),
               ),
               SizedBox(
-                width: 250,
+                width: 200,
                 child: BranchDropdown(
                   selectedId: branchId,
                   height: 36,
@@ -366,9 +388,8 @@ class _DesktopState extends State<_Desktop> {
             ],
           ),
           const SizedBox(height: 8),
-          // Inline branch details - more compact
           Wrap(
-            spacing: 24,
+            spacing: 16,
             runSpacing: 4,
             children: [
               _buildInlineInfo('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
@@ -384,7 +405,6 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-  // Compact inline info item
   Widget _buildInlineInfo(String label, String value) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -409,7 +429,6 @@ class _DesktopState extends State<_Desktop> {
     );
   }
 
-  // UPDATED: Currency balances section using AmountDisplay
   Widget _buildCurrencyBalancesSection(CashBalancesModel branch, AppLocalizations tr) {
     if (branch.records == null || branch.records!.isEmpty) {
       return Center(
@@ -434,34 +453,12 @@ class _DesktopState extends State<_Desktop> {
           ),
         ),
         const SizedBox(height: 10),
-        LayoutBuilder(
-          builder: (context, constraints) {
-            int crossAxisCount = constraints.maxWidth > 1200 ? 4 :
-            constraints.maxWidth > 800 ? 3 : 2;
-
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.5,
-              ),
-              itemCount: branch.records!.length,
-              itemBuilder: (context, index) {
-                final record = branch.records![index];
-                return _buildCurrencyCardV2(record, tr);
-              },
-            );
-          },
-        ),
+        ...branch.records!.map((record) => _buildCurrencyItem(record, tr)),
       ],
     );
   }
 
-  // NEW: Improved currency card using AmountDisplay
-  Widget _buildCurrencyCardV2(Record record, AppLocalizations tr) {
+  Widget _buildCurrencyItem(Record record, AppLocalizations tr) {
     final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
     final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
     final openingSys = double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
@@ -474,231 +471,147 @@ class _DesktopState extends State<_Desktop> {
     final currencyColor = Utils.currencyColors(currencyCode);
 
     return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            currencyColor.withValues(alpha: 0.08),
-            currencyColor.withValues(alpha: 0.02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: currencyColor.withValues(alpha: 0.25),
-          width: 1.5,
+          color: currencyColor.withValues(alpha: 0.2),
+          width: 1,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: currencyColor.withValues(alpha: 0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
       ),
-      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min, // This fixes the empty space issue!
         children: [
-          // Currency Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: currencyColor,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+              Row(
+                children: [
+                  Container(
+                    width: 3,
+                    height: 20,
+                    color: currencyColor,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    record.ccyName ?? currencyCode,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: currencyColor,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            record.ccyName ?? currencyCode,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: currencyColor,
-                              letterSpacing: 0.3,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (record.ccyName != null && record.ccyName != currencyCode)
-                            Text(
-                              currencyCode,
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: currencyColor.withValues(alpha: 0.7),
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: currencyColor,
-                  borderRadius: BorderRadius.circular(3),
-                  boxShadow: [
-                    BoxShadow(
-                      color: currencyColor.withValues(alpha: 0.3),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
                   currencyCode,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 11,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
                   ),
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 16),
-
-          // Opening Balance
-          AmountDisplay(
-            title: tr.opening,
-            baseAmount: opening,
-            baseCurrency: currencyCode,
-            convertedAmount: isBaseCurrency ? null : openingSys,
-            convertedCurrency: baseCcy,
-            fontSize: 14,
-            baseColor: Theme.of(context).colorScheme.onSurface,
-            convertedColor: Theme.of(context).colorScheme.outline,
-          ),
-
-          const SizedBox(height: 2),
-
-          // Closing Balance
-          AmountDisplay(
-            title: tr.closing,
-            baseAmount: closing,
-            baseCurrency: currencyCode,
-            convertedAmount: isBaseCurrency ? null : closingSys,
-            convertedCurrency: baseCcy,
-            fontSize: 14,
-            baseColor: Colors.green.shade700,
-            convertedColor: Theme.of(context).colorScheme.outline,
-          ),
-
           const SizedBox(height: 8),
-
-          // Divider
-          Container(
-            height: 1,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  currencyColor.withValues(alpha: 0.05),
-                  currencyColor.withValues(alpha: 0.2),
-                  currencyColor.withValues(alpha: 0.05),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          // Cash Flow
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Text(
-                tr.cashFlow,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.outline,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr.opening,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      "${opening.toAmount()} $currencyCode",
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (!isBaseCurrency)
+                      Text(
+                        "${openingSys.toAmount()} $baseCcy",
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min, // Prevents extra space in nested column
-                children: [
-                  // Main Cash Flow
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: cashFlow >= 0
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(2),
-                      border: Border.all(
-                        color: cashFlow >= 0
-                            ? Colors.green.withValues(alpha: 0.3)
-                            : Colors.red.withValues(alpha: 0.3),
-                        width: 1,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      tr.closing,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          cashFlow >= 0 ? Icons.trending_up : Icons.trending_down,
-                          size: 16,
-                          color: cashFlow >= 0 ? Colors.green : Colors.red,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "${cashFlow.toAmount()} $currencyCode",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: cashFlow >= 0 ? Colors.green : Colors.red,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // System Equivalent Cash Flow (if different currency)
-                  if (!isBaseCurrency)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.swap_horiz,
-                            size: 12,
-                            color: Theme.of(context).colorScheme.outline,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${cashFlowSys.toAmount()} $baseCcy",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: cashFlowSys >= 0
-                                  ? Colors.green.withValues(alpha: 0.8)
-                                  : Colors.red.withValues(alpha: 0.8),
-                            ),
-                          ),
-                        ],
+                    Text(
+                      "${closing.toAmount()} $currencyCode",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green.shade700,
                       ),
                     ),
-                ],
+                    if (!isBaseCurrency)
+                      Text(
+                        "${closingSys.toAmount()} $baseCcy",
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      tr.cashFlow,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    Text(
+                      "${cashFlow.toAmount()} $currencyCode",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: cashFlow >= 0 ? Colors.green : Colors.red,
+                      ),
+                    ),
+                    if (!isBaseCurrency)
+                      Text(
+                        "${cashFlowSys.toAmount()} $baseCcy",
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: cashFlowSys >= 0 ? Colors.green.shade600 : Colors.red.shade600,
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -715,193 +628,324 @@ class _DesktopState extends State<_Desktop> {
       String branchName,
       ) {
     return Container(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.purple.withValues(alpha: .08),
-            Colors.purple.withValues(alpha: .02),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: Colors.purple.withValues(alpha: .2),
-          width: 1.5,
+          color: Colors.purple.withValues(alpha: 0.2),
+          width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header with branch name
+          Text(
+            '${tr.grandTotal} (${tr.systemEquivalent})',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: Colors.purple.shade700,
+            ),
+          ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      branchName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: Colors.purple,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      '${tr.grandTotal} (${tr.systemEquivalent})',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
+                child: _buildTotalItem(tr.openingBalance, openingSys, Colors.grey.shade700),
+              ),
+              Expanded(
+                child: _buildTotalItem(tr.closingBalance, closingSys, Colors.green.shade700),
+              ),
+              Expanded(
+                child: _buildTotalItem(
+                  tr.cashFlow,
+                  cashFlowSys,
+                  cashFlowSys >= 0 ? Colors.green : Colors.red,
                 ),
               ),
             ],
-          ),
-
-          const SizedBox(height: 16),
-
-          // Totals in responsive layout
-          LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < 600) {
-                return Column(
-                  children: [
-                    _buildTotalItem(
-                      label: tr.openingBalance,
-                      value: openingSys,
-                      color: Colors.grey.shade700,
-                      symbol: baseCcy ?? '',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTotalItem(
-                      label: tr.closingBalance,
-                      value: closingSys,
-                      color: Colors.green,
-                      symbol: baseCcy ?? '',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildTotalItem(
-                      label: tr.cashFlow,
-                      value: cashFlowSys,
-                      color: cashFlowSys >= 0 ? Colors.green : Colors.red,
-                      symbol: baseCcy ?? '',
-                    ),
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(
-                    child: _buildTotalItem(
-                      label: tr.openingBalance,
-                      value: openingSys,
-                      color: Colors.grey.shade700,
-                      symbol: baseCcy ?? '',
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 50,
-                    color: Colors.purple.withValues(alpha: .15),
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  Expanded(
-                    child: _buildTotalItem(
-                      label: tr.closingBalance,
-                      value: closingSys,
-                      color: Colors.green,
-                      symbol: baseCcy ?? '',
-                    ),
-                  ),
-                  Container(
-                    width: 1,
-                    height: 50,
-                    color: Colors.purple.withValues(alpha: .15),
-                    margin: const EdgeInsets.symmetric(horizontal: 12),
-                  ),
-                  Expanded(
-                    child: _buildTotalItem(
-                      label: tr.cashFlow,
-                      value: cashFlowSys,
-                      color: cashFlowSys >= 0 ? Colors.green : Colors.red,
-                      symbol: baseCcy ?? '',
-                    ),
-                  ),
-                ],
-              );
-            },
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTotalItem({
-    required String label,
-    required double value,
-    required Color color,
-    required String symbol,
-  }) {
+  Widget _buildTotalItem(String label, double value, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.outline,
-            fontWeight: FontWeight.w500,
+            fontSize: 11,
+            color: Colors.grey.shade600,
           ),
         ),
-        const SizedBox(height: 6),
-        Row(
-          children: [
-            Flexible(
-              child: Text(
-                value.toAmount(),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: .1),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                symbol,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: color,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        Text(
+          "${value.toAmount()} ${baseCcy ?? ''}",
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
       ],
     );
   }
+
+  // ==================== TRANSACTION HISTORY SECTION ====================
+  Widget _buildTransactionHistorySection(CashBalancesModel branch, AppLocalizations tr) {
+    final transactions = branch.transactions!;
+
+    // Group transactions by currency
+    final transactionsByCurrency = <String, List<Transaction>>{};
+    for (var txn in transactions) {
+      final currency = txn.currency ?? 'UNKNOWN';
+      transactionsByCurrency.putIfAbsent(currency, () => []).add(txn);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.history,
+                size: 20,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                tr.cashFlow,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${transactions.length}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.blue.shade700,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: transactionsByCurrency.entries.map((entry) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Utils.currencyColors(entry.key).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '${entry.key} (${entry.value.length})',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Utils.currencyColors(entry.key),
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...entry.value.map((txn) => _buildTransactionItem(txn, entry.key)),
+                const SizedBox(height: 16),
+              ],
+            )).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTransactionItem(Transaction txn, String currency) {
+    final debit = double.tryParse(txn.debit ?? '0') ?? 0;
+    final credit = double.tryParse(txn.credit ?? '0') ?? 0;
+    final runningBalance = double.tryParse(txn.runningBalance ?? '0') ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: Colors.grey.shade200,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                txn.date != null
+                    ? '${txn.date!.toFormattedDate()} | ${txn.date!.shamsiDateString}'
+                    : 'N/A',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const Spacer(),
+              if (txn.status != null)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: txn.status == 'Authorized'
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                  child: Text(
+                    txn.status!,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: txn.status == 'Authorized'
+                          ? Colors.green.shade700
+                          : Colors.orange.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 4),
+
+          Row(
+            spacing: 8,
+            children: [
+              if (txn.creditAccountName != null && txn.creditAccountName!.isNotEmpty)...[
+                Text(
+                  '${txn.creditAccountName} |',
+                  style: TextStyle(
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+              Text(
+                txn.narration ?? '',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    if (debit > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          'DR',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.green.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    if (credit > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          'CR',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.red.shade700,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 4),
+                    Text(
+                      (debit > 0 ? debit : credit).toAmount(),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: debit > 0 ? Colors.green.shade700 : Colors.red.shade700,
+                      ),
+                    ),
+                    Text(
+                      ' $currency',
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Text(
+                runningBalance.toAmount(),
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: runningBalance >= 0
+                      ? Colors.blue.shade700
+                      : Colors.red.shade700,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-
+// ==================== TABLET VIEW ====================
 class _Tablet extends StatefulWidget {
   const _Tablet();
 
   @override
   State<_Tablet> createState() => _TabletState();
 }
+
 class _TabletState extends State<_Tablet> {
   String? baseCcy;
   int? branchId;
@@ -911,6 +955,7 @@ class _TabletState extends State<_Tablet> {
     super.initState();
     _loadBalances();
   }
+
   void _loadBalances() {
     try {
       final auth = context.read<AuthBloc>().state;
@@ -927,6 +972,146 @@ class _TabletState extends State<_Tablet> {
       branchId = null;
     }
   }
+
+  Future<void> _printBranchBalance() async {
+    final state = context.read<CashBalancesBloc>().state;
+
+    if (state is CashBalancesLoadedState) {
+      final authState = context.read<AuthBloc>().state;
+      ReportModel company = ReportModel();
+
+      if (authState is AuthenticatedState) {
+        final auth = authState.loginData;
+        company.comName = auth.company?.comName ?? "";
+        company.comAddress = auth.company?.comAddress ?? "";
+        company.compPhone = auth.company?.comPhone ?? "";
+        company.comEmail = auth.company?.comEmail ?? "";
+        company.statementDate = DateTime.now().toFullDateTime;
+        company.baseCurrency = auth.company?.comLocalCcy;
+        baseCcy = authState.loginData.company?.comLocalCcy;
+        final base64Logo = auth.company?.comLogo;
+        if (base64Logo != null && base64Logo.isNotEmpty) {
+          try {
+            company.comLogo = base64Decode(base64Logo);
+          } catch (e) {
+            company.comLogo = Uint8List(0);
+          }
+        }
+      }
+
+      final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
+      final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
+
+      final printData = CashBalancesPrintData(
+        reportType: 'single',
+        branches: [state.cash],
+        currencyTotals: currencyTotals,
+        systemTotal: SystemTotal(
+          totalOpeningSys: systemTotals['opening'] ?? 0,
+          totalClosingSys: systemTotals['closing'] ?? 0,
+        ),
+        baseCcy: baseCcy,
+        reportDate: DateTime.now(),
+        selectedBranchName: state.cash.brcName,
+      );
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
+            data: printData,
+            company: company,
+            buildPreview: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().printPreview(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+            onPrint: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+              required selectedPrinter,
+              required copies,
+              required pages,
+            }) {
+              return CashBalancesPrintSettings().printDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+                selectedPrinter: selectedPrinter,
+                copies: copies,
+                pages: pages,
+              );
+            },
+            onSave: ({
+              required data,
+              required language,
+              required orientation,
+              required pageFormat,
+            }) {
+              return CashBalancesPrintSettings().createDocument(
+                printData: data,
+                language: language,
+                orientation: orientation,
+                company: company,
+                pageFormat: pageFormat,
+              );
+            },
+          ),
+        );
+      }
+    } else {
+      ToastManager.show(
+          context: context,
+          title: "Attention",
+          message: "Please load the data first.",
+          type: ToastType.warning
+      );
+    }
+  }
+
+  Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
+    final Map<String, CurrencyTotal> currencyTotals = {};
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        final currencyCode = record.trdCcy ?? 'UNKNOWN';
+        currencyTotals[currencyCode] = CurrencyTotal(
+          name: record.ccyName ?? currencyCode,
+          symbol: record.ccySymbol ?? '',
+          totalOpening: double.tryParse(record.openingBalance ?? '0') ?? 0,
+          totalClosing: double.tryParse(record.closingBalance ?? '0') ?? 0,
+          totalOpeningSys: double.tryParse(record.openingSysEquivalent ?? '0') ?? 0,
+          totalClosingSys: double.tryParse(record.closingSysEquivalent ?? '0') ?? 0,
+        );
+      }
+    }
+    return currencyTotals;
+  }
+
+  Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+      }
+    }
+    return {'opening': totalOpeningSys, 'closing': totalClosingSys};
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -937,7 +1122,7 @@ class _TabletState extends State<_Tablet> {
             icon: const Icon(Icons.refresh),
             onPressed: _loadBalances,
           ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           IconButton(
             icon: const Icon(Icons.print),
             onPressed: _printBranchBalance,
@@ -954,7 +1139,6 @@ class _TabletState extends State<_Tablet> {
         if (state is CashBalancesLoadingState) {
           return const Center(child: CircularProgressIndicator());
         }
-
         if (state is CashBalancesErrorState) {
           return Center(
             child: NoDataWidget(
@@ -964,14 +1148,9 @@ class _TabletState extends State<_Tablet> {
             ),
           );
         }
-
         if (state is CashBalancesLoadedState) {
-          return Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: _buildBranchDetails(state.cash, context),
-          );
+          return _buildBranchDetails(state.cash, context);
         }
-
         return const SizedBox();
       },
     );
@@ -980,67 +1159,90 @@ class _TabletState extends State<_Tablet> {
   Widget _buildBranchDetails(CashBalancesModel branch, BuildContext context) {
     final tr = AppLocalizations.of(context)!;
 
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+      }
+    }
+    final totalCashFlowSys = totalClosingSys - totalOpeningSys;
+
     return SingleChildScrollView(
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildBranchInfoCard(branch, tr, context),
-          const SizedBox(height: 16),
+          _buildBranchInfoCard(branch, tr),
+          const SizedBox(height: 12),
           Text(
             tr.currencyBalances,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: Theme.of(context).colorScheme.primary,
             ),
           ),
+          const SizedBox(height: 8),
+          if (branch.records != null && branch.records!.isNotEmpty)
+            ...branch.records!.map((record) => _buildTabletCurrencyItem(record, tr)),
           const SizedBox(height: 12),
-          _buildCurrencyCards(branch, tr, context),
-          const SizedBox(height: 16),
-          _buildTotalsCard(branch, tr, context),
+          _buildTabletGrandTotal(totalOpeningSys, totalClosingSys, totalCashFlowSys, tr),
+          if (branch.transactions != null && branch.transactions!.isNotEmpty)
+            _buildTabletTransactionSection(branch, tr),
         ],
       ),
     );
   }
 
-  Widget _buildBranchInfoCard(CashBalancesModel branch, AppLocalizations tr, BuildContext context) {
-    return ZCover(
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              branch.brcName ?? 'Unknown Branch',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 16,
-              runSpacing: 8,
-              children: [
-                _buildTabletInfoChip('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
-                _buildTabletInfoChip(tr.address, branch.address ?? 'N/A'),
-                _buildTabletInfoChip(tr.mobile1, branch.brcPhone ?? 'N/A'),
-                _buildTabletInfoChip(
-                  tr.status,
-                  branch.brcStatus == 1 ? tr.active : tr.inactive,
-                ),
-              ],
-            ),
-          ],
+  Widget _buildBranchInfoCard(CashBalancesModel branch, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
         ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.business, size: 20, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Text(
+                branch.brcName ?? 'Unknown Branch',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 12,
+            runSpacing: 4,
+            children: [
+              _buildTabletInfoChip('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
+              _buildTabletInfoChip(tr.address, branch.address ?? 'N/A'),
+              _buildTabletInfoChip(tr.mobile1, branch.brcPhone ?? 'N/A'),
+              _buildTabletInfoChip(
+                tr.status,
+                branch.brcStatus == 1 ? tr.active : tr.inactive,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTabletInfoChip(String label, String value) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: Colors.grey.withValues(alpha: .1),
         borderRadius: BorderRadius.circular(4),
@@ -1052,388 +1254,314 @@ class _TabletState extends State<_Tablet> {
             '$label ',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              fontSize: 12,
+              fontSize: 11,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 12),
+            style: const TextStyle(fontSize: 11),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCurrencyCards(CashBalancesModel branch, AppLocalizations tr, BuildContext context) {
-    if (branch.records == null || branch.records!.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Text(
-            'No cash records found',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.outline,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        int crossAxisCount = constraints.maxWidth > 700 ? 3 : 2;
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.3,
-          ),
-          itemCount: branch.records!.length,
-          itemBuilder: (context, index) {
-            return _buildTabletCurrencyCard(branch.records![index], context, tr);
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildTabletCurrencyCard(Record record, BuildContext context, AppLocalizations tr) {
+  Widget _buildTabletCurrencyItem(Record record, AppLocalizations tr) {
     final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
     final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
     final cashFlow = closing - opening;
+    final currencyCode = record.trdCcy ?? '';
+    final currencyColor = Utils.currencyColors(currencyCode);
 
-    return ZCover(
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: currencyColor.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 3,
+            height: 30,
+            color: currencyColor,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    record.ccyName ?? record.trdCcy ?? '',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                Text(
+                  record.ccyName ?? currencyCode,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: currencyColor,
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Utils.currencyColors(record.trdCcy ?? ''),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    record.trdCcy ?? '',
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context).colorScheme.surface,
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${tr.opening}: ${opening.toAmount()}',
+                        style: const TextStyle(fontSize: 11),
+                      ),
                     ),
+                    Expanded(
+                      child: Text(
+                        '${tr.closing}: ${closing.toAmount()}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade700,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        '${tr.cashFlow}: ${cashFlow.toAmount()}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: cashFlow >= 0 ? Colors.green : Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: currencyColor,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Text(
+              currencyCode,
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabletGrandTotal(double opening, double closing, double cashFlow, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: Colors.purple.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr.openingBalance,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  "${opening.toAmount()} ${baseCcy ?? ''}",
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
             ),
-            const Divider(height: 12),
-            _buildTabletBalanceRow(tr.opening, opening, record.trdCcy ?? ''),
-            const SizedBox(height: 2),
-            _buildTabletBalanceRow(tr.closing, closing, record.trdCcy ?? ''),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  tr.cashFlow,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+                  tr.closingBalance,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
                   ),
                 ),
                 Text(
-                  "${cashFlow.toAmount()} ${record.trdCcy}",
+                  "${closing.toAmount()} ${baseCcy ?? ''}",
                   style: TextStyle(
-                    fontWeight: FontWeight.bold,
                     fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr.cashFlow,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  "${cashFlow.toAmount()} ${baseCcy ?? ''}",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                     color: cashFlow >= 0 ? Colors.green : Colors.red,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabletBalanceRow(String label, double amount, String symbol) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12),
-        ),
-        Flexible(
-          child: Text(
-            "${amount.toAmount()} $symbol",
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTotalsCard(CashBalancesModel branch, AppLocalizations tr, BuildContext context) {
-    double totalOpening = 0;
-    double totalClosing = 0;
-
-    if (branch.records != null) {
-      for (var record in branch.records!) {
-        totalOpening += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
-        totalClosing += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
-      }
-    }
-
-    final totalCashFlow = totalClosing - totalOpening;
-
-    return ZCover(
-      color: Colors.purple.withValues(alpha: .05),
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tr.grandTotal,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.purple,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildTabletTotalItem(tr.opening, totalOpening),
-                ),
-                Expanded(
-                  child: _buildTabletTotalItem(tr.closing, totalClosing),
-                ),
-                Expanded(
-                  child: _buildTabletTotalItem(tr.cashFlow, totalCashFlow,
-                      isCashFlow: true),
-                ),
-              ],
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _buildTabletTotalItem(String label, double value, {bool isCashFlow = false}) {
+  Widget _buildTabletTransactionSection(CashBalancesModel branch, AppLocalizations tr) {
+    final transactions = branch.transactions!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.shade600,
-          ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.history, size: 18, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 6),
+            Text(
+              'Transactions',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${transactions.length}',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.blue.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          value.toAmount(),
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: isCashFlow
-                ? (value >= 0 ? Colors.green : Colors.red)
-                : Colors.purple,
+        const SizedBox(height: 6),
+        ...transactions.take(5).map((txn) {
+          final debit = double.tryParse(txn.debit ?? '0') ?? 0;
+          final credit = double.tryParse(txn.credit ?? '0') ?? 0;
+          final runningBalance = double.tryParse(txn.runningBalance ?? '0') ?? 0;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    txn.date != null
+                        ? '${txn.date!.year}/${txn.date!.month.toString().padLeft(2, '0')}/${txn.date!.day.toString().padLeft(2, '0')}'
+                        : 'N/A',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ),
+                Expanded(
+                  flex: 3,
+                  child: Text(
+                    txn.narration ?? '',
+                    style: const TextStyle(fontSize: 10),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    (debit > 0 ? debit : credit).toAmount(),
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: debit > 0 ? Colors.green.shade700 : Colors.red.shade700,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    runningBalance.toAmount(),
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: runningBalance >= 0 ? Colors.blue.shade700 : Colors.red.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        if (transactions.length > 5)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              '+ ${transactions.length - 5} more transactions',
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.blue.shade600,
+              ),
+            ),
           ),
-        ),
       ],
     );
   }
-
-  Future<void> _printBranchBalance() async {
-    final state = context.read<CashBalancesBloc>().state;
-
-    if (state is CashBalancesLoadedState) {
-      // Get company info from CompanyProfileBloc
-      final companyState = context.read<CompanyProfileBloc>().state;
-      ReportModel company = ReportModel();
-
-      if (companyState is CompanyProfileLoadedState) {
-        company = ReportModel(
-          comName: companyState.company.comName ?? '',
-          comAddress: companyState.company.addName ?? '',
-          compPhone: companyState.company.comPhone ?? '',
-          comEmail: companyState.company.comEmail ?? '',
-          statementDate: DateTime.now().toFullDateTime,
-          comLogo: companyState.company.comLogo != null
-              ? base64Decode(companyState.company.comLogo!)
-              : null,
-        );
-      }
-
-      // Get base currency from AuthBloc
-      String? baseCcy;
-      final authState = context.read<AuthBloc>().state;
-      if (authState is AuthenticatedState) {
-        baseCcy = authState.loginData.company?.comLocalCcy;
-      }
-
-      // Calculate currency totals for single branch
-      final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
-
-      // Calculate system totals for single branch
-      final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
-
-      // Prepare print data
-      final printData = CashBalancesPrintData(
-        reportType: 'single',
-        branches: [state.cash],
-        currencyTotals: currencyTotals,
-        systemTotal: SystemTotal(
-          totalOpeningSys: systemTotals['opening'] ?? 0,
-          totalClosingSys: systemTotals['closing'] ?? 0,
-        ),
-        baseCcy: baseCcy,
-        reportDate: DateTime.now(),
-        selectedBranchName: state.cash.brcName,
-      );
-
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          builder: (_) => PrintPreviewDialog<CashBalancesPrintData>(
-            data: printData,
-            company: company,
-            buildPreview: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return CashBalancesPrintSettings().printPreview(
-                printData: data,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-              );
-            },
-            onPrint: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-              required selectedPrinter,
-              required copies,
-              required pages,
-            }) {
-              return CashBalancesPrintSettings().printDocument(
-                printData: data,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-                selectedPrinter: selectedPrinter,
-                copies: copies,
-                pages: pages,
-              );
-            },
-            onSave: ({
-              required data,
-              required language,
-              required orientation,
-              required pageFormat,
-            }) {
-              return CashBalancesPrintSettings().createDocument(
-                printData: data,
-                language: language,
-                orientation: orientation,
-                company: company,
-                pageFormat: pageFormat,
-              );
-            },
-          ),
-        );
-      }
-    } else {
-      ToastManager.show(
-          context: context,
-          title: "Attention",
-          message: "Please load the data first.",
-          type: ToastType.warning
-      );
-    }
-  }
-
-  Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
-    final Map<String, CurrencyTotal> currencyTotals = {};
-
-    if (branch.records != null) {
-      for (var record in branch.records!) {
-        final currencyCode = record.trdCcy ?? 'UNKNOWN';
-
-        currencyTotals[currencyCode] = CurrencyTotal(
-          name: record.ccyName ?? currencyCode,
-          symbol: record.ccySymbol ?? '',
-          totalOpening: double.tryParse(record.openingBalance ?? '0') ?? 0,
-          totalClosing: double.tryParse(record.closingBalance ?? '0') ?? 0,
-          totalOpeningSys: double.tryParse(record.openingSysEquivalent ?? '0') ?? 0,
-          totalClosingSys: double.tryParse(record.closingSysEquivalent ?? '0') ?? 0,
-        );
-      }
-    }
-
-    return currencyTotals;
-  }
-
-  Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
-    double totalOpeningSys = 0;
-    double totalClosingSys = 0;
-
-    if (branch.records != null) {
-      for (var record in branch.records!) {
-        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
-        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
-      }
-    }
-
-    return {
-      'opening': totalOpeningSys,
-      'closing': totalClosingSys,
-    };
-  }
 }
 
-
+// ==================== MOBILE VIEW ====================
 class _Mobile extends StatefulWidget {
   const _Mobile();
 
   @override
   State<_Mobile> createState() => _MobileState();
 }
+
 class _MobileState extends State<_Mobile> {
   String? baseCcy;
   int? branchId;
@@ -1443,6 +1571,7 @@ class _MobileState extends State<_Mobile> {
     super.initState();
     _loadBalances();
   }
+
   void _loadBalances() {
     try {
       final auth = context.read<AuthBloc>().state;
@@ -1459,441 +1588,36 @@ class _MobileState extends State<_Mobile> {
       branchId = null;
     }
   }
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          AppLocalizations.of(context)!.cashBalances,
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-             context.read<CashBalancesBloc>().add(LoadCashBalanceBranchWiseEvent(branchId: branchId));
-            },
-          ),
-          SizedBox(width: 5),
-          IconButton(onPressed: _printBranchBalance, icon: Icon(Icons.print))
-        ],
-      ),
-      body: _buildContent(context),
-    );
-  }
-
-  Widget _buildContent(BuildContext context) {
-    return BlocBuilder<CashBalancesBloc, CashBalancesState>(
-      builder: (context, state) {
-        if (state is CashBalancesLoadingState) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state is CashBalancesErrorState) {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: NoDataWidget(
-                message: state.error,
-                onRefresh: () {
-                  // Add refresh logic
-                },
-              ),
-            ),
-          );
-        }
-
-        if (state is CashBalancesLoadedState) {
-          return _buildMobileDetails(state.cash, context);
-        }
-
-        return const SizedBox();
-      },
-    );
-  }
-
-  Widget _buildMobileDetails(CashBalancesModel branch, BuildContext context) {
-    final tr = AppLocalizations.of(context)!;
-
-    return ListView(
-      padding: const EdgeInsets.all(12.0),
-      children: [
-        // Branch Info Card
-        ZCover(
-          radius: 8,
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        branch.brcName ?? 'Unknown Branch',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: branch.brcStatus == 1 ? Colors.green : Colors.grey,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        branch.brcStatus == 1 ? tr.active : tr.inactive,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildMobileInfoRow(Icons.badge, '${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
-                const SizedBox(height: 8),
-                _buildMobileInfoRow(Icons.location_on, tr.address, branch.address ?? 'N/A'),
-                const SizedBox(height: 8),
-                _buildMobileInfoRow(Icons.phone, tr.mobile1, branch.brcPhone ?? 'N/A'),
-                const SizedBox(height: 8),
-                _buildMobileInfoRow(Icons.calendar_today, tr.entryDate,
-                    branch.brcEntryDate?.toLocal().toString().split(' ')[0] ?? 'N/A'),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        // Currency Balances Section
-        Text(
-          tr.currencyBalances,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        if (branch.records != null && branch.records!.isNotEmpty)
-          ...branch.records!.map((record) => Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: _buildMobileCurrencyCard(record, context, tr),
-          ))
-        else
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Text(
-                'No cash records found',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-              ),
-            ),
-          ),
-
-        const SizedBox(height: 16),
-
-        // Grand Total Card
-        _buildMobileGrandTotal(branch, context, tr),
-      ],
-    );
-  }
-
-  Widget _buildMobileInfoRow(IconData icon, String label, String value) {
-    final color = Theme.of(context).colorScheme;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: color.outline),
-        const SizedBox(width: 8),
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(color: color.onSurface, fontSize: 13),
-              children: [
-                TextSpan(
-                  text: label,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                TextSpan(text: ' $value'),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileCurrencyCard(Record record, BuildContext context, AppLocalizations tr) {
-    final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
-    final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
-    final openingSys = double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
-    final closingSys = double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
-    final cashFlow = closing - opening;
-    final cashFlowSys = closingSys - openingSys;
-
-    return ZCover(
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          children: [
-            // Header
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    record.ccyName ?? record.trdCcy ?? '',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Utils.currencyColors(record.trdCcy ?? ""),
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Utils.currencyColors(record.trdCcy ?? ''),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    record.trdCcy ?? '',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).colorScheme.surface,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 12),
-
-            // Local Currency Balances
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMobileLabelValue(
-                    tr.opening,
-                    "${opening.toAmount()} ${record.trdCcy}",
-                  ),
-                ),
-                Expanded(
-                  child: _buildMobileLabelValue(
-                    tr.closing,
-                    "${closing.toAmount()} ${record.trdCcy}",
-                    isHighlighted: true,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            // System Equivalent
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: .05),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildMobileLabelValue(
-                      '${tr.opening} (Sys)',
-                      "${openingSys.toAmount()} ${baseCcy ?? ''}",
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildMobileLabelValue(
-                      '${tr.closing} (Sys)',
-                      "${closingSys.toAmount()} ${baseCcy ?? ''}",
-                      isHighlighted: true,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            // Cash Flow
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: (cashFlow >= 0 ? Colors.green : Colors.red).withValues(alpha: .05),
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    tr.cashFlow,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "${cashFlow.toAmount()} ${record.trdCcy}",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: cashFlow >= 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                      Text(
-                        "${cashFlowSys.toAmount()} ${baseCcy ?? ''}",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: cashFlowSys >= 0 ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileLabelValue(String label, String value, {bool isHighlighted = false}) {
-    final color = Theme.of(context).colorScheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: color.outline.withValues(alpha: .6),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: isHighlighted ? FontWeight.bold : FontWeight.normal,
-            color: isHighlighted ? Colors.green : null,
-          ),
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileGrandTotal(CashBalancesModel branch, BuildContext context, AppLocalizations tr) {
-    double totalOpening = 0;
-    double totalClosing = 0;
-
-    if (branch.records != null) {
-      for (var record in branch.records!) {
-        totalOpening += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
-        totalClosing += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
-      }
-    }
-
-    final totalCashFlow = totalClosing - totalOpening;
-
-    return ZCover(
-      color: Colors.purple.withValues(alpha: .05),
-      radius: 8,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              tr.grandTotal,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.purple,
-                fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 12),
-            _buildMobileTotalRow(tr.openingBalance, totalOpening, ''),
-            const SizedBox(height: 8),
-            _buildMobileTotalRow(tr.closingBalance, totalClosing, ''),
-            const SizedBox(height: 8),
-            _buildMobileTotalRow(tr.cashFlow, totalCashFlow, '', isCashFlow: true),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileTotalRow(String label, double value, String symbol, {bool isCashFlow = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 14),
-        ),
-        Text(
-          value.toAmount(),
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-            color: isCashFlow
-                ? (value >= 0 ? Colors.green : Colors.red)
-                : Colors.purple,
-          ),
-        ),
-      ],
-    );
-  }
 
   Future<void> _printBranchBalance() async {
     final state = context.read<CashBalancesBloc>().state;
 
     if (state is CashBalancesLoadedState) {
-      // Get company info from CompanyProfileBloc
-      final companyState = context.read<CompanyProfileBloc>().state;
+      final authState = context.read<AuthBloc>().state;
       ReportModel company = ReportModel();
 
-      if (companyState is CompanyProfileLoadedState) {
-        company = ReportModel(
-          comName: companyState.company.comName ?? '',
-          comAddress: companyState.company.addName ?? '',
-          compPhone: companyState.company.comPhone ?? '',
-          comEmail: companyState.company.comEmail ?? '',
-          statementDate: DateTime.now().toFullDateTime,
-          comLogo: companyState.company.comLogo != null
-              ? base64Decode(companyState.company.comLogo!)
-              : null,
-        );
-      }
-
-      // Get base currency from AuthBloc
-      String? baseCcy;
-      final authState = context.read<AuthBloc>().state;
       if (authState is AuthenticatedState) {
+        final auth = authState.loginData;
+        company.comName = auth.company?.comName ?? "";
+        company.comAddress = auth.company?.comAddress ?? "";
+        company.compPhone = auth.company?.comPhone ?? "";
+        company.comEmail = auth.company?.comEmail ?? "";
+        company.statementDate = DateTime.now().toFullDateTime;
+        company.baseCurrency = auth.company?.comLocalCcy;
         baseCcy = authState.loginData.company?.comLocalCcy;
+        final base64Logo = auth.company?.comLogo;
+        if (base64Logo != null && base64Logo.isNotEmpty) {
+          try {
+            company.comLogo = base64Decode(base64Logo);
+          } catch (e) {
+            company.comLogo = Uint8List(0);
+          }
+        }
       }
 
-      // Calculate currency totals for single branch
       final currencyTotals = _calculateSingleBranchCurrencyTotals(state.cash);
-
-      // Calculate system totals for single branch
       final systemTotals = _calculateSingleBranchSystemTotals(state.cash);
 
-      // Prepare print data
       final printData = CashBalancesPrintData(
         reportType: 'single',
         branches: [state.cash],
@@ -1973,13 +1697,12 @@ class _MobileState extends State<_Mobile> {
       );
     }
   }
+
   Map<String, CurrencyTotal> _calculateSingleBranchCurrencyTotals(CashBalancesModel branch) {
     final Map<String, CurrencyTotal> currencyTotals = {};
-
     if (branch.records != null) {
       for (var record in branch.records!) {
         final currencyCode = record.trdCcy ?? 'UNKNOWN';
-
         currencyTotals[currencyCode] = CurrencyTotal(
           name: record.ccyName ?? currencyCode,
           symbol: record.ccySymbol ?? '',
@@ -1990,23 +1713,447 @@ class _MobileState extends State<_Mobile> {
         );
       }
     }
-
     return currencyTotals;
   }
+
   Map<String, double> _calculateSingleBranchSystemTotals(CashBalancesModel branch) {
     double totalOpeningSys = 0;
     double totalClosingSys = 0;
-
     if (branch.records != null) {
       for (var record in branch.records!) {
         totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
         totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
       }
     }
+    return {'opening': totalOpeningSys, 'closing': totalClosingSys};
+  }
 
-    return {
-      'opening': totalOpeningSys,
-      'closing': totalClosingSys,
-    };
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.cashBalances),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<CashBalancesBloc>().add(
+                LoadCashBalanceBranchWiseEvent(branchId: branchId),
+              );
+            },
+          ),
+          const SizedBox(width: 5),
+          IconButton(
+            onPressed: _printBranchBalance,
+            icon: const Icon(Icons.print),
+          ),
+        ],
+      ),
+      body: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
+    return BlocBuilder<CashBalancesBloc, CashBalancesState>(
+      builder: (context, state) {
+        if (state is CashBalancesLoadingState) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is CashBalancesErrorState) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: NoDataWidget(
+                message: state.error,
+                onRefresh: () {
+                  context.read<CashBalancesBloc>().add(
+                    LoadCashBalanceBranchWiseEvent(branchId: branchId),
+                  );
+                },
+              ),
+            ),
+          );
+        }
+        if (state is CashBalancesLoadedState) {
+          return _buildMobileDetails(state.cash, context);
+        }
+        return const SizedBox();
+      },
+    );
+  }
+
+  Widget _buildMobileDetails(CashBalancesModel branch, BuildContext context) {
+    final tr = AppLocalizations.of(context)!;
+
+    double totalOpeningSys = 0;
+    double totalClosingSys = 0;
+    if (branch.records != null) {
+      for (var record in branch.records!) {
+        totalOpeningSys += double.tryParse(record.openingSysEquivalent ?? '0') ?? 0;
+        totalClosingSys += double.tryParse(record.closingSysEquivalent ?? '0') ?? 0;
+      }
+    }
+    final totalCashFlowSys = totalClosingSys - totalOpeningSys;
+
+    return ListView(
+      padding: const EdgeInsets.all(12),
+      children: [
+        _buildMobileBranchInfo(branch, tr),
+        const SizedBox(height: 12),
+        Text(
+          tr.currencyBalances,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (branch.records != null && branch.records!.isNotEmpty)
+          ...branch.records!.map((record) => _buildMobileCurrencyItem(record, tr)),
+        const SizedBox(height: 12),
+        _buildMobileGrandTotal(totalOpeningSys, totalClosingSys, totalCashFlowSys, tr),
+        if (branch.transactions != null && branch.transactions!.isNotEmpty)
+          _buildMobileTransactionSection(branch, tr),
+      ],
+    );
+  }
+
+  Widget _buildMobileBranchInfo(CashBalancesModel branch, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  branch.brcName ?? 'Unknown Branch',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: branch.brcStatus == 1 ? Colors.green : Colors.grey,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  branch.brcStatus == 1 ? tr.active : tr.inactive,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 9,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 2,
+            children: [
+              _buildMobileChip('${tr.branchId}:', branch.brcId?.toString() ?? 'N/A'),
+              _buildMobileChip(tr.mobile1, branch.brcPhone ?? 'N/A'),
+              if (branch.address != null && branch.address!.isNotEmpty)
+                _buildMobileChip(tr.address, branch.address!),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+      child: Text(
+        '$label $value',
+        style: const TextStyle(fontSize: 10),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildMobileCurrencyItem(Record record, AppLocalizations tr) {
+    final opening = double.tryParse(record.openingBalance ?? '0') ?? 0;
+    final closing = double.tryParse(record.closingBalance ?? '0') ?? 0;
+    final cashFlow = closing - opening;
+    final currencyCode = record.trdCcy ?? '';
+    final currencyColor = Utils.currencyColors(currencyCode);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: currencyColor.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 3,
+                height: 16,
+                color: currencyColor,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  record.ccyName ?? currencyCode,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: currencyColor,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: currencyColor,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                child: Text(
+                  currencyCode,
+                  style: const TextStyle(
+                    fontSize: 8,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${tr.opening}: ${opening.toAmount()}',
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '${tr.closing}: ${closing.toAmount()}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  '${tr.cashFlow}: ${cashFlow.toAmount()}',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: cashFlow >= 0 ? Colors.green : Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileGrandTotal(double opening, double closing, double cashFlow, AppLocalizations tr) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: Colors.purple.withValues(alpha: 0.15),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr.openingBalance,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  "${opening.toAmount()} ${baseCcy ?? ''}",
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr.closingBalance,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  "${closing.toAmount()} ${baseCcy ?? ''}",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tr.cashFlow,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  "${cashFlow.toAmount()} ${baseCcy ?? ''}",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: cashFlow >= 0 ? Colors.green : Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileTransactionSection(CashBalancesModel branch, AppLocalizations tr) {
+    final transactions = branch.transactions!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Icon(Icons.history, size: 16, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 4),
+            Text(
+              'Transactions',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                '${transactions.length}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.blue.shade700,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ...transactions.take(3).map((txn) {
+          final debit = double.tryParse(txn.debit ?? '0') ?? 0;
+          final credit = double.tryParse(txn.credit ?? '0') ?? 0;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade50,
+              borderRadius: BorderRadius.circular(4),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        txn.narration ?? '',
+                        style: const TextStyle(fontSize: 10),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text(
+                      (debit > 0 ? debit : credit).toAmount(),
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: debit > 0 ? Colors.green.shade700 : Colors.red.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  txn.date != null
+                      ? '${txn.date!.year}/${txn.date!.month.toString().padLeft(2, '0')}/${txn.date!.day.toString().padLeft(2, '0')}'
+                      : 'N/A',
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+        if (transactions.length > 3)
+          Text(
+            '+ ${transactions.length - 3} more',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.blue.shade600,
+            ),
+          ),
+      ],
+    );
   }
 }

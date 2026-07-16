@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
 import 'package:zaitoonpro/Features/Widgets/section_title.dart';
+import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/ExpenseReport/expense_report.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/Accounts/accounts.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/BalanceSheet/balance_sheet.dart';
 import 'package:zaitoonpro/Views/Menu/Ui/Report/Ui/Finance/GLStatement/gl_statement.dart';
@@ -40,6 +41,7 @@ enum ActionKey {
   receivable,
   accountsReport,
   trialBalance,
+  expensesKey,
 
   //Transactions
   balanceSheet,
@@ -107,6 +109,10 @@ class _DesktopState extends State<_Desktop> {
       {"title": tr.creditors, "icon": FontAwesomeIcons.arrowTrendUp, "action": ActionKey.payable},
       if(login.hasPermission(83) ?? false)
       {"title": tr.debtors, "icon": FontAwesomeIcons.arrowTrendDown, "action": ActionKey.receivable},
+      if(login.hasPermission(98) ?? false)
+        {"title": tr.accounts, "icon": Icons.account_circle_rounded, "action": ActionKey.allBalances},
+      if(login.hasPermission(92) ?? false)
+        {"title": tr.expenses, "icon":  FontAwesomeIcons.arrowDown, "action": ActionKey.expensesKey},
     ];
 
     // final List<Map<String, dynamic>> stockButtons = [
@@ -123,10 +129,10 @@ class _DesktopState extends State<_Desktop> {
     // ];
 
     final List<Map<String, dynamic>> transactionsButtons = [
-      if(login.hasPermission(92) ?? false)
-      {"title": tr.treasury, "icon":  FontAwesomeIcons.sackDollar, "action": ActionKey.allCashBalances},
+      // if(login.hasPermission(92) ?? false)
+      // {"title": tr.treasury, "icon":  FontAwesomeIcons.sackDollar, "action": ActionKey.allCashBalances},
       if(login.hasPermission(93) ?? false)
-      {"title": "${tr.treasury} (${tr.branch})", "icon": FontAwesomeIcons.sackDollar, "action": ActionKey.cashBalanceBranchWise},
+      {"title": tr.treasury, "icon": FontAwesomeIcons.sackDollar, "action": ActionKey.cashBalanceBranchWise},
       if(login.hasPermission(94) ?? false)
       {"title": tr.exchangeRate, "icon": Icons.price_change_outlined, "action": ActionKey.exchangeRate},
       if(login.hasPermission(113) ?? false)
@@ -137,8 +143,7 @@ class _DesktopState extends State<_Desktop> {
       {"title": tr.transactionDetails, "icon": Icons.qr_code_2_rounded, "action": ActionKey.transactionByRef},
       if(login.hasPermission(97) ?? false)
       {"title": "${tr.transactions} ${tr.report}", "icon": Icons.line_axis_sharp, "action": ActionKey.transactionReport},
-      if(login.hasPermission(98) ?? false)
-      {"title": tr.allBalancesTitle, "icon": Icons.money, "action": ActionKey.allBalances},
+
     ];
 
     final List<Map<String, dynamic>> activitiesButtons = [
@@ -280,6 +285,7 @@ class _DesktopState extends State<_Desktop> {
       case ActionKey.accountsReport: Utils.goto(context, AccountsReportView());
       case ActionKey.trialBalance: Utils.goto(context, TrialBalanceView());
       case ActionKey.glStatementSingleDate: Utils.goto(context, GlStatementView(isSingleDate: true));
+      case ActionKey.expensesKey: Utils.goto(context, ExpenseReportView());
 
       //Transactions
       case ActionKey.balanceSheet: Utils.goto(context, BalanceSheetView());

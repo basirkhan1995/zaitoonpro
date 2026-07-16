@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import 'package:zaitoonpro/Features/Other/cover.dart';
 import 'package:zaitoonpro/Features/Other/extensions.dart';
 import 'package:zaitoonpro/Features/Other/responsive.dart';
@@ -14,8 +15,10 @@ import '../../../../../../../../Features/PrintSettings/report_model.dart';
 import '../../../../../../../../Features/Widgets/outline_button.dart';
 import '../../../../../../../../Features/Widgets/search_field.dart';
 import '../../../../../../../Auth/bloc/auth_bloc.dart';
+import '../Pdf/ar_excel.dart';
 import '../Pdf/pdf.dart';
 import '../model/ar_ap_model.dart';
+
 
 class ReceivablesView extends StatelessWidget {
   const ReceivablesView({super.key});
@@ -450,11 +453,45 @@ class _DesktopState extends State<_Desktop> {
     super.dispose();
   }
 
+
+  void onExcel() {
+    final locale = AppLocalizations.of(context)!;
+    final state = context.read<ArApBloc>().state;
+
+    List<ArApModel> receivablesList = [];
+
+    if (state is ArApLoadedState) {
+      receivablesList = state.arAccounts;
+    }
+
+    if (receivablesList.isEmpty) {
+      Utils.showOverlayMessage(
+        context,
+        message: locale.noData,
+        isError: true,
+      );
+      return;
+    }
+
+    String? companyName, companyAddress, companyPhone, companyEmail;
+
+    // Generate filename with date
+    String fileName = "Receivables_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx";
+
+    ArApExcelService.exportToExcel(
+      accounts: receivablesList,
+      reportType: "AR",
+      fileName: fileName,
+      context: context,
+      companyName: companyName,
+      companyAddress: companyAddress,
+      companyPhone: companyPhone,
+      companyEmail: companyEmail,
+    );
+  }
   @override
   Widget build(BuildContext context) {
     final title = Theme.of(context).textTheme.titleMedium;
-    final subTitle = Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.outline);
-    final subtitle1 = Theme.of(context).textTheme.titleSmall?.copyWith(color: Theme.of(context).colorScheme.onSurface);
     final tr = AppLocalizations.of(context)!;
 
     return BlocBuilder<ArApBloc, ArApState>(
@@ -487,6 +524,15 @@ class _DesktopState extends State<_Desktop> {
                       icon: FontAwesomeIcons.solidFilePdf,
                       label: const Text("PDF"),
                       onPressed: onPDF,
+                    ),
+                    const SizedBox(width: 8),
+                    ZOutlineButton(
+                      width: 110,
+                      icon: FontAwesomeIcons.solidFileExcel,
+                      label: const Text("EXCEL"),
+                      isActive: true,
+                      backgroundHover: Colors.green,
+                      onPressed: onExcel,
                     ),
                   ],
                 ),
@@ -541,16 +587,15 @@ class _DesktopState extends State<_Desktop> {
                 },
               ),
 
-
-
               // Column headers
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    SizedBox(width: 280, child: Text(tr.accounts, style: title)),
-                    SizedBox(width: 200, child: Text(tr.accountLimit, style: title)),
-                    Expanded(child: Text(tr.signatory, style: title)),
+                    SizedBox(width: 120, child: Text(tr.accountNumber, style: title)),
+                    Expanded(child: Text(tr.accountName, style: title)),
                     Text(tr.balance, style: title),
                   ],
                 ),
@@ -579,9 +624,9 @@ class _DesktopState extends State<_Desktop> {
 
                       if (filteredList.isEmpty) {
                         return NoDataWidget(
-                            title: tr.noData,
-                            message: tr.noDataFound,
-                           enableAction: false,
+                          title: tr.noData,
+                          message: tr.noDataFound,
+                          enableAction: false,
                         );
                       }
 
@@ -590,7 +635,7 @@ class _DesktopState extends State<_Desktop> {
                         itemBuilder: (context, index) {
                           final ar = filteredList[index];
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8),
                             decoration: BoxDecoration(
                               color: index.isOdd
                                   ? Theme.of(context).colorScheme.outline.withValues(alpha: .05)
@@ -599,44 +644,11 @@ class _DesktopState extends State<_Desktop> {
                             child: Row(
                               children: [
                                 SizedBox(
-                                  width: 280,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(ar.accName ?? "", style: title),
-                                      const SizedBox(height: 2),
-                                      Row(
-                                        children: [
-                                          StatusBadge(
-                                            status: ar.accStatus ?? 0,
-                                            trueValue: tr.active,
-                                            falseValue: tr.blocked,
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).colorScheme.primary.withValues(alpha: .03),
-                                              borderRadius: BorderRadius.circular(4),
-                                            ),
-                                            child: Text(ar.accNumber.toString(), style: subtitle1),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
+                                    width: 120,
+                                    child: Text(ar.accNumber.toString(),style: title)),
+                                Expanded(
+                                  child: Text(ar.accName ?? "", style: title),
                                 ),
-                                SizedBox(
-                                  width: 200,
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(ar.accLimit == "Unlimited"? tr.unlimited : ar.accLimit?.toAmount() ?? '0', style: title),
-                                      Text(ar.accCurrency ?? "", style: subTitle),
-                                    ],
-                                  ),
-                                ),
-                                Expanded(child: Text(ar.fullName ?? "", style: title)),
                                 Text("${ar.balance.toAmount()} ${ar.accCurrency}", style: title),
                               ],
                             ),

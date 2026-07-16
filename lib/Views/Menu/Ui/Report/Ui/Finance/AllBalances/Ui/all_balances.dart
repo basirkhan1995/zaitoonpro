@@ -732,7 +732,7 @@ class _DesktopState extends State<_Desktop> {
       appBar: AppBar(
         titleSpacing: 0,
         toolbarHeight: 57,
-        title: Text(tr.allBalancesTitle),
+        title: Text(tr.accounts),
         actionsPadding: EdgeInsets.symmetric(horizontal: 10),
         actions: [
           Padding(
@@ -822,12 +822,15 @@ class _DesktopState extends State<_Desktop> {
                     width: 100, child: Text(tr.accountNumber, style: titleStyle)),
                 Expanded(child: Text(tr.accountName, style: titleStyle)),
                 SizedBox(
-                    width: 100, child: Text(tr.branchId, style: titleStyle)),
-                SizedBox(
                     width: 250,
                     child: Text(tr.accountCategory, style: titleStyle)),
                 SizedBox(
-                    width: 150, child: Text(tr.balance, style: titleStyle)),
+                    width: 150, child: Text(
+                    textAlign: TextAlign.end,
+                    tr.balance, style: titleStyle?.copyWith(
+                  fontWeight: FontWeight.bold
+
+                ))),
               ],
             ),
           ),
@@ -872,9 +875,7 @@ class _DesktopState extends State<_Desktop> {
                                 width: 100,
                                 child: Text(ab.trdAccount.toString())),
                             Expanded(child: Text(ab.accName.toString())),
-                            SizedBox(
-                                width: 100,
-                                child: Text(ab.trdBranch.toString())),
+
                             SizedBox(
                                 width: 30,
                                 child: Text(ab.acgId.toString())),
@@ -884,6 +885,7 @@ class _DesktopState extends State<_Desktop> {
                             SizedBox(
                                 width: 150,
                                 child: Text(
+                                  textAlign: TextAlign.end,
                                     "${ab.balance.toAmount()} ${ab.trdCcy}")),
                           ],
                         ),

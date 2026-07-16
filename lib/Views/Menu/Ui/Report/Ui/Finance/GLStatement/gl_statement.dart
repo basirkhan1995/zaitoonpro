@@ -579,8 +579,8 @@ class _DesktopState extends State<_Desktop> {
     final lastMonthEnd = DateTime(now.year, now.month, now.day);
     final lastMonthStart = DateTime(now.year, now.month, 1);
 
-    fromDate = lastMonthStart.toFormattedDate();
-    toDate = lastMonthEnd.toFormattedDate();
+    fromDate = lastMonthStart.toApiStartDate();
+    toDate = lastMonthEnd.toApiEndDate();
     WidgetsBinding.instance.addPostFrameCallback((_){
       myLocale = context.read<LocalizationBloc>().state.languageCode;
       context.read<GlStatementBloc>().add(ResetGlStmtEvent());
@@ -604,7 +604,7 @@ class _DesktopState extends State<_Desktop> {
         actionsPadding: EdgeInsets.symmetric(horizontal: 8),
         actions: [
           ZOutlineButton(
-            icon: FontAwesomeIcons.fileExcel, // or Icons.table_chart_outlined
+            icon: FontAwesomeIcons.fileExcel,
             backgroundHover: Colors.green,
             onPressed: () {
               if (accountStatementModel != null &&
@@ -1106,8 +1106,8 @@ class _DesktopState extends State<_Desktop> {
           currency: currency ?? baseCurrency ?? "",
           branchCode: branchCode,
           accountNumber: accNumber!,
-          fromDate: widget.isSingleDate? fromDate : fromDate,
-          toDate: widget.isSingleDate? fromDate : toDate,
+          fromDate: fromDate,
+          toDate: widget.isSingleDate? fromDate.toApiStartDate() : toDate.toApiEndDate(),
         ),
       );
     }else{

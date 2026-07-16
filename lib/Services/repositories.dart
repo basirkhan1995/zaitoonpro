@@ -52,6 +52,7 @@ import '../Views/Menu/Ui/Journal/Ui/GetOrder/model/get_order_model.dart';
 import '../Views/Menu/Ui/Journal/Ui/ProjectTxn/model/project_txn_model.dart';
 import '../Views/Menu/Ui/Projects/Ui/AllProjects/model/pjr_model.dart';
 import '../Views/Menu/Ui/Reminder/model/reminder_model.dart';
+import '../Views/Menu/Ui/Report/Ui/ExpenseReport/exp_report_model.dart';
 import '../Views/Menu/Ui/Report/Ui/Finance/Accounts/model/accounts_report_model.dart';
 import '../Views/Menu/Ui/Report/Ui/Finance/AllBalances/model/all_balances_model.dart';
 import '../Views/Menu/Ui/Report/Ui/Finance/ArApReport/model/ar_ap_model.dart';
@@ -3511,5 +3512,39 @@ class Repositories {
     return [];
   }
 
+  /// Expense Report
+  Future<ExpenseReportModel> getExpenseReport({
+    String? dateFrom,
+    String? dateTo,
+    String? currency,
+    int? accountNumber,
+  }) async {
+    try {
+      final response = await api.post(
+        endpoint: "/reports/expenseReport.php",
+        data: {
+          "date_from": dateFrom,
+          "date_to": dateTo,
+          "currency": currency,
+          "account_number": accountNumber,
+        },
+      );
+
+      // Check if response has error
+      if (response.data is Map<String, dynamic> &&
+          response.data['error'] != null) {
+        throw Exception(response.data['message'] ?? 'Failed to fetch expense report');
+      }
+
+      // Parse response
+      if (response.data is Map<String, dynamic>) {
+        return ExpenseReportModel.fromMap(response.data);
+      }
+
+      throw Exception('Invalid response format');
+    } catch (e) {
+      rethrow;
+    }
+  }
 
 }

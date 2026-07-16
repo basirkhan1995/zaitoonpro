@@ -18,6 +18,7 @@ class CashBalancesModel {
   final DateTime? brcEntryDate;
   final String? address;
   final List<Record>? records;
+  final List<Transaction>? transactions;
 
   CashBalancesModel({
     this.brcId,
@@ -29,6 +30,7 @@ class CashBalancesModel {
     this.brcEntryDate,
     this.address,
     this.records,
+    this.transactions,
   });
 
   CashBalancesModel copyWith({
@@ -41,6 +43,7 @@ class CashBalancesModel {
     DateTime? brcEntryDate,
     String? address,
     List<Record>? records,
+    List<Transaction>? transactions,
   }) =>
       CashBalancesModel(
         brcId: brcId ?? this.brcId,
@@ -52,6 +55,7 @@ class CashBalancesModel {
         brcEntryDate: brcEntryDate ?? this.brcEntryDate,
         address: address ?? this.address,
         records: records ?? this.records,
+        transactions: transactions ?? this.transactions,
       );
 
   factory CashBalancesModel.fromMap(Map<String, dynamic> json) => CashBalancesModel(
@@ -64,6 +68,7 @@ class CashBalancesModel {
     brcEntryDate: json["brcEntryDate"] == null ? null : DateTime.parse(json["brcEntryDate"]),
     address: json["address"],
     records: json["records"] == null ? [] : List<Record>.from(json["records"]!.map((x) => Record.fromMap(x))),
+    transactions: json["transactions"] == null ? [] : List<Transaction>.from(json["transactions"]!.map((x) => Transaction.fromMap(x))),
   );
 
   Map<String, dynamic> toMap() => {
@@ -76,6 +81,7 @@ class CashBalancesModel {
     "brcEntryDate": brcEntryDate?.toIso8601String(),
     "address": address,
     "records": records == null ? [] : List<dynamic>.from(records!.map((x) => x.toMap())),
+    "transactions": transactions == null ? [] : List<dynamic>.from(transactions!.map((x) => x.toMap())),
   };
 }
 
@@ -147,5 +153,88 @@ class Record {
     "opening_sys_equivalent": openingSysEquivalent,
     "closing_balance": closingBalance,
     "closing_sys_equivalent": closingSysEquivalent,
+  };
+}
+
+class Transaction {
+  final DateTime? date;
+  final String? narration;
+  final String? debit;
+  final String? credit;
+  final String? currency;
+  final String? reference;
+  final String? creditAccountName;
+  final int? creditAccountNumber;
+  final String? transactionType;
+  final String? status;
+  final String? runningBalance;
+
+  Transaction({
+    this.date,
+    this.narration,
+    this.debit,
+    this.credit,
+    this.currency,
+    this.reference,
+    this.creditAccountName,
+    this.creditAccountNumber,
+    this.transactionType,
+    this.status,
+    this.runningBalance,
+  });
+
+  Transaction copyWith({
+    DateTime? date,
+    String? narration,
+    String? debit,
+    String? credit,
+    String? currency,
+    String? reference,
+    String? creditAccountName,
+    int? creditAccountNumber,
+    String? transactionType,
+    String? status,
+    String? runningBalance,
+  }) =>
+      Transaction(
+        date: date ?? this.date,
+        narration: narration ?? this.narration,
+        debit: debit ?? this.debit,
+        credit: credit ?? this.credit,
+        currency: currency ?? this.currency,
+        reference: reference ?? this.reference,
+        creditAccountName: creditAccountName ?? this.creditAccountName,
+        creditAccountNumber: creditAccountNumber ?? this.creditAccountNumber,
+        transactionType: transactionType ?? this.transactionType,
+        status: status ?? this.status,
+        runningBalance: runningBalance ?? this.runningBalance,
+      );
+
+  factory Transaction.fromMap(Map<String, dynamic> json) => Transaction(
+    date: json["date"] == null ? null : DateTime.parse(json["date"]),
+    narration: json["narration"],
+    debit: json["debit"],
+    credit: json["credit"],
+    currency: json["currency"],
+    reference: json["reference"],
+    creditAccountName: json["credit_account_name"],
+    creditAccountNumber: json["credit_account_number"],
+    transactionType: json["transaction_type"],
+    status: json["status"],
+    runningBalance: json["running_balance"],
+  );
+
+  Map<String, dynamic> toMap() => {
+    "date": date == null ? null : "${date!.year.toString().padLeft(4, '0')}-${date!.month.toString().padLeft(2, '0')}-${date!.day.toString().padLeft(2, '0')}",
+    "narration": narration,
+    "debit": debit,
+    "credit": credit,
+    "currency": currency,
+    "reference": reference,
+    "credit_account_name": creditAccountName,
+    "credit_account_number": creditAccountNumber,
+    "transaction_type": transactionType,
+    "status": status,
+    "running_balance": runningBalance,
   };
 }

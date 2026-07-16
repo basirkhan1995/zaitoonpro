@@ -61,7 +61,7 @@ class _Desktop extends StatelessWidget {
                    // Force segmented Android style
                   ThemeSelectorWidget(
                     width: 330,
-                    title: "Theme",
+                    title: locale.theme,
                     style: ThemeSelectorStyle.toggle,
                     usePlatformDefault: false,
                   ),
@@ -86,78 +86,76 @@ class _Desktop extends StatelessWidget {
                       },
                     ),
                   ),
-                  SizedBox(height: 1),
-                  Row(
-                    spacing: 5,
-                    children: [
-                      Icon(Icons.shopping_bag_outlined),
-                      Text(locale.invoiceTitle,style: Theme.of(context).textTheme.titleMedium,)
-                    ],
-                  ),
-
-                  ZCover(
-                    radius: 5,
-                    padding: EdgeInsets.all(10),
-                    child: Column(
-                      children: [
-                        LabeledCheckbox(
-                          title: locale.invoiceProfit,
-                          value: state.benefit,
-                          onChanged: (e) {
-                            context.read<SettingsVisibleBloc>().add(
-                              UpdateSettingsEvent(benefit: e),
-                            );
-                          },
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: bulletPoint(locale.invoiceProfitHint),
-                        ),
-
-                        LabeledCheckbox(
-                          title: AppLocalizations.of(context)!.invoiceBatch,
-                          value: state.isWholeSale,
-                          onChanged: (e) {
-                            context.read<SettingsVisibleBloc>().add(
-                              UpdateSettingsEvent(isWholeSale: e),
-                            );
-                          },
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: bulletPoint(AppLocalizations.of(context)!.invoiceBatchHint),
-                        ),
-
-                        Divider(indent: 8,endIndent: 8),
-                        ///Orders..............................................
-                        LabeledCheckbox(
-                          title: locale.inventory,
-                          value: state.orders,
-                          onChanged: (e) {
-                            context.read<SettingsVisibleBloc>().add(
-                              UpdateSettingsEvent(orders: e),
-                            );
-                          },
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                          child: Column(
-                            children: [
-                              bulletPoint(locale.purchaseInvoice),
-                              bulletPoint(locale.salesInvoice),
-                              bulletPoint(locale.estimate),
-                              bulletPoint(locale.shiftItems),
-                              bulletPoint(locale.adjustment),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-
-
                   SizedBox(height: 2),
+                  // Row(
+                  //   spacing: 5,
+                  //   children: [
+                  //     Icon(Icons.shopping_bag_outlined),
+                  //     Text(locale.invoiceTitle,style: Theme.of(context).textTheme.titleMedium,)
+                  //   ],
+                  // ),
+                  //
+                  // ZCover(
+                  //   radius: 5,
+                  //   padding: EdgeInsets.all(10),
+                  //   child: Column(
+                  //     children: [
+                  //       LabeledCheckbox(
+                  //         title: locale.invoiceProfit,
+                  //         value: state.benefit,
+                  //         onChanged: (e) {
+                  //           context.read<SettingsVisibleBloc>().add(
+                  //             UpdateSettingsEvent(benefit: e),
+                  //           );
+                  //         },
+                  //       ),
+                  //       Padding(
+                  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  //         child: bulletPoint(locale.invoiceProfitHint),
+                  //       ),
+                  //
+                  //       LabeledCheckbox(
+                  //         title: AppLocalizations.of(context)!.invoiceBatch,
+                  //         value: state.isWholeSale,
+                  //         onChanged: (e) {
+                  //           context.read<SettingsVisibleBloc>().add(
+                  //             UpdateSettingsEvent(isWholeSale: e),
+                  //           );
+                  //         },
+                  //       ),
+                  //       Padding(
+                  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  //         child: bulletPoint(AppLocalizations.of(context)!.invoiceBatchHint),
+                  //       ),
+                  //
+                  //       Divider(indent: 8,endIndent: 8),
+                  //       ///Orders..............................................
+                  //       LabeledCheckbox(
+                  //         title: locale.inventory,
+                  //         value: state.orders,
+                  //         onChanged: (e) {
+                  //           context.read<SettingsVisibleBloc>().add(
+                  //             UpdateSettingsEvent(orders: e),
+                  //           );
+                  //         },
+                  //       ),
+                  //       Padding(
+                  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  //         child: Column(
+                  //           children: [
+                  //             bulletPoint(locale.purchaseInvoice),
+                  //             bulletPoint(locale.salesInvoice),
+                  //             bulletPoint(locale.estimate),
+                  //             bulletPoint(locale.shiftItems),
+                  //             bulletPoint(locale.adjustment),
+                  //           ],
+                  //         ),
+                  //       ),
+                  //     ],
+                  //   ),
+                  // ),
+                  //
+                  // SizedBox(height: 2),
 
                   Row(
                     spacing: 5,

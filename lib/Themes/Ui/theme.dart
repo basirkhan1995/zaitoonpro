@@ -134,7 +134,12 @@ class AppThemes {
     ),
     scaffoldBackgroundColor: colorScheme.surfaceContainerLowest,
     canvasColor: colorScheme.surface,
+    dialogTheme: DialogThemeData(
+      elevation: 0,
+      backgroundColor: colorScheme.surface,
+      barrierColor: Colors.black.withValues(alpha: 0.3),
 
+    ),
     // Elevated buttons with better styling
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(

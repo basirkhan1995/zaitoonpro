@@ -460,3 +460,39 @@ class ZDateFormatter {
     return null;
   }
 }
+
+extension DateTimeApiFormat on DateTime {
+  /// Formats the date as YYYY-MM-DD for display (if you want to keep it separate)
+  String toDateStringD() {
+    return "${year.toString()}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}";
+  }
+
+  /// Formats the date as YYYY-MM-DD HH:MM:SS for API start date (00:00:00)
+  String toApiStartDate() {
+    return "${year.toString()}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')} 00:00:00";
+  }
+
+  /// Formats the date as YYYY-MM-DD HH:MM:SS for API end date
+  String toApiEndDate() {
+    final now = DateTime.now();
+    if (year == now.year && month == now.month && day == now.day) {
+      final h = now.hour.toString().padLeft(2, '0');
+      final min = now.minute.toString().padLeft(2, '0');
+      final s = now.second.toString().padLeft(2, '0');
+      return "${year.toString()}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')} $h:$min:$s";
+    }
+    return "${year.toString()}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')} 23:59:59";
+  }
+}
+
+extension StringDateConverter on String {
+  String toApiStartDate() {
+    final date = DateTime.tryParse(this) ?? DateTime.now();
+    return date.toApiStartDate();
+  }
+
+  String toApiEndDate() {
+    final date = DateTime.tryParse(this) ?? DateTime.now();
+    return date.toApiEndDate();
+  }
+}

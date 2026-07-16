@@ -212,8 +212,6 @@ extension ReminderDueExtension on DateTime {
     return "${tr.overdueBy} $overdue ${tr.daysTitle}";
   }
 }
-
-
 String _plural(int value, String unit) {
   return value == 1
       ? '1 $unit ago'

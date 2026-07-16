@@ -568,8 +568,8 @@ class _DesktopState extends State<_Desktop> {
     final startOfMonth = DateTime(now.year, now.month, 1);
     final todayOfMonth = DateTime(now.year, now.month, now.day);
 
-    fromDate = startOfMonth.toFormattedDate();
-    toDate = todayOfMonth.toFormattedDate();
+    fromDate = startOfMonth.toApiStartDate();
+    toDate = todayOfMonth.toApiEndDate();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {});
     context.read<AccStatementBloc>().add(ResetAccStmtEvent());
@@ -1282,8 +1282,8 @@ class _DesktopState extends State<_Desktop> {
       context.read<AccStatementBloc>().add(
         LoadAccountStatementEvent(
           accountNumber: accNumber!,
-          fromDate: fromDate,
-          toDate: toDate,
+          fromDate: fromDate.toApiStartDate(),
+          toDate: toDate.toApiEndDate(),
         ),
       );
     }

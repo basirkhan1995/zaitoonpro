@@ -602,6 +602,31 @@ abstract class PrintServices {
 
   String tr({required String text, required String tr}) {
     const translation = {
+      "contractTerms": {
+        "en": "Contract terms",
+        "ar": "شرایط قرارداد",
+        "fa": "شرایط قرارداد"
+      },
+      "companyRepresentative": {
+        "en": "Company Owner Signature",
+        "ar": "امضاء رئیس شرکت",
+        "fa": "امضاء رئیس شرکت"
+      },
+      "contractAmount": {
+        "en": "Contract Amount",
+        "ar": "مبلغ قرارداد",
+        "fa": "مبلغ قرارداد"
+      },
+      "projectContract": {
+        "en": "Project Contract",
+        "ar": "قرارداد پروژه",
+        "fa": "قرارداد پروژه"
+      },
+      "contractAgreement": {
+        "en": "Contract agreement",
+        "ar": "قرارداد ",
+        "fa": "قرارداد "
+      },
       "original": {
         "en": "Original",
         "ar": "اصل سند",

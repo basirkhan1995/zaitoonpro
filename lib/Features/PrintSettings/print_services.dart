@@ -602,7 +602,51 @@ abstract class PrintServices {
 
   String tr({required String text, required String tr}) {
     const translation = {
-
+      "original": {
+        "en": "Original",
+        "ar": "اصل سند",
+        "fa": "اصل سند"
+      },
+      "duplicate": {
+        "en": "Duplicate",
+        "ar": "کاپی سند",
+        "fa": "کاپی سند"
+      },
+      "receivedFrom": {
+        "en": "Received from",
+        "ar": "پرداخت کننده",
+        "fa": "پرداخت کننده"
+      },
+      "receiptVoucher": {
+        "en": "Receipt Voucher",
+        "ar": "رسید پول",
+        "fa": "رسید پول"
+      },
+      "expenseVoucher": {
+        "en": "Expense Voucher",
+        "ar": "رسید مصرف",
+        "fa": "رسید مصرف"
+      },
+      "client": {
+        "en": "Client",
+        "ar": "طرف حساب",
+        "fa": "مشتری"
+      },
+      "paidTo": {
+        "en": "Paid To",
+        "ar": "گیرنده",
+        "fa": "گیرنده"
+      },
+      "paidBy": {
+        "en": "Paid By",
+        "ar": "پرداخت ککنده",
+        "fa": "پرداخت کننده"
+      },
+      "clientSignature": {
+        "en": "Client Signature",
+        "ar": "امضا مشتری",
+        "fa": "امضا مشتری"
+      },
       "debitEntries": {
         "en": "Debit Entries",
         "ar": "د بدهکار ننوتل",

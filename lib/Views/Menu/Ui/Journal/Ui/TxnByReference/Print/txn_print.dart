@@ -235,7 +235,7 @@ class TransactionReferencePrintSettings extends PrintServices {
               if (logoProvider != null)
                 pw.Container(
                   width: isRtl ? 90 : 85,
-                  height: isRtl ? 90 : 85,
+                  height: isRtl ? 45 : 40,
                   margin: pw.EdgeInsets.symmetric(horizontal: isRtl ? 8 : 10),
                   child: pw.Image(logoProvider, fit: pw.BoxFit.contain),
                 ),

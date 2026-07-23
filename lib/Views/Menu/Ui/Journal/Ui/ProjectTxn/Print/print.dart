@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:pdf/widgets.dart' as pw;
@@ -24,6 +25,14 @@ class ProjectTxnPrintSettings extends PrintServices {
       return '$friendlyName ($accountNumber)';
     }
     return accountNumber.toString();
+  }
+
+  // Get payment method based on debit account
+  String _getPaymentMethod(int? debitAccount, String language) {
+    if (debitAccount == 10101010) {
+      return tr(text: 'cash', tr: language);
+    }
+    return tr(text: 'bankTransfer', tr: language);
   }
 
   Future<void> createDocument({
@@ -96,6 +105,12 @@ class ProjectTxnPrintSettings extends PrintServices {
   }) async {
     final document = pw.Document();
 
+    // Load logo if available
+    pw.ImageProvider? logoProvider;
+    if (report.comLogo != null && report.comLogo is Uint8List && report.comLogo!.isNotEmpty) {
+      logoProvider = pw.MemoryImage(report.comLogo!);
+    }
+
     final prpType = data.prpType?.toLowerCase() ?? '';
     final isEntry = prpType == 'entry';
     final isExpense = prpType == 'expense';
@@ -123,10 +138,11 @@ class ProjectTxnPrintSettings extends PrintServices {
                     report: report,
                     data: data,
                     language: language,
+                    logoProvider: logoProvider,
                   ),
-                  pw.SizedBox(height: 12),
+                  pw.SizedBox(height: 6),
                   _buildContractContent(data: data, language: language),
-                  pw.SizedBox(height: 12),
+                  pw.SizedBox(height: 6),
                   _buildContractFooter(data: data, language: language),
                 ],
               ),
@@ -162,10 +178,11 @@ class ProjectTxnPrintSettings extends PrintServices {
                     language: language,
                     voucherType: voucherType,
                     copyLabel: 'original',
+                    logoProvider: logoProvider,
                   ),
-                  pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 2),
                   _buildVoucherContent(data: data, language: language),
-                  pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 2),
                   _buildVoucherFooter(data: data, language: language),
                 ],
               ),
@@ -210,10 +227,11 @@ class ProjectTxnPrintSettings extends PrintServices {
                     language: language,
                     voucherType: voucherType,
                     copyLabel: 'duplicate',
+                    logoProvider: logoProvider,
                   ),
-                  pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 3),
                   _buildVoucherContent(data: data, language: language),
-                  pw.SizedBox(height: 8),
+                  pw.SizedBox(height: 3),
                   _buildVoucherFooter(data: data, language: language),
                 ],
               ),
@@ -249,6 +267,7 @@ class ProjectTxnPrintSettings extends PrintServices {
     required ReportModel report,
     required ProjectTxnModel data,
     required String language,
+    pw.ImageProvider? logoProvider,
   }) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -268,26 +287,40 @@ class ProjectTxnPrintSettings extends PrintServices {
 
         pw.SizedBox(height: 12),
 
-        // Company and Reference Info
+        // Company and Reference Info with Logo
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                if (report.comName != null)
+            // Company Info
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  if (report.comName != null)
+                    zText(
+                      text: report.comName!,
+                      fontSize: 11,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   zText(
-                    text: report.comName!,
-                    fontSize: 11,
-                    fontWeight: pw.FontWeight.bold,
+                    text: '${tr(text: 'date', tr: language)}: ${DateTime.now().toFormattedDate()} | ${DateTime.now().shamsiDateString}',
+                    fontSize: 10,
                   ),
-                zText(
-                  text: '${tr(text: 'date', tr: language)}: ${DateTime.now().toFormattedDate()} | ${DateTime.now().shamsiDateString}',
-                  fontSize: 10,
-                ),
-              ],
+                ],
+              ),
             ),
+
+            // Logo
+            if (logoProvider != null)
+              pw.Container(
+                width: 70,
+                height: 35,
+                margin: const pw.EdgeInsets.only(left: 10),
+                child: pw.Image(logoProvider, fit: pw.BoxFit.contain),
+              ),
+
+            // Original badge
             pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: pw.BoxDecoration(
@@ -403,8 +436,6 @@ class ProjectTxnPrintSettings extends PrintServices {
 
         pw.SizedBox(height: 10),
 
-
-
         // Narration
         pw.Container(
           padding: const pw.EdgeInsets.all(8),
@@ -480,7 +511,7 @@ class ProjectTxnPrintSettings extends PrintServices {
                 ),
                 pw.SizedBox(height: 2),
                 zText(
-                  text: "شرکت ساختمانی و سرکسازی استان سبز",
+                  text: data.transaction?.maker ?? '___________',
                   fontSize: 8,
                 ),
               ],
@@ -519,7 +550,7 @@ class ProjectTxnPrintSettings extends PrintServices {
     );
   }
 
-  // ==================== ORIGINAL VOUCHER METHODS (UNCHANGED) ====================
+  // ==================== ORIGINAL VOUCHER METHODS (UPDATED WITH LOGO) ====================
 
   pw.Widget _buildVoucherHeader({
     required ReportModel report,
@@ -527,6 +558,7 @@ class ProjectTxnPrintSettings extends PrintServices {
     required String language,
     required String voucherType,
     required String copyLabel,
+    pw.ImageProvider? logoProvider,
   }) {
     final isExpense = data.prpType?.toLowerCase() == 'expense';
     final typeText = isExpense ? 'expenseVoucher' : 'receiptVoucher';
@@ -535,31 +567,48 @@ class ProjectTxnPrintSettings extends PrintServices {
       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Column(
+        // Company Info and Logo
+        pw.Row(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
-            pw.Row(
+            // Logo
+            if (logoProvider != null)
+              pw.Container(
+                width: 60,
+                height: 60,
+                child: pw.Image(logoProvider, fit: pw.BoxFit.contain),
+              ),
+            // Company Name
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
+                if (report.comName != null)
+                  zText(
+                    text: report.comName!,
+                    fontSize: 16,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 zText(
-                  text: tr(text: typeText, tr: language),
-                  fontSize: 14, // Increased from 12
-                  fontWeight: pw.FontWeight.bold,
+                  text: report.comAddress??"",
+                  fontSize: 9,
                 ),
+                zText(
+                  text: report.comEmail??"",
+                  fontSize: 9,
+                ),
+                zText(
+                  text: report.compPhone??"",
+                  fontSize: 9,
+                ),
+
               ],
-            ),
-            pw.SizedBox(height: 3),
-            zText(
-              text: '${tr(text: 'reference', tr: language)}: ${data.transaction?.trnReference ?? ''}',
-              fontSize: 10, // Increased from 8
-            ),
-            zText(
-              text: '${tr(text: 'date', tr: language)}: ${DateTime.now().toFormattedDate()} | ${DateTime.now().shamsiDateString}',
-              fontSize: 10, // Increased from 8
             ),
           ],
         ),
+
         pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.end,
+          mainAxisAlignment: pw.MainAxisAlignment.end,
           children: [
             pw.Container(
               padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -567,18 +616,21 @@ class ProjectTxnPrintSettings extends PrintServices {
                 border: pw.Border.all(width: 1),
               ),
               child: zText(
-                text: tr(text: copyLabel, tr: language).toUpperCase(),
-                fontSize: 10, // Increased from 8
+                text: tr(text: typeText, tr: language),
+                fontSize: 14,
                 fontWeight: pw.FontWeight.bold,
               ),
             ),
-            pw.SizedBox(height: 3),
-            if (report.comName != null)
-              zText(
-                text: report.comName!,
-                fontSize: 11, // Increased from 9
-                fontWeight: pw.FontWeight.bold,
-              ),
+
+            pw.SizedBox(height: 10),
+            zText(
+              text: data.transaction?.trnReference ?? '',
+              fontSize: 10,
+            ),
+            zText(
+              text: '${DateTime.now().toFormattedDate()} | ${DateTime.now().shamsiDateString}',
+              fontSize: 10,
+            ),
           ],
         ),
       ],
@@ -605,18 +657,20 @@ class ProjectTxnPrintSettings extends PrintServices {
       voucherRows.addAll([
         {"title": "projectName", "value": data.prjName ?? ""},
         {"title": "client", "value": data.customerName ?? ""},
-        {"title": "paymentType", "value": data.prpType ?? ""},
+        {"title": "paymentType", "value": tr(text: 'expense', tr: language)},
         {"title": "debitAccount", "value": _getAccountName(data.transaction?.debitAccount, language)},
         {"title": "creditAccount", "value": _getAccountName(data.transaction?.creditAccount, language)},
         {"title": "narration", "value": data.transaction?.narration ?? ""},
       ]);
     } else {
       // Receipt/Payment Voucher
+      final paymentMethod = _getPaymentMethod(data.transaction?.debitAccount, language);
+
       voucherRows.addAll([
         {"title": "projectName", "value": data.prjName ?? ""},
         {"title": "receivedFrom", "value": data.customerName ?? ""},
         {"title": "accountNumber", "value": _getAccountName(data.transaction?.creditAccount, language)},
-        {"title": "paymentType", "value":  data.prpType??""},
+        {"title": "paymentType", "value": paymentMethod},
         {"title": "narration", "value": data.transaction?.narration ?? ""},
       ]);
     }
@@ -628,12 +682,12 @@ class ProjectTxnPrintSettings extends PrintServices {
         pw.Container(
           height: 1,
           color: pw.PdfColors.black,
-          margin: const pw.EdgeInsets.symmetric(vertical: 6),
+          margin: const pw.EdgeInsets.symmetric(vertical: 2),
         ),
 
         // Amount row - shown prominently at the top
         pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+          padding: const pw.EdgeInsets.symmetric(vertical: 1, horizontal: 8),
           decoration: pw.BoxDecoration(
             border: pw.Border.all(width: 0.5),
             color: pw.PdfColors.grey100,
@@ -648,7 +702,7 @@ class ProjectTxnPrintSettings extends PrintServices {
               ),
               zText(
                 text: '${data.transaction?.amount?.toAmount()} ${data.transaction?.currency}',
-                fontSize: 14, // Larger, bold amount
+                fontSize: 14,
                 fontWeight: pw.FontWeight.bold,
               ),
             ],
@@ -659,7 +713,7 @@ class ProjectTxnPrintSettings extends PrintServices {
 
         // Other voucher details
         ...voucherRows.map((r) => pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 3),
+          padding: const pw.EdgeInsets.symmetric(vertical: 1),
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
@@ -667,7 +721,7 @@ class ProjectTxnPrintSettings extends PrintServices {
                 width: 100,
                 child: zText(
                   text: '${tr(text: r["title"]!, tr: language)}:',
-                  fontSize: 10, // Increased from 8
+                  fontSize: 10,
                   fontWeight: pw.FontWeight.bold,
                 ),
               ),
@@ -694,14 +748,14 @@ class ProjectTxnPrintSettings extends PrintServices {
             children: [
               zText(
                 text: '${tr(text: 'amountInWords', tr: language)}: ',
-                fontSize: 10, // Increased from 8
+                fontSize: 10,
                 fontWeight: pw.FontWeight.bold,
               ),
               pw.Expanded(
                 child: zText(
                   text: '${NumberToWords.convert(parsedAmount, lang)} ${data.transaction?.currency ?? ''}',
-                  fontSize: 10, // Increased from 8
-                  fontWeight: pw.FontWeight.bold, // Made bold
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
                 ),
               ),
             ],
@@ -738,8 +792,14 @@ class ProjectTxnPrintSettings extends PrintServices {
                 ),
                 pw.SizedBox(height: 3),
                 zText(
-                  text: '${tr(text: 'preparedBy', tr: language)}: ${data.transaction?.maker ?? ''}',
-                  fontSize: 9, // Increased from 7
+                  text: tr(text: 'preparedBy', tr: language),
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                pw.SizedBox(height: 1),
+                zText(
+                  text: data.transaction?.maker ?? '___________',
+                  fontSize: 9,
                 ),
               ],
             ),
@@ -759,8 +819,14 @@ class ProjectTxnPrintSettings extends PrintServices {
                 ),
                 pw.SizedBox(height: 3),
                 zText(
-                  text: '${tr(text: 'authorizedBy', tr: language)} ${data.transaction?.checker ?? ''}',
-                  fontSize: 9, // Increased from 7
+                  text: tr(text: 'authorizedBy', tr: language),
+                  fontSize: 9,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+                pw.SizedBox(height: 1),
+                zText(
+                  text: data.transaction?.checker ?? '___________',
+                  fontSize: 9,
                 ),
               ],
             ),
@@ -782,7 +848,13 @@ class ProjectTxnPrintSettings extends PrintServices {
                   pw.SizedBox(height: 3),
                   zText(
                     text: tr(text: 'clientSignature', tr: language),
-                    fontSize: 9, // Increased from 7
+                    fontSize: 9,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                  pw.SizedBox(height: 1),
+                  zText(
+                    text: data.customerName ?? '___________',
+                    fontSize: 9,
                   ),
                 ],
               ),

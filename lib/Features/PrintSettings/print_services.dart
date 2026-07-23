@@ -1915,7 +1915,7 @@ abstract class PrintServices {
       "paymentType": {
         "en": "Payment Type",
         "ar": "د تادیې ډول",
-        "fa": "نوع پرداخت"
+        "fa": "روش پرداخت"
       },
       "projectStatus": {
         "en": "Project Status",

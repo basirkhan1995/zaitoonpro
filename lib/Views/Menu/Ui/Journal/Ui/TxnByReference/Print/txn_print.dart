@@ -292,13 +292,13 @@ class TransactionReferencePrintSettings extends PrintServices {
           _voucherRow(tr(text: 'accountNumber', tr: language), accountValue, isRtl),
           _voucherRow(tr(text: 'narration', tr: language), data.narration ?? "-", isRtl),
 
-          pw.SizedBox(height: isRtl ? 6 : 7),
+          pw.SizedBox(height: isRtl ? 4 : 6),
 
           // Amount
           pw.Container(
             width: double.infinity,
             padding: pw.EdgeInsets.symmetric(
-              vertical: isRtl ? 8 : 6,
+              vertical: isRtl ? 5 : 3,
               horizontal: isRtl ? 12 : 14,
             ),
             decoration: pw.BoxDecoration(

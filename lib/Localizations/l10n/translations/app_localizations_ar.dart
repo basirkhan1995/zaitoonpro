@@ -2062,19 +2062,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get currentLiabilities => 'اوسنۍ پورونه';
 
   @override
-  String get ownerEquity => 'د مالک حق';
+  String get ownerEquity => 'د مالک سرمایه ';
 
   @override
   String get totalAssets => 'ټول شتمنۍ';
 
   @override
-  String get totalLiabilitiesEquity => 'ټول پورونه او سهام';
+  String get totalLiabilitiesEquity => 'ټول پورونه او سرمایه';
 
   @override
   String get assets => 'شتمنۍ';
 
   @override
-  String get liabilitiesEquity => 'پورونه او د مالک حقونه';
+  String get liabilitiesEquity => 'پورونه او سرمایه';
 
   @override
   String get netProfit => 'خالصه ګټه';
